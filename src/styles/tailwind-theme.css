@@ -6,30 +6,17 @@
 @theme {
   /* cosmic themes theme config */
   /* primary colors */
-  --color-primary-50: var(--color-blue-50);
-  --color-primary-100: var(--color-blue-100);
-  --color-primary-200: var(--color-blue-200);
-  --color-primary-300: var(--color-blue-300);
-  --color-primary-400: var(--color-blue-400);
-  --color-primary-500: var(--color-blue-500);
-  --color-primary-600: var(--color-blue-600);
-  --color-primary-700: var(--color-blue-700);
-  --color-primary-800: var(--color-blue-800);
-  --color-primary-900: var(--color-blue-900);
-  --color-primary-950: var(--color-blue-950);
-
-  /* blue colors based on #00B1D2 */
-  --color-blue-50: #e6f7fb;
-  --color-blue-100: #b3e8f2;
-  --color-blue-200: #80d9e9;
-  --color-blue-300: #4dcae0;
-  --color-blue-400: #1ab8d2;
-  --color-blue-500: #00b1d2;
-  --color-blue-600: #008fa8;
-  --color-blue-700: #006d7e;
-  --color-blue-800: #004b54;
-  --color-blue-900: #00292a;
-  --color-blue-950: #001415;
+  --color-primary-50: var(--color-violet-50);
+  --color-primary-100: var(--color-violet-100);
+  --color-primary-200: var(--color-violet-200);
+  --color-primary-300: var(--color-violet-300);
+  --color-primary-400: var(--color-violet-400);
+  --color-primary-500: var(--color-violet-500);
+  --color-primary-600: var(--color-violet-600);
+  --color-primary-700: var(--color-violet-700);
+  --color-primary-800: var(--color-violet-800);
+  --color-primary-900: var(--color-violet-900);
+  --color-primary-950: var(--color-violet-950);
 
   /* base colors */
   --color-base-50: var(--color-zinc-50);
@@ -53,6 +40,13 @@
   --breakpoint-2xl: 1536px;
 
   /* font families */
+  --font-mono:
+    "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace";
+  --font-fallback:
+    "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif",
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-heading: "Inter Variable", var(--font-fallback);
+  --font-sans: "Inter Variable", var(--font-fallback);
   --font-mono:
     "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace";
 

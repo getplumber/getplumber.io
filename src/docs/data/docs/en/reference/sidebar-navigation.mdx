@@ -1,0 +1,138 @@
+---
+title: "Sidebar Config"
+description: "Learn how to configure and customize the documentation sidebar navigation"
+sidebar:
+  label: "Sidebar Navigation"
+  order: 3
+  badge:
+    text: New
+    variant: "info"
+---
+
+The sidebar in Pathfinder is configured through localized TypeScript files that define the structure and order of your documentation tabs and their sections.
+
+## Configuration Files
+
+The sidebar navigation is configured in `src/docs/config/[language]/sidebarNavData.json.ts`. Each language file exports a default object containing documentation tabs and their sections.
+
+```ts title="src/docs/config/en/sidebarNavData.json.ts"
+export default {
+  // Define the tabs that appear at the top of the sidebar
+  tabs: [
+    {
+      id: "main",
+      title: "Documentation",
+      description: "Main documentation",
+      icon: "tabler/file-text", // Optional icon from astro-icon
+      // Define sections that appear in this tab
+      sections: [
+        {
+          id: "getting-started",
+          title: "Getting Started",
+        },
+        {
+          id: "components",
+          title: "Components",
+        },
+        {
+          id: "reference",
+          title: "Reference",
+        },
+      ],
+    },
+    {
+      id: "api",
+      title: "API",
+      description: "API Reference",
+      icon: "tabler/api-app", 
+      sections: [
+        {
+          id: "endpoints",
+          title: "Endpoints",
+        },
+        {
+          id: "authentication",
+          title: "Authentication",
+        },
+      ],
+    },
+  ],
+};
+```
+
+<Aside variant="info">
+  Any sections not configured are still included, they will just have their default label and alphabetical display order.
+</Aside>
+
+## Structure Overview
+
+The sidebar configuration consists of:
+
+1. **Documentation Tabs** - These appear at the top of the sidebar and allow users to switch between different documentation sections (like "Documentation" and "API").
+
+2. **Sidebar Sections** - These are the sections that appear within each documentation tab, representing folders of related documentation pages.
+
+## Documentation Tab Properties
+
+Each tab in the `tabs` array has the following properties:
+
+- `id` (required): The unique identifier for this documentation tab.
+- `title` (required): The display title for the tab in the sidebar navigation.
+- `description` (optional): A short description of the tab's contents.
+- `icon` (optional): An icon from the astro-icon set to display next to the tab title.
+- `sections` (required): An array of sidebar sections that belong to this tab.
+
+## Sidebar Section Properties
+
+Each section in a tab's `sections` array has the following properties:
+
+- `id` (required): Must match the folder name under `src/docs/data/docs/[language]/`. For example, if your id is "getting-started", your documentation files should be in `src/docs/data/docs/[language]/getting-started/`.
+- `title` (required): The display title for the section in the sidebar navigation. This can include spaces and special characters.
+
+## Ordering and Organization
+
+- The order of tabs in the `tabs` array determines their display order in the sidebar's tab selector.
+- The order of sections in each tab's `sections` array determines their display order within that tab.
+- When a user selects a tab, the sidebar will display the sections for that tab in the order defined in the configuration.
+
+## Adding New Tabs and Sections
+
+### To add a new documentation tab:
+
+1. Add a new tab configuration to the `tabs` array with a unique `id`
+2. Define the sections that should appear in this tab
+
+### To add a new section to an existing tab:
+
+1. Create a new folder under `src/docs/data/docs/[language]/` with your section's ID
+2. Add a new section configuration to the appropriate tab's `sections` array
+3. Add your documentation files (`.md` or `.mdx`) to your new section folder
+
+```ts
+export default {
+  tabs: [
+    {
+      id: "main",
+      title: "Documentation",
+      // ... other properties ...
+      sections: [
+        // ... existing sections ...
+        {
+          id: "advanced-topics",
+          title: "Advanced Topics",
+        },
+      ],
+    },
+  ],
+};
+```
+
+## Localization
+
+The sidebar navigation is fully localizable. Create a separate configuration file for each language (this is automated if you run the `docs:config-i18n` command):
+
+- `src/docs/config/en/sidebarNavData.json.ts` for English
+- `src/docs/config/fr/sidebarNavData.json.ts` for French
+- etc.
+
+Each language can have its own translated titles, descriptions, and even different ordering of tabs and sections if needed.

@@ -39,6 +39,14 @@ export default defineConfig({
       imports: [
         // https://github.com/delucis/astro-auto-import
         "@components/Admonition/Admonition.astro",
+        "@/docs/components/mdx-components/Aside.astro",
+        "@/docs/components/mdx-components/Badge.astro",
+        "@/docs/components/mdx-components/Button.astro",
+        "@/docs/components/mdx-components/Steps.astro",
+        "@/docs/components/mdx-components/Tabs.astro",
+        "@/docs/components/mdx-components/TabsContent.astro",
+        "@/docs/components/mdx-components/TabsList.astro",
+        "@/docs/components/mdx-components/TabsTrigger.astro",
       ],
     }),
     mdx(),

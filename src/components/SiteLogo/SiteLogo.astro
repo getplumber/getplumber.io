@@ -1,6 +1,6 @@
 ---
 import { getLocaleFromUrl } from "@js/localeUtils";
-import { getLocalizedRoute, getTranslatedData } from "@js/translationUtils";
+import { getTranslatedData } from "@js/translationUtils";
 import { Image } from "astro:assets";
 
 const currLocale = getLocaleFromUrl(Astro.url);
@@ -8,6 +8,7 @@ const siteData = getTranslatedData("siteData", currLocale);
 
 // images
 import logo from "@images/site-logo.png";
+import { getLocalizedRoute } from "@/docs/js/translationUtils";
 ---
 
 <a

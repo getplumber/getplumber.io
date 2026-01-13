@@ -12,6 +12,9 @@
 /* theme definition import */
 @import "./tailwind-theme.css";
 
+/* docs styles */
+@import "@/docs/styles/docs-global.css";
+
 /* other imports into specific layers */
 @import "./mos.css" layer(utilities);
 @import "./markdown-content.css" layer(components);
