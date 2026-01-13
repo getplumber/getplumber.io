@@ -1,0 +1,87 @@
+---
+/**
+ * * Logo cloud section marquee
+ *
+ * These are taken from the src/icons folder. You may desire to modify any SVGs you use to have the fill set to "currentColor"
+ * to use the current text color. That is how I have set up these icons for demo purposes
+ *
+ * There is a commented out script at the bottom. If you would like the marquee to pause on mouseover, uncomment it.
+ */
+
+import { Icon } from "astro-icon/components";
+---
+
+<section id="logocloud2" class="border-base-300 dark:border-base-600/60 border-y py-6">
+  <div class="relative mx-auto max-w-[1800px] overflow-hidden px-4">
+    <!-- left fade-out -->
+    <div
+      class="from-base-100 dark:from-base-900 absolute top-0 -left-px z-10 h-full w-[20%] bg-gradient-to-r from-20% to-transparent"
+    >
+    </div>
+    <!-- right fade-out -->
+    <div
+      class="to-base-100 dark:to-base-900 absolute top-0 -right-px z-10 h-full w-[20%] bg-gradient-to-r from-transparent to-80%"
+    >
+    </div>
+
+    <div class="logo-marquee relative flex gap-32 overflow-hidden">
+      <!-- Each animate-marquee2 section needs to have the exact same icons. Just do one then copy / paste -->
+      <div class="animate-marquee2 flex min-w-full shrink-0 items-center justify-around gap-32">
+        <Icon name="logos/astro" class="logo py-2" aria-label="logo" />
+
+        <Icon name="logos/spotify" class="logo" aria-label="logo" />
+
+        <Icon name="logos/framer" class="logo" aria-label="logo" />
+
+        <Icon name="logos/dribbble" class="logo" aria-label="logo" />
+
+        <Icon name="logos/sanity" class="logo py-2" aria-label="logo" />
+
+        <Icon name="logos/contentfull" class="logo" aria-label="logo" />
+
+        <Icon name="logos/github" class="logo" aria-label="logo" />
+
+        <Icon name="logos/notion" class="logo" aria-label="logo" />
+
+        <Icon name="logos/adobe" class="logo" aria-label="logo" />
+
+        <Icon name="logos/zoom" class="logo" aria-label="logo" />
+      </div>
+
+      <!-- Each animate-marquee2 section needs to have the exact same icons. Just do one then copy / paste -->
+      <div
+        aria-hidden="true"
+        class="animate-marquee2 flex min-w-full shrink-0 items-center justify-around gap-32"
+      >
+        <Icon name="logos/astro" class="logo py-2" aria-label="logo" />
+
+        <Icon name="logos/spotify" class="logo" aria-label="logo" />
+
+        <Icon name="logos/framer" class="logo" aria-label="logo" />
+
+        <Icon name="logos/dribbble" class="logo" aria-label="logo" />
+
+        <Icon name="logos/sanity" class="logo py-2" aria-label="logo" />
+
+        <Icon name="logos/contentfull" class="logo" aria-label="logo" />
+
+        <Icon name="logos/github" class="logo" aria-label="logo" />
+
+        <Icon name="logos/notion" class="logo" aria-label="logo" />
+
+        <Icon name="logos/adobe" class="logo" aria-label="logo" />
+
+        <Icon name="logos/zoom" class="logo" aria-label="logo" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @import "tailwindcss/theme" theme(reference);
+  @import "@/styles/tailwind-theme.css" theme(reference);
+
+  .logo {
+    @apply h-10 w-auto;
+  }
+</style>

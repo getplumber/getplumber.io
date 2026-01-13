@@ -1,0 +1,27 @@
+---
+import CategoryCloud from "@components/CategoryCloud/CategoryCloud.astro";
+// import BlogIndexLayout from "@layouts/BlogIndexLayout2.astro";
+import { getAllPosts } from "@js/blogUtils";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import BlogIndexLayout from "@layouts/BlogIndexLayout1.astro";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+const posts = await getAllPosts(currLocale);
+---
+
+<BaseLayout
+  title="Our Blog Posts"
+  description="Learn from our blog posts about web development, design, and more."
+>
+  <div class="site-container mt-24 md:mt-36">
+    <div class="flex">
+      <p class="colored-title">Our blog</p>
+    </div>
+    <h1 class="h2 mt-6">Blog posts to help you on your journey</h1>
+    <div class="mt-4 flex">
+      <CategoryCloud showCount={false} />
+    </div>
+    <BlogIndexLayout posts={posts} class="mt-10" />
+  </div>
+</BaseLayout>

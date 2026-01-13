@@ -1,0 +1,91 @@
+---
+import Category from "@components/Category/CategoryBadge.astro";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { formatDate } from "@js/textUtils";
+import { Image } from "astro:assets";
+import { type CollectionEntry, getEntries, getEntry } from "astro:content";
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+  showDescription?: boolean;
+  class?: string;
+  rest?: any; // catch-all for any additional parameters, such as "aria-label"
+}
+
+const { post, showDescription = false, class: className, ...rest } = Astro.props as Props;
+const { title, description, pubDate, heroImage, categories, authors } = post.data;
+
+const currLocale = getLocaleFromUrl(Astro.url);
+const authorsData = await getEntries(authors);
+---
+
+<article class:list={["", className]} {...rest} data-pagefind-ignore>
+  <div
+    class="border-base-300 dark:border-base-600/60 relative shrink-0 justify-center overflow-hidden rounded-md border sm:justify-normal"
+  >
+    <a href={`/blog/${post.id}/`}>
+      <Image
+        src={heroImage}
+        alt={`${title} blog post`}
+        height={700}
+        quality="high"
+        class="h-auto max-h-96 w-full object-cover transition-all duration-500 hover:scale-[1.02]"
+      />
+    </a>
+
+    <!-- category -->
+    {
+      categories && categories.length > 0 && (
+        <div class="absolute top-3 right-3 flex gap-2 text-xs">
+          {categories.map((category) => (
+            <Category category={category} />
+          ))}
+        </div>
+      )
+    }
+  </div>
+  <div class="mt-2">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <!-- author -->
+      {
+        authorsData.length > 0 && (
+          <div class="flex items-center">
+            <div class="border-base-300 dark:border-base-600/60 mr-2 aspect-square size-7 overflow-hidden rounded-full border">
+              <Image
+                src={authorsData[0].data.avatar}
+                alt={`Avatar of ${authorsData[0].data.name}`}
+                width={32}
+                class="h-full w-full object-cover"
+              />
+            </div>
+            <span class="text-sm">{authorsData[0].data.name}</span>
+          </div>
+        )
+      }
+
+      <!-- published date -->
+      <p class="text-sm whitespace-nowrap opacity-70">
+        {formatDate(pubDate, currLocale)}
+      </p>
+    </div>
+    <!-- title -->
+    <a
+      href={`/blog/${post.id}/`}
+      class="hover:text-primary-700 dark:hover:text-primary-400"
+    >
+      <h2 class="mt-1 line-clamp-2 text-lg font-medium transition-colors md:text-xl">
+        {title}
+      </h2>
+    </a>
+
+    <!-- description -->
+    {
+      showDescription && (
+        <p class="description mt-2 line-clamp-3 hidden text-sm md:block lg:text-base">
+          {description}
+        </p>
+      )
+    }
+  </div>
+</article>

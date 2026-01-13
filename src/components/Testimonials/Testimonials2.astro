@@ -1,0 +1,85 @@
+---
+/**
+ * * Testimonials section marquee
+ * JS allows the animation to pause while you hover over it
+ * Adjust the speed of the marquee by changing the "marquee" animation duration in the tailwind.config.cjs file
+ */
+
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { getTranslatedData } from "@js/translationUtils";
+
+import TestimonialCard from "./TestimonialCard.astro";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+const testimonialData = getTranslatedData("testimonialData", currLocale);
+---
+
+<section id="testimonial2" class="site-container my-16 md:my-36">
+  <div class="flex">
+    <p class="colored-title inline">Testimonials</p>
+  </div>
+  <h2 class="h2 mt-8">Hear from our customers</h2>
+
+  <div class="relative overflow-hidden">
+    <!-- left fade-out -->
+    <div
+      class="from-base-100 dark:from-base-900 absolute top-0 -left-px z-10 h-full w-[10%] bg-gradient-to-r from-10% to-transparent"
+    >
+    </div>
+    <!-- right fade-out -->
+    <div
+      class="to-base-100 dark:to-base-900 absolute top-0 -right-px z-10 h-full w-[10%] bg-gradient-to-r from-transparent to-90%"
+    >
+    </div>
+
+    <div class="testimonial-marquee relative mt-10 flex gap-6 overflow-hidden">
+      <div class="animate-marquee flex min-w-full shrink-0 items-start justify-around gap-6">
+        {
+          testimonialData.map((testimonial, idx) => (
+            <div class="max-w-[clamp(17rem,40vw,23rem)]">
+              <TestimonialCard {...testimonial} />
+            </div>
+          ))
+        }
+      </div>
+      <div
+        aria-hidden="true"
+        class="animate-marquee flex min-w-full shrink-0 items-start justify-around gap-6"
+      >
+        {
+          testimonialData.map((testimonial, idx) => (
+            <div class="max-w-[clamp(17rem,40vw,23rem)]">
+              <TestimonialCard {...testimonial} />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const setupTestimonialMarquee = () => {
+    const testimonialMarquee = document.querySelector(".testimonial-marquee");
+
+    // add the clauss "pause" when the mouse enters the marquee
+    testimonialMarquee?.addEventListener("mouseover", () => {
+      testimonialMarquee.querySelectorAll(".animate-marquee").forEach((el) => {
+        el.classList.add("pause");
+      });
+    });
+
+    // remove the class "pause" when the mouse leaves the marquee
+    testimonialMarquee?.addEventListener("mouseout", () => {
+      testimonialMarquee.querySelectorAll(".animate-marquee").forEach((el) => {
+        el.classList.remove("pause");
+      });
+    });
+  };
+
+  // runs on initial page load
+  setupTestimonialMarquee();
+
+  // runs on view transitions navigation
+  document.addEventListener("astro:after-swap", setupTestimonialMarquee);
+</script>

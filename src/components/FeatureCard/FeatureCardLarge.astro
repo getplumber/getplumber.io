@@ -1,0 +1,51 @@
+---
+/**
+ * * These are larger cards with icons, titles, and text
+ * Recommend using 3 cards in a row
+ *
+ * ! If you can an error for an icon like "Error: Not Found: "calendar-check" in pack "tabler",
+ * ! You can copy to actual SVG into src/icons and name it however and use similar to below
+ */
+
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  icon: string;
+  title: string;
+  text: string;
+}
+
+const { icon, title, text } = Astro.props as Props;
+---
+
+<div
+  class="group border-base-300 bg-base-200/50 hover:border-primary-300 dark:border-base-600/60 dark:bg-base-900 dark:hover:border-base-500 relative flex flex-col gap-2 overflow-hidden rounded-2xl border px-4 py-8 text-center transition duration-500"
+>
+  <!-- behind icon glow -->
+  <div
+    class="bg-primary-500 absolute inset-0 m-auto h-[26%] w-[26%] -translate-y-[70%] rounded-full blur-2xl"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div class="relative flex justify-center">
+    <div
+      class="border-primary-300/10 bg-base-100/10 dark:bg-base-800/10 flex rounded-full border p-3"
+    >
+      <div class="border-primary-300/30 bg-base-100/40 dark:bg-base-800/40 rounded-full border p-3">
+        <div
+          class="border-primary-300/50 bg-base-100/70 dark:bg-base-800/70 rounded-full border p-3"
+        >
+          <Icon
+            name={icon}
+            class="text-primary-600 dark:text-primary-400 h-6 w-6 sm:h-7 sm:w-7"
+            aria-hidden="true"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="h3 inline">{title}</h3>
+  <p class="opacity-90 dark:opacity-80">{text}</p>
+</div>

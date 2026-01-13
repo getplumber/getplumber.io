@@ -1,0 +1,84 @@
+---
+import Button from "@components/Button/Button.astro";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { getLocalizedRoute, useTranslations } from "@js/translationUtils";
+import { Icon } from "astro-icon/components";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+---
+
+<section id="hero2" class="relative flex w-full overflow-hidden pt-32 pb-28 md:pt-40 md:pb-36">
+  <!-- background glow -->
+  <div
+    class="bg-primary-400/40 absolute inset-x-0 bottom-0 -z-10 mx-auto aspect-square w-[85%] max-w-5xl translate-x-1/4 translate-y-3/4 rounded-full blur-3xl"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div
+    class="bg-primary-600/30 absolute right-0 bottom-0 -z-10 mx-auto aspect-square w-[85%] max-w-5xl translate-x-1/4 translate-y-1/2 rounded-full blur-3xl"
+    aria-hidden="true"
+  >
+  </div>
+  <!-- hero items -->
+
+  <div class="site-container mx-auto max-w-4xl gap-8 text-center">
+    <!-- notification -->
+    <div class="mb-4 flex w-full items-center justify-center" data-mos="fade-up">
+      <a
+        href={"/blog/tsconfig-paths-setup"}
+        class="border-primary-300 bg-base-100 text-base-800 ring-primary-500 ring-opacity-20 hover:border-primary-400 dark:border-primary-300/20 dark:bg-base-800 dark:text-base-200 dark:hover:border-primary-400/40 flex items-center rounded-full border px-4 py-1 text-sm ring-2 transition"
+      >
+        <span class="flex items-center gap-2">
+          <Icon
+            name="tabler/wand"
+            class="text-primary-600 dark:text-primary-300 inline h-4 w-4"
+            aria-hidden="true"
+          />New updates!</span
+        ></a
+      >
+    </div>
+
+    <!-- Hero text -->
+    <h1
+      class="from-base-900 to-base-600/90 dark:from-base-100 dark:to-base-400/90 bg-gradient-to-r bg-clip-text pb-4 text-5xl font-medium text-transparent md:text-6xl"
+      data-mos="fade-up"
+    >
+      Welcome to Galaxy
+    </h1>
+    <p
+      class="description mx-auto mt-2 max-w-sm sm:max-w-md md:max-w-lg"
+      data-mos="fade-up"
+      data-mos-delay="0.2"
+      data-mos-anchor="#hero2"
+    >
+      Hero description
+      <!-- Get your SaaS landing page and blog running in a snap. Save time with
+      multiple pre-designed pages, sections, and components. Built with Astro
+      and Tailwind CSS. -->
+    </p>
+
+    <!-- CTA -->
+    <div class="mx-auto mt-8 flex max-w-sm flex-col justify-center gap-4 px-4 sm:flex-row">
+      <Button
+        variant="primary"
+        href="https://cosmicthemes.com/themes/galaxy/"
+        data-mos="fade-up"
+        data-mos-delay="0.8"
+        data-mos-anchor="#hero2"
+      >
+        Get Galaxy
+      </Button>
+      <Button
+        variant="outline"
+        href={"/overview"}
+        arrow="right"
+        data-mos="fade-up"
+        data-mos-delay="1"
+        data-mos-anchor="#hero2"
+      >
+        Overview
+      </Button>
+    </div>
+  </div>
+</section>

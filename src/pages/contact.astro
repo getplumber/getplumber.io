@@ -1,0 +1,16 @@
+---
+// main layout
+import ContactForm from "@components/Forms/ContactForm.astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Contact Us"
+  description="Contact us and we will help you find the right plan or answer any questions."
+>
+  <div class="mt-24 md:mt-36">
+    <div class="site-container flex justify-center">
+      <ContactForm />
+    </div>
+  </div>
+</BaseLayout>

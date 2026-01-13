@@ -1,0 +1,128 @@
+---
+import Button from "@components/Button/Button.astro";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { formatDate, humanize, slugify } from "@js/textUtils";
+import { Image } from "astro:assets";
+import { type CollectionEntry, getEntries } from "astro:content";
+
+// main layout
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+}
+
+const { post } = Astro.props as Props;
+const { title, description, authors, pubDate, updatedDate, heroImage } = post.data;
+
+const currLocale = getLocaleFromUrl(Astro.url);
+const authorsData = await getEntries(authors);
+---
+
+<BaseLayout
+  type="blog"
+  title={title}
+  description={description}
+  heroImage={heroImage}
+  authorsData={authorsData}
+  postFrontmatter={post.data}
+>
+  <article class="site-container mt-24 min-w-full">
+    <!-- Blog post info -->
+    <div class="mx-auto flex max-w-[800px] flex-col items-center">
+      <div class="flex w-full">
+        <div class="mr-auto max-w-2xl">
+          <!-- title -->
+          <h1 class="h1 mt-4">{title}</h1>
+
+          <!-- description -->
+          <p class="mt-3 text-sm opacity-70 md:text-base/5">
+            {description}
+          </p>
+        </div>
+      </div>
+
+      <!-- blog post main image -->
+      <div class="mt-6 overflow-hidden">
+        <Image
+          src={heroImage}
+          alt={`Cover for ${title}`}
+          width={1600}
+          quality="high"
+          class="border-base-300 dark:border-base-600/60 max-h-[50vh] rounded-lg border object-cover"
+          loading="eager"
+          format="webp"
+        />
+      </div>
+
+      <!-- after blog post hero image -->
+      <div class="mt-4 flex w-full flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap gap-4">
+          <!-- author info -->
+          {
+            authorsData.map((authorData) => (
+              <div class="mb-auto flex">
+                <figure>
+                  <Image
+                    src={authorData.data.avatar}
+                    alt={`${authorData.data.name} avatar`}
+                    width={100}
+                    quality="high"
+                    class="h-7 w-7 rounded-full object-cover"
+                  />
+                </figure>
+                <div class="my-auto ml-2">
+                  <a
+                    class="opacity-80 transition hover:opacity-100"
+                    href={authorData.data.authorLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {authorData.data.name}
+                  </a>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+
+        <!-- pubDate -->
+        <time class="opacity-80" datetime={pubDate.toISOString()}
+          >{formatDate(pubDate, currLocale)}</time
+        >
+      </div>
+    </div>
+
+    <!-- article content -->
+    <div class="mt-14 w-full">
+      <div class="mx-auto max-w-2xl">
+        <div class="text-base-content text-base">
+          {
+            updatedDate && (
+              <div class="mb-6 italic">
+                <time datetime={updatedDate.toISOString()}>
+                  Updated: {formatDate(updatedDate, currLocale)}
+                </time>
+              </div>
+            )
+          }
+          <section id="blog-post-content" class="markdown-content mx-auto md:text-lg">
+            <slot />
+          </section>
+
+          <!-- button to go back to all posts -->
+          <div class="mt-16 flex justify-center">
+            <Button
+              variant="outline"
+              href={"/blog/"}
+              arrow="left"
+              class="py-2"
+            >
+              Back to all posts
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+</BaseLayout>

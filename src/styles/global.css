@@ -1,0 +1,196 @@
+@import url("./fonts.css");
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* tailwind plugins */
+@plugin "@tailwindcss/forms";
+
+/* dark mode */
+@variant dark (&:where(.dark, .dark *));
+
+/* theme definition import */
+@import "./tailwind-theme.css";
+
+/* other imports into specific layers */
+@import "./mos.css" layer(utilities);
+@import "./markdown-content.css" layer(components);
+@import "./buttons.css" layer(components);
+
+/* layer definitions */
+@layer theme, base, components, utilities;
+
+@layer base {
+  :root {
+    /* starwind component variables */
+    --background: var(--color-base-100);
+    --foreground: var(--color-base-900);
+    --card: var(--color-base-50);
+    --card-foreground: var(--color-base-950);
+    --popover: var(--color-base-50);
+    --popover-foreground: var(--color-base-950);
+    --primary: var(--color-primary-700);
+    --primary-foreground: var(--color-base-50);
+    --secondary: var(--color-fuchsia-700);
+    --secondary-foreground: var(--color-base-50);
+    --muted: var(--color-base-100);
+    --muted-foreground: var(--color-base-600);
+    --accent: var(--color-base-200);
+    --accent-foreground: var(--color-base-900);
+    --info: var(--color-sky-300);
+    --info-foreground: var(--color-sky-950);
+    --success: var(--color-green-300);
+    --success-foreground: var(--color-green-950);
+    --warning: var(--color-amber-300);
+    --warning-foreground: var(--color-amber-950);
+    --error: var(--color-red-700);
+    --error-foreground: var(--color-base-50);
+    --border: var(--color-base-300);
+    --input: var(--color-base-100);
+    --outline: var(--color-base-950);
+
+    --radius: 0.5rem;
+
+    /* custom shiki styling for markdown code blocks. These are the variables Astro uses
+		Shiki Themes: https://shiki.style/themes   https://shiki.matsu.io/guide/theme-colors#css-variables-theme */
+    --astro-code-foreground: var(--color-base-50);
+    --astro-code-background: #202022;
+    --astro-code-token-constant: #a5b4fc; /* recommend making this a slightly off color from your primary-300 color */
+    --astro-code-token-string: var(--color-primary-600);
+    --astro-code-token-comment: var(--color-base-400);
+    --astro-code-token-keyword: var(--color-base-300);
+    --astro-code-token-parameter: var(--color-sky-400);
+    --astro-code-token-function: var(--color-base-50);
+    --astro-code-token-string-expression: var(--color-primary-300);
+    --astro-code-token-punctuation: var(--color-base-200);
+    --astro-code-token-link: var(--color-base-50);
+
+    --font-fallback:
+      "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial",
+      "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+    font-family: "Inter", var(--font-fallback);
+    font-feature-settings:
+      "liga" 1,
+      "calt" 1; /* fix for Chrome */
+  }
+
+  @supports (font-variation-settings: normal) {
+    :root {
+      font-family: "InterVariable", var(--font-fallback);
+    }
+  }
+
+  .dark {
+    /* starwind dark theme config */
+    --background: var(--color-base-900);
+    --foreground: var(--color-base-100);
+    --card: oklch(1% 0 0);
+    --card-foreground: var(--color-base-100);
+    --popover: oklch(1% 0 0);
+    --popover-foreground: var(--color-base-100);
+    --primary: var(--color-primary-400);
+    --primary-foreground: oklch(1% 0 0);
+    --secondary: var(--color-fuchsia-300);
+    --secondary-foreground: oklch(1% 0 0);
+    --muted: var(--color-base-900);
+    --muted-foreground: var(--color-base-400);
+    --accent: var(--color-base-900);
+    --accent-foreground: var(--color-base-100);
+    --info: var(--color-sky-300);
+    --info-foreground: var(--color-sky-950);
+    --success: var(--color-green-300);
+    --success-foreground: var(--color-green-950);
+    --warning: var(--color-amber-300);
+    --warning-foreground: var(--color-amber-950);
+    --error: var(--color-red-800);
+    --error-foreground: oklch(99% 0 0);
+    --border: var(--color-base-800);
+    --input: var(--color-base-800);
+    --outline: var(--color-base-50);
+  }
+
+  /* starwind preflight merged with Cosmic Themes */
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply bg-background text-foreground leading-[1.6rem] scheme-light dark:scheme-dark;
+    scroll-behavior: smooth;
+    -moz-text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+    /* prevent layout shift */
+    scrollbar-gutter: stable;
+  }
+  button {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  .h1 {
+    @apply text-3xl font-medium md:text-4xl;
+  }
+
+  .h2 {
+    @apply text-3xl font-medium;
+  }
+
+  .h3 {
+    @apply text-xl font-medium;
+  }
+
+  .description {
+    @apply text-base-700 dark:text-base-300 md:text-lg;
+  }
+
+  /* styles navbar links */
+  .nav__link--base {
+    @apply text-base-900 hover:text-base-600 dark:text-base-200/90 dark:hover:text-base-50 leading-tight transition;
+  }
+
+  .site-container {
+    @apply mx-auto max-w-[1100px] px-4;
+  }
+
+  /* used for newsletter, and contact form inputs */
+  .form__input {
+    @apply border-base-300 bg-base-100 hover:border-primary-500 dark:border-base-600/60 dark:bg-base-800 w-full rounded-md border px-3 transition;
+    @apply focus:border-primary-500 focus-visible:ring-primary-500/50 focus-visible:ring-2;
+    @apply outline-none;
+
+    &::placeholder {
+      @apply text-base-400;
+    }
+  }
+}
+
+@layer utilities {
+  /* used with select field */
+  .sr-only {
+    @apply sr-only;
+  }
+
+  /* focus utility class (for when user is tabbing through items on page) */
+  .primary-focus {
+    @apply focus-visible:outline-primary-500 focus:outline-hidden focus-visible:rounded-xs focus-visible:outline-2;
+  }
+
+  /* main gradient. Used for tags and some headings */
+  .main-text-gradient {
+    @apply from-primary-800 to-primary-600 dark:from-primary-400 dark:to-primary-200 bg-gradient-to-r bg-clip-text text-transparent;
+  }
+
+  /* use with "animate-pause" to pause a CSS animation */
+  .pause {
+    animation-play-state: paused !important;
+  }
+
+  /* weird tailwind v4 fixes necessary for some components. These may not be necessary once it is out of beta */
+  /* currently in v4 beta you cannot apply non-standard tailwind classes to elements within css layers. 
+  So we can't use "main-text-gradient" here, and the classes are instead copied */
+  .colored-title {
+    @apply from-primary-800 to-primary-600 dark:from-primary-400 dark:to-primary-200 bg-gradient-to-r bg-clip-text text-lg text-transparent;
+  }
+}

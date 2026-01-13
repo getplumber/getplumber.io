@@ -1,0 +1,35 @@
+---
+import { countItems, getAllPosts, sortByValue } from "@js/blogUtils";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { categorify, humanize } from "@js/textUtils";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+
+const posts = await getAllPosts(currLocale);
+const allCategories = posts.map((post) => post.data.categories).flat();
+const filteredCategories = allCategories.filter(
+  (category): category is string => typeof category === "string",
+);
+const countedCategories = countItems(filteredCategories);
+const processedCategories = sortByValue(countedCategories);
+
+interface Props {
+  showCount?: boolean;
+}
+
+const { showCount = false } = Astro.props as Props;
+---
+
+<div class="flex flex-wrap gap-3" data-pagefind-ignore>
+  {
+    processedCategories.map(([category, count]) => (
+      <a
+        href={`/categories/${category}/`}
+        class="button button--outline px-3 py-1"
+      >
+        {humanize(category)}
+        {showCount && <span class="text-xs opacity-70">({count})</span>}
+      </a>
+    ))
+  }
+</div>

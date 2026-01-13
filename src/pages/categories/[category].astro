@@ -1,0 +1,65 @@
+---
+import CategoryCloud from "@components/CategoryCloud/CategoryCloud.astro";
+import { defaultLocale } from "@config/siteSettings.json";
+import { countItems, getAllPosts, sortByValue } from "@js/blogUtils";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { humanize, slugify } from "@js/textUtils";
+// main layout
+import BaseLayout from "@layouts/BaseLayout.astro";
+// import BlogIndexLayout from "@layouts/BlogIndexLayout1.astro";
+import BlogIndexLayout from "@layouts/BlogIndexLayout2.astro";
+import { type InferGetStaticParamsType, type InferGetStaticPropsType } from "astro";
+
+// generate pagination for tag pages if there are a bunch of posts for a single tag
+export async function getStaticPaths() {
+  const posts = await getAllPosts(defaultLocale);
+  const allCategories = posts.map((post) => post.data.categories).flat();
+  const filteredCategories = allCategories.filter(
+    (category): category is string => typeof category === "string",
+  );
+  const countedCategories = countItems(filteredCategories);
+  const processedCategories = sortByValue(countedCategories);
+
+  return processedCategories.map(([category, count]) => ({
+    params: { category: category },
+  }));
+}
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+
+// const filteredPosts = Astro.props as Props;
+const { category } = Astro.params as Params;
+
+const currLocale = getLocaleFromUrl(Astro.url);
+const posts = await getAllPosts(currLocale);
+const filteredPosts = posts.filter((post) => {
+  if (!post.data.categories) return false;
+  // make sure to slugify them for comparison
+  const slugifiedCategory = post.data.categories
+    .filter((category): category is string => typeof category === "string")
+    .map((category) => slugify(category));
+
+  return slugifiedCategory.includes(category);
+});
+---
+
+<BaseLayout
+  title={`Our Blog Posts on ${humanize(category)}`}
+  description="Learn from our blog posts about web development, design, and more."
+>
+  <div class="site-container mt-24 md:mt-36">
+    <div class="flex">
+      <p class="colored-title">Our blog</p>
+    </div>
+    <h1 class="h2 mt-6">
+      Posts on <span class="main-text-gradient">#{humanize(category).toLowerCase()}</span> to help you
+      on your journey
+    </h1>
+    <div class="mt-4 flex">
+      <CategoryCloud showCount={false} />
+    </div>
+
+    <BlogIndexLayout posts={filteredPosts} class="mt-10" />
+  </div>
+</BaseLayout>

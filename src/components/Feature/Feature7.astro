@@ -1,0 +1,49 @@
+---
+/**
+ * * These are larger cards with images, titles, and text
+ * Recommend using 3 cards in a row
+ */
+
+import FeatureCard from "@components/FeatureCard/FeatureCardImage.astro";
+// images
+import cardImage1 from "@images/card-img-1.jpg";
+import cardImage2 from "@images/card-img-2.jpg";
+import cardImage3 from "@images/card-img-3.jpg";
+
+interface FeatureData {
+  image: ImageMetadata;
+  title: string;
+  text: string;
+}
+
+const featureData: FeatureData[] = [
+  {
+    image: cardImage1,
+    title: "Real-time insights at your fingertips",
+    text: `Data syncs across your team instantly. Real-time access, with 99.9% uptime.`,
+  },
+  {
+    image: cardImage3,
+    title: "Dashboards for all businesses",
+    text: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugit totam delectus
+            rerum, reiciendis.`,
+  },
+  {
+    image: cardImage2,
+    title: "Connect all our contacts",
+    text: `Sync with your calendar apps and contacts. Google, Outlook, ProtonMail, and more.`,
+  },
+];
+---
+
+<section id="feature2" class="my-12 md:my-24">
+  <div class="site-container">
+    <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      {
+        featureData.map((feature) => (
+          <FeatureCard title={feature.title} text={feature.text} image={feature.image} />
+        ))
+      }
+    </div>
+  </div>
+</section>

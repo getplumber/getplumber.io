@@ -1,0 +1,129 @@
+---
+import Button from "@components/Button/Button.astro";
+import LanguageSelect from "@components/LanguageSelect/LanguageSelect.astro";
+import MobileNav from "@components/Nav/MobileNav/MobileNav.astro";
+import NavDropdownToggle from "@components/Nav/NavDropdown/NavDropdownToggle.astro";
+import NavLink from "@components/Nav/NavLink.astro";
+import Search from "@components/Search/Search.astro";
+import SiteLogo from "@components/SiteLogo/SiteLogo.astro";
+import ThemeToggle from "@components/ThemeToggle/ThemeToggle.astro";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { getTranslatedData } from "@js/translationUtils";
+
+import MegaMenuDropdownToggle from "./NavDropdown/MegaMenuDropdownToggle.astro";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+const navData = getTranslatedData("navData", currLocale);
+import { locales } from "@config/siteSettings.json";
+// console.log(JSON.stringify(navData, null, 2));
+---
+
+<section
+  id="nav"
+  class="navbar--initial fixed top-0 left-0 z-30 flex w-full flex-col border-b transition-all duration-300"
+>
+  <div class="mx-auto flex w-full">
+    <div class="site-container flex w-full items-center">
+      <header class="relative flex w-full items-center gap-2">
+        <!-- home button / image -->
+        <div class="flex h-full flex-auto justify-start">
+          <SiteLogo />
+        </div>
+
+        <!-- <div class="flex flex-auto justify-center">
+          
+        </div> -->
+
+        <!-- desktop nav menu -->
+        <div>
+          <div class="flex h-full flex-auto justify-end">
+            <nav class="hidden md:block">
+              <ul class="flex h-full items-center">
+                {
+                  // if dropdown exists, setup the dropdown, otherwise it is just a link
+                  navData.map((navItem) =>
+                    "dropdown" in navItem ? (
+                      // non-mobile dropdown menu
+                      <NavDropdownToggle navItem={navItem} />
+                    ) : "megaMenuColumns" in navItem ? (
+                      <MegaMenuDropdownToggle {navItem} />
+                    ) : (
+                      // normal nav link
+                      <NavLink {navItem} />
+                    ),
+                  )
+                }
+              </ul>
+            </nav>
+            <div class="flex items-center">
+              <ThemeToggle class="hidden md:flex" />
+              <Button
+                variant="ghost"
+                href={"/login"}
+                class="hidden whitespace-nowrap md:flex"
+              >
+                Sign In
+              </Button>
+              <Button
+                variant="primary"
+                href={"/signup"}
+                class="hidden whitespace-nowrap md:flex">Sign up</Button
+              >
+
+              <Search class="md:ml-2" />
+
+              {locales.length > 1 && <LanguageSelect class="ml-2 hidden md:flex" />}
+            </div>
+
+            <!-- mobile nav menu, only load on small screens where it is visible -->
+            <div class="flex items-center md:hidden">
+              <MobileNav />
+            </div>
+          </div>
+        </div>
+      </header>
+    </div>
+  </div>
+</section>
+
+<style>
+  @import "tailwindcss/theme" theme(reference);
+  @import "@/styles/tailwind-theme.css" theme(reference);
+
+  .navbar--scrolled {
+    @apply border-foreground/10 bg-background/30 backdrop-blur;
+  }
+
+  .navbar--initial {
+    @apply border-b-transparent bg-transparent;
+  }
+</style>
+
+{/*script on scrolldown to make navbar more legible*/}
+<script>
+  let navbar: HTMLElement | null;
+
+  function scrollHandler() {
+    if (navbar) {
+      if (window.scrollY > 50) {
+        // if we have scrolled down the page a bit, add a frosted-glass look to the navbar
+        navbar.classList.add("navbar--scrolled");
+        navbar.classList.remove("navbar--initial");
+      } else {
+        navbar.classList.add("navbar--initial");
+        navbar.classList.remove("navbar--scrolled");
+      }
+    }
+  }
+
+  function initNav() {
+    navbar = document.getElementById("nav");
+    window.addEventListener("scroll", scrollHandler, { passive: true });
+  }
+
+  // runs on initial page load
+  initNav();
+
+  // runs on view transitions navigation. Not needed if item has "transition:persist"
+  document.addEventListener("astro:after-swap", initNav);
+</script>

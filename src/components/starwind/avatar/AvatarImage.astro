@@ -1,0 +1,46 @@
+---
+import { Image } from "astro:assets";
+import { tv } from "tailwind-variants";
+
+export const avatarImage = tv({ base: "relative z-1 h-full w-full object-cover" });
+
+type BaseProps = { alt: string; class?: string };
+
+type WithSrc = BaseProps & { src: string; image?: never };
+
+type WithImage = BaseProps & { src?: never; image: ImageMetadata };
+
+type Props = WithSrc | WithImage;
+
+const { src, image, alt, class: className } = Astro.props;
+
+if (!src && !image) {
+  throw new Error("Either 'src' or 'image' is required for an avatar image.");
+}
+---
+
+{
+  src && (
+    // eslint-disable-next-line astro/jsx-a11y/no-noninteractive-element-interactions
+    <img
+      src={src}
+      alt={alt}
+      class={avatarImage({ class: className })}
+      width={64}
+      height={64}
+      onerror="this.style.display='none'"
+      data-slot="avatar-image"
+    />
+  )
+}
+{
+  image && (
+    <Image
+      src={image}
+      alt={alt}
+      class={avatarImage({ class: className })}
+      width={64}
+      data-slot="avatar-image"
+    />
+  )
+}

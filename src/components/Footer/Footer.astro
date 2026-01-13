@@ -1,0 +1,85 @@
+---
+import Button from "@components/Button/Button.astro";
+import FooterLink from "@components/Footer/FooterLink.astro";
+import SiteLogo from "@components/SiteLogo/SiteLogo.astro";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { getTranslatedData } from "@js/translationUtils";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+const siteData = getTranslatedData("siteData", currLocale);
+
+const today = new Date();
+---
+
+<div class="border-t-base-300 dark:border-t-base-600/60 mt-20 border-t">
+  <footer class="site-container m-auto w-full pb-6">
+    <div class="flex w-full flex-col justify-between gap-4 sm:flex-row sm:gap-10">
+      <div class="mt-6 flex flex-col items-start gap-2">
+        <SiteLogo />
+        <p>Sign up for our newsletter</p>
+        <form id="newsletter-form" name="newsletter-form" class="mt-1 mr-auto flex max-w-lg gap-3">
+          <label for="newsletter-email" class="description text-base-100 mb-1 hidden">*Email</label>
+          <input
+            type="email"
+            class="form__input"
+            name="newsletter-email"
+            id="newsletter-email"
+            inputmode="email"
+            placeholder="Email"
+            required
+          />
+
+          <Button variant="primary" type="submit">Subscribe</Button>
+        </form>
+      </div>
+      <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
+        <!-- Navigation -->
+        <div class="flex flex-col">
+          <h3 class="mt-6 mb-2 text-lg font-semibold">Navigation</h3>
+          <FooterLink href={"/blog"}>Blog</FooterLink>
+          <FooterLink href={"/overview"}>Overview</FooterLink>
+          <FooterLink href={"/about"}>About</FooterLink>
+          <FooterLink href={"/contact"}>Contact</FooterLink>
+        </div>
+
+        <!-- Legal -->
+        <div class="flex flex-col">
+          <h3 class="mt-6 mb-2 text-lg font-semibold">Legal</h3>
+          <FooterLink href="https://cosmicthemes.com/license/" newTab={true}> License </FooterLink>
+          <FooterLink href="https://cosmicthemes.com/refund/" newTab={true}>
+            Refund policy
+          </FooterLink>
+          <FooterLink href="https://cosmicthemes.com/terms/" newTab={true}>
+            Terms of use
+          </FooterLink>
+          <FooterLink href="https://cosmicthemes.com/privacy/" newTab={true}>
+            Privacy policy
+          </FooterLink>
+          <FooterLink href="https://cosmicthemes.com/support/" newTab={true}> Support </FooterLink>
+        </div>
+
+        <!-- In the Know -->
+        <div class="flex flex-col">
+          <h3 class="mt-6 mb-2 text-lg font-semibold">In the Know</h3>
+          <FooterLink href="https://twitter.com/BowTiedWebReapr" newTab={true}>
+            @BowTiedWebReapr
+          </FooterLink>
+          <FooterLink href="https://twitter.com/Cosmic_Themes" newTab={true}>
+            @Cosmic_Themes
+          </FooterLink>
+        </div>
+      </div>
+    </div>
+    <hr class="border-base-300 dark:border-base-600/60 my-6" />
+    <div class="text-base-600 dark:text-base-100/60 text-sm">
+      &copy; {today.getFullYear()}
+      {" "}{siteData.name}. All rights reserved.
+    </div>
+    <div class="sr-only">
+      <p>
+        A website template crafted with love by <a href="https://cosmicthemes.com/">Cosmic Themes</a
+        >
+      </p>
+    </div>
+  </footer>
+</div>

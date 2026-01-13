@@ -1,0 +1,94 @@
+---
+import Button from "@components/Button/Button.astro";
+---
+
+<div
+  class=`group max-w-xl relative h-full w-full rounded-2xl bg-gradient-to-br from-primary-400 via-base-300/70 to-base-300/70
+  dark:from-primary-500 dark:via-base-300/50 dark:to-base-300/50
+  after:absolute after:rounded-[calc(1rem-1px)] after:bg-base-100/30 dark:after:bg-base-800/50 after:inset-[1px]`
+>
+  <!-- background glow -->
+  <div class="bg-primary-600/70 absolute top-0 left-0 -z-10 mx-auto aspect-square w-[60%] blur-3xl">
+  </div>
+
+  <!-- center card -->
+  <div class="relative z-10 p-1">
+    <div class="bg-base-100 dark:bg-base-800 rounded-xl px-4 py-10">
+      <h1 class="h2">Contact Us</h1>
+      <p class="description mt-6">Let us help you find the right plan for your business.</p>
+
+      <p class="description mt-2 text-sm">
+        Inputs marked with <span class="text-primary-600 dark:text-primary-400">*</span> are required.
+      </p>
+      <form id="contact-form" name="contact form" class="mt-8 flex flex-col gap-4 text-start">
+        <!-- <input type="hidden" name="form-name" value="contact" /> -->
+        <div>
+          <div class="xs:grid-cols-2 grid gap-4">
+            <div>
+              <label for="contact__fname" class="text-sm opacity-90 dark:opacity-80"
+                >First Name</label
+              >
+              <input
+                type="text"
+                class="form__input mt-0.5"
+                name="contact__fname"
+                id="contact__fname"
+                placeholder="Your first name"
+              />
+            </div>
+
+            <div>
+              <label for="contact__lname" class="text-sm opacity-90 dark:opacity-80"
+                >Last Name</label
+              >
+              <input
+                type="text"
+                class="form__input mt-0.5"
+                name="contact__lname"
+                id="contact__lname"
+                placeholder="Your last name"
+              />
+            </div>
+          </div>
+        </div>
+        <div>
+          <label for="contact__company" class="text-sm opacity-90 dark:opacity-80">Company</label>
+          <input
+            type="text"
+            class="form__input mt-0.5"
+            name="contact__company"
+            id="contact__company"
+            placeholder="Your company or organization name"
+          />
+        </div>
+        <div>
+          <label for="contact__email" class="text-sm opacity-90 dark:opacity-80"
+            >Email <span class="text-primary-600 dark:text-primary-400">*</span>
+          </label>
+          <input
+            type="email"
+            class="form__input mt-0.5"
+            name="contact__email"
+            id="contact__email"
+            inputmode="email"
+            placeholder="Your preferred contact email"
+            required
+          />
+        </div>
+        <div>
+          <label for="contact__message" class="text-sm opacity-90 dark:opacity-80"
+            >Message <span class="text-primary-600 dark:text-primary-400">*</span>
+          </label>
+          <textarea
+            name="contact__message"
+            class="form__input mt-0.5"
+            id="contact__message"
+            rows="4"
+            placeholder="How can we help?"
+            required></textarea>
+        </div>
+        <Button variant="primary" type="submit" class="mt-1">Submit</Button>
+      </form>
+    </div>
+  </div>
+</div>

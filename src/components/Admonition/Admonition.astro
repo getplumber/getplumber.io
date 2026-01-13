@@ -1,0 +1,75 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  variant: "tip" | "caution" | "danger" | "info";
+}
+
+const { variant } = Astro.props as Props;
+
+// create a switch statement that switches on "variant" and returns the appropriate icon
+const icon = (() => {
+  switch (variant) {
+    case "tip":
+      return "tabler/bulb";
+    case "caution":
+      return "tabler/alert-triangle";
+    case "danger":
+      return "tabler/flame";
+    case "info":
+      return "tabler/info-circle";
+  }
+})();
+---
+
+<div
+  class:list={[
+    "admonition dark:text-foreground my-3 rounded-md border-l-4 px-4 py-3",
+
+    {
+      "border-success text-success-foreground bg-success/10 admonition-success": variant === "tip",
+    },
+    {
+      "border-warning text-foreground bg-warning/10 admonition-warning": variant === "caution",
+    },
+    {
+      "border-error text-foreground bg-error/10 admonition-error": variant === "danger",
+    },
+    {
+      "border-info text-info-foreground bg-info/10 admonition-info": variant === "info",
+    },
+  ]}
+>
+  <div class="not-content flex items-center gap-2 pb-2">
+    <Icon name={icon} class="h-7 w-7" />
+    <p class="admonition-variant text-sm font-semibold">{variant.toUpperCase()}</p>
+  </div>
+  <slot />
+</div>
+
+<style is:global>
+  @import "tailwindcss/theme" theme(reference);
+  @import "@/styles/tailwind-theme.css" theme(reference);
+
+  .admonition > :first-child {
+    @apply mt-0;
+  }
+  .admonition > :nth-child(2) {
+    @apply mt-0;
+  }
+  .admonition > :last-child {
+    @apply mb-0;
+  }
+  .admonition-success code {
+    @apply bg-success/20 border-none px-0.5;
+  }
+  .admonition-info code {
+    @apply bg-info/20 border-none px-0.5;
+  }
+  .admonition-warning code {
+    @apply bg-warning/20 border-none px-0.5;
+  }
+  .admonition-error code {
+    @apply bg-error/20 border-none px-0.5;
+  }
+</style>

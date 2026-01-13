@@ -1,0 +1,14 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { tv } from "tailwind-variants";
+
+type Props = HTMLAttributes<"div">;
+
+export const cardContent = tv({ base: "p-8 pt-0" });
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<div class={cardContent({ class: className })} data-slot="card-content" {...rest}>
+  <slot />
+</div>

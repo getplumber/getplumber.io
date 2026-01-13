@@ -1,0 +1,164 @@
+---
+import Button from "@components/Button/Button.astro";
+import LanguageSelect from "@components/LanguageSelect/MobileLanguageSelect.astro";
+import MobileNavDropdown from "@components/Nav/MobileNav/MobileNavDropdown.astro";
+import NavLink from "@components/Nav/NavLink.astro";
+import SiteLogo from "@components/SiteLogo/SiteLogo.astro";
+import ThemeToggle from "@components/ThemeToggle/ThemeToggle.astro";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { getTranslatedData } from "@js/translationUtils";
+import { Icon } from "astro-icon/components";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+const navData = getTranslatedData("navData", currLocale);
+import { locales } from "@config/siteSettings.json";
+// console.log(JSON.stringify(navData, null, 2));
+---
+
+<!-- mobile nav open -->
+<mobile-nav-menu>
+  <button
+    data-open-modal
+    id="mobile-nav__open-btn"
+    disabled
+    class="primary-focus relative my-auto flex h-10 w-10 items-center justify-center rounded-md"
+  >
+    <!-- hamburger icon to open menu -->
+    <Icon
+      name="tabler/menu-2"
+      class="absolute inline-block h-8 w-8 transition-all"
+      aria-label="open navigation menu"
+    />
+  </button>
+
+  <dialog
+    aria-label="mobile navigation menu"
+    data-state="closed"
+    id="mobile-nav__content"
+    class:list={[
+      "whitepace-nowrap nav__link--base fixed inset-x-0 top-0",
+      "z-20 m-0 h-[100dvh] max-h-screen w-screen max-w-[100vw] items-center",
+      "overflow-auto overflow-x-hidden overflow-y-auto px-4 pb-4 text-lg font-normal",
+      "fade-in-0 animate-in",
+    ]}
+  >
+    <div class="dialog-frame -mr-1">
+      <div class="flex items-center justify-between">
+        <SiteLogo />
+        <!-- mobile nav close -->
+        <button
+          data-close-modal
+          id="mobile-nav__close-btn"
+          class="primary-focus relative my-auto inline-flex h-10 w-10 items-center justify-center rounded-md"
+        >
+          <!-- "X" icon to close menu -->
+          <Icon
+            name="tabler/x"
+            class="absolute inline-block h-8 w-8 transition-all"
+            aria-label="close navigation menu"
+          />
+        </button>
+      </div>
+
+      <!-- nav items -->
+      <nav>
+        <ul class="mt-4 flex flex-col gap-2 text-xl">
+          {
+            // if dropdown exists, setup the dropdown, otherwise it is just a link
+            navData.map((navItem) =>
+              "dropdown" in navItem ? (
+                // mobile dropdown menu
+                <>
+                  <MobileNavDropdown navItem={navItem} />
+                  <hr class="border-border mx-4 my-1" />
+                </>
+              ) : "megaMenuColumns" in navItem ? (
+                // mobile mega menu dropdowns
+                <>
+                  {navItem.megaMenuColumns.map((navItem) => (
+                    <MobileNavDropdown navItem={navItem} />
+                  ))}
+                  <hr class="border-border mx-4 my-1" />
+                </>
+              ) : (
+                // normal nav link
+                <>
+                  <NavLink {navItem} />
+                  <hr class="border-border mx-4 my-1" />
+                </>
+              ),
+            )
+          }
+        </ul>
+      </nav>
+      <div class="mt-2 flex w-full flex-col gap-3 px-2">
+        <!-- <hr class="mx-2 mb-2 border-base-300 dark:border-base-600/60" /> -->
+        <div class="-mr-1 flex items-start justify-between">
+          <ThemeToggle />
+          {locales.length > 1 && <LanguageSelect />}
+        </div>
+        <Button
+          variant="outline"
+          href={"/login"}
+          class="mx-2 whitespace-nowrap"
+        >
+          Sign in
+        </Button>
+        <Button class="mx-2" variant="primary" href={"/signup"}
+          >Sign up</Button
+        >
+      </div>
+    </div>
+  </dialog>
+</mobile-nav-menu>
+
+<script>
+  class MobileNavigationMenu extends HTMLElement {
+    constructor() {
+      super();
+      const openBtn = this.querySelector<HTMLButtonElement>("button[data-open-modal]")!;
+      const closeBtn = this.querySelector<HTMLButtonElement>("button[data-close-modal]")!;
+      const dialog = this.querySelector("dialog")!;
+      const dialogFrame = this.querySelector(".dialog-frame")!;
+
+      // Close the modal if a user clicks on a link or outside of the modal
+      // const onClick = (event: MouseEvent) => {
+      // 	const isLink = "href" in (event.target || {});
+      // 	if (
+      // 		isLink ||
+      // 		(document.body.contains(event.target as Node) &&
+      // 			!dialogFrame.contains(event.target as Node))
+      // 	) {
+      // 		closeModal();
+      // 	}
+      // };
+
+      const openModal = (event?: MouseEvent) => {
+        dialog.showModal();
+        document.body.classList.add("overflow-hidden");
+        dialog.setAttribute("data-state", "open");
+        document.body.toggleAttribute("data-mobile-nav-open", true);
+        this.querySelector("input")?.focus();
+        event?.stopPropagation();
+        // window.addEventListener("click", onClick);
+      };
+
+      const closeModal = () => {
+        document.body.classList.remove("overflow-hidden");
+        dialog.close();
+      };
+
+      openBtn.addEventListener("click", openModal);
+      openBtn.disabled = false;
+      closeBtn.addEventListener("click", closeModal);
+
+      dialog.addEventListener("close", () => {
+        document.body.toggleAttribute("data-mobile-nav-open", false);
+        dialog.setAttribute("data-state", "closed");
+        // window.removeEventListener("click", onClick);
+      });
+    }
+  }
+
+  customElements.define("mobile-nav-menu", MobileNavigationMenu);
+</script>

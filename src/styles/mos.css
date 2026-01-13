@@ -1,0 +1,30 @@
+/* MOS default visibility helpers – prevents initial flash of un-animated elements */
+
+/* parent class makes it opt-in */
+/* no pointer events until animation starts */
+.use-animations [data-mos] {
+  pointer-events: none;
+}
+
+.use-animations [data-mos].mos-animate {
+  pointer-events: auto;
+}
+
+/* fade & zoom presets */
+.use-animations [data-mos^="fade"],
+.use-animations [data-mos^="zoom"] {
+  will-change: opacity, transform;
+  opacity: 0;
+}
+
+/* slide presets */
+.use-animations [data-mos^="slide"] {
+  will-change: transform;
+}
+
+/* flip presets */
+.use-animations [data-mos^="flip"] {
+  will-change: transform;
+  transform: rotateY(-180deg);
+  backface-visibility: hidden;
+}

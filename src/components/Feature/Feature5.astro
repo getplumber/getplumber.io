@@ -1,0 +1,81 @@
+---
+/**
+ * * These are medium cards with an icon, large colored text (title), and smaller description (text)
+ * 3 or 4 cards in a row is ideal
+ *
+ * ! If you can an error for an icon like "Error: Not Found: "calendar-check" in pack "tabler",
+ * ! You can copy to actual SVG into src/icons and name it however and use similar to below
+ */
+
+import FeatureCard from "@components/FeatureCard/FeatureCardColorText.astro";
+
+interface FeatureCardData {
+  icon: string;
+  title: string;
+  text: string;
+}
+
+// NOTE: You still need to manually update the label, title, and details that come before the cards
+// those are later down in this component
+const featureData: FeatureCardData[] = [
+  {
+    icon: "tabler/calendar-check",
+    title: "1000",
+    text: `Businesses`,
+  },
+  {
+    icon: "tabler/cloud",
+    title: "200 TB",
+    text: `Data saved`,
+  },
+  {
+    icon: "tabler/user",
+    title: "20K",
+    text: `Users`,
+  },
+  {
+    icon: "tabler/brand-twitter",
+    title: "100K",
+    text: `Twitter followers`,
+  },
+];
+---
+
+<section id="feature5" class="my-24 md:my-36">
+  <div class="site-container">
+    <div class="mr-auto max-w-xl">
+      <div class="flex">
+        <p class="colored-title" data-mos="fade-up" data-mos-anchor="#feature5">
+          Trusted by thousands
+        </p>
+      </div>
+      <h2 class="h2 mt-6" data-mos="fade-up" data-mos-delay=".1" data-mos-anchor="#feature5">
+        Used by developers all over the world
+      </h2>
+      <p
+        class="text-base-700 dark:text-base-300 mt-4"
+        data-mos="fade-up"
+        data-mos-delay=".2"
+        data-mos-anchor="#feature5"
+      >
+        Our platform is trusted by thousands of developers worldwide. Join them and experience the
+        power of our tools and services today.
+      </p>
+    </div>
+
+    <div id="feature5cards" class="xs:grid-cols-2 mt-8 grid gap-6 md:mt-16 md:grid-cols-4">
+      {
+        featureData.map((feature, idx) => (
+          <FeatureCard
+            title={feature.title}
+            text={feature.text}
+            icon={feature.icon}
+            data-mos="fade-up"
+            data-mos-delay={`${idx * 0.25 + 0.2}`}
+            data-mos-anchor="#feature5cards"
+          />
+        ))
+      }
+    </div>
+  </div>
+</section>

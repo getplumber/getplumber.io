@@ -1,0 +1,26 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "keystatic-cms",
+  "steps": [
+    {
+      "file": "keystatic.config.tsx",
+      "description": "This theme integrates Keystatic CMS for a nice CMS editing experience for content collections, with rich text editor - great for non-technical users who need to write blog posts. It is setup to work locally in dev mode, then cloud mode in prod (using keystatic cloud). When in dev (or prod) you can access the interface at the \"/admin\" or \"/keystatic\" route. See the keystatic documentation (linked above) to set up the cloud mode for prod.",
+      "line": 12
+    },
+    {
+      "file": "keystatic.config.tsx",
+      "description": "The \"project\" here is related to the keystatic cloud setup. When you follow the keystatic instructions it will tell you what to put here for your deployment.",
+      "line": 24
+    },
+    {
+      "file": "src/components/KeystaticComponents/Collections.tsx",
+      "description": "When writing blog posts, I have integrated an \"Admonition\" component. This allows you to it from the rich text editor! Feel free to add your own components and use my examples and the keystatic docs. Note that you will need to update the astro.config.mjs file to also auto import any other MDX components you create.",
+      "line": 104
+    },
+    {
+      "file": "astro.config.mjs",
+      "description": "If you don't want to use Keystatic, you can just use normal MDX for the blog posts and authors. Run the command `npm run remove-keystatic` to remove the Keystatic dependencies and clean up the astro config file.",
+      "line": 17
+    }
+  ]
+}

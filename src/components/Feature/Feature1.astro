@@ -1,0 +1,73 @@
+---
+/**
+ * * These are small cards with icons, titles, and text
+ * This looks best with an even number of cards. They are smaller to
+ * use with more cards in the same section. 4 or 6 cards is probably ideal
+ *
+ * ! If you can an error for an icon like "Error: Not Found: "calendar-check" in pack "tabler",
+ * ! You can copy to actual SVG into src/icons and name it however and use similar to below
+ */
+
+import FeatureCard from "@components/FeatureCard/FeatureCardSmall.astro";
+
+interface FeatureData {
+  icon: string;
+  title: string;
+  text: string;
+}
+
+const featureData: FeatureData[] = [
+  {
+    icon: "tabler/calendar-check",
+    title: "Connect all our contacts",
+    text: `Sync with your calendar apps and contacts. Google, Outlook, ProtonMail, and more.`,
+  },
+  {
+    icon: "tabler/heart",
+    title: "Dashboards for all businesses",
+    text: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugit totam delectus
+            rerum, reiciendis quisquam cum sunt.`,
+  },
+  {
+    icon: "tabler/cloud",
+    title: "Synced to the cloud",
+    text: `Your data is accessible from everywhere, syncing across all your devices.`,
+  },
+  {
+    icon: "tabler/layout-grid",
+    title: "Your business intelligence, simplified",
+    text: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugit totam delectus
+            rerum.`,
+  },
+  {
+    icon: "tabler/wand",
+    title: "Real-time insights at your fingertips",
+    text: `Data syncs across your team instantly. Real-time access, with 99.9% uptime.`,
+  },
+  {
+    icon: "tabler/api-app",
+    title: "Connects to popular apps",
+    text: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugit totam delectus
+            rerum, reiciendis quisquam cum sunt.`,
+  },
+];
+---
+
+<section id="feature1" class="my-12 md:my-24">
+  <div class="site-container">
+    <div class="grid gap-6 sm:grid-cols-2 md:py-8 lg:grid-cols-3">
+      {
+        featureData.map((feature, idx) => (
+          <FeatureCard
+            title={feature.title}
+            text={feature.text}
+            icon={feature.icon}
+            data-mos="fade-up"
+            data-mos-delay={0.15 * idx}
+            data-mos-anchor="#feature1"
+          />
+        ))
+      }
+    </div>
+  </div>
+</section>

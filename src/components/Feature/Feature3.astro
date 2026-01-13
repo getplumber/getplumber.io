@@ -1,0 +1,55 @@
+---
+/**
+ * * Large image with feature text above it.
+ */
+
+import dashboard from "@images/dashboard-main-min.png";
+import { Image } from "astro:assets";
+---
+
+<section id="feature3" class="my-16 overflow-hidden py-16 md:my-24">
+  <!-- Text and image -->
+  <div class="site-container relative">
+    <!-- background glows -->
+    <div
+      class="bg-primary-600/30 absolute top-0 left-0 -z-10 mx-auto aspect-square w-full max-w-7xl -translate-x-2/3 -translate-y-1/2 rounded-full blur-[100px]"
+      aria-hidden="true"
+    >
+    </div>
+
+    <div
+      class="bg-primary-600/30 absolute right-0 bottom-0 -z-10 mx-auto aspect-square w-full max-w-7xl translate-x-1/2 translate-y-1/2 rounded-full blur-[100px]"
+      aria-hidden="true"
+    >
+    </div>
+
+    <!-- center content -->
+    <div class="mx-auto max-w-5xl">
+      <div class="mx-auto max-w-lg text-center">
+        <div class="flex justify-center">
+          <p class="colored-title inline">Data driven insights</p>
+        </div>
+        <h2 class="h2 mt-8">Understand your data</h2>
+        <p class="description mt-6">
+          Data is the key to success in the modern business world. Our app provides an easy to use
+          interface to all of it.
+        </p>
+      </div>
+      <div class="mx-auto mt-6 max-w-4xl">
+        <div
+          class=`relative h-full rounded-2xl bg-gradient-to-br from-primary-400 via-base-300/70 via-40% to-primary-400
+          dark:from-primary-500 dark:via-base-300/50 dark:to-primary-500
+          after:absolute after:rounded-[calc(1rem-1px)] after:bg-base-100/30 dark:after:bg-base-800/50 after:inset-[1px]`
+        >
+          <Image
+            src={dashboard}
+            alt="logo"
+            loading="lazy"
+            width={1500}
+            class="relative z-10 rounded-2xl p-1 md:rounded-xl md:p-2"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

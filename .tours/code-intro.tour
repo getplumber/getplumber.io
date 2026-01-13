@@ -1,0 +1,61 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "code intro",
+  "steps": [
+    {
+      "file": "package.json",
+      "description": "When first getting started, first make sure the site builds as-is. Run `npm install` then `npm run build` (or `pnpm install` and `pnpm build`). \n\nNext run `npm run config-i18n` and follow the instructions to get setup! This will configure your site for one language or multiple languages. For further information, see the [i18n documentation](https://cosmicthemes.com/docs/i18n/).",
+      "line": 13
+    },
+    {
+      "file": "src/config/siteSettings.json.ts",
+      "description": "Next you'll want to head to your siteSettings and configure some general site settings.",
+      "line": 4
+    },
+    {
+      "file": "src/config/en/siteData.json.ts",
+      "description": "In the explorer panel, under \"src/config\" you will find data files for site information, the navbar, FAQ data, and testimonials, and more. These are split up by language into subfolders. This file is where you add your website title, description, and base author data.",
+      "line": 2
+    },
+    {
+      "file": "src/config/en/navData.json.ts",
+      "description": "Here is where you can edit what goes in the navbar. Whatever you edit here will be placed into the desktop and mobile navbars automatically. This support normal links, dropdown menus, and mega dropdown menus for when you want all the menu items.",
+      "line": 29
+    },
+    {
+      "file": "src/styles/tailwind-theme.css",
+      "description": "Here you can edit the colors your website is using. You can use any of Tailwind's default colors, or create your own.",
+      "line": 6
+    },
+    {
+      "file": "src/content.config.ts",
+      "description": "In the \"data\" folder you will find blog posts, author info, and other pages. These all work with markdown or mdx files. You can see examples of what to put. Using the schema defined in this \"content.config.ts\" file, when you try to \"npm run dev\" this site, it will validate the item against this schema and give you a detailed error if you forgot something required.",
+      "line": 4
+    },
+    {
+      "file": "src/data/blog/en/tsconfig-paths-setup/index.mdx",
+      "description": "This is an example blog post with all required frontmatter (the stuff at the top of the file). Note that the \"authors\" array elements need to match the slug of an author in the authors content collection.",
+      "line": 13
+    },
+    {
+      "file": "src/data/authors/main-author/index.mdx",
+      "description": "Here is an example author content collection entry.",
+      "line": 7
+    },
+    {
+      "file": "src/pages/index.astro",
+      "description": "This is the homepage! You can see the various components in use. Edit to your heart's content!",
+      "line": 31
+    },
+    {
+      "file": "public/robots.txt",
+      "description": "Don't forget to update your robots.txt file with your site domain. It should be \"https://yoursite.com/sitemap-index.xml\"",
+      "line": 1
+    },
+    {
+      "file": "astro.config.mjs",
+      "description": "Also update your site domain here in the Astro config file.",
+      "line": 14
+    }
+  ]
+}

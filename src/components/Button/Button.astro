@@ -1,0 +1,60 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { Icon } from "astro-icon/components";
+
+/**
+ *  * Notes:
+ *  if this is to be a link (<a>), pass an "href" prop
+ *  if this is to be a button (<button>), pass a "type" prop
+ *  you can pass the arrow prop with "left" or "right" to add an arrow to any button variant
+ */
+interface Props extends HTMLAttributes<"button">, Omit<HTMLAttributes<"a">, "type"> {
+  variant?: "primary" | "secondary" | "outline" | "ghost";
+  arrow?: "left" | "right" | "none";
+}
+
+const { variant = "primary", arrow = "none", class: className, ...rest } = Astro.props;
+
+let Component = "button";
+if (Astro.props.href) {
+  Component = "a";
+}
+---
+
+<Component
+  class:list={[
+    className,
+    `button group`,
+    {
+      "button--primary": variant === "primary",
+    },
+    {
+      "button--secondary": variant === "secondary",
+    },
+    {
+      "button--outline": variant === "outline",
+    },
+    {
+      "button--ghost": variant === "ghost",
+    },
+  ]}
+  {...rest}
+>
+  {
+    arrow === "left" && (
+      <Icon
+        name="tabler/arrow-narrow-left"
+        class="text-primary-600 dark:text-primary-300 mr-1 h-[1.4em] w-[1.4em] transition-transform group-hover:-translate-x-1"
+      />
+    )
+  }
+  <slot />
+  {
+    arrow === "right" && (
+      <Icon
+        name="tabler/arrow-narrow-right"
+        class="text-primary-600 dark:text-primary-300 ml-1 h-[1.4em] w-[1.4em] transition-transform group-hover:translate-x-1"
+      />
+    )
+  }
+</Component>

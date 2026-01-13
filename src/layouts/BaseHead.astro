@@ -1,0 +1,98 @@
+---
+import Seo from "@components/Seo/Seo.astro";
+import siteSettings from "@config/siteSettings.json";
+import { type CollectionEntry } from "astro:content";
+import { ClientRouter } from "astro:transitions";
+
+export interface Props {
+  type?: "blog" | "general" | undefined;
+  title: string;
+  description: string;
+  image?: CollectionEntry<"blog">["data"]["heroImage"];
+  postFrontmatter?: CollectionEntry<"blog">["data"];
+  authors?: CollectionEntry<"authors">[];
+  noindex?: boolean;
+}
+
+const {
+  type = "general",
+  title,
+  description,
+  image,
+  authors,
+  postFrontmatter,
+  noindex = false,
+} = Astro.props as Props;
+
+import interVariable from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2";
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width" initial-scale="1.0" />
+
+<!-- local font preload for better performance -->
+<link rel="preload" href={interVariable} as="font" type="font/woff2" crossorigin="anonymous" />
+
+<!-- Favicons. Generated from https://realfavicongenerator.net/ -->
+<link rel="icon" href="/favicons/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png" />
+<link rel="manifest" href="/favicons/site.webmanifest" />
+<link rel="mask-icon" href="/favicons/safari-pinned-tab.svg" color="#3e3e3e" />
+<meta name="msapplication-TileColor" content="#3e3e3e" />
+<meta name="theme-color" content="#3e3e3e" />
+
+<!-- other -->
+<meta name="generator" content={Astro.generator} />
+<link rel="sitemap" href="/sitemap-index.xml" />
+
+<!-- Theme change setup. Run early to eliminate Flash of inAccurate coloR Theme (FART) -->
+<script is:inline>
+  function initTheme() {
+    const colorTheme = localStorage.getItem("colorTheme");
+    if (!colorTheme) {
+      // if no color theme yet, start in dark mode because dark mode is best mode
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("colorTheme", "dark");
+
+      // if no color theme yet, use the users preferences (uncomment the below code, and comment out the above code to use this instead)
+      // if (
+      //   window.matchMedia &&
+      //   window.matchMedia("(prefers-color-scheme: dark)").matches
+      // ) {
+      //   document.documentElement.classList.add("dark");
+      //   localStorage.setItem("colorTheme", "dark");
+      // } else {
+      //   document.documentElement.classList.remove("dark");
+      //   localStorage.setItem("colorTheme", "light");
+      // }
+    } else {
+      // If there is, assign the theme based on the value in local storage
+      if (colorTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else if (colorTheme === "light") {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }
+
+  // runs on initial page load
+  initTheme();
+
+  // runs on view transitions navigation
+  document.addEventListener("astro:after-swap", initTheme);
+</script>
+
+<Seo
+  type={type}
+  title={title}
+  description={description}
+  image={image}
+  authors={authors}
+  postFrontmatter={postFrontmatter}
+  noindex={noindex}
+/>
+
+<!-- no fallback as I saw issues with firefox fallback -->
+{siteSettings.useViewTransitions && <ClientRouter fallback="none" />}

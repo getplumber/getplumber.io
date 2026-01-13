@@ -1,0 +1,66 @@
+---
+/**
+ * * These are alternating side cards with titles, text, and images
+ * Recommend using 2 or 3 cards in a row
+ */
+
+import FeatureCard from "@components/FeatureCard/FeatureCardSideImage.astro";
+import image3 from "@images/dashboard-3-min.png";
+// images
+import image1 from "@images/dashboard-main-min.png";
+import image2 from "@images/dashboard-side-min.png";
+
+interface FeatureItem {
+  image: ImageMetadata; // an imported image
+  label: string; // colored text first
+  title: string; // larger title second
+  details: string; // text details third
+}
+
+const featureData: FeatureItem[] = [
+  {
+    image: image1,
+    label: "Important insights",
+    title: "Real-time insights at your fingertips",
+    details: `Data syncs across your team instantly. Real-time access, with 99.9% uptime.
+    Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex nesciunt quia quibusdam, 
+    voluptatem aliquid autem, magnam, doloremque voluptatibus odio esse pariatur harum 
+    odit neque qui earum nam praesentium sint ullam!`,
+  },
+  {
+    image: image2,
+    label: "Connections",
+    title: "Connect all our contacts",
+    details: `Sync with your calendar apps and contacts. Google, Outlook, ProtonMail, and more.
+    Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex nesciunt quia quibusdam, voluptatem 
+    aliquid autem, magnam, doloremque voluptatibus odio esse pariatur harum odit neque qui earum 
+    nam praesentium sint ullam!`,
+  },
+  {
+    image: image3,
+    label: "Dashboards",
+    title: "Dashboards for all businesses",
+    details: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex nesciunt quia quibusdam, 
+    voluptatem aliquid autem, magnam, doloremque voluptatibus odio esse pariatur harum odit neque 
+    qui earum nam praesentium sint ullam!`,
+  },
+];
+---
+
+<section id="feature4" class="my-24 overflow-clip md:my-36">
+  <div class="site-container">
+    <div class="flex flex-col gap-16 md:gap-24">
+      {
+        featureData.map((feature, idx) => (
+          <FeatureCard
+            label={feature.label}
+            title={feature.title}
+            details={feature.details}
+            image={feature.image}
+            imageSide={idx % 2 === 0 ? "right" : "left"}
+          />
+        ))
+      }
+    </div>
+  </div>
+</section>

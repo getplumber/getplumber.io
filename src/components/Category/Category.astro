@@ -1,0 +1,24 @@
+---
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { categorify, humanize, slugify } from "@js/textUtils";
+
+interface Props {
+  category: string | undefined;
+  class?: string;
+}
+
+const { category, class: classList } = Astro.props as Props;
+
+const currLocale = getLocaleFromUrl(Astro.url);
+---
+
+{
+  category && (
+    <a
+      href={`/categories/${slugify(category)}/`}
+      class:list={["main-text-gradient font-medium", classList]}
+    >
+      {humanize(category)}
+    </a>
+  )
+}

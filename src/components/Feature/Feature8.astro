@@ -1,0 +1,147 @@
+---
+/**
+ * * This is a toggleable image section. Selection text is on left and image is on right
+ * Recommend using 3 toggle sections
+ *
+ * ! If you can an error for an icon like "Error: Not Found: "calendar-check" in pack "tabler",
+ * ! You can copy to actual SVG into src/icons and name it however and use similar to below
+ */
+import image3 from "@images/dashboard-3-min.png";
+// images. Recommend having a different image for toggle section
+import image1 from "@images/dashboard-main-min.png";
+import image2 from "@images/dashboard-side-min.png";
+import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
+
+interface ToggleSection {
+  icon: string;
+  title: string;
+  image: ImageMetadata;
+}
+
+interface FeatureData {
+  label: string; // colored text first
+  title: string; // larger title second
+  toggleSections: ToggleSection[]; // toggle buttons third, with toggled images on right
+}
+
+const featureData: FeatureData = {
+  label: "Keys to Success",
+  title: "Awesome features to level up your business",
+  toggleSections: [
+    {
+      icon: "tabler/wand",
+      title: "Real-time insights at your fingertips",
+      image: image1,
+    },
+    {
+      icon: "tabler/calendar-check",
+      title: "Connect all our contacts",
+      image: image2,
+    },
+    {
+      icon: "tabler/user",
+      title: "Dashboards for all businesses",
+      image: image3,
+    },
+  ],
+};
+---
+
+<section id="feature4" class="my-24 md:my-36">
+  <div class="site-container">
+    <div class="mx-auto grid gap-8 rounded-2xl md:grid-cols-5 lg:gap-12">
+      <div class="md:col-span-2" data-mos="fade-up">
+        <div class="flex">
+          <p class="colored-title">{featureData.label}</p>
+        </div>
+        <h2 class="h2 mt-6">{featureData.title}</h2>
+        <div class="mt-6 flex flex-col gap-2">
+          {
+            featureData.toggleSections.map((section, idx) => (
+              <button
+                id={`feature8__toggle-${idx}`}
+                class={`${
+                  idx === 0 ? "feature8__toggle--active" : ""
+                } hover:primary-300 border-base-300 hover:border-primary-300 dark:border-base-600/60 dark:hover:border-base-500 flex items-start justify-start gap-2 rounded-md border p-2 opacity-90 transition duration-300 hover:opacity-100 dark:opacity-80`}
+              >
+                <Icon name={section.icon} class="mt-1 h-5 w-5" aria-hidden="true" />
+                <p class="text-start text-lg">{section.title}</p>
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- image -->
+      <div class="mx-auto mb-auto max-w-4xl md:col-span-3" data-mos="fade-left">
+        <div
+          class=`relative h-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary-400 via-base-300/70 to-base-300/70
+          dark:from-primary-500 dark:via-base-600/60 dark:to-base-600/60
+            after:absolute after:rounded-[calc(1rem-1px)] after:bg-base-100/30 dark:after:bg-base-800/50 after:inset-[1px]`
+        >
+          {
+            featureData.toggleSections.map((section, idx) => (
+              <Image
+                id={`feature8__image-${idx}`}
+                class={`${
+                  idx === 0 ? "" : "hidden"
+                } relative z-10 rounded-2xl border border-transparent object-cover p-1`}
+                src={section.image}
+                alt={section.title}
+                width={1200}
+              />
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @import "tailwindcss/theme" theme(reference);
+  @import "@/styles/tailwind-theme.css" theme(reference);
+
+  .feature8__toggle--active {
+    @apply border-primary-300 ring-primary-500 dark:border-base-500 opacity-100 ring-1;
+  }
+</style>
+
+<script>
+  function toggleFeatureSetup() {
+    const toggleButtons = document.querySelectorAll(
+      "[id^=feature8__toggle-]",
+    ) as NodeListOf<HTMLButtonElement>;
+    const toggleImages = document.querySelectorAll(
+      "[id^=feature8__image-]",
+    ) as NodeListOf<HTMLImageElement>;
+
+    // add event listeners to toggle buttons
+    toggleButtons?.forEach((button, idx) => {
+      button.addEventListener("click", () => {
+        // remove active class from all buttons
+        toggleButtons?.forEach((button) => {
+          button.classList.remove("feature8__toggle--active");
+        });
+
+        // add active class to clicked button
+        button.classList.add("feature8__toggle--active");
+
+        // hide all images
+        toggleImages.forEach((image) => {
+          image.classList.add("hidden");
+        });
+
+        // show clicked image
+        toggleImages[idx]?.classList.remove("hidden");
+      });
+    });
+  }
+
+  // runs on initial page load
+  toggleFeatureSetup();
+
+  // runs on view transitions navigation
+  document.addEventListener("astro:after-swap", toggleFeatureSetup);
+</script>

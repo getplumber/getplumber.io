@@ -1,0 +1,32 @@
+---
+import { type TestimonialItem } from "@config/types/configDataTypes";
+import { Image } from "astro:assets";
+
+interface Props extends TestimonialItem {
+  rest?: any; // catch-all for any additional parameters, such as "aria-label"
+}
+
+const { avatar, name, title, testimonial, ...rest } = Astro.props as Props;
+---
+
+<div
+  class="border-base-300 bg-base-200/50 dark:border-base-600/60 dark:bg-base-800/50 rounded-2xl border p-4"
+  {...rest}
+>
+  <div class="mx-auto w-full">
+    <div class="mr-auto flex items-center gap-6">
+      <div class="h-12 w-12 shrink-0 overflow-hidden rounded-full">
+        <Image src={avatar} alt={name} width={100} class="h-full object-cover" />
+      </div>
+      <div>
+        <h3 class="text-lg font-medium">{name}</h3>
+        <p class="text-sm opacity-90 dark:opacity-80">
+          {title}
+        </p>
+      </div>
+    </div>
+    <p class="mt-4 text-sm lg:text-base">
+      {testimonial}
+    </p>
+  </div>
+</div>

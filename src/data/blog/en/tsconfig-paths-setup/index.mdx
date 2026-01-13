@@ -1,0 +1,163 @@
+---
+title: How to Use TSConfig Path Aliases to Improve Your Code
+description: >-
+  Enable cleaner, more readable import statements with TSConfig path aliases.
+  Learn how to set them up and improve your TypeScript code maintainability.
+draft: false
+authors:
+  - main-author
+pubDate: 2023-08-14
+heroImage: ../tsconfig-paths-setup/heroImage.png
+categories:
+  - productivity
+---
+
+TSConfig path aliases are a powerful tool that can help you to improve the readability, maintainability, and error-proofing of your TypeScript code. This allows for easier to read clean code, and enables us to move files around without having to update import paths in every file.
+
+_This is a huge time saver._
+
+## What Are Path Aliases?
+
+The goal is to replace the following import statements:
+
+```ts
+// relative import path
+import MyComponent from "../../../components/MyComponent";
+```
+
+with these import statements:
+
+```ts
+// alias import path
+import MyComponent from "@components/MyComponent";
+```
+
+We can do this with a `tsconfig.json` or `jsconfig.json` file. We will be using TypeScript in this post.
+
+## How To Setup Path Aliases
+
+### Adding Path Aliases To Your TSConfig File
+
+We need to update our `tsconfig.json` file to enable aliases. We will add a `paths` and `baseUrl` property to the `compilerOptions` object. Each path is relative to the `baseUrl`.
+
+This will tell TypeScript to replace the alias with the actual path when compiling the code.
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".", // root of your "paths" below. Required if "paths" is defined
+    "paths": {
+      "@components/*": ["src/components/*"] // enables us to use @components/MyComponent
+    }
+  }
+}
+```
+
+### Using Path Aliases In Your Code
+
+Now in all of your source files, you can import components like this:
+
+```ts
+// Without path aliases
+import Hero from "../../../components/Hero";
+import Footer from "../../../components/Footer";
+
+// With path aliases
+import Hero from "@components/Hero";
+import Footer from "@components/Footer";
+```
+
+<Admonition variant="info">
+  Frameworks like Astro and Next.js ship with built-in typescript support,
+  although you may have to create the file `tsconfig.json`. Consult your
+  framework's documentation for more information.
+</Admonition>
+
+## Why Should I Do This?
+
+Let's say we have the following file structure:
+
+```
+.
+└── src/
+    ├── components/
+    │   ├── Hero.tsx
+    │   └── Footer.tsx
+    └── pages/
+        ├── index.tsx
+        └── solutions.tsx
+```
+
+### Annoying Relative Imports
+
+If we want to import `Hero.tsx` and `Footer.tsx` into `index.tsx` and `solutions.tsx`, we would need the following import statements:
+
+```ts
+import Hero from "../components/Hero";
+import Footer from "../components/Footer";
+```
+
+### Refactoring Relative Imports
+
+Now lets say we want to refactor. We now have multiple "solutions" and want to have each on their own page, and have them under a `solutions` directory. The file structure now looks like:
+
+```
+.
+└── src/
+    ├── components/
+    │   ├── Hero.tsx
+    │   └── Footer.tsx
+    └── pages/
+        ├── index.tsx
+        └── solutions/
+            ├── solution.tsx
+            └── solution2.tsx
+```
+
+Now we have to update the import paths of `solution.tsx`:
+
+```ts
+import Hero from "../../components/Hero";
+import Footer from "../../components/Footer";
+```
+
+You can see how this makes refactoring more of a chore. We have to update the import paths in every file that imports these components. This is a huge time sink and can lead to bugs if you forget to update the import paths.
+
+### Alias Imports Version
+
+Alternatively, if from the start we were using aliases, we would not have to update any files using the components. This is far better for maintainability:
+
+```ts
+import Hero from "@components/Hero";
+import Footer from "@components/Footer";
+```
+
+<Admonition variant="info">
+  With this method, *every* file that needs to import these components will
+  import them the same way. This makes it easier to move files around without
+  having to update import paths.
+</Admonition>
+
+## Additional Paths
+
+This can be extended to any number of path aliases. Some other potential ones you might use:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@config/*": ["src/data/*"],
+      "@js/*": ["src/js/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@components/*": ["src/components/*"],
+      "@assets/*": ["src/assets/*"]
+    }
+  }
+}
+```
+
+<Admonition variant="tip">
+  When updating `tsconfig.json`, you may need to restart your editor for the
+  changes to take effect.
+</Admonition>

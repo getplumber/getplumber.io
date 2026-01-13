@@ -1,0 +1,32 @@
+---
+/**
+ * * These are medium cards with an icon, large colored text (title), and smaller description (text)
+ * 3 or 4 cards in a row is ideal
+ *
+ * ! If you can an error for an icon like "Error: Not Found: "calendar-check" in pack "tabler",
+ * ! You can copy to actual SVG into src/icons and name it however and use similar to below
+ */
+
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  icon: string;
+  title: string;
+  text: string;
+  rest?: any; // catch-all for any additional parameters, such as "aria-label"
+}
+
+const { icon, title, text, ...rest } = Astro.props as Props;
+---
+
+<div
+  class="border-base-300 bg-base-200/50 hover:border-primary-300 dark:border-base-600/60 dark:bg-base-800/50 dark:hover:border-base-500 flex flex-col gap-4 rounded-2xl border p-4 transition-colors duration-500"
+  {...rest}
+>
+  <Icon name={icon} class="mt-1 h-5 w-5" aria-hidden="true" />
+  <div class="flex">
+    <h3 class="main-text-gradient text-5xl font-semibold">{title}</h3>
+  </div>
+
+  <p class="text-lg">{text}</p>
+</div>

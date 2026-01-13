@@ -1,0 +1,87 @@
+---
+import "@/styles/global.css";
+
+import CookieConsent from "@components/CookieConsent/CookieConsent.astro";
+import Footer from "@components/Footer/Footer.astro";
+import Nav from "@components/Nav/Nav.astro";
+import siteSettings from "@config/siteSettings.json";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import BaseHead from "@layouts/BaseHead.astro";
+import { type CollectionEntry } from "astro:content";
+
+// heroImage and authorData are defined on blog posts
+// authorData could also be defined on the about author page
+interface Props {
+  type?: "blog" | "general";
+  title: string;
+  description: string;
+  heroImage?: ImageMetadata;
+  authorsData?: CollectionEntry<"authors">[];
+  postFrontmatter?: CollectionEntry<"blog">["data"];
+  noindex?: boolean; // you need to opt-in to no indexing, as it hides the page from search engines
+}
+
+const {
+  type = "general",
+  title,
+  description,
+  heroImage,
+  authorsData,
+  postFrontmatter,
+  noindex = false,
+} = Astro.props as Props;
+
+const currLocale = getLocaleFromUrl(Astro.url);
+---
+
+<!doctype html>
+<html
+  lang={currLocale}
+  class={`dark ${siteSettings.useAnimations === true ? "use-animations" : ""}`}
+  transition:animate="fade"
+>
+  <head>
+    <BaseHead
+      type={type}
+      title={title}
+      description={description}
+      image={heroImage ? heroImage : undefined}
+      authors={authorsData ? authorsData : undefined}
+      postFrontmatter={postFrontmatter ? postFrontmatter : undefined}
+      noindex={noindex}
+    />
+  </head>
+  <body id="body" class="">
+    <!-- put cookie consent first so it is seen first by screen readers -->
+    <!-- <CookieConsent /> -->
+    <div class="min-h-[100lvh]">
+      <Nav />
+      <main class="">
+        <slot />
+      </main>
+    </div>
+    <Footer />
+
+    <!-- Scroll animations -->
+    <script>
+      import { MOS } from "motion-on-scroll";
+
+      import { siteSettings } from "@/config/siteSettings.json";
+
+      if (siteSettings.useAnimations === true) {
+        MOS.init({
+          offset: 100,
+          duration: 0.8,
+          timeUnits: "s",
+          distance: 20,
+          delay: 0,
+          easing: "ease-out-cubic",
+          once: true,
+          mirror: false,
+        });
+
+        document.addEventListener("astro:after-swap", MOS.refreshHard);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,43 @@
+---
+/**
+ * * CTA section for newsletter signup with top and bottom border. left text and right form on large screens
+ */
+
+import Button from "@components/Button/Button.astro";
+---
+
+<section id="CTA" class="border-base-300 dark:border-base-600/60 my-24 border-y py-20 md:my-36">
+  <div class="site-container">
+    <div class="mx-auto grid gap-12 lg:grid-cols-5">
+      <div class="lg:col-span-3">
+        <div class="flex justify-start">
+          <p class="colored-title inline">Make more money</p>
+        </div>
+        <h2 class="h1 mt-8">Sign up for our newsletter!</h2>
+        <p class="description mt-6">
+          Get your beautiful and effective website up in running in a snap with Galaxy today.
+        </p>
+      </div>
+      <div class="flex items-end justify-start lg:col-span-2 lg:justify-end">
+        <form
+          id="cta-newsletter-form"
+          name="cta-newsletter-form"
+          class="mt-1 mr-auto flex max-w-lg gap-3"
+        >
+          <label for="cta-newsletter-email" class="description mb-1 hidden">*Email</label>
+          <input
+            type="email"
+            class="form__input"
+            name="cta-newsletter-email"
+            id="cta-newsletter-email"
+            inputmode="email"
+            placeholder="Email"
+            required
+          />
+
+          <Button variant="primary" type="submit">Subscribe</Button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

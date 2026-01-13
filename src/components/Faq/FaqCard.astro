@@ -1,0 +1,15 @@
+---
+interface Props {
+  question: string;
+  answer: string;
+}
+
+const { question, answer } = Astro.props as Props;
+---
+
+<div class="mx-auto flex flex-col gap-3">
+  <p class="text-lg font-medium">{question}</p>
+  <div class="markdown-content">
+    <Fragment set:html={answer} />
+  </div>
+</div>

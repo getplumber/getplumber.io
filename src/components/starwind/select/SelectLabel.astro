@@ -1,0 +1,14 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { tv } from "tailwind-variants";
+
+type Props = HTMLAttributes<"div">;
+
+export const selectLabel = tv({ base: "text-muted-foreground py-1.5 pr-2 pl-8 text-sm" });
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<div class={selectLabel({ class: className })} data-slot="select-label" {...rest}>
+  <slot />
+</div>

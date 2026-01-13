@@ -1,0 +1,24 @@
+---
+import Faq1 from "@components/Faq/Faq1.astro";
+import Faq2 from "@components/Faq/Faq2.astro";
+import Pricing1 from "@components/Pricing/Pricing1.astro";
+import Pricing2 from "@components/Pricing/Pricing2.astro";
+import Pricing3 from "@components/Pricing/Pricing3.astro";
+import Pricing4 from "@components/Pricing/Pricing4.astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Pricing and FAQ sections"
+  description="All Pricing and FAQ sections you get with the Galaxy theme by Cosmic Themes."
+>
+  <div class="site-container my-28 flex justify-center">
+    <h1 class="h1">All Pricing and FAQ Sections</h1>
+  </div>
+  <Pricing1 />
+  <Pricing4 />
+  <Pricing2 />
+  <Pricing3 />
+  <Faq1 />
+  <Faq2 />
+</BaseLayout>

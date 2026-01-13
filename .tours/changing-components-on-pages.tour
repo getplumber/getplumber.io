@@ -1,0 +1,16 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "changing components on pages",
+  "steps": [
+    {
+      "file": "src/pages/index.astro",
+      "description": "Lets say we want to change the hero section on the homepage (src/pages/index.astro file). There are already 3 components available under src/components/hero. So for example, you can change this \"@components/Hero/Hero1.astro\" to \"@components/Hero/Hero2.astro\" and your Hero section will now be a different already crafted option.",
+      "line": 10
+    },
+    {
+      "file": "src/components/Hero/Hero1.astro",
+      "description": "You can also go into a component itself, here \"Hero1.astro\", and edit anything to your liking.",
+      "line": 14
+    }
+  ]
+}

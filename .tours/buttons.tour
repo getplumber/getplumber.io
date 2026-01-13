@@ -1,0 +1,26 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "buttons",
+  "steps": [
+    {
+      "file": "src/components/Button/Button.astro",
+      "description": "This Button component works for both links (<a>anchor tags</a>) and buttons (<button>a button</button>). See the Notes above this for some further details.",
+      "line": 7
+    },
+    {
+      "file": "src/styles/buttons.css",
+      "description": "You can edit button styling in this `buttons.css` file. I have defined normal, hover, focus, and active effects. \r\n\r\nIf you have more complex edits involving `group` and `group-hover`, you may need to edit the `Button.astro` component.",
+      "line": 2
+    },
+    {
+      "file": "src/components/Forms/ContactForm.astro",
+      "description": "This is an example of the component being used to submit a form.",
+      "line": 92
+    },
+    {
+      "file": "src/components/Hero/Hero1.astro",
+      "description": "This is an example of the component being used as an anchor tag.",
+      "line": 90
+    }
+  ]
+}

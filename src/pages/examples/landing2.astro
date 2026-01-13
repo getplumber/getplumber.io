@@ -1,0 +1,48 @@
+---
+import Cta1 from "@components/Cta/Cta1.astro";
+import Cta2 from "@components/Cta/Cta2.astro";
+import Cta3 from "@components/Cta/Cta3.astro";
+import Cta4 from "@components/Cta/Cta4.astro";
+import Faq1 from "@components/Faq/Faq1.astro";
+import Faq2 from "@components/Faq/Faq2.astro";
+import Feature1 from "@components/Feature/Feature1.astro";
+import Feature2 from "@components/Feature/Feature2.astro";
+import Feature3 from "@components/Feature/Feature3.astro";
+import Feature4 from "@components/Feature/Feature4.astro";
+import Feature5 from "@components/Feature/Feature5.astro";
+import Feature6 from "@components/Feature/Feature6.astro";
+import Feature7 from "@components/Feature/Feature7.astro";
+import Feature8 from "@components/Feature/Feature8.astro";
+import Hero1 from "@components/Hero/Hero1.astro";
+import Hero2 from "@components/Hero/Hero2.astro";
+import Hero3 from "@components/Hero/Hero3.astro";
+import LogoCloud1 from "@components/LogoCloud/LogoCloud1.astro";
+import LogoCloud2 from "@components/LogoCloud/LogoCloud2.astro";
+import Pricing1 from "@components/Pricing/Pricing1.astro";
+import Pricing2 from "@components/Pricing/Pricing2.astro";
+import Pricing3 from "@components/Pricing/Pricing3.astro";
+import Testimonials1 from "@components/Testimonials/Testimonials1.astro";
+import Testimonials2 from "@components/Testimonials/Testimonials2.astro";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { getTranslatedData } from "@js/translationUtils";
+import BaseHead from "@layouts/BaseHead.astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+const siteData = getTranslatedData("siteData", currLocale);
+---
+
+<BaseLayout title={siteData.title} description={siteData.description}>
+  <Hero3 />
+  <LogoCloud1 />
+  <Feature1 />
+  <Feature8 />
+  <Feature2 />
+  <Feature3 />
+  <Feature4 />
+  <Feature5 />
+  <Testimonials2 />
+  <Pricing1 />
+  <Faq2 />
+  <Cta4 />
+</BaseLayout>

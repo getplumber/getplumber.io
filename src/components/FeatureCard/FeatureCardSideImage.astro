@@ -1,0 +1,51 @@
+---
+/**
+ * * These are alternating side cards with titles, text, and images
+ * Recommend using 2 or 3 cards in a row
+ */
+
+import { Image } from "astro:assets";
+
+interface Props {
+  label: string; // colored text first
+  title: string; // larger title second
+  details: string; // text details third
+  image: ImageMetadata; // an imported image
+  imageSide: "left" | "right";
+  rest?: any; // catch-all for any additional parameters, such as "aria-label"
+}
+
+const { image, label, title, details, imageSide, ...rest } = Astro.props as Props;
+---
+
+<div class="mx-auto grid gap-8 rounded-2xl md:grid-cols-2 md:gap-12 lg:gap-20" {...rest}>
+  <!-- text -->
+  <div
+    class=`${imageSide === "left" ? "md:order-last": ""} col-span-1`
+    data-mos="fade-up"
+    data-mos-anchor=""
+  >
+    <div class="flex">
+      <p class="colored-title">{label}</p>
+    </div>
+    <h2 class="h2 mt-6">{title}</h2>
+    <p class="mt-4 opacity-90 dark:opacity-80">{details}</p>
+  </div>
+
+  <!-- image -->
+  <div class="mx-auto mb-auto h-auto w-full max-w-4xl">
+    <div
+      class=`relative h-full rounded-2xl bg-gradient-to-br from-primary-400 via-base-300/70 to-base-300/70
+      dark:from-primary-500 dark:via-base-600/60 dark:to-base-600/60
+      after:absolute after:rounded-[calc(1rem-1px)] after:bg-base-100/30 dark:after:bg-base-800/50 after:inset-[1px]`
+      data-mos=`fade-${imageSide === "left" ? "right" : "left"}`
+    >
+      <Image
+        class="relative z-10 w-full rounded-2xl border border-transparent object-cover p-1"
+        src={image}
+        alt={title}
+        width={1120}
+      />
+    </div>
+  </div>
+</div>

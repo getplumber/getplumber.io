@@ -1,0 +1,13 @@
+---
+// main layout
+import LoginForm from "@components/Forms/LoginForm.astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Login" description="Login to this awesome software">
+  <div class="mt-24 md:mt-36">
+    <div class="site-container flex justify-center">
+      <LoginForm />
+    </div>
+  </div>
+</BaseLayout>

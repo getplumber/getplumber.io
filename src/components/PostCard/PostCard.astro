@@ -1,0 +1,53 @@
+---
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { formatDate } from "@js/textUtils";
+import { Image } from "astro:assets";
+import { type CollectionEntry, getEntries } from "astro:content";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+  showDescription?: boolean;
+  class?: string;
+  rest?: any; // catch-all for any additional parameters, such as "aria-label"
+}
+
+const { post, showDescription = false, class: className, ...rest } = Astro.props as Props;
+const { title, description, pubDate, heroImage } = post.data;
+
+const currLocale = getLocaleFromUrl(Astro.url);
+---
+
+<a
+  href={`/blog/${post.id}/`}
+  class=`flex group flex-col ${className}`
+  data-pagefind-ignore
+  {...rest}
+>
+  <div
+    class="border-base-300 dark:border-base-600/60 shrink-0 justify-center overflow-hidden rounded-md border sm:justify-normal"
+  >
+    <figure>
+      <Image
+        src={heroImage}
+        alt={`${title} blog post`}
+        height={700}
+        quality="high"
+        class="h-auto max-h-96 w-full object-cover transition-all duration-500 group-hover:scale-[1.02]"
+      />
+    </figure>
+  </div>
+  <div class="w-full">
+    <!-- title -->
+    <h2 class="mt-1 text-lg font-medium md:text-xl">
+      {title}
+    </h2>
+
+    <!-- description -->
+    {showDescription && <p class="description mt-1 text-sm lg:text-base">{description}</p>}
+
+    <!-- published date -->
+    <p class="mt-1 text-sm whitespace-nowrap opacity-70">
+      {formatDate(pubDate, currLocale)}
+    </p>
+  </div>
+</a>

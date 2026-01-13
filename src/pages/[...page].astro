@@ -1,0 +1,47 @@
+---
+import ExternalLink from "@components/MarkdownComponents/ExternalLink.astro";
+import { defaultLocale } from "@config/siteSettings.json";
+import { filterCollectionByLanguage } from "@js/localeUtils";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { type InferGetStaticPropsType } from "astro";
+import { type CollectionEntry, getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const otherPages: CollectionEntry<"otherPages">[] = await getCollection(
+    "otherPages",
+    ({ data }) => {
+      // filter out draft pages
+      return data.draft !== true;
+    },
+  );
+
+  // get rid of pages from other languages and remove locale from slug
+  const filteredPages = filterCollectionByLanguage(otherPages, defaultLocale);
+
+  return filteredPages.map((page) => ({
+    params: { page: page.id },
+    props: page,
+  }));
+}
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const page = Astro.props as Props;
+
+// convert markdown to html
+const { Content } = await render(page);
+const { title, description } = page.data;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="mx-auto mt-24 max-w-3xl px-4 md:mt-36 md:px-8">
+    <div class="p-0">
+      <h1 class="h1">
+        {title}
+      </h1>
+      <hr class="border-base-600/50 mt-4" />
+      <div class="markdown-content max-w-none py-10 text-sm md:text-base">
+        <Content components={{ a: ExternalLink }} />
+      </div>
+    </div>
+  </div>
+</BaseLayout>

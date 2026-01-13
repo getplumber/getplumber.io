@@ -1,0 +1,68 @@
+---
+import Button from "@components/Button/Button.astro";
+import { getLocaleFromUrl } from "@js/localeUtils";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+---
+
+<div
+  class=`group max-w-md relative h-full w-full rounded-2xl bg-gradient-to-br from-primary-400 via-base-300/70 to-base-300/70
+  dark:from-primary-500 dark:via-base-300/50 dark:to-base-300/50
+  after:absolute after:rounded-[calc(1rem-1px)] after:bg-base-100/30 dark:after:bg-base-800/50 after:inset-[1px]`
+>
+  <!-- background glow -->
+  <div class="bg-primary-600/70 absolute top-0 left-0 -z-10 mx-auto aspect-square w-[20%] blur-3xl">
+  </div>
+
+  <!-- center card -->
+  <div class="relative z-10 p-1">
+    <div class="bg-base-100 dark:bg-base-800 flex flex-col gap-5 rounded-xl px-4 py-16">
+      <h1 class="h2 text-center">Sign In</h1>
+      <!-- login form -->
+      <form id="login__form" name="login__form" class="mx-auto flex w-full max-w-sm flex-col gap-4">
+        <div>
+          <label for="login__email" class="text-sm opacity-90 dark:opacity-80">Email</label>
+          <input
+            type="email"
+            class="form__input mt-0.5"
+            name="login__email"
+            id="login__email"
+            inputmode="email"
+            placeholder=""
+            required
+          />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between">
+            <label for="login__password" class="text-sm opacity-90 dark:opacity-80">Password</label>
+            <a
+              href={"/password-reset"}
+              class="primary-focus text-primary-600 hover:text-primary-500 dark:text-primary-400 text-sm transition"
+              >Forgot Password?</a
+            >
+          </div>
+
+          <input
+            type="password"
+            class="form__input mt-0.5"
+            name="login__password"
+            id="login__password"
+            placeholder=""
+            required
+          />
+        </div>
+
+        <Button variant="primary" type="submit" class="mt-1">Sign In</Button>
+      </form>
+      <p class="text-center text-sm">
+        <span class="opacity-80">Need an account?{" "}</span>
+        <a
+          href={"/signup"}
+          class="primary-focus text-primary-600 hover:text-primary-500 dark:text-primary-400 transition"
+          >Sign Up</a
+        >
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,161 @@
+---
+/**
+ * * Large video feature.
+ */
+import videoPlaceholder from "@images/dashboard-3-min.png";
+import video from "@videos/placeholder-space.mp4";
+import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
+---
+
+<section id="feature6" class="my-16 py-8 md:my-24">
+  <div class="site-container">
+    <div class="mx-auto max-w-5xl text-center">
+      <div class="mx-auto max-w-lg">
+        <div class="flex justify-center">
+          <p class="colored-title inline">Data driven insights</p>
+        </div>
+      </div>
+      <h2 class="h2 mt-8">Watch how our data solutions solve your problems</h2>
+    </div>
+    <div class="mx-auto mt-6 max-w-4xl">
+      <!-- Button to play video -->
+      <button
+        class=`group relative h-full rounded-2xl bg-gradient-to-bl from-primary-400 via-base-300/70 to-primary-400
+          dark:from-primary-500 dark:via-base-300/50 dark:to-primary-500
+          after:absolute after:rounded-[calc(1rem-1px)] after:bg-base-100/30 dark:after:bg-base-800/50 after:inset-[1px]`
+        aria-label="play video"
+        id="feature6__play-button"
+      >
+        <!-- image bg glows -->
+        <div
+          class="bg-primary-600/70 absolute top-0 right-0 -z-10 mx-auto aspect-square w-[40%] transform-gpu blur-3xl"
+        >
+        </div>
+
+        <div
+          class="bg-primary-600/70 absolute bottom-0 left-0 -z-10 mx-auto aspect-square w-[40%] transform-gpu blur-3xl"
+        >
+        </div>
+
+        <Image
+          src={videoPlaceholder}
+          alt="logo"
+          loading="lazy"
+          width={1500}
+          class="relative z-10 rounded-2xl p-1 md:rounded-xl md:p-2"
+        />
+
+        <div
+          class="group absolute top-0 left-0 m-auto flex h-full w-full items-center justify-center"
+        >
+          <div class="relative m-auto aspect-square h-[20%] max-h-20">
+            <!-- background glow of play button -->
+            <div
+              class="bg-primary-600/70 absolute z-10 h-full w-full rounded-full blur-sm group-hover:animate-ping motion-safe:animate-ping md:animate-none"
+            >
+            </div>
+            <!-- play button -->
+            <div
+              class="group border-primary-500 bg-base-800 group-hover:border-primary-500/70 relative z-20 h-full w-full rounded-full border-2 p-1 transition sm:p-2"
+            >
+              <Icon
+                name="tabler/player-play"
+                class="text-base-300 m-auto aspect-square h-full w-full"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+        </div>
+      </button>
+
+      <!-- html video. Shown when play button is pressed -->
+      <div id="feature6__video-items" class="fixed inset-0 z-40 hidden h-screen w-screen">
+        <div class="relative flex h-full w-full items-center justify-center">
+          <!-- backdrop button to close video -->
+          <button
+            id="feature6__backdrop-button"
+            class="bg-base-900/70 absolute inset-0 z-30 h-full w-full transition-all"
+          >
+          </button>
+
+          <!-- Video -->
+          <div class="site-container relative m-auto h-fit w-fit max-w-[1000px] p-3 sm:p-6">
+            <video
+              id="feature6__video"
+              class="relative z-30 w-full max-w-[1000px] rounded-2xl"
+              loop
+              controls
+              muted
+              playsinline
+              preload="metadata"
+            >
+              <source src={video} type="video/mp4" />
+            </video>
+
+            <!-- X button to close video -->
+            <button
+              id="feature6__close-button"
+              aria-label="close video"
+              class="group border-base-300 hover:border-primary-400 absolute top-0 right-0 z-30 h-7 w-7 rounded-full border-2 transition-all"
+            >
+              <Icon
+                name="tabler/x"
+                class="text-base-300 group-hover:text-primary-400 m-auto aspect-square h-full max-h-14 w-full transition"
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function setupVideoPlayer() {
+    const video = document.getElementById("feature6__video") as HTMLVideoElement;
+    const playButton = document.getElementById("feature6__play-button") as HTMLButtonElement;
+    const VideoItems = document.getElementById("feature6__video-items") as HTMLElement;
+    const backdropButton = document.getElementById(
+      "feature6__backdrop-button",
+    ) as HTMLButtonElement;
+    const closeButton = document.getElementById("feature6__close-button") as HTMLButtonElement;
+
+    // open video on play button press
+    playButton?.addEventListener("click", () => {
+      VideoItems?.classList.toggle("hidden");
+      backdropButton?.classList.toggle("feature6__backdrop-button--show");
+      video?.play();
+    });
+
+    // close video on backdrop button press
+    backdropButton?.addEventListener("click", () => {
+      video?.pause();
+      VideoItems?.classList.add("hidden");
+      backdropButton?.classList.remove("feature6__backdrop-button--show");
+    });
+
+    // or close video on close button press
+    closeButton?.addEventListener("click", () => {
+      video?.pause();
+      VideoItems?.classList.add("hidden");
+      backdropButton?.classList.remove("feature6__backdrop-button--show");
+    });
+  }
+
+  // Initial setup
+  setupVideoPlayer();
+
+  // Handle Astro view transitions
+  document.addEventListener("astro:after-swap", setupVideoPlayer);
+</script>
+
+<style>
+  @import "tailwindcss/theme" theme(reference);
+  @import "@/styles/tailwind-theme.css" theme(reference);
+
+  .feature6__backdrop-button--show {
+    @apply animate-backdrop-fade-in;
+  }
+</style>

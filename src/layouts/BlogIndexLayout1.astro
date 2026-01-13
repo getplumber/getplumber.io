@@ -1,0 +1,27 @@
+---
+import PostCard from "@components/PostCard/PostCard.astro";
+import PostCardLarge from "@components/PostCard/PostCardLarge.astro";
+import { type CollectionEntry } from "astro:content";
+
+interface Props {
+  posts: CollectionEntry<"blog">[];
+  class?: string;
+}
+
+const { posts, class: className } = Astro.props as Props;
+---
+
+<div class:list={["grid gap-4 gap-y-12 md:grid-cols-2 lg:grid-cols-3", className]}>
+  <!-- map posts and make the first one span 3 columns, but the rest only span 1 column -->
+  {
+    posts.map((post) => {
+      if (post === posts[0]) {
+        return (
+          <PostCardLarge post={post} showDescription={true} class="md:col-span-2 lg:col-span-3" />
+        );
+      } else {
+        return <PostCard post={post} showDescription={false} />;
+      }
+    })
+  }
+</div>

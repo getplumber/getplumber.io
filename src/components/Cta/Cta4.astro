@@ -1,0 +1,65 @@
+---
+/**
+ * * CTA section for newsletter signup with glow around card. left text and right form on large screens
+ */
+
+import Button from "@components/Button/Button.astro";
+---
+
+<section id="CTA" class="my-24 py-8 md:my-36">
+  <div class="site-container">
+    <div
+      class=`group relative h-full w-full rounded-2xl bg-gradient-to-br from-primary-400 via-base-300/70 to-primary-400
+      dark:from-primary-500 dark:via-base-300/50 dark:to-primary-500
+      after:absolute after:rounded-[calc(1rem-1px)] after:bg-base-100/30 dark:after:bg-base-800/50 after:inset-[1px]`
+    >
+      <!-- background glows -->
+      <div
+        class="bg-primary-600/70 absolute top-0 left-0 -z-10 mx-auto aspect-square w-[20%] blur-3xl"
+      >
+      </div>
+
+      <div
+        class="bg-primary-600/70 absolute right-0 bottom-0 -z-10 mx-auto aspect-square w-[20%] blur-3xl"
+      >
+      </div>
+
+      <!-- center card -->
+      <div class="relative z-10 p-1">
+        <div class="bg-base-100 dark:bg-base-800 rounded-xl px-4 py-20 md:px-8">
+          <div class="mx-auto grid gap-12 lg:grid-cols-5">
+            <div class="lg:col-span-3">
+              <div class="flex justify-start">
+                <p class="colored-title inline">Make more money</p>
+              </div>
+              <h2 class="h1 mt-8">Sign up for our newsletter!</h2>
+              <p class="description mt-6">
+                Get your beautiful and effective website up in running in a snap with Galaxy today.
+              </p>
+            </div>
+            <div class="flex items-end justify-start lg:col-span-2 lg:justify-end">
+              <form
+                id="cta-newsletter-form"
+                name="cta-newsletter-form"
+                class="mt-1 mr-auto flex max-w-lg gap-3"
+              >
+                <label for="cta-newsletter-email" class="description mb-1 hidden">*Email</label>
+                <input
+                  type="email"
+                  class="form__input"
+                  name="cta-newsletter-email"
+                  id="cta-newsletter-email"
+                  inputmode="email"
+                  placeholder="Email"
+                  required
+                />
+
+                <Button variant="primary" type="submit">Subscribe</Button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

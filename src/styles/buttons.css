@@ -1,0 +1,32 @@
+/* buttons, 4 variants: "primary", "secondary", "outline", "ghost" */
+.button {
+  @apply flex items-center justify-center rounded-md px-4 py-1 font-semibold;
+  /* @apply active:opacity-90; */
+  @apply focus:ring-offset-base-200 dark:focus:ring-offset-base-800 focus:outline-hidden;
+  @apply disabled:pointer-events-none;
+}
+
+.button--primary {
+  @apply from-primary-400 via-primary-500 to-primary-600 bg-gradient-to-b text-white transition-colors;
+  @apply hover:to-primary-700;
+  @apply focus-visible:ring-primary-500 focus-visible:ring-2 focus-visible:ring-offset-2;
+}
+
+/* secondary and outline are the same in this case */
+.button--secondary {
+  @apply border-primary-500 bg-base-200/70 dark:border-primary-600 dark:bg-base-800/70 border transition-colors;
+  @apply hover:border-primary-400 dark:hover:border-primary-700;
+  @apply focus-visible:ring-primary-500 focus-visible:ring-2 focus-visible:ring-offset-2;
+}
+
+.button--outline {
+  @apply border-primary-500 bg-base-200/70 dark:border-primary-600 dark:bg-base-800/70 border transition-colors;
+  @apply hover:border-primary-400 dark:hover:border-primary-700;
+  @apply focus-visible:ring-primary-500 focus-visible:ring-2 focus-visible:ring-offset-2;
+}
+
+.button--ghost {
+  @apply no-underline transition-colors;
+  @apply hover:text-base-600 dark:hover:text-base-300;
+  @apply focus-visible:ring-primary-500 focus-visible:ring-2;
+}

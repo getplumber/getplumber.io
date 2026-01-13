@@ -1,0 +1,396 @@
+---
+/**
+ * * pricing section table with toggle for monthly or yearly payments
+ * This is designed for 3 pricing plans
+ */
+
+import Button from "@components/Button/Button.astro";
+import Switch from "@components/starwind/switch";
+import { getLocaleFromUrl } from "@js/localeUtils";
+
+import { Icon } from "astro-icon/components";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+
+interface planInfo {
+  name: string; // plan name
+  description: string; // plan description
+  featured?: boolean; // if true, will be highlighted or otherwise featured
+  price: {
+    monthly: number; // monthly price if paid by month
+    yearly: number; // monthly price if paid by year
+  };
+}
+/*
+ * feature rows can either be true / false to show if the feature is included in the plan
+ * But you can also put a string there to show a custom message
+ * ex. if only plan 3 includes this feature, looks like [false, false, true]
+ * ex. if plans have different number of users, looks like ["1 user", "Up to 5 users", "Up to 20 users"]
+ */
+interface featureRow {
+  feature: string; // feature name
+  plans: (boolean | string)[];
+}
+// Features are grouped into sections
+interface featureGrouping {
+  title: string;
+  features: featureRow[];
+}
+
+interface pricingTable {
+  plans: planInfo[];
+  featureTable: featureGrouping[];
+}
+
+// This is designed for 3 pricing plans
+const pricingData: pricingTable = {
+  plans: [
+    {
+      name: "Basic",
+      description: "For small businesses",
+      price: {
+        monthly: 11,
+        yearly: 9,
+      },
+    },
+    {
+      name: "Professional",
+      description: "For growing businesses",
+      featured: true,
+      price: {
+        monthly: 59,
+        yearly: 49,
+      },
+    },
+    {
+      name: "Enterprise",
+      description: "For next level companies",
+      price: {
+        monthly: 119,
+        yearly: 99,
+      },
+    },
+  ],
+  featureTable: [
+    {
+      title: "Features",
+      features: [
+        {
+          feature: "Integrations",
+          plans: [true, true, true],
+        },
+        {
+          feature: "Connect to your database",
+          plans: [true, true, true],
+        },
+        {
+          feature: "Import and export data",
+          plans: [false, true, true],
+        },
+        {
+          feature: "Team members",
+          plans: [false, "Up to 5 users", "Up to 20 users"],
+        },
+        {
+          feature: "Data Storage",
+          plans: ["Up to 5 GB", "Up to 50 GB", "Unlimited"],
+        },
+      ],
+    },
+    {
+      title: "Reporting",
+      features: [
+        {
+          feature: "Basic reports",
+          plans: [true, true, true],
+        },
+        {
+          feature: "Advanced analytics",
+          plans: [false, true, true],
+        },
+        {
+          feature: "Professional reports",
+          plans: [false, true, true],
+        },
+        {
+          feature: "Custom reports",
+          plans: [false, false, true],
+        },
+      ],
+    },
+    {
+      title: "Support",
+      features: [
+        {
+          feature: "Email support",
+          plans: [true, true, true],
+        },
+        {
+          feature: "Priority support",
+          plans: [false, true, true],
+        },
+        {
+          feature: "White-glove onboarding",
+          plans: [false, false, true],
+        },
+      ],
+    },
+  ],
+};
+---
+
+<section id="pricing-3" class="my-24 overflow-hidden md:my-36">
+  <div class="relative mx-auto max-w-7xl px-4">
+    <div class="flex justify-center">
+      <p class="colored-title inline">Pricing</p>
+    </div>
+    <h2 class="h2 mt-8 text-center">A plan for every business</h2>
+
+    <!-- Toggle switch for monthly or yearly pricing -->
+    <div class="mt-6 flex justify-center">
+      <label
+        for="plan-3__toggle"
+        class="relative inline-flex cursor-pointer items-center select-none"
+      >
+        <span class="label flex items-center text-sm">Monthly</span>
+        <Switch variant="primary" id="plan-3__toggle" class="mx-4" />
+        <span class="label flex items-center text-sm">Yearly</span>
+      </label>
+    </div>
+
+    <!-- This is designed for 3 pricing plans -->
+    <div class="mx-auto mt-12 grid w-full grid-cols-3 lg:grid-cols-4">
+      <!-- pricing plan top info -->
+      <div class="col-span-3 grid gap-3 md:grid-cols-3 lg:col-start-2 lg:gap-0">
+        {
+          pricingData.plans.map((plan, planIdx) => (
+            // pricing cards
+            <div
+              class="pricing-plan relative mx-auto h-full w-full max-w-sm overflow-hidden rounded-2xl lg:rounded-b-none"
+              class:list={[
+                {
+                  "from-primary-400 to-base-300 dark:from-primary-500 dark:to-base-600/60 bg-gradient-to-br to-40%":
+                    plan.featured === true,
+                },
+              ]}
+            >
+              <div class="relative h-full p-px lg:pb-0">
+                <div
+                  class="relative z-10 flex h-full flex-col overflow-hidden rounded-[calc(1rem-1px)] lg:rounded-b-none"
+                  class:list={[
+                    {
+                      "bg-primary-100 dark:bg-base-800": plan.featured === true,
+                    },
+                  ]}
+                >
+                  {plan.featured === true && (
+                    // inside card glow for featured
+                    <div
+                      class="bg-primary-300/40 dark:bg-primary-600/20 absolute top-0 left-0 -z-10 mx-auto aspect-square w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <div class="mx-auto flex h-full w-full max-w-[20rem] flex-col px-6 pb-6">
+                    <div class="flex w-full justify-between pt-6">
+                      <h3
+                        class:list={[
+                          "text-lg font-semibold",
+                          {
+                            "main-text-gradient": plan.featured === true,
+                          },
+                        ]}
+                      >
+                        {plan.name}
+                      </h3>
+                      {plan.featured === true && (
+                        // featured tag
+                        <div class="flex w-full items-center justify-end">
+                          <div class="bg-primary-600 text-base-100 flex gap-2 rounded-full px-3 py-1 text-sm">
+                            <p class="flex items-center whitespace-nowrap">Popular</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div class="pt-3">
+                      <p class="opacity-90 dark:opacity-80">{plan.description}</p>
+                      <p class="mt-3 font-semibold">
+                        <div class="pricing-monthly">
+                          <span class="text-primary-600 dark:text-primary-400 text-5xl font-semibold">
+                            ${plan.price.monthly}
+                          </span>
+                          <span class="text-3xl">/mo</span>
+                          <br />
+                          <p class="mt-1 text-sm font-normal opacity-70">(paid monthly)</p>
+                        </div>
+                        <div class="pricing-yearly hidden">
+                          <span class="text-primary-600 dark:text-primary-400 text-5xl font-semibold">
+                            ${plan.price.yearly}
+                          </span>
+                          <span class="text-3xl">/mo</span>
+                          <br />
+                          <p class="mt-1 text-sm font-normal opacity-70">(paid yearly)</p>
+                        </div>
+                      </p>
+                    </div>
+                    <ul class="mt-6 flex w-full flex-col gap-2 lg:sr-only">
+                      {pricingData.featureTable.map((featureGroup) =>
+                        // features inside cards for mobile views
+                        featureGroup.features.map(
+                          (featureRow) =>
+                            featureRow.plans[planIdx] !== false && (
+                              <li
+                                class:list={[
+                                  "flex items-start",
+                                  {
+                                    "opacity-90": plan.featured !== true,
+                                  },
+                                ]}
+                              >
+                                <Icon
+                                  name="tabler/check"
+                                  class="text-primary-600 dark:text-primary-400 mt-0.5 h-5 w-5 shrink-0"
+                                  aria-hidden="true"
+                                />
+                                <span class="ml-2 inline">
+                                  {featureRow.feature}
+                                  <span>
+                                    {
+                                      // if the feature row has a string, show it
+                                      typeof featureRow.plans[planIdx] === "string" && (
+                                        <span class="text-base-700 dark:text-base-300 ml-1 text-sm">
+                                          ({featureRow.plans[planIdx]})
+                                        </span>
+                                      )
+                                    }
+                                  </span>
+                                </span>
+                              </li>
+                            ),
+                        ),
+                      )}
+                    </ul>
+                    <div class="mt-auto">
+                      <Button
+                        variant={plan.featured === true ? "primary" : "outline"}
+                        href={"/signup"}
+                        class="mt-6"
+                      >
+                        Get Started
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+
+      <!-- feature rows for desktop -->
+      <div class="col-span-4 hidden lg:block">
+        {
+          // loop over feature groups
+          pricingData.featureTable.map((featureGroup) => (
+            <div>
+              <div class="border-base-600/40 grid grid-cols-4 border-b text-lg">
+                <p class="pt-8 pb-2 font-semibold">{featureGroup.title}</p>
+                {pricingData.plans.map((plan, planIdx) => (
+                  <div
+                    class={`${
+                      plan.featured === true
+                        ? "border-base-300 bg-primary-100 dark:border-base-600/60 dark:bg-base-800 border-x"
+                        : ""
+                    }`}
+                  />
+                ))}
+              </div>
+              {featureGroup.features.map((feature) => (
+                // each feature group has feature name, and data for each plan to display in the row
+                <div class="border-base-600/40 grid grid-cols-4 border-b">
+                  <p class="py-2 opacity-90 dark:opacity-80">{feature.feature}</p>
+                  {feature.plans.map((plan, planIdx) => (
+                    <div
+                      class="flex items-center justify-center py-2"
+                      class:list={[
+                        {
+                          "border-base-300 bg-primary-100 dark:border-base-600/60 dark:bg-base-800 border-x":
+                            pricingData.plans[planIdx].featured,
+                        },
+                      ]}
+                    >
+                      {
+                        // if the feature row has a string, show it
+                        typeof feature.plans[planIdx] === "string" ? (
+                          <span
+                            class={
+                              pricingData.plans[planIdx].featured === true
+                                ? ""
+                                : "opacity-90 dark:opacity-80"
+                            }
+                          >
+                            {feature.plans[planIdx]}
+                          </span>
+                        ) : // otherwise show a checkmark if true, or a dash icon if false
+                        plan === false ? (
+                          <Icon
+                            name="tabler/minus"
+                            class={`h-5 w-5 shrink-0 opacity-90 dark:opacity-80`}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <Icon
+                            name="tabler/check"
+                            class={`text-primary-600 dark:text-primary-400 h-5 w-5 shrink-0 ${
+                              pricingData.plans[planIdx].featured === true
+                                ? ""
+                                : "opcaity-90 dark:opacity-80"
+                            }`}
+                            aria-hidden="true"
+                          />
+                        )
+                      }
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function setupPricingToggle() {
+    const pricingSection = document.getElementById("pricing-3") as HTMLElement;
+    const toggle = pricingSection.querySelector("#plan-3__toggle") as HTMLInputElement;
+    const monthlyPrices = pricingSection?.querySelectorAll(".pricing-monthly");
+    const yearlyPrices = pricingSection?.querySelectorAll(".pricing-yearly");
+
+    if (!toggle || !monthlyPrices || !yearlyPrices) return;
+
+    // Create a new MutationObserver to watch for aria-checked changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === "attributes" && mutation.attributeName === "aria-checked") {
+          const isYearly = toggle.getAttribute("aria-checked") === "true";
+          monthlyPrices.forEach((price) => price.classList.toggle("hidden", isYearly));
+          yearlyPrices.forEach((price) => price.classList.toggle("hidden", !isYearly));
+        }
+      });
+    });
+
+    // Start observing the toggle button for attribute changes
+    observer.observe(toggle, {
+      attributes: true,
+      attributeFilter: ["aria-checked"], // only watch for aria-checked changes
+    });
+  }
+
+  // runs on initial page load
+  setupPricingToggle();
+
+  // runs on view transitions navigation
+  document.addEventListener("astro:after-swap", setupPricingToggle);
+</script>

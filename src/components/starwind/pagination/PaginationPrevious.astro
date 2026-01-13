@@ -1,0 +1,24 @@
+---
+import ChevronLeft from "@tabler/icons/outline/chevron-left.svg";
+import type { HTMLAttributes } from "astro/types";
+import { tv } from "tailwind-variants";
+
+import PaginationLink from "./PaginationLink.astro";
+
+type Props = HTMLAttributes<"a"> & { size?: "sm" | "md" | "lg" | "icon" };
+
+export const paginationPrevious = tv({ base: "group gap-1" });
+
+const { class: className, size = "md", ...rest } = Astro.props;
+---
+
+<PaginationLink
+  aria-label="Go to previous page"
+  size={size}
+  class={paginationPrevious({ class: className })}
+  data-slot="pagination-previous"
+  {...rest}
+>
+  <ChevronLeft class="size-4 transition-transform group-hover:-translate-x-1" />
+  <slot />
+</PaginationLink>

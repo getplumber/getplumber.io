@@ -1,0 +1,16 @@
+---
+import CategoryCloud from "@components/CategoryCloud/CategoryCloud.astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Recent Blog Posts" description="Recent Blog Posts Description">
+  <div class="site-container mt-24 md:mt-36">
+    <div class="flex">
+      <p class="colored-title">Our blog</p>
+    </div>
+    <h1 class="h2 mt-6">Our blog categories to help you on your journey</h1>
+    <div class="mt-4 flex">
+      <CategoryCloud showCount={false} />
+    </div>
+  </div>
+</BaseLayout>

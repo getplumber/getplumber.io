@@ -1,0 +1,165 @@
+---
+import Button from "@components/Button/Button.astro";
+import { getLocaleFromUrl } from "@js/localeUtils";
+// main layout
+import BaseLayout from "@layouts/BaseLayout.astro";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+---
+
+<BaseLayout title="Recent Blog Posts" description="Recent Blog Posts Description">
+  <div class="site-container mx-auto max-w-3xl">
+    <h1 class="h1 mt-24 text-center md:mt-36">Overview</h1>
+    <p class="description mt-2 text-center">The various pages of Galaxy</p>
+    <div class="xs:grid-cols-2 mx-auto mt-10 grid gap-x-8 gap-y-4 md:grid-cols-3">
+      <!-- Landing Pages -->
+      <div class="flex flex-col">
+        <h3 class="overview-heading">Landing Pages</h3>
+        <a class="overview-link" href={"/"}>Landing 1</a>
+        <a class="overview-link" href={"/examples/landing2"}
+          >Landing 2</a
+        >
+        <a class="overview-link" href={"/examples/landing3"}
+          >Landing 3</a
+        >
+      </div>
+
+      <!-- Blog pages -->
+      <div class="flex flex-col">
+        <h3 class="overview-heading">Blog</h3>
+        <a class="overview-link" href={"/blog"}>Blog Index 1</a>
+        <a class="overview-link" href={"/examples/blog-index-2"}
+          >Blog Index 2</a
+        >
+        <a class="overview-link" href={"/blog/tsconfig-paths-setup"}
+          >Blog Post 1</a
+        >
+        <a class="overview-link" href={"/examples/blog2"}
+          >Blog Post 2</a
+        >
+        <a class="overview-link" href={"/categories"}>Categories</a>
+      </div>
+
+      <!-- Sections -->
+      <div class="flex flex-col">
+        <h3 class="overview-heading">Sections</h3>
+        <a class="overview-link" href={"/examples/feature-sections"}
+          >All Feature Sections</a
+        >
+        <a class="overview-link" href={"examples/pricing-sections"}
+          >All Pricing and FAQ Sections</a
+        >
+        <a class="overview-link" href={"/examples/hero-sections"}
+          >All Hero Sections</a
+        >
+        <a
+          class="overview-link"
+          href={"/examples/testimonial-logo-sections"}
+          >All Testimonial and Logo Cloud Sections</a
+        >
+      </div>
+
+      <!-- Forms -->
+      <div class="flex flex-col">
+        <h3 class="overview-heading">Forms</h3>
+        <a class="overview-link" href={"/contact"}>Contact</a>
+        <a class="overview-link" href={"/login"}>Login</a>
+        <a class="overview-link" href={"/signup"}>Signup</a>
+        <a class="overview-link" href={"/password-reset"}
+          >Password Reset</a
+        >
+      </div>
+
+      <!-- Other -->
+      <div class="flex flex-col">
+        <h3 class="overview-heading">Other Pages</h3>
+        <a class="overview-link" href={"/elements"}>MDX Pages</a>
+        <a class="overview-link" href={"/privacy-policy"}
+          >Privacy Policy</a
+        >
+        <a class="overview-link" href="/not-a-link/">404</a>
+        <a
+          class="overview-link"
+          href={"/rss.xml"}
+          target="_blank"
+          rel="noopener noreferrer">RSS Feed</a
+        >
+      </div>
+
+      <!-- Widgets -->
+      <div class="flex flex-col">
+        <h3 class="overview-heading">Widgets</h3>
+        <!-- CookieConsent component should be used in BaseLayout.astro if desired -->
+        <button id="test-consent-demo-btn" class="overview-link text-left">Cookie Consent</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CookieConsent component should be used in BaseLayout.astro if desired -->
+  <div id="test-banner" class="fixed inset-x-6 bottom-6 z-50 hidden justify-center">
+    <div
+      class="border-base-400 bg-base-200 dark:border-base-600/60 dark:bg-base-800 flex flex-wrap items-center justify-center gap-x-6 gap-y-4 rounded-md border p-4"
+    >
+      <div class="text-center">
+        <p class="text-sm lg:text-base">
+          We use cookies to improve your experience on this site. To learn more, see our <a
+            href={"/privacy-policy"}
+            class="text-primary-600 hover:text-primary-800 dark:text-primary-300 dark:hover:text-primary-400 underline transition"
+            >Privacy Policy</a
+          >.
+        </p>
+      </div>
+      <div class="mx-auto flex gap-2">
+        <Button variant="primary" type="button">Accept</Button>
+        <Button variant="ghost" type="button">Decline</Button>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  @import "tailwindcss/theme" theme(reference);
+  @import "@/styles/tailwind-theme.css" theme(reference);
+
+  .overview-heading {
+    @apply mt-6 mb-2 text-lg font-semibold;
+  }
+  .overview-link {
+    @apply text-foreground/80 hover:text-foreground my-[.15rem] leading-snug transition;
+  }
+</style>
+
+<script>
+  //Script purely for demo of the CookieConsent component. Use the actual <CookieConsent /> component in BaseLayout.astro if desired.
+  function cookieConsentSetup() {
+    const cookieBanner = document.getElementById("test-banner");
+    const acceptButton = document.querySelector("#test-banner button:first-of-type");
+    const declineButton = document.querySelector("#test-banner button:last-of-type");
+    const cookieConsentDemoBtn = document.getElementById("test-consent-demo-btn");
+
+    cookieConsentDemoBtn?.addEventListener("click", () => {
+      cookieBanner?.classList.toggle("hidden");
+      cookieBanner?.classList.toggle("flex");
+    });
+
+    // If the user clicks the accept button, hide the banner and set a cookie
+    acceptButton?.addEventListener("click", () => {
+      console.log("cookies accepted example");
+      cookieBanner?.classList.toggle("hidden");
+      cookieBanner?.classList.toggle("flex");
+    });
+
+    // If the user clicks the decline button, hide the banner and set a cookie
+    declineButton?.addEventListener("click", () => {
+      console.log("cookies declined example");
+      cookieBanner?.classList.toggle("hidden");
+      cookieBanner?.classList.toggle("flex");
+    });
+  }
+
+  // runs on initial page load
+  cookieConsentSetup();
+
+  // runs on view transitions navigation
+  document.addEventListener("astro:after-swap", cookieConsentSetup);
+</script>

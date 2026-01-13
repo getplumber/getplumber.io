@@ -1,0 +1,255 @@
+---
+/**
+ * * pricing sections with toggle for monthly or yearly payments
+ * This is designed for 4 pricing items, but can be modified to support more
+ */
+
+import Button from "@components/Button/Button.astro";
+import Switch from "@components/starwind/switch";
+import { getLocaleFromUrl } from "@js/localeUtils";
+
+import { Icon } from "astro-icon/components";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+
+interface pricingItem {
+  name: string; // plan name
+  description: string; // plan description
+  featured?: boolean; // if true, will be highlighted or otherwise featured
+  price: {
+    custom?: boolean; // if true, will show "contact us" instead of price
+    monthly?: number; // monthly price if paid by month
+    yearly?: number; // monthly price if paid by year
+  };
+  features: string[]; // list of features
+}
+
+// This is designed for 4 pricing items, but can be modified to support more
+const pricingData: pricingItem[] = [
+  {
+    name: "Basic",
+    description: "For startups and small businesses",
+    price: {
+      monthly: 12,
+      yearly: 10,
+    },
+    features: ["All features", "1 user", "5 GB cloud storage", "100 GB bandwidth", "Support"],
+  },
+  {
+    name: "Professional",
+    description: "For growing businesses",
+    featured: true,
+    price: {
+      monthly: 60,
+      yearly: 50,
+    },
+    features: [
+      "All features",
+      "5 users",
+      "50 GB cloud storage",
+      "1 TB bandwidth",
+      "Priority support",
+    ],
+  },
+  {
+    name: "Enterprise",
+    description: "For next level companies",
+    price: {
+      monthly: 120,
+      yearly: 100,
+    },
+    features: [
+      "All features",
+      "unlimited users",
+      "500 GB cloud storage",
+      "Unlimited bandwidth",
+      "Enhanced priority support",
+      "API access",
+    ],
+  },
+  {
+    name: "Contact Us",
+    description: "For bespoke solutions",
+    price: {
+      custom: true,
+    },
+    features: [
+      "White Glove onboarding",
+      "All features",
+      "unlimited users",
+      ">500 GB cloud storage",
+      "Unlimited bandwidth",
+      "Dedicated support",
+
+      "API access",
+    ],
+  },
+];
+---
+
+<section id="pricing-4" class="my-24 overflow-hidden md:my-36">
+  <div class="relative mx-auto px-4">
+    <div class="flex justify-center">
+      <p class="colored-title inline">Pricing</p>
+    </div>
+    <h2 class="h2 mt-8 text-center">A plan for every business</h2>
+
+    <!-- Toggle switch for monthly or yearly pricing -->
+    <div class="mt-6 flex justify-center">
+      <label
+        for="plan-4__toggle"
+        class="relative inline-flex cursor-pointer items-center select-none"
+      >
+        <span class="label flex items-center text-sm">Monthly</span>
+        <Switch variant="primary" id="plan-4__toggle" class="mx-4" />
+        <span class="label flex items-center text-sm">Yearly</span>
+      </label>
+    </div>
+
+    <!-- works for 3 pricing plans, adjust grid and max-w here to support more or less -->
+    <div class="mx-auto mt-12 grid w-full max-w-7xl gap-6 sm:grid-cols-2 xl:grid-cols-4">
+      {
+        pricingData.map((plan) => (
+          // pricing cards
+          <div
+            class="pricing-plan relative mx-auto h-full w-full max-w-sm overflow-hidden rounded-2xl"
+            class:list={[
+              {
+                "from-primary-400 to-base-300 dark:from-primary-500 dark:to-base-600/60 bg-gradient-to-br to-40%":
+                  plan.featured === true,
+              },
+              {
+                "bg-base-300 dark:bg-base-600/60": plan.featured !== true,
+              },
+            ]}
+          >
+            <div class="relative h-full p-px">
+              <div class="bg-base-200 dark:bg-base-800 relative z-10 flex h-full flex-col overflow-hidden rounded-[calc(1rem-1px)]">
+                {plan.featured === true && (
+                  // inside card glow for featured
+                  <div
+                    class="bg-primary-300/40 dark:bg-primary-600/20 absolute top-0 left-0 -z-10 mx-auto aspect-square w-full max-w-7xl -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+                    aria-hidden="true"
+                  />
+                )}
+                <div class="mx-auto flex h-full w-full max-w-[20rem] flex-col px-6 pb-6">
+                  <div class="flex w-full justify-between pt-6">
+                    <h3
+                      class:list={[
+                        "text-lg font-semibold",
+                        {
+                          "main-text-gradient": plan.featured === true,
+                        },
+                      ]}
+                    >
+                      {plan.name}
+                    </h3>
+                    {plan.featured === true && (
+                      // featured tag
+                      <div class="flex w-full items-center justify-end">
+                        <div class="bg-primary-600 text-base-100 flex gap-2 rounded-full px-3 py-1 text-sm">
+                          <p class="flex items-center">Most popular</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div class="pt-3">
+                    <p class="opacity-90 dark:opacity-80">{plan.description}</p>
+                    <p class="mt-3 font-semibold">
+                      {plan.price.custom === true ? (
+                        // if custom price, show "contact us" instead of price
+                        <span class="text-primary-600 dark:text-primary-400 text-5xl font-semibold">
+                          Custom
+                        </span>
+                      ) : (
+                        <>
+                          <div class="pricing-monthly">
+                            <span class="text-primary-600 dark:text-primary-400 text-5xl font-semibold">
+                              ${plan.price.monthly}
+                            </span>
+                            <span class="text-3xl">/mo</span>
+                            <br />
+                            <p class="mt-1 text-sm font-normal opacity-70">(paid monthly)</p>
+                          </div>
+                          <div class="pricing-yearly hidden">
+                            <span class="text-primary-600 dark:text-primary-400 text-5xl font-semibold">
+                              ${plan.price.yearly}
+                            </span>
+                            <span class="text-3xl">/mo</span>
+                            <br />
+                            <p class="mt-1 text-sm font-normal opacity-70">(paid yearly)</p>
+                          </div>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  <ul class="my-6 flex w-full flex-col gap-2">
+                    {plan.features.map((feature) => (
+                      <li
+                        class:list={[
+                          "flex items-center",
+                          {
+                            "opacity-90 dark:opacity-80": plan.featured !== true,
+                          },
+                        ]}
+                      >
+                        <Icon
+                          name="tabler/check"
+                          class="text-primary-600 dark:text-primary-400 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                        <span class="ml-2 inline">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div class="mt-auto">
+                    <Button
+                      variant={plan.featured === true ? "primary" : "outline"}
+                      href={"/signup"}
+                    >
+                      Get Started
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  function setupPricingToggle() {
+    const pricingSection = document.getElementById("pricing-4") as HTMLElement;
+    const toggle = pricingSection.querySelector("#plan-4__toggle") as HTMLInputElement;
+    const monthlyPrices = pricingSection?.querySelectorAll(".pricing-monthly");
+    const yearlyPrices = pricingSection?.querySelectorAll(".pricing-yearly");
+
+    if (!toggle || !monthlyPrices || !yearlyPrices) return;
+
+    // Create a new MutationObserver to watch for aria-checked changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === "attributes" && mutation.attributeName === "aria-checked") {
+          const isYearly = toggle.getAttribute("aria-checked") === "true";
+          monthlyPrices.forEach((price) => price.classList.toggle("hidden", isYearly));
+          yearlyPrices.forEach((price) => price.classList.toggle("hidden", !isYearly));
+        }
+      });
+    });
+
+    // Start observing the toggle button for attribute changes
+    observer.observe(toggle, {
+      attributes: true,
+      attributeFilter: ["aria-checked"], // only watch for aria-checked changes
+    });
+  }
+
+  // runs on initial page load
+  setupPricingToggle();
+
+  // runs on view transitions navigation
+  document.addEventListener("astro:after-swap", setupPricingToggle);
+</script>
