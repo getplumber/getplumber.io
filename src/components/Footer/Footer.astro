@@ -11,8 +11,23 @@ const siteData = getTranslatedData("siteData", currLocale);
 const today = new Date();
 ---
 
-<div class="border-t-base-300 dark:border-t-base-600/60 mt-20 border-t">
-  <footer class="site-container m-auto w-full pb-6">
+<div 
+
+class:list={[
+  "border-t-base-300 dark:border-t-base-600/60 border-t",
+  // Add background on docs pages to prevent content showing through
+  !Astro.url.pathname.startsWith("/docs") && "mt-20",
+
+]}
+>
+  <footer 
+  class:list={[
+    " m-auto w-full pb-6",
+    // Add background on docs pages to prevent content showing through
+    Astro.url.pathname.startsWith("/docs") ? "docs-site-container" : "site-container",
+
+  ]}
+  >
     <div class="flex w-full flex-col justify-between gap-4 sm:flex-row sm:gap-10">
       <div class="mt-6 flex flex-col items-start gap-2">
         <SiteLogo />
@@ -37,6 +52,7 @@ const today = new Date();
         <div class="flex flex-col">
           <h3 class="mt-6 mb-2 text-lg font-semibold">Navigation</h3>
           <FooterLink href={"/blog"}>Blog</FooterLink>
+          <FooterLink href={"/docs"}>Docs</FooterLink>
           <FooterLink href={"/overview"}>Overview</FooterLink>
           <FooterLink href={"/about"}>About</FooterLink>
           <FooterLink href={"/contact"}>Contact</FooterLink>

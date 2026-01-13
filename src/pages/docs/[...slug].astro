@@ -26,35 +26,11 @@ export async function getStaticPaths() {
     return data.draft !== true;
   });
 
-  console.log("[getStaticPaths] Total docs found:", docs.length);
-  console.log("[getStaticPaths] Sample doc IDs:", docs.slice(0, 5).map(d => d.id));
-
   // get rid of pages from other languages and remove locale from slug
   const filteredDocs = filterCollectionByLanguage(docs, defaultLocale);
 
-  console.log("[getStaticPaths] Filtered docs count:", filteredDocs.length);
-  console.log("[getStaticPaths] Filtered doc IDs:", filteredDocs.map(d => d.id));
-  
-  // Log sample doc data to see what properties they have
-  if (filteredDocs.length > 0) {
-    console.log("[getStaticPaths] Sample doc data:", {
-      id: filteredDocs[0].id,
-      hasSection: 'section' in filteredDocs[0].data,
-      section: filteredDocs[0].data.section,
-      dataKeys: Object.keys(filteredDocs[0].data)
-    });
-  }
-
   const sidebarData = getTranslatedData("sidebarNavData", defaultLocale);
   const documentationTabs = sidebarData.tabs;
-
-  console.log("[getStaticPaths] Documentation tabs:", documentationTabs?.length || 0);
-  if (documentationTabs && documentationTabs.length > 0) {
-    console.log("[getStaticPaths] Tab IDs:", documentationTabs.map(t => t.id));
-    documentationTabs.forEach(tab => {
-      console.log(`[getStaticPaths] Tab "${tab.id}" sections:`, tab.sections?.map(s => s.id) || []);
-    });
-  }
 
   // Create paths for each docs section
   const paths: any[] = [];
@@ -78,9 +54,6 @@ export async function getStaticPaths() {
         params: { slug: slugWithoutIndex },
         props: { doc, sectionId },
       });
-      console.log(`[getStaticPaths] Created paths for ${docId}: ["${docId}", "${slugWithoutIndex}"]`);
-    } else {
-      console.log(`[getStaticPaths] Created path for ${docId}: ["${docId}"]`);
     }
 
     return pathsForDoc;
@@ -88,54 +61,32 @@ export async function getStaticPaths() {
 
   // If documentation tabs are defined, use them to generate paths for each section
   if (documentationTabs && documentationTabs.length > 0) {
-    // Collect all section IDs from all tabs
-    const allSectionIds = new Set<string>();
-    documentationTabs.forEach(tab => {
-      tab.sections?.forEach(section => {
-        allSectionIds.add(section.id);
-      });
-    });
-
-    console.log("[getStaticPaths] All section IDs from tabs:", Array.from(allSectionIds));
-
     for (const tab of documentationTabs) {
-      if (!tab.sections || tab.sections.length === 0) continue;
+      // Get sections for this tab
+      const tabSections = tab.sections || [];
+      const tabSectionIds = new Set(tabSections.map(s => s.id));
       
-      for (const section of tab.sections) {
-        // Match docs to sections based on the first part of their ID (folder name)
-        // e.g., "getting-started/index" matches section "getting-started"
-        const sectionDocs = filteredDocs.filter((doc) => {
-          const docId = doc.id as string;
-          const firstSegment = docId.split("/")[0];
-          return firstSegment === section.id;
-        });
+      // Get all docs for this tab - match by folder structure (first segment of doc.id)
+      const tabDocs = filteredDocs.filter((doc) => {
+        const firstSegment = doc.id.split("/")[0];
+        return tabSectionIds.has(firstSegment);
+      });
 
-        console.log(`[getStaticPaths] Section "${section.id}" (tab: "${tab.id}") has ${sectionDocs.length} docs`);
-        if (sectionDocs.length > 0) {
-          console.log(`[getStaticPaths] Section "${section.id}" doc IDs:`, sectionDocs.map(d => d.id));
-        }
-
-        // Generate paths for this section
-        const sectionPaths = sectionDocs.flatMap((doc) => generatePathsForDoc(doc, tab.id));
-        paths.push(...sectionPaths);
-      }
+      // Generate paths for this tab's docs
+      const tabPaths = tabDocs.flatMap((doc) => generatePathsForDoc(doc, tab.id));
+      paths.push(...tabPaths);
     }
     
     // If no paths were generated, fall back to generating all docs
     if (paths.length === 0) {
-      console.log("[getStaticPaths] No paths generated from tabs, using fallback");
       const defaultPaths = filteredDocs.flatMap((doc) => generatePathsForDoc(doc, "main"));
       paths.push(...defaultPaths);
     }
   } else {
     // Fallback to original behavior if no tabs are configured
-    console.log("[getStaticPaths] No tabs configured, using fallback");
     const defaultPaths = filteredDocs.flatMap((doc) => generatePathsForDoc(doc, "main"));
     paths.push(...defaultPaths);
   }
-
-  console.log("[getStaticPaths] Total paths generated:", paths.length);
-  console.log("[getStaticPaths] Sample paths:", paths.slice(0, 10).map(p => p.params.slug));
 
   return paths;
 }

@@ -7,11 +7,34 @@ import SiteLogo from "@components/SiteLogo/SiteLogo.astro";
 import ThemeToggle from "@components/ThemeToggle/ThemeToggle.astro";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
+import { generateDocsMenuItems } from "@js/navUtils";
 import { Icon } from "astro-icon/components";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const navData = getTranslatedData("navData", currLocale);
 import { locales } from "@config/siteSettings.json";
+
+// Generate docs menu items dynamically and add to navData if not already present
+const docsMenuColumns = await generateDocsMenuItems();
+const finalNavData = [...navData]; // Create a copy to avoid mutating the original
+
+// Check if Docs menu already exists
+const docsMenuExists = finalNavData.some((item) => item.text === "Docs");
+
+// Add docs menu to navData if it has columns and doesn't already exist
+if (docsMenuColumns.length > 0 && !docsMenuExists) {
+  const docsMenuItem = {
+    text: "Docs",
+    megaMenuColumns: docsMenuColumns,
+  };
+  // Insert docs menu after Overview, before Pages
+  const overviewIndex = finalNavData.findIndex((item) => item.text === "Overview");
+  if (overviewIndex >= 0) {
+    finalNavData.splice(overviewIndex + 1, 0, docsMenuItem);
+  } else {
+    finalNavData.unshift(docsMenuItem);
+  }
+}
 // console.log(JSON.stringify(navData, null, 2));
 ---
 
@@ -65,7 +88,7 @@ import { locales } from "@config/siteSettings.json";
         <ul class="mt-4 flex flex-col gap-2 text-xl">
           {
             // if dropdown exists, setup the dropdown, otherwise it is just a link
-            navData.map((navItem) =>
+            finalNavData.map((navItem) =>
               "dropdown" in navItem ? (
                 // mobile dropdown menu
                 <>

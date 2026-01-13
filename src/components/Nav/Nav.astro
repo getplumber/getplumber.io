@@ -4,26 +4,59 @@ import LanguageSelect from "@components/LanguageSelect/LanguageSelect.astro";
 import MobileNav from "@components/Nav/MobileNav/MobileNav.astro";
 import NavDropdownToggle from "@components/Nav/NavDropdown/NavDropdownToggle.astro";
 import NavLink from "@components/Nav/NavLink.astro";
-import Search from "@components/Search/Search.astro";
 import SiteLogo from "@components/SiteLogo/SiteLogo.astro";
 import ThemeToggle from "@components/ThemeToggle/ThemeToggle.astro";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
+import { generateDocsMenuItems } from "@js/navUtils";
 
 import MegaMenuDropdownToggle from "./NavDropdown/MegaMenuDropdownToggle.astro";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const navData = getTranslatedData("navData", currLocale);
 import { locales } from "@config/siteSettings.json";
+import Search from "@components/Search/Search.astro";
+import DocsSearch from "@/docs/components/search/Search.astro";
+
+
+// Generate docs menu items dynamically and add to navData if not already present
+const docsMenuColumns = await generateDocsMenuItems();
+const finalNavData = [...navData]; // Create a copy to avoid mutating the original
+
+// Check if Docs menu already exists
+const docsMenuExists = finalNavData.some((item) => item.text === "Docs");
+
+// Add docs menu to navData if it has columns and doesn't already exist
+if (docsMenuColumns.length > 0 && !docsMenuExists) {
+  const docsMenuItem = {
+    text: "Docs",
+    megaMenuColumns: docsMenuColumns,
+  };
+  // Insert docs menu after Overview, before Pages
+  const overviewIndex = finalNavData.findIndex((item) => item.text === "Overview");
+  if (overviewIndex >= 0) {
+    finalNavData.splice(overviewIndex + 1, 0, docsMenuItem);
+  } else {
+    finalNavData.unshift(docsMenuItem);
+  }
+}
 // console.log(JSON.stringify(navData, null, 2));
 ---
 
 <section
   id="nav"
-  class="navbar--initial fixed top-0 left-0 z-30 flex w-full flex-col border-b transition-all duration-300"
+  class:list={[
+    "fixed top-0 left-0 z-30 flex w-full flex-col border-b transition-all duration-300",
+    // Add background on docs pages to prevent content showing through
+    Astro.url.pathname.startsWith("/docs") ? "bg-background/80 backdrop-blur border-foreground/10" : "navbar--initial",
+  ]}
 >
   <div class="mx-auto flex w-full">
-    <div class="site-container flex w-full items-center">
+    <div class:list={[
+      "flex w-full items-center",
+      // Add padding on docs pages to prevent content showing through
+      Astro.url.pathname.startsWith("/docs") ? "docs-site-container border-r border-l border-foreground/10" : "site-container",
+    ]}>
       <header class="relative flex w-full items-center gap-2">
         <!-- home button / image -->
         <div class="flex h-full flex-auto justify-start">
@@ -41,7 +74,7 @@ import { locales } from "@config/siteSettings.json";
               <ul class="flex h-full items-center">
                 {
                   // if dropdown exists, setup the dropdown, otherwise it is just a link
-                  navData.map((navItem) =>
+                  finalNavData.map((navItem) =>
                     "dropdown" in navItem ? (
                       // non-mobile dropdown menu
                       <NavDropdownToggle navItem={navItem} />
@@ -57,7 +90,7 @@ import { locales } from "@config/siteSettings.json";
             </nav>
             <div class="flex items-center">
               <ThemeToggle class="hidden md:flex" />
-              <Button
+              <!-- <Button
                 variant="ghost"
                 href={"/login"}
                 class="hidden whitespace-nowrap md:flex"
@@ -68,9 +101,10 @@ import { locales } from "@config/siteSettings.json";
                 variant="primary"
                 href={"/signup"}
                 class="hidden whitespace-nowrap md:flex">Sign up</Button
-              >
+              > -->
 
-              <Search class="md:ml-2" />
+              {!Astro.url.pathname.startsWith("/docs") ? <Search class="md:ml-2" /> : <DocsSearch class="md:ml-2" />}
+              
 
               {locales.length > 1 && <LanguageSelect class="ml-2 hidden md:flex" />}
             </div>
@@ -105,13 +139,19 @@ import { locales } from "@config/siteSettings.json";
 
   function scrollHandler() {
     if (navbar) {
+      const isDocsPage = window.location.pathname.startsWith("/docs");
+      
       if (window.scrollY > 50) {
         // if we have scrolled down the page a bit, add a frosted-glass look to the navbar
-        navbar.classList.add("navbar--scrolled");
-        navbar.classList.remove("navbar--initial");
+        if (!isDocsPage) {
+          navbar.classList.add("navbar--scrolled");
+          navbar.classList.remove("navbar--initial");
+        }
       } else {
-        navbar.classList.add("navbar--initial");
-        navbar.classList.remove("navbar--scrolled");
+        if (!isDocsPage) {
+          navbar.classList.add("navbar--initial");
+          navbar.classList.remove("navbar--scrolled");
+        }
       }
     }
   }

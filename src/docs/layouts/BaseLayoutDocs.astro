@@ -3,8 +3,8 @@ import "@/styles/global.css";
 import "@/docs/styles/docs-markdown-content.css";
 
 import CookieConsent from "@/docs/components/cookie-consent/CookieConsent.astro";
-import Footer from "@/docs/components/footer/Footer.astro";
-import Nav from "@/docs/components/nav/Nav.astro";
+import Footer from "@/components/Footer/Footer.astro";
+import Nav from "@/components/Nav/Nav.astro";
 import SkipLink from "@/docs/components/skip-link/SkipLink.astro";
 import siteSettings from "@/docs/config/siteSettings.json";
 import { getLocaleFromUrl } from "@/docs/js/localeUtils";
@@ -42,10 +42,11 @@ const currLocale = getLocaleFromUrl(Astro.url);
     <SkipLink href="#main-content" />
     <div class="min-h-[100lvh]">
       {/* Navbar */}
-      <header class="bg-background/80 sticky -top-px z-50 w-full border-b backdrop-blur">
-        <Nav sectionId={sectionId} />
-      </header>
-      <slot />
+      <Nav />
+      {/* Add padding-top to account for fixed navbar */}
+      <div class="pt-[var(--nav-height,4rem)]">
+        <slot />
+      </div>
     </div>
     <Footer />
   </body>

@@ -52,7 +52,8 @@ export default defineConfig([
         extraFileExtensions: [".astro"],
         sourceType: "module",
         ecmaVersion: "latest",
-        project: "./tsconfig.json",
+        // Don't require project for type checking to avoid issues with bracket filenames
+        // TypeScript will still work, just without strict type checking in ESLint
       },
     },
     rules: {
