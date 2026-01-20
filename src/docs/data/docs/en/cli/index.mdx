@@ -1,0 +1,226 @@
+---
+title: "CLI Reference"
+description: "Complete reference for the Plumber CLI tool"
+sidebar:
+  label: "CLI Reference"
+  order: 1
+section: "api"
+---
+
+The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command line. This is useful for local testing, CI/CD integration, or automated compliance checks.
+
+## Installation
+
+### Using Docker
+
+The easiest way to use Plumber is via Docker:
+
+```bash
+docker pull getplumber/plumber:latest
+```
+
+### Building from Source
+
+```bash
+git clone https://github.com/getplumber/plumber.git
+cd plumber
+go build -o plumber .
+```
+
+## Command: `analyze`
+
+The main command for analyzing GitLab CI/CD pipelines.
+
+### Usage
+
+```bash
+plumber analyze [flags]
+```
+
+### Flags
+
+| Flag | Required | Default | Description |
+|------|----------|---------|-------------|
+| `--gitlab-url` | Yes | - | GitLab instance URL (e.g., `https://gitlab.com`) |
+| `--project` | Yes | - | Project path, e.g., `group/project` |
+| `--config` | Yes | - | Path to `.plumber.yaml` configuration file |
+| `--threshold` | Yes | - | Minimum compliance % to pass (0-100) |
+| `--branch` | No | Project default | Branch to analyze |
+| `--output` | No | - | Write JSON results to file |
+| `--print` | No | `true` | Print text output to stdout |
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GITLAB_TOKEN` | Yes | GitLab API token with `read_api` and `read_repository` scopes |
+
+### Examples
+
+#### Basic Analysis
+
+```bash
+export GITLAB_TOKEN=glpat-xxxx
+./plumber analyze \
+  --gitlab-url https://gitlab.com \
+  --project mygroup/myproject \
+  --branch main \
+  --config .plumber.yaml \
+  --threshold 100
+```
+
+#### Using Docker
+
+```bash
+docker run --rm \
+  -e GITLAB_TOKEN=glpat-xxxx \
+  getplumber/plumber:latest analyze \
+  --gitlab-url https://gitlab.com \
+  --project mygroup/myproject \
+  --branch main \
+  --config /.plumber.yaml \
+  --threshold 100
+```
+
+#### Save JSON Output
+
+```bash
+docker run --rm \
+  -e GITLAB_TOKEN=glpat-xxxx \
+  -v $(pwd):/output \
+  getplumber/plumber:latest analyze \
+  --gitlab-url https://gitlab.com \
+  --project mygroup/myproject \
+  --branch main \
+  --config /.plumber.yaml \
+  --threshold 100 \
+  --output /output/results.json
+```
+
+#### Self-Hosted GitLab
+
+```bash
+./plumber analyze \
+  --gitlab-url https://gitlab.example.com \
+  --project mygroup/myproject \
+  --branch develop \
+  --config .plumber.yaml \
+  --threshold 80
+```
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Passed (compliance ≥ threshold) |
+| `1` | Failed (compliance < threshold or error) |
+
+## Example Output
+
+```
+=== Pipeline Analysis Results ===
+
+Project: mygroup/myproject
+
+--- Mutable Image Tag Control ---
+  Compliance: 50.0%
+  Issues Found:
+    - Job 'build' uses mutable tag 'latest' (image: docker.io/node:latest)
+
+--- Untrusted Image Control ---
+  Compliance: 100.0%
+  Trusted: 8, Untrusted: 0
+
+--- Branch Protection Control ---
+  Compliance: 100.0%
+  Protected: 2, Unprotected: 0
+
+=== Summary ===
+  Overall Compliance: 83.3%
+  Threshold: 100.0%
+  Status: FAILED ✗
+```
+
+## Configuration File
+
+Plumber uses a `.plumber.yaml` configuration file to customize checks. See the [Configuration](#configuration) section for details.
+
+### Configuration File Format
+
+```yaml
+version: "1.0"
+
+controls:
+  imageMutable:
+    enabled: true
+    mutableTags:
+      - latest
+      - dev
+
+  imageUntrusted:
+    enabled: true
+    trustDockerHubOfficialImages: true
+    trustedUrls:
+      - registry.gitlab.com/*
+      - $CI_REGISTRY_IMAGE:*
+
+  branchProtection:
+    enabled: true
+    defaultMustBeProtected: true
+    namePatterns:
+      - main
+      - release/*
+```
+
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| `GITLAB_TOKEN environment variable is required` | Set the `GITLAB_TOKEN` environment variable with a valid GitLab token |
+| `401 Unauthorized` | Check that your token has `read_api` + `read_repository` scopes |
+| `403 Forbidden` on MR settings | Expected on non-Premium GitLab; continues without that data |
+| `404 Not Found` | Verify the project path and GitLab URL are correct |
+| Configuration file not found | Ensure the path to `.plumber.yaml` is correct (use absolute path in Docker) |
+
+### Getting Help
+
+- **GitHub Issues**: [https://github.com/getplumber/plumber/issues](https://github.com/getplumber/plumber/issues)
+- **Documentation**: [https://github.com/getplumber/plumber](https://github.com/getplumber/plumber)
+
+## Advanced Usage
+
+### Custom Configuration Path
+
+```bash
+./plumber analyze \
+  --gitlab-url https://gitlab.com \
+  --project mygroup/myproject \
+  --config /path/to/custom/.plumber.yaml \
+  --threshold 100
+```
+
+### Silent Mode (JSON Only)
+
+```bash
+./plumber analyze \
+  --gitlab-url https://gitlab.com \
+  --project mygroup/myproject \
+  --config .plumber.yaml \
+  --threshold 100 \
+  --output results.json \
+  --print false
+```
+
+### Analyzing Different Branches
+
+```bash
+# Analyze develop branch
+./plumber analyze \
+  --gitlab-url https://gitlab.com \
+  --project mygroup/myproject \
+  --branch develop \
+  --config .plumber.yaml \
+  --threshold 100
+```

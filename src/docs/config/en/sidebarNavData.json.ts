@@ -22,45 +22,30 @@ const sidebarNavData: DocsSidebarNavData = {
           title: "Getting Started",
         },
         {
-          id: "components",
-          title: "Components",
+          id: "installation",
+          title: "Installation",
         },
         {
-          id: "reference",
-          title: "Reference",
+          id: "use-r2devops",
+          title: "Use R2Devops",
         },
       ],
     },
     {
       id: "api",
-      title: "API Reference",
-      description: "API documentation",
-      icon: "tabler/api-app",
+      title: "CLI Reference",
+      description: "CLI documentation",
+      icon: "tabler/terminal-2",
       // Ordered list of sidebar sections for the 'api' tab
       sections: [
         {
-          id: "endpoints",
-          title: "Endpoints",
+          id: "cli",
+          title: "CLI",
         },
-        {
-          id: "authentication",
-          title: "Authentication",
-        },
+
       ],
     },
-    {
-      id: "tutorials",
-      title: "Tutorials",
-      description: "Step-by-step tutorials",
-      icon: "tabler/school",
-      // Ordered list of sidebar sections for the 'tutorials' tab
-      sections: [
-        {
-          id: "tips-and-tricks",
-          title: "Tips and Tricks",
-        },
-      ],
-    },
+   
   ],
 };
 

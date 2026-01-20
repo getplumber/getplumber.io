@@ -1,0 +1,42 @@
+---
+title: 1.46 Release  
+description: This release introduces the ability to create custom template labels and grant special permissions to access analysis dashboards.  
+draft: false
+authors:
+  - r2devops
+pubDate: 2024-08-09
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Analysis"
+  - "Labels"
+  - "Permissions"
+---
+
+# R2Devops 1.46 Release  
+
+<Admonition variant="info">
+Docker Image Versions
+- Backend: `v1.44.1`
+- Frontend: `v1.41.5`
+- Helm chart: `v1.46.3`
+</Admonition>
+
+## 🔐 Authorization Settings
+
+You can now grant permissions for read-only access to the analysis dashboard. These permissions can be assigned to users with [GitLab Auditor access rights](https://docs.gitlab.com/ee/administration/auditor_users.html) or to all groups' members.
+
+![User experience demonstration of the Authorization Settings page](./authorization_settings.gif)
+
+## 🏷️ Label Settings
+
+The label settings allows you to create custom labels for your templates. This feature enhances your control over your organization's CI/CD pipeline steps (compliance) by enabling you to define and manage your own standards.
+
+![User experience demonstration of the Labels Settings page](./labels_settings.gif)
+
+## ⚙️ Minor Updates
+
+- Improved the loading display for the "Flag as Safe" action on variables.
+- Updated content on the Roadmap page.
+- Improve consistency between template visibility and repository visbility.
+

@@ -27,9 +27,12 @@ if (docsMenuColumns.length > 0 && !docsMenuExists) {
     text: "Docs",
     megaMenuColumns: docsMenuColumns,
   };
-  // Insert docs menu after Overview, before Pages
+  // Insert docs menu after Platform (or after Overview if Platform doesn't exist)
+  const platformIndex = finalNavData.findIndex((item) => item.text === "Platform");
   const overviewIndex = finalNavData.findIndex((item) => item.text === "Overview");
-  if (overviewIndex >= 0) {
+  if (platformIndex >= 0) {
+    finalNavData.splice(platformIndex + 1, 0, docsMenuItem);
+  } else if (overviewIndex >= 0) {
     finalNavData.splice(overviewIndex + 1, 0, docsMenuItem);
   } else {
     finalNavData.unshift(docsMenuItem);
@@ -120,7 +123,7 @@ if (docsMenuColumns.length > 0 && !docsMenuExists) {
           <ThemeToggle />
           {locales.length > 1 && <LanguageSelect />}
         </div>
-        <Button
+        <!-- <Button
           variant="outline"
           href={"/login"}
           class="mx-2 whitespace-nowrap"
@@ -129,7 +132,7 @@ if (docsMenuColumns.length > 0 && !docsMenuExists) {
         </Button>
         <Button class="mx-2" variant="primary" href={"/signup"}
           >Sign up</Button
-        >
+        > -->
       </div>
     </div>
   </dialog>

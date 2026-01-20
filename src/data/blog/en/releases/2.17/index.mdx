@@ -1,0 +1,83 @@
+---
+title: 2.17 Release
+description: R2Devops 2.17 provides unified compliance views, automated reporting, and targeted analysis capabilities
+draft: false
+authors:
+  - r2devops
+pubDate: 2025-12-12
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Compliance"
+  - "Portfolios"
+  - "Policies"
+  - "Export"
+  - "Analytics"
+  - "Reporting"
+---
+
+# R2Devops 2.17 Release
+
+**We're thrilled to launch R2Devops 2.17, focused on:**
+
+> **📊 Easily view and share relevant compliance metrics**
+
+**To make that happen, we've introduced a unified portfolio compliance dashboard with historical tracking, automated export and email capabilities, and targeted analysis features.**
+
+## 📈 Unified Portfolio Compliance Dashboard
+
+Get a complete view of all your portfolios' compliance in one place and track compliance evolution over time with historical data.
+
+![Unified Portfolio Compliance Dashboard screenshot](./portfolios.png)
+
+## 📤 Export Compliance Results
+
+Export compliance results for portfolios and policies, and share comprehensive reports with your team, management, or auditors—automatically by email, at any frequency.
+
+**What you can export:**
+- **PDF format**: Complete reports with charts and data
+- **CSV format**: Raw data for custom analysis and integration
+
+![PDF export of policies](./export_policy_pdf.png)
+
+![PDF export of portfolios](./export_portfolio_pdf.png)
+
+## 🎯 Targeted Analysis
+
+Run analysis precisely where you need it. Previously, every analysis ran across all your projects and all policies at once.
+
+Now, you can run analysis precisely where you need it:
+- **On a specific project**: Instantly check compliance after a configuration change
+- **On a specific policy**: Quickly validate a policy update across its targeted projects
+
+This gives you faster feedback and more control over when and what gets analyzed.
+
+## ⚙️ Minor Updates
+
+- **Feature**: Sort issues by activity date for better prioritization
+- **Feature**: Bulk update merge request pipelines for MR Fix to save time
+- **Fix**: Resolve analysis performance issues on GitLab 18+
+- **Fix**: Resolve package CVEs
+- **Fix**: Enable template imports from repositories in organizations using a sub-group as root
+- **Fix**: Various bug fixes and stability improvements
+- **UX improvements**:
+    - Use GitLab display name instead of username when displaying users in R2Devops
+    - Add more detailed information about required permissions to add a license
+    - Various other user journey enhancements across the platform
+    - Improve navigation and overall configuration experience for policies and portfolios
+    - Rename control "An MR approval rule must be defined to cover all protected branches" to "Extra approval rule for protected branches"
+- **Improvement**: Support markdown formatting inside components description for richer documentation
+- **Improvement**: Add compatibility for GitHub admonitions in templates README.md files
+
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.34.0`
+- Frontend: `v2.30.2`
+- Helm chart: `v2.17.7`
+</Admonition>
+
+
+

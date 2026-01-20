@@ -1,0 +1,76 @@
+---
+title: 2.0 Release
+description: R2Devops 2.0 released with Policies and Issues detection
+draft: false
+authors:
+  - r2devops
+pubDate: 2024-11-01
+heroImage: ./compliance.gif
+categories:
+  - "Releases"
+  - "Analysis"
+  - "Policies"
+  - "Issues"
+---
+
+# R2Devops 2.0 Release
+
+**Today, we are excited to announce the release of R2DevOps 2.0! This new
+version introduces an enhanced experience for defining supply chain policies, a
+brand-new issue dashboard, improved pipeline composition compliance, and much
+more!**
+
+## 🛡️ Policies
+
+**Policies** are now available in R2Devops. They are the building blocks that
+analyze supply chain for compliance and security issues. Each policy focuses on
+a specific area and can be customized to align with any organization goals.
+
+The new "Policies" page offers a transparent view of all available policies,
+making it easy to view and configure them. Access it from the main navigation
+menu to get started.
+
+![Screenshot of the "Policies" page on R2Devops](./policies.png)
+
+## 📈 Issues dashboard
+
+Previously, compliance and security issues were scattered across multiple
+dashboard tabs. To improve clarity and allow quick identification of issues at
+a glance, we've introduced the "Issues" page.
+
+This page consolidates all issues identified by policy analyses in one place.
+They can be acknowledged to prevent them from appearing again.
+
+![Screenshot of the "Issues" tab on R2Devops dashboard](./issues.png)
+
+## ✅ Pipeline composition compliance
+
+
+
+We've enhanced pipeline composition compliance detection. Now, with just a few
+clicks, it's possible to specify which CI/CD templates must be used in projects
+to ensure compliance.
+
+In addition to verifying template usage, the policy detects forbidden overrides
+that may compromise compliance.
+
+![Screenshot of the "Compliance" tab on R2Devops dashboard](./compliance.gif)
+
+
+## ⚙️ Minor Updates
+
+- Enhanced dashboard navigation
+- Dashboard > Platform: refocused display to highlight projects
+- Dashboard > Templates: improved UI to distinguish official and unofficial templates; added detection for unofficial template versions
+- Dashboard > Variables: grouped display by variable, rather than by project/group
+- Various bug fixes
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.0.3`
+- Frontend: `v2.0.1`
+- Helm chart: `v2.0.1`
+</Admonition>
+

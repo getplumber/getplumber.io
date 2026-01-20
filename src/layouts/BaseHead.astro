@@ -96,3 +96,12 @@ import interVariable from "@fontsource-variable/inter/files/inter-latin-wght-nor
 
 <!-- no fallback as I saw issues with firefox fallback -->
 {siteSettings.useViewTransitions && <ClientRouter fallback="none" />}
+
+<!-- Plausible Analytics -->
+<script async src="/js/script.js"></script>
+<script is:inline>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init({
+    endpoint: "/api/event"
+  })
+</script>

@@ -54,4 +54,23 @@ const { class: className } = Astro.props;
     height: var(--step-size);
     top: calc(-1 * var(--step-offset));
   }
+
+  /* Style headings within steps */
+  .docs-steps li :is(h3, h4) {
+    @apply font-heading text-base font-semibold md:text-lg mt-0 mb-2;
+    /* Reset default heading margins since we're in a list item */
+    margin-top: 0;
+    /* Ensure headings don't break the step layout */
+    display: block;
+  }
+
+  /* Adjust step number position when heading is present */
+  .docs-steps li:has(:is(h3, h4))::before {
+    top: calc(-1 * var(--step-offset));
+  }
+
+  /* Ensure proper spacing after headings in steps */
+  .docs-steps li :is(h3, h4) + * {
+    @apply mt-2;
+  }
 </style>

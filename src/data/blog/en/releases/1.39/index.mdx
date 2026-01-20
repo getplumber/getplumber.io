@@ -1,0 +1,41 @@
+---
+title: 1.39 Release
+description: This release introduces CI/CD compliance template candidate listings and ability to reveal CI/CD variables.
+draft: false
+authors:
+  - r2devops
+pubDate: 2024-06-17
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Compliance"
+  - "Analysis"
+---
+
+# R2Devops 1.39 Release
+
+<Admonition variant="info">
+Docker Image Versions
+- Backend: `v1.39.0`
+    - Frontend: `v1.35.0`
+    - Helm chart: `v1.39.0`
+</Admonition>
+
+## 📋 CI/CD Compliance Templates Candidate Listing
+
+If a project is not compliant with composition policy, you can now list all the CI/CD templates available to fix its compliance
+![Listing candidate templates to resolve non-compliant projects](./compliance_remediation_listing.gif)
+
+## 👁️ Reveal CI/CD Variable Values
+
+You now have the ability to reveal the values of CI/CD variables directly from the R2Devops dashboard, making it easy to identify the values of the variables being used.
+
+![Reveal analysed variable value](./reveal_variable_value.gif)
+
+## ⚙️ Minor Updates
+
+- Improved label description indicating that we only analyze the default branch of each project.
+- Added FDI Urmet logo to the list of clients.
+- Prevented referencing of R2Devops self-managed public instance projects.
+- Enhanced home page loading performance.
+

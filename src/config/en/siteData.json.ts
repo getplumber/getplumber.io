@@ -2,23 +2,23 @@ import { type SiteDataProps } from "../types/configDataTypes";
 
 // Update this file with your site specific information
 const siteData: SiteDataProps = {
-  name: "Galaxy",
+  name: "Plumber",
   // Your website's title and description (meta fields)
-  title: "Galaxy - a slick startup / SaaS theme built using Astro and Tailwind CSS",
+  title: "Plumber - CI/CD compliance without effort",
   description:
-    "Get your new startup website up and running quickly with our beautiful website theme designed using Astro and Tailwind CSS. Perfect for freelancers, developers, startups, and personal use.",
+    "Audit, detect, and remediate drifts — continuously. Be ready for regulatory demands (ISO 27001, NIS2, DORA, SOC 2…).",
 
   // Your information for blog post purposes
   author: {
-    name: "Cosmic Themes",
-    email: "creator@cosmicthemes.com",
-    twitter: "Cosmic_Themes",
+    name: "Plumber",
+    email: "creator@plumber.com",
+    twitter: "Plumber",
   },
 
   // default image for meta tags if the page doesn't have an image already
   defaultImage: {
-    src: "/images/cosmic-themes-logo.jpg",
-    alt: "Cosmic Themes logo",
+    src: "/images/site-logo.svg",
+    alt: "Plumber logo",
   },
 };
 

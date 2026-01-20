@@ -6,17 +6,17 @@
 @theme {
   /* cosmic themes theme config */
   /* primary colors */
-  --color-primary-50: var(--color-violet-50);
-  --color-primary-100: var(--color-violet-100);
-  --color-primary-200: var(--color-violet-200);
-  --color-primary-300: var(--color-violet-300);
-  --color-primary-400: var(--color-violet-400);
-  --color-primary-500: var(--color-violet-500);
-  --color-primary-600: var(--color-violet-600);
-  --color-primary-700: var(--color-violet-700);
-  --color-primary-800: var(--color-violet-800);
-  --color-primary-900: var(--color-violet-900);
-  --color-primary-950: var(--color-violet-950);
+  --color-primary-50: var(--color-cyan-50);
+  --color-primary-100: var(--color-cyan-100);
+  --color-primary-200: var(--color-cyan-200);
+  --color-primary-300: var(--color-cyan-300);
+  --color-primary-400: var(--color-cyan-400);
+  --color-primary-500: var(--color-cyan-500);
+  --color-primary-600: var(--color-cyan-600);
+  --color-primary-700: var(--color-cyan-700);
+  --color-primary-800: var(--color-cyan-800);
+  --color-primary-900: var(--color-cyan-900);
+  --color-primary-950: var(--color-cyan-950);
 
   /* base colors */
   --color-base-50: var(--color-zinc-50);

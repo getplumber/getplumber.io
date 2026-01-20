@@ -1,0 +1,47 @@
+---
+title: "1.36 Release"
+description: This release brings controls over trusted container registries and improves templates usage analysis.
+draft: false
+authors:
+  - r2devops
+pubDate: 2024-04-16
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Registries"
+  - "Security"
+  - "Analysis"
+---
+
+# R2Devops 1.36 Release
+
+<Admonition variant="info">
+Docker Image Versions
+- Backend: `v1.36.2`
+    - Frontend: `v1.32.3`
+    - Helm chart: `v1.36.2`
+</Admonition>
+
+## 🔒 Controls Trusted Container Registries | **Self-Managed Only**
+- Define your trusted container registries to ensure the security of your
+  entire supply chain.
+
+![Configure Trusted Container Registries](./configure_trusted_registries.gif)
+
+- Quickly identify and secure your supply chain by filtering out untrusted container registries in your projects.
+
+![Spot Untrusted Container Registries](./spot_untrusted_registries.gif)
+
+## 🔍 Improve Templates Analysis
+
+- Identify the usage of ci/cd templates in your projects
+![Projects using specific resources](./projects_using_resources.gif)
+- We now highlight projects using the latest tag on marketplace templates.
+![Highlighting projects using the latest tag on marketplace templates](./highlight_latest_tag_usage.png)
+
+## ⚙️ Minor Updates
+
+- Rename the `Maintainability` dashboard tab to `Templates`.
+- Several bug fixes
+- Performance improvements
+

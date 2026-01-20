@@ -1,0 +1,51 @@
+---
+title: "1.34 Release"
+description: This release brings better GitLab CI/CD analysis and performance enhancements on R2Devops.io
+draft: false
+authors:
+  - r2devops
+pubDate: 2024-03-12
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Analysis"
+  - "Containers"
+  - "Performance"
+---
+
+# R2Devops 1.34 Release
+
+<Admonition variant="info">
+Docker Image Versions
+- Backend: `v1.32.4`
+    - Frontend: `v1.29.11`
+    - Helm chart: `v1.34.5`
+</Admonition>
+
+## 🔎 Enhanced CI/CD analysis
+
+- We now fully support a wider range of GitLab CI syntax, including specific
+  `environment`, `variables`, and `rules` definitions. This brings more
+  accurate analysis
+- R2Devops can now detect archived projects
+- Jobs coming from nested templates are now fully supported
+- Analysis is further enhanced by leveraging GitLab's own include resolution,
+  improving precision and compatibility with restricted network environments
+- The `include:project` syntax for marketplace templates is now fully
+  recognized
+
+## 🫙 Refined Container Identification
+
+Official Docker Hub containers are no longer automatically categorized as
+"Official" but instead identified as "Unknown". This change paves the way for
+future options to define your own trusted container registries.
+
+## ⚙️ Minor Updates
+
+- Analysis on our SaaS platform (R2Devops.io) is now significantly faster
+  thanks to the ability to scale workers up to 150. This means quicker results
+  and smoother workflows for you.
+- Restore quick update of outdated marketplace templates usage inside the
+  `Maintainability > Marketplace templates` tab.
+- Improve session auto-refresh in the frontend interface
+

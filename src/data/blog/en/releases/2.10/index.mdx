@@ -1,0 +1,97 @@
+---
+title: 2.10 Release
+description: R2Devops 2.10 release introduces GitLab Catalog Components support, enhanced merge request compliance controls, and improved dashboard issues management.
+draft: false
+authors:
+  - r2devops
+pubDate: 2025-04-07
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Compliance"
+  - "Security"
+  - "Collaboration"
+  - "CI/CD"
+---
+
+# R2Devops 2.10 Release
+
+**We are thrilled to announce R2Devops 2.10! This release brings GitLab Catalog Components support, enhanced merge request compliance controls, and improved dashboard issues management.**
+
+## 📦 GitLab Catalog Components Integration
+
+Track and manage GitLab Catalog Components across your projects:
+
+- Monitor usage across projects
+- Identify outdated components
+- Identify components included with forbidden versions
+- Access GitLab Catalog directly from the `Catalog` page
+
+## 🔒 Merge Request Compliance Controls
+
+Enforce organization standards with merge request compliance policies. Configure specific requirements in the `Access and Authorization` policy to standardize merge request settings across teams.
+
+![Screenshot of the "Merge Request Settings Compliance Controls" on R2Devops](./merge_request_settings.png)
+
+## 📊 Advanced Issues Management
+
+Collaborate more effectively on issues:
+
+- Add comments to issues for better team communication
+- Bulk update status or add comments to multiple issues
+- Assign owners to issues
+- Each issue now has a `Fix duration` and `Severity` status that can be sorted and filtered
+- All filters persist through the page URLs to allow sharing results with your team
+
+![Screenshot of "Issue Row" on R2Devops](./issue.png)
+
+## 🔧 One-Click Auto-Fixes
+
+Quickly resolve issues with one-click auto-fixes, reducing manual intervention and accelerating remediation.
+
+- Available from the `Fix` button in the issue page
+- Covers multiple compliance issues:
+  - Branch protection missing
+  - Branch protection configuration not compliant
+  - Merge request approval rule is below the minimum level of approvals required
+  - Merge request approval settings are not compliant
+  - Unmasked variable
+
+## 👤 Automatic Owner Assignment
+
+Streamline issue management with automatic owner assignment.
+
+- Enable this feature from the `Settings > Organization` page
+- Automatically assigns issue owners by searching in member lists of the project or group related to the issue
+- Selection logic prioritizes owners first, then maintainers if no owners are found
+
+## 🔄 Branch Protection Rules
+
+Define protection requirements for different branch patterns in GitLab. Create specific rules based on branch name patterns to enforce consistent security practices.
+
+
+## 🐳 Docker Hub Image Trust
+
+Simplify container security with automatic trust for `Official` Docker Hub images in the `CI/CD Container Images` policy.
+
+## ⚙️ Minor Updates
+
+- Improved loading behavior
+- AI pipeline analysis explanation for each project inside an AI requests
+- Added matching between R2Devops templates and components
+- Excluded bot users from issue owner candidates
+- Fixed component name display
+- Fixed pipeline composition chart
+- Improved repository access rights consistency
+- Improved performance with cached GitLab requests
+- Added centralized HTTP logging to track all requests to GitLab
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.15.1`
+- Frontend: `v2.13.0`
+- Helm chart: `v2.10.6`
+</Admonition>
+

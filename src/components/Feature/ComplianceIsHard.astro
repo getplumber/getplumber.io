@@ -1,0 +1,45 @@
+---
+
+import FeatureCard from "@components/FeatureCard/FeatureCardSideImage.astro";
+import illustration from "@images/proving-compliance.svg";
+import { Image } from "astro:assets";
+
+---
+
+<section id="complianceIsHard" class="my-24 overflow-clip md:my-36">
+  <div class="site-container mx-auto">
+    <div class="flex flex-col gap-16 md:gap-24">
+          <div class="mx-auto flex md:flex-row flex-col gap-8 rounded-2xl md:gap-12 lg:gap-20">
+            <!-- text -->
+            <div
+              class=`md:order-last" flex flex-col gap-3`
+              data-mos="fade-right"
+              data-mos-anchor=""
+            >
+
+              <h2 class="h2">Ensuring CI/CD compliance is hard. Proving it is even harder.</h2>
+              <p class="mt-4 opacity-90 dark:opacity-80">Regulations never stop evolving. From ISO 27001 to NIS2, DORA and SOC 2, new standards demand stronger control.<br/><br/>Compliance needs shared standards, drift detection, and remediation. But proving it means sifting through code, configs, and scattered ownership. It's manual, painful, costly — and never really done</p>
+            </div>
+          
+            <!-- image -->
+            <div class="md:mx-auto mb-auto h-auto w-full max-w-[300px] flex flex-col gap-1">
+              <!-- <div
+                class=`relative h-full rounded-2xl bg-gradient-to-br from-primary-400 via-base-300/70 to-base-300/70
+                dark:from-primary-500 dark:via-base-600/60 dark:to-base-600/60
+                after:absolute after:rounded-[calc(1rem-1px)] after:bg-base-100/30 dark:after:bg-base-800/50 after:inset-[1px]`
+                data-mos=`fade-right`
+              > -->
+                <Image
+                  class="relative z-10 w-full rounded-2xl border border-transparent object-cover"
+                  src={illustration}
+                  alt={"Ensuring CI/CD compliance is hard. Proving it is even harder."}
+                  width={300}
+                  data-mos=`fade-left`
+                />
+                <p class="ml-auto text-gray-500 text-xs">Vital questions - hard to answer.</p>
+              <!-- </div> -->
+            </div>
+          </div>
+        </div>
+  </div>
+</section>

@@ -1,0 +1,54 @@
+---
+title: "1.37 Release"
+description: This release brings a shared CI/CD compliance list on the dashboard and many improvements.
+draft: false
+authors:
+  - r2devops
+pubDate: 2024-05-07
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Compliance"
+  - "Analysis"
+---
+
+# R2Devops 1.37 Release
+
+
+<Admonition variant="info">
+Docker Image Versions
+- Backend: `v1.37.0`
+    - Frontend: `v1.33.2`
+    - Helm chart: `v1.37.0`
+</Admonition>
+
+## 🔍 CI/CD Compliance Settings | **Self-Managed Only**
+
+<Admonition variant="info">
+What is the 'compliance tab'?
+The compliance tab inside the R2Devops dashboard allows you to check if projects respect a defined compliance established by the organization.
+</Admonition>
+
+You can create a compliance list definition, shared across your organization.
+
+**For each list:**
+
+1. Select a name
+2. Select a color (optional)
+3. Select a description (optional)
+4. Select labels (labels assigned to your 'Marketplace templates')
+5. Save
+6. Your list is now shared across your organization
+7. Identify all compliant and non-compliant projects with this list
+
+![Define compliance list](./compliance_definition.gif)
+
+## ⚙️ Minor Updates
+
+- CI/CD Editor:
+     - Improve graphic view to prevent window resizing while typing
+     - Restore page access in self-managed localhost instance
+- Introduce a debug mode to facilitate support for self-managed R2Devops instances
+- Marketplace: Improve loading skeleton design when changing tabs
+- Dashboard: Improve registry settings text
+

@@ -1,0 +1,53 @@
+---
+title: 2.13 Release
+description: R2Devops 2.13 release brings an improved issue fix journey, and the ability to designate official CI/CD catalog projects for your organization
+draft: false
+authors:
+  - r2devops
+pubDate: 2025-07-01
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Fix Management"
+  - "CI/CD"
+  - "Catalog Management"
+  - "User Experience"
+  - "GitLab Integration"
+---
+
+# R2Devops 2.13 Release
+
+**We are excited to announce R2Devops 2.13! This release introduces an improved issue fix journey, and the ability to designate official CI/CD catalog projects for your organization.**
+
+## 🔧 Improved Issues Fix Journey
+
+- **Track Fix Status**: Monitor fix progress directly from the issues list with real-time status updates
+- **Fix History**: Access complete timeline of all fix attempts and configurations
+- **Comprehensive Configuration**: Configure and save detailed fix settings for future reference
+- **Merge Request Integration**: Configure merge requests and access pipeline status with quick navigation links
+
+![Gif of the "Issue fix journey" on R2Devops](./issue_fix_journey.gif)
+
+## 📋 Official GitLab CI/CD Catalog Project
+
+Control which GitLab CI/CD Catalog projects your organization can use to ensure consistency and security across all projects.
+
+![Screenshot of "Catalog Projects" on R2Devops](./select_official_repo.png)
+
+## ⚙️ Minor Updates
+
+- **Faster Analysis Performance**: Project analysis is now 2x faster
+- **Project Scanning Visibility**: Easily identify which projects cannot be scanned due to archival or broken pipeline configurations in the `Details > Pipeline Composition` page
+- **Read-Only Policy Indicators**: Clear visual indicators show when `Policies` configuration pages are in read-only mode for users without required permissions
+- **Enhanced Project Selection**: Archived and Catalog projects are now clearly distinguished during project selection
+- **CI/CD Status Visibility**: Projects without CI/CD configurations are now listed on the `Details > CI Platform` page
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.21.1`
+- Frontend: `v2.22.1`
+- Helm chart: `v2.13.2`
+</Admonition>
+

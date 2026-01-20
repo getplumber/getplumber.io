@@ -1,0 +1,94 @@
+---
+title: 2.7 Release
+description: R2Devops 2.7 release introduces scheduled recurring analysis, compliance control over merge request approvals, and an enhanced analysis issues experience to improve your workflow and security.
+draft: false
+authors:
+  - r2devops
+pubDate: 2025-02-05
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Analysis"
+  - "Onboarding"
+  - "Permissions"
+  - "Templates"
+  - "Compliance"
+  - "Roles"
+---
+
+# R2Devops 2.7 Release
+
+**We are excited to introduce R2Devops 2.7! This release introduces scheduled recurring analysis, compliance control over merge request approvals, and an enhanced analysis issues experience to improve your workflow and security.**
+
+## 📅 Schedule Analysis
+
+You can now schedule a recurrent analysis run, allowing you to enjoy an always
+fresh view of your organization's CI/CD pipelines' compliance with your
+policies.
+
+This feature can be enabled by R2Devops Administrators and Maintainers using a
+`read_api` GitLab token. The frequency can be set to every hour, twice per day,
+once per day, or any custom schedule using cron syntax.
+
+## ✅ Merge Request Approval Compliance
+
+**Only available with GitLab Premium and Ultimate instances**
+
+This feature ensures that your Merge Request approval
+[rules](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/rules.html)
+and
+[settings](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/settings.html)
+align with your expected compliance requirements. By controlling these
+configurations, this feature reduces the risk of unauthorized or unreviewed
+changes being merged into the codebase.
+
+You can configure it in the **Project Protection** policy:
+
+![Screenshot of the "Merge Request Approval" configuration on R2Devops](./merge_request_approval.png)
+
+## 📊 Improved Analysis Issues Experience
+
+The analysis issues page has been improved to help you easily see,
+understand, and fix issues.
+
+### **1. You can now change the issue status**
+- Each issue has a status: [`Needs triage`, `Confirmed`, `Dismissed`, or `No longer detected`](/docs/use/issues).
+- You can change the status and leave a comment to explain the change.
+- You can view the complete status change history for each issue.
+
+These statuses allow you to track and control the lifecycle of an issue,
+helping you focus on fixing the most relevant ones.
+
+### **2. You can now filter the issue list**
+
+- By status
+- By issue type (*e.g., Branch protection missing, Untrusted image source, etc.*)
+- By policy (*e.g., CI/CD Container Images, Pipeline Composition, etc.*)
+
+These filters help you focus on the most important issues and manage their
+resolution more efficiently.
+
+
+## ⚙️ Minor Updates
+
+- The compliance percentage for pipeline composition rules now includes partial compliance
+- The evolution of the compliance percentage for pipeline composition rules is now displayed in a chart
+- Improved the default configuration of the **Project protection** policy
+- Each issue has been documented in the dashboard documentation
+- Renamed "Marketplace" to "CI/CD Catalog"
+- Removed access to the CI/CD catalog for SaaS platform and non-connected users
+- Added 3 new issue types to the analysis:
+    - `Merge request approval rule is below the minimum level of approvals required`
+    - `Merge request approval settings are not compliant`
+    - `No merge request approval rule covering all protected branches`
+- Improved dashboard navigation
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.8.0`
+- Frontend: `v2.6.3`
+- Helm chart: `v2.7.4`
+</Admonition>
+

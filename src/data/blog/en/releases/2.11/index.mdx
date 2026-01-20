@@ -1,0 +1,84 @@
+---
+title: 2.11 Release
+description: R2Devops 2.11 release brings pipeline composition compliance with GitLab CI/CD Catalog Components, custom AI model configuration, enhanced issue remediation, and a project analysis page
+draft: false
+authors:
+  - r2devops
+pubDate: 2025-05-05
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Compliance"
+  - "Security"
+  - "AI"
+  - "CI/CD"
+---
+
+# R2Devops 2.11 Release
+
+**We are excited to announce R2Devops 2.11! This release brings pipeline composition compliance with GitLab CI/CD Catalog Components, custom AI model configuration, enhanced issue remediation, and a project analysis page.**
+
+## 📦 GitLab CI/CD Catalog Components Compliance
+
+Ensure pipeline composition compliance with GitLab CI/CD Catalog Components:
+
+- Select GitLab Catalog Components as required in your pipeline composition rules
+- Enforce compliance for components included with the `component` keyword in your projects' CI/CD configuration
+- Maintain organization standards without needing to check projects one by one
+
+## 🧠 Custom AI Model Configuration
+
+Set up your own AI model in the `Settings` > `Organization` > `AI Configuration` page, previously limited to Anthropic. This allows you to leverage your preferred AI provider.
+
+## 🔧 Enhanced Issue Remediation
+
+Resolve issues faster with improved remediation capabilities:
+
+- Get AI-generated remediation recommendations for complex issues
+- Instantly fix issues with one-click remediation when available
+- Remediate missing components and templates in pipeline composition
+- Support custom branch names and commit messages for remediation merge requests
+- View remediation summaries before applying changes
+
+![Screenshot of "Issue Remediation" on R2Devops](./auto_fix_ai.gif)
+
+## 📊 Project Analysis
+
+Gain deeper insights into your project health:
+
+- Identify projects with the highest number of issues
+- Monitor pipeline status on default branches
+- Track R2Devops branch status when remediation merge requests have been created
+- Prioritize remediation efforts based on comprehensive project data
+
+![Screenshot of "Project Analysis Dashboard" on R2Devops](./projects_analysis.png)
+
+## ⚙️ Minor Updates
+
+- Improved clarity about `Forbidden version` for `Image containers` and `Templates/Components`
+- Enhanced saved filters in `Issues` page
+- Added quick links to `Issues` page with specific filters
+- Improved visibility of inputs for images registry patterns
+- Added ability to detect nested templates in pipeline composition rules
+- Renamed some texts in `Issues` page for better clarity
+- Added more metrics to `Templates` page:
+    - `Custom templates or components used`
+    - `Using forbidden version`
+    - `Catalog templates or components used`
+- Removed policy cards that cannot be configured
+- Optimization of database usage (stricter timeouts, new indexes, split of heavy request in batches)
+- Correction of schedule analysis cron synchronization when several instances of API are launched
+- New analysis cleaning mechanism with configurable retention periods:
+    - `JOBS_ANALYSIS_UNFINISHED_CLEANUP_AGE`: Age at which unfinished analyses should be cleaned up. Default: `168h` (7 days)
+    - `JOBS_ANALYSIS_COMPLETE_CLEANUP_AGE`: Age at which all analyses should be cleaned up. Default: `8760h` (365 days)
+- Improved processing of hanging HTTP connections
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.18.0`
+- Frontend: `v2.16.0`
+- Helm chart: `v2.11.2`
+</Admonition>
+

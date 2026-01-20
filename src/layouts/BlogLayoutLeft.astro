@@ -34,19 +34,19 @@ const authorsData = await getEntries(authors);
     <!-- Blog post info -->
     <div class="flex w-full flex-col items-center justify-center">
       <div class="mx-auto w-full max-w-[800px] text-center">
+        <!-- title -->
+        <h1 class="h1 text-pretty">{title}</h1>
+
         <!-- categories -->
         {
           categories && categories.length > 0 && (
-            <div class="flex flex-wrap justify-center gap-2">
+            <div class="mt-4 flex flex-wrap justify-center gap-2">
               {categories.map((category) => (
                 <Category category={category} />
               ))}
             </div>
           )
         }
-
-        <!-- title -->
-        <h1 class="h1 mt-10 text-pretty">{title}</h1>
 
         <!-- description -->
         <!-- <p class="mt-2 text-pretty opacity-90 dark:opacity-80">{description}</p> -->

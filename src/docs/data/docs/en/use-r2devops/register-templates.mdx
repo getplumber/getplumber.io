@@ -1,0 +1,362 @@
+---
+title: CI/CD templates
+description: Learn how to register and manage CI/CD templates in R2Devops.
+sidebar:
+  order: 3
+  label: Register Templates
+---
+
+<Aside variant="info">
+**What is a catalog?**
+
+To use R2Devops, you have to register your CI/CD templates and components in
+your R2Devops instance catalog. This is a registry of GitLab CI/CD templates
+sourced from a git repository.
+</Aside>
+
+## 🔎 Guides
+
+### 💾 Create a catalog
+
+<Aside variant="info">
+- Sources of R2Devops catalog are GitLab repositories
+- You can store several templates per repository
+- You must have at least `Maintainer` access
+</Aside>
+
+<Steps>
+
+1. Create a GitLab repository
+
+2. In this repository:
+    <Steps>
+    1. Create [R2 file](#%EF%B8%8F-template-r2-file)
+    2. Create [CI/CD configuration](#%EF%B8%8F-template-cicd-conf)
+    3. _(optional)_ Create [documentation file](#-template-documentation)
+    4. _(optional)_ Setup [versioning](#-template-versioning)
+    5. _(optional)_ Create [changelog file](#-template-changelog)
+    </Steps>
+
+3. Login on R2Devops
+
+4. In `CI/CD Catalog > Import R2 templates` page: import your repository
+
+</Steps>
+
+### 🔄 Update catalog resources
+
+<Steps>
+
+1. Update your template(s) in the GitLab repository
+
+2. Create new version tag
+
+3. Login on R2Devops
+
+4. In "Import templates" page: click on refresh button
+
+</Steps>
+
+### ❌ Delete catalog resources
+
+<Steps>
+
+1. Login on R2Devops
+
+2. In "Import templates" page: click on delete button
+
+</Steps>
+
+## ⚙️ Template R2 file
+
+Each template on R2Devops must have its own R2 file. It defines template
+metadata.
+
+- It can be located anywhere in a repository
+- It uses the YAML format
+- File extension have to be `.r2.yml`
+- The file name is the template name
+
+<Aside variant="tip">
+**Example of R2 file `docker_build.r2.yml` for the template `docker_build`**
+
+```yaml
+files:
+  template: ./docker_build/docker_build.yml
+  documentation: ./docker_build/README.md
+  changelog: ./docker_build/CHANGELOG.md
+data:
+  description: 'Build and publish a Docker image'
+  icon: 🐳
+  labels:
+    - Docker
+    - Build
+  license: MIT
+  deprecated: false
+```
+</Aside>
+
+| Keyword               | Description                                                                                    | Default |
+| --------------------- | ---------------------------------------------------------------------------------------------- | ------- |
+| `files:template`      | (Mandatory) Relative path(\*) to the template CI/CD configuration                              | ` `     |
+| `files:documentation` | Relative path(\*) to the documentation file                                                    | ` `     |
+| `files:changelog`     | Relative path(\*) to the changelog file                                                        | ` `     |
+| `data:description`    | The template description                                                                       | ` `     |
+| `data:icon`           | Icon of the template (see [emoji list](https://unicode.org/emoji/charts/full-emoji-list.html)) | `📋`    |
+| `data:labels`         | List of template labels (see list of available labels below)                                   | `[]`    |
+| `data:license`        | The template license                                                                           | ` `     |
+| `data:deprecated`     | Set the template as deprecated                                                                 | `false` |
+
+<Aside variant="info">
+**Template visibility**
+
+The visibility of a template is the same than the visibility of its
+repository
+</Aside>
+
+<Aside variant="info">
+**(*) Relative path**
+
+Path of files is relative from the location of the R2 file
+</Aside>
+
+<Aside variant="info">
+**Available labels**
+
+<details>
+<summary>Click to view all labels</summary>
+
+- Accessibility Test
+- Ansible
+- Artifact Signature
+- Bash
+- Build
+- C++
+- Clean-up
+- Code Performance
+- Code Quality
+- Compliance Test
+- DAST
+- Dependency Scanning
+- Deploy
+- Docker
+- Elixir
+- Functional Test
+- Golang
+- Gradle
+- Green Test
+- Helm
+- IAST
+- IaC Quality
+- IaC Scanning
+- Install
+- Integration Test
+- Java
+- JavaScript
+- Kubernetes
+- Lint
+- Maven
+- Mutation Test
+- Node.js
+- Notify
+- Npm
+- Objective-C
+- OpenAPI
+- PHP
+- Performance Test
+- Perl
+- PowerShell
+- Provision
+- Python
+- RASP
+- Regression Test
+- Release
+- Rollback
+- Ruby
+- Rust
+- SAST
+- Sanity Test
+- SBOM
+- Scala
+- Secret Scanning
+- Security Test
+- Smoke Test
+- Swift
+- Terraform
+- Test
+- TypeScript
+- Unit Test
+- Virus Scanning
+- Yarn
+
+</details>
+</Aside>
+
+## 🛠️ Template CI/CD conf
+
+This file, usually named with the template name with `.yml` extension contains
+GitLab CI/CD configuration in `yaml` format. It can contains any piece of
+configuration, from one keyword to a full pipeline. More info:
+
+- [GitLab CI/CD pipeline configuration
+  reference](https://docs.gitlab.com/ee/ci/yaml/)
+
+<Aside variant="info">
+**Example of CI/CD conf**
+
+```yaml
+docker_build:
+  stage: build
+  image:
+  name: gcr.io/kaniko-project/executor:${IMAGE_TAG}
+  entrypoint: ['']
+  variables:
+  COMMIT_CREATE_LATEST: 'false'
+  DOCKER_CONTEXT_PATH: ''
+  DOCKERFILE_PATH: 'Dockerfile'
+  IMAGE_TAG: 'v1.8.1-debug'
+  script:
+    - echo "Truncated example of script"
+```
+</Aside>
+
+## 📚 Template documentation
+
+This file, usually named `README.md`, contains the documentation of a template
+in `markdown` format. It should explains what the template does, how to use it
+and to customize it. A clear documentation is important: no one wants to use a
+template without it.
+
+<Aside variant="info">
+**Example of documentation**
+
+```md
+## Objective
+
+Build a container image of your application from a Dockerfile at the root of
+your project, and push it to a remote registry or multiple ones. This is done
+using [kaniko](https://github.com/GoogleContainerTools/kaniko).
+
+## How to use it
+
+1. Create a
+   [Dockerfile](https://docs.docker.com/get-started/part2/#sample-dockerfile)
+   (by default at the root of your project) to containerize your application
+2. Include template in your CI/CD conf (see quick use above)
+3. Customize the template if it's relevant
+
+## Variables
+
+| Name                   | Description                                   | Default      |
+| ---------------------- | --------------------------------------------- | ------------ |
+| `COMMIT_CREATE_LATEST` | In a commit context, also update `latest` tag | `false`      |
+| `DOCKER_CONTEXT_PATH`  | Path of build context from to repository root | ` `          |
+| `DOCKERFILE_PATH`      | Path to Dockerfile from the build context     | `Dockerfile` |
+```
+</Aside>
+
+## 📄 Template versioning
+
+Template versioning rely on source repository git tags. 2 options are supported
+in R2Devops:
+
+1. Tags scoped to all templates of the repository, without prefix. Ex: `1.2.3`
+1. Tags scoped to only one template, prefixed with its path. Ex: `docker_build@1.2.3`
+
+<Aside variant="info">
+
+- The version `latest` is created using the `HEAD` of default branch
+- Versions should follows the [semantic versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`)
+- The first version recommended for a template is `0.1.0`
+- Several templates can be versioned in the same repository
+</Aside>
+
+In order to **create automatically versioning** tags for your templates, you
+have to create a [changelog file](#-template-changelog) for each templates and
+add the template
+[template_release](https://r2devops.io/catalog/gitlab/r2devops/hub/template_release) in your
+repository CI/CD configuration.
+
+## 🏗 Template changelog
+
+This file, usually named `CHANGELOG.md`, contain the changelog of a template
+following the [keep a changelog](https://keepachangelog.com/en/1.1.0/)
+structure and using `markdown` syntax.
+
+<Aside variant="info">
+**Example of CHANGELOG.md**
+
+```markdown
+# Changelog
+
+All notable changes to this job will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.4.0] - 2024-04-19
+
+- Add new option `--use-new-run` to kaniko executor (enabled by default)
+- Update kaniko image to `v1.5.1`
+
+## [0.3.0] - 2023-11-25
+
+- New variable `DOCKER_USE_CACHE` to be able to cache layers of build
+- New variable `DOCKER_CACHE_TTL` to define time to live of cache
+- New variable `DOCKER_VERBOSITY` to set the verbosity of the build
+- New variable `DOCKER_OPTIONS` to be able to add additional options
+
+## [0.2.0] - 2023-11-02
+
+- Add variable `DOCKERFILE_PATH` which permits specifying custom path to
+  Dockerfile
+
+## [0.1.0] - 2023-10-21
+
+- Initial version
+```
+</Aside>
+
+<Aside variant="info">
+**Example of CHANGELOG.md fully compliant to `Keep a Changelog` standard**
+
+```markdown
+# Changelog
+
+All notable changes to this job will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.4.0] - Unreleased
+
+### Added
+
+- Add new option `--use-new-run` to kaniko executor (enabled by default)
+
+### Changed
+
+- Update kaniko image to `v1.5.1`
+
+## [0.3.0] - 2023-11-25
+
+### Added
+
+- New variable `DOCKER_USE_CACHE` to be able to cache layers of build
+- New variable `DOCKER_CACHE_TTL` to define time to live of cache
+- New variable `DOCKER_VERBOSITY` to set the verbosity of the build
+- New variable `DOCKER_OPTIONS` to be able to add additional options
+
+## [0.2.0] - 2023-11-02
+
+### Added
+
+- Add variable `DOCKERFILE_PATH` which permits specifying custom path to
+  Dockerfile
+
+## [0.1.0] - 2023-10-21
+
+- Initial version
+```
+</Aside>
+

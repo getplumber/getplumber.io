@@ -1,0 +1,65 @@
+---
+title: 2.1 Release
+description: R2Devops 2.1 released with CI/CD variables override control, branch protection policy, and enhanced compliance.
+draft: false
+authors:
+  - r2devops
+pubDate: 2024-11-29
+heroImage: ./branch_protection.png
+categories:
+  - "Releases"
+  - "Analysis"
+  - "Policies"
+  - "Issues"
+---
+
+# R2Devops 2.1 Release
+
+**We are thrilled to introduce R2Devops 2.1! This release brings a powerful new policy for managing branch protection and access rights on projects, an enhanced method for controlling variable overrides, and improved compliance for pipeline composition.**
+
+## 🛡️ Projects Branch Protection Policy
+
+This policy allows you to ensure that your projects branches are correctly protected. You will be alerted by issues if your branches are not protected with correct configuration regarding force push, code owner approval, push and merge access right.
+
+![Screenshot of the "Projects Protection" page on R2Devops](./branch_protection.png)
+
+## ⚙️ Variables Overrides Control
+
+You can now enable an authorized variable list and define patterns for variable names that are allowed to be overridden. Any variables that do not match these patterns will be treated as forbidden overrides and you will be alerted with an issue.
+
+![Screenshot of the "Authorized variables" configuration on R2Devops](./overriden_var_issue.png)
+
+
+## 🔍 Pipeline Actions Compliance
+
+
+
+We've enhanced pipeline composition compliance detection. Now, you can review each action performed or missing in your project's CI/CD pipelines.
+
+![Screenshot of the "Compliance" tab on R2Devops dashboard](./pipeline_actions_labels.png)
+
+## ⚙️ Minor Updates
+
+- New pipeline composition option that ensures every project adheres to at least one required template rule.
+- Improved project selector behavior
+- Renamed `Mutable tags` to `Forbidden tags`
+- Added new issues related to new policies
+    - Branch protection missing
+    - Force push allowed on protected branch
+    - Code owner approval not enforced on protected branch
+    - Branch protection merge access is to permissive
+    - Branch protection push access is to permissive
+    - Overridden global variable
+    - No pipeline composition requirement defined on the project
+- Improved policy configuration text, design, and behavior
+- Fix various analysis bugs
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.1.0`
+- Frontend: `v2.2.2`
+- Helm chart: `v2.1.1`
+</Admonition>
+

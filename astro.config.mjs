@@ -1,5 +1,5 @@
 import mdx from "@astrojs/mdx";
-import netlify from "@astrojs/netlify";
+import vercel from "@astrojs/vercel/serverless";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import keystatic from "@keystatic/astro";
@@ -12,8 +12,8 @@ import icon from "astro-icon";
 // https://astro.build/config
 export default defineConfig({
   site: "https://galaxy.cosmicthemes.com",
-  adapter: netlify({
-    imageCDN: false,
+  adapter: vercel({
+    imageService: false,
   }),
   redirects: {
     "/admin": "/keystatic",

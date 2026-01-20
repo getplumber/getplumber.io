@@ -1,0 +1,68 @@
+---
+title: 2.9 Release
+description: R2Devops 2.9 release introduces ISO 27001 compliance controls, AI-powered pipeline compliance, verification of project member role quotas, and an improved experience in issue page.
+draft: false
+authors:
+  - r2devops
+pubDate: 2025-03-11
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+  - "Analysis"
+  - "Compliance"
+  - "Roles"
+  - "Security"
+---
+
+# R2Devops 2.9 Release
+
+**We are excited to introduce R2Devops 2.9! This release brings ISO 27001 compliance controls, AI-powered pipeline compliance, verification of project member role quotas, and an improved experience in issue page.**
+
+## 🔒 ISO/IEC 27001:2022 Compliance Controls
+
+Get a comprehensive list of **ISO/IEC 27001:2022** compliance controls for your **CI/CD pipelines**. Each control relevant for CI/CD pipelines is listed with its reference and details of any issues found.
+
+![Screenshot of the "ISO 27001 compliance controls" on R2Devops](./iso27001_compliance.png)
+
+## 🤖 AI-Powered Pipeline Composition Compliance
+
+You can now ensure your CI/CD pipelines contain all required tasks. Define your organization policy and the AI-powered policy will control your pipelines, ensuring no critical tasks are missing.
+
+![Screenshot of the "AI Pipeline Composition Compliance" on R2Devops](./ai_pipeline_composition.png)
+
+## 👥 Project Member Role Quotas
+
+To enhance security and maintain proper access control, you can now have control over **organization role quotas verifications**. This feature prevents role sprawl by allowing you to set minimum and maximum limits for each role (**Owner**, **Maintainer**, **Developer**, and **Total members**) within **Access and Authorization** policy.
+
+It reduces risk ([OWASP - CICD-SEC-2](https://owasp.org/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management)) and allows compliance with ISO/IEC 27001:2022 controls 8.2, 8.4, 5.15, and 5.18.
+
+## 📊 Improved Issues Page Experience
+
+The analysis issues interface now offers improved **visibility and control** with:
+
+- Chart showing issue count evolution over time
+- Filtering by group/project
+- Searching through issue data
+
+![Screenshot of the "Analysis issue" chart and filters on R2Devops](./issues_chart_filters.png)
+
+## ⚙️ Minor Updates
+
+- Improvement of the onboarding experience
+- Sort issues by type by default
+- Add direct links to relevant GitLab pages when clicking project/group in issues list
+- Fix GitLab Community Edition incompatibilities
+- Split issue filters into separate tabs
+- Remove the `Details > Secrets` page since all data is now available on the issues page
+- Improve the UX of policy configuration
+- Fix analysis workflow errors and improve error handling
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.11.7`
+- Frontend: `v2.10.7`
+- Helm chart: `v2.9.2`
+</Admonition>
+

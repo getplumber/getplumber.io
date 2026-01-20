@@ -1,0 +1,34 @@
+---
+language: Local CLI
+order: 2
+icon: tabler/command
+draft: false
+---
+
+```bash
+# Run analysis
+docker run --rm \
+  -e GITLAB_TOKEN=glpat-xxxx \
+  getplumber/plumber:latest analyze \
+  --gitlab-url https://gitlab.com \
+  --project mygroup/myproject \
+  --branch main \
+  --config /.plumber.yaml \
+  --threshold 100
+```
+
+Or build from source:
+
+```bash
+git clone https://github.com/getplumber/plumber.git
+cd plumber
+go build -o plumber .
+
+export GITLAB_TOKEN=glpat-xxxx
+./plumber analyze \
+  --gitlab-url https://gitlab.com \
+  --project mygroup/myproject \
+  --branch main \
+  --config .plumber.yaml \
+  --threshold 100
+```
