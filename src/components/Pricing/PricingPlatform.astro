@@ -1,0 +1,180 @@
+---
+/**
+ * * Platform pricing section with Free and Enterprise plans
+ * This is designed for 2 pricing items
+ */
+import Button from "@components/Button/Button.astro";
+// import Switch from "@components/starwind/switch"; // Commented out - may be needed later for monthly/yearly toggle
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { Icon } from "astro-icon/components";
+
+// get the current page locale to use in links to other pages
+const currLocale = getLocaleFromUrl(Astro.url);
+
+interface pricingItem {
+  name: string; // plan name
+  subtitle: string; // plan subtitle
+  description?: string; // plan description (optional)
+  price: {
+    amount: string; // price amount (e.g., "0", "500")
+    note?: string; // optional note below price (e.g., "pricing may vary")
+    // monthly?: number; // monthly price if paid by month - commented out for future use
+    // yearly?: number; // monthly price if paid by year - commented out for future use
+  };
+  features: string[]; // list of features
+}
+
+// This is designed for 2 pricing items: Free and Enterprise
+const pricingData: pricingItem[] = [
+  {
+    name: "Free",
+    subtitle: "Discover your supply chain risks",
+    price: {
+      amount: "0€",
+    },
+    features: [
+      "Limited to 500 projects",
+      "All policies coverage",
+      "All risks identification",
+      "Norms compliance: OWASP, NIS2, ISO27001, SOC2",
+      "Community support",
+    ],
+  },
+  {
+    name: "Enterprise",
+    subtitle: "Ensure your compliance",
+    price: {
+      amount: "500€",
+      note: "starting price",
+    },
+    features: [
+      "All policies coverage",
+      "All risks identification",
+      "Norms compliance: OWASP, NIS2, ISO27001, SOC2",
+      "Dedicated support",
+    ],
+  },
+];
+---
+
+<section id="pricing-platform" class="my-24 overflow-hidden md:my-36">
+  <div class="site-container relative">
+    <div class="flex justify-center">
+      <p class="colored-title inline">Pricing</p>
+    </div>
+    <h2 class="h2 mt-8 text-center">A plan for every business</h2>
+
+    <!-- Toggle switch for monthly or yearly pricing - commented out for now, may be added later -->
+    <!-- <div class="mt-6 flex justify-center">
+      <label
+        for="plan-platform__toggle"
+        class="relative inline-flex cursor-pointer items-center select-none"
+      >
+        <span class="label flex items-center text-sm">Monthly</span>
+        <Switch variant="primary" id="plan-platform__toggle" class="mx-4" />
+        <span class="label flex items-center text-sm">Yearly</span>
+      </label>
+    </div> -->
+
+    <!-- works for 2 pricing plans -->
+    <div class="mx-auto mt-12 grid w-full max-w-4xl gap-6 sm:grid-cols-2">
+      {
+        pricingData.map((plan) => (
+          // pricing cards
+          <div
+            class="pricing-plan relative mx-auto h-full w-full max-w-sm overflow-hidden rounded-2xl from-primary-400 to-base-300 dark:from-primary-500 dark:to-base-600/60 bg-gradient-to-br to-40%"
+          >
+            <div class="relative h-full p-px">
+              <div class="bg-base-200 dark:bg-base-800 relative z-10 flex h-full flex-col overflow-hidden rounded-[calc(1rem-1px)]">
+                {/* inside card glow for featured effect */}
+                <div
+                  class="bg-primary-300/40 dark:bg-primary-600/20 absolute top-0 left-0 -z-10 mx-auto aspect-square w-full max-w-7xl -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+                  aria-hidden="true"
+                />
+                <div class="mx-auto flex h-full w-full max-w-[20rem] flex-col px-6 pb-6">
+                  <div class="flex w-full justify-between pt-6">
+                    <h3 class="text-2xl font-semibold main-text-gradient">
+                      {plan.name}
+                    </h3>
+                  </div>
+                  <div class="pt-3">
+                    <p class="opacity-90 dark:opacity-80">{plan.subtitle}</p>
+                    <p class="mt-3 font-semibold">
+                      <div class="pricing-display">
+                        <span class="main-text-gradient text-5xl font-semibold">
+                          {plan.price.amount}
+                        </span>
+                        <span class="main-text-gradient text-3xl">/mo</span>
+                        {plan.price.note && (
+                          <>
+                            <br />
+                            <p class="mt-1 text-sm font-normal opacity-70">({plan.price.note})</p>
+                          </>
+                        )}
+                      </div>
+                    </p>
+                  </div>
+                  <ul class="my-6 flex w-full flex-col gap-2">
+                    {plan.features.map((feature) => (
+                      <li class="flex items-start text-base-700 dark:text-base-300">
+                        <Icon
+                          name="tabler/check"
+                          class="text-primary-600 dark:text-primary-400 h-5 w-5 flex-shrink-0 mt-0.5"
+                          aria-hidden="true"
+                        />
+                        <span class="ml-2 inline">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div class="mt-auto">
+                    <Button
+                      variant="outline"
+                      href={"/signup/"}
+                    >
+                      Get Started
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Script for monthly/yearly toggle - commented out for now, may be needed later -->
+<!-- <script>
+  function setupPricingToggle() {
+    const pricingSection = document.getElementById("pricing-platform") as HTMLElement;
+    const toggle = pricingSection.querySelector("#plan-platform__toggle") as HTMLInputElement;
+    const monthlyPrices = pricingSection?.querySelectorAll(".pricing-monthly");
+    const yearlyPrices = pricingSection?.querySelectorAll(".pricing-yearly");
+
+    if (!toggle || !monthlyPrices || !yearlyPrices) return;
+
+    // Create a new MutationObserver to watch for aria-checked changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === "attributes" && mutation.attributeName === "aria-checked") {
+          const isYearly = toggle.getAttribute("aria-checked") === "true";
+          monthlyPrices.forEach((price) => price.classList.toggle("hidden", isYearly));
+          yearlyPrices.forEach((price) => price.classList.toggle("hidden", !isYearly));
+        }
+      });
+    });
+
+    // Start observing the toggle button for attribute changes
+    observer.observe(toggle, {
+      attributes: true,
+      attributeFilter: ["aria-checked"], // only watch for aria-checked changes
+    });
+  }
+
+  // runs on initial page load
+  setupPricingToggle();
+
+  // runs on view transitions navigation
+  document.addEventListener("astro:after-swap", setupPricingToggle);
+</script> -->

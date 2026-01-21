@@ -1,5 +1,5 @@
 import mdx from "@astrojs/mdx";
-import vercel from "@astrojs/vercel/serverless";
+import vercel from "@astrojs/vercel";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import keystatic from "@keystatic/astro";
