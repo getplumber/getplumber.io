@@ -24,17 +24,23 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Pull Vercel Environment Information
+      - name: Determine deployment environment
+        id: env
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ] || [ "${{ github.ref }}" == "refs/heads/master" ]; then
-            vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          if [ "${{ github.ref }}" == "refs/heads/${{ github.event.repository.default_branch }}" ]; then
+            echo "is_production=true" >> $GITHUB_OUTPUT
+            echo "environment=production" >> $GITHUB_OUTPUT
           else
-            vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+            echo "is_production=false" >> $GITHUB_OUTPUT
+            echo "environment=preview" >> $GITHUB_OUTPUT
           fi
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=${{ steps.env.outputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ] || [ "${{ github.ref }}" == "refs/heads/master" ]; then
+          if [ "${{ steps.env.outputs.is_production }}" == "true" ]; then
             vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
           else
             vercel build --token=${{ secrets.VERCEL_TOKEN }}
@@ -42,7 +48,7 @@ jobs:
 
       - name: Deploy Project Artifacts to Vercel
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ] || [ "${{ github.ref }}" == "refs/heads/master" ]; then
+          if [ "${{ steps.env.outputs.is_production }}" == "true" ]; then
             vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
           else
             vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}

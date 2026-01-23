@@ -2,13 +2,22 @@
 /**
  * * Logo cloud section marquee
  *
- * These are taken from the src/icons folder. You may desire to modify any SVGs you use to have the fill set to "currentColor"
- * to use the current text color. That is how I have set up these icons for demo purposes
+ * Customer logos from src/assets/customers folder
  *
  * There is a commented out script at the bottom. If you would like the marquee to pause on mouseover, uncomment it.
  */
 
-import { Icon } from "astro-icon/components";
+import atosLogo from "@assets/customers/atos-logo.svg";
+import cockpitioLogo from "@assets/customers/cockpitio-logo.png";
+import fdiLogo from "@assets/customers/fdi-logo.png";
+import itsgroupLogo from "@assets/customers/itsgroup-logo.png";
+import liberationLogo from "@assets/customers/liberation-logo.svg";
+import metanextLogo from "@assets/customers/metanext-logo.svg";
+import nseLogo from "@assets/customers/nse-logo.svg";
+import numspotLogo from "@assets/customers/numspot.svg";
+import pmuLogo from "@assets/customers/pmu-logo.png";
+import pointbaseLogo from "@assets/customers/pointbase-logo.png";
+import zenikaLogo from "@assets/customers/zenika-logo.svg";
 ---
 
 <section id="logocloud2" class="border-base-300 dark:border-base-600/60 border-y py-6" data-mos="fade-up" data-mos-anchor="#logocloud2">
@@ -25,53 +34,57 @@ import { Icon } from "astro-icon/components";
     </div>
 
     <div class="logo-marquee relative flex gap-32 overflow-hidden">
-      <!-- Each animate-marquee2 section needs to have the exact same icons. Just do one then copy / paste -->
+      <!-- Each animate-marquee2 section needs to have the exact same logos. Just do one then copy / paste -->
       <div class="animate-marquee2 flex min-w-full shrink-0 items-center justify-around gap-32">
-        <Icon name="logos/astro" class="logo py-2" aria-label="logo" />
+        <img src={atosLogo.src} alt="Atos" class="logo" />
 
-        <Icon name="logos/spotify" class="logo" aria-label="logo" />
+        <img src={cockpitioLogo.src} alt="Cockpit.io" class="logo" />
 
-        <Icon name="logos/framer" class="logo" aria-label="logo" />
+        <img src={fdiLogo.src} alt="FDI" class="logo" />
 
-        <Icon name="logos/dribbble" class="logo" aria-label="logo" />
+        <img src={itsgroupLogo.src} alt="ITS Group" class="logo logo-large" />
 
-        <Icon name="logos/sanity" class="logo py-2" aria-label="logo" />
+        <img src={liberationLogo.src} alt="Liberation" class="logo logo-medium" />
 
-        <Icon name="logos/contentfull" class="logo" aria-label="logo" />
+        <img src={metanextLogo.src} alt="Metanext" class="logo" />
 
-        <Icon name="logos/github" class="logo" aria-label="logo" />
+        <img src={nseLogo.src} alt="NSE" class="logo" />
 
-        <Icon name="logos/notion" class="logo" aria-label="logo" />
+        <img src={numspotLogo.src} alt="Numspot" class="logo" />
 
-        <Icon name="logos/adobe" class="logo" aria-label="logo" />
+        <img src={pmuLogo.src} alt="PMU" class="logo logo-medium" />
 
-        <Icon name="logos/zoom" class="logo" aria-label="logo" />
+        <img src={pointbaseLogo.src} alt="Pointbase" class="logo logo-large" />
+
+        <img src={zenikaLogo.src} alt="Zenika" class="logo logo-medium" />
       </div>
 
-      <!-- Each animate-marquee2 section needs to have the exact same icons. Just do one then copy / paste -->
+      <!-- Each animate-marquee2 section needs to have the exact same logos. Just do one then copy / paste -->
       <div
         aria-hidden="true"
         class="animate-marquee2 flex min-w-full shrink-0 items-center justify-around gap-32"
       >
-        <Icon name="logos/astro" class="logo py-2" aria-label="logo" />
+        <img src={atosLogo.src} alt="Atos" class="logo" />
 
-        <Icon name="logos/spotify" class="logo" aria-label="logo" />
+        <img src={cockpitioLogo.src} alt="Cockpit.io" class="logo" />
 
-        <Icon name="logos/framer" class="logo" aria-label="logo" />
+        <img src={fdiLogo.src} alt="FDI" class="logo" />
 
-        <Icon name="logos/dribbble" class="logo" aria-label="logo" />
+        <img src={itsgroupLogo.src} alt="ITS Group" class="logo logo-large" />
 
-        <Icon name="logos/sanity" class="logo py-2" aria-label="logo" />
+        <img src={liberationLogo.src} alt="Liberation" class="logo logo-medium" />
 
-        <Icon name="logos/contentfull" class="logo" aria-label="logo" />
+        <img src={metanextLogo.src} alt="Metanext" class="logo" />
 
-        <Icon name="logos/github" class="logo" aria-label="logo" />
+        <img src={nseLogo.src} alt="NSE" class="logo" />
 
-        <Icon name="logos/notion" class="logo" aria-label="logo" />
+        <img src={numspotLogo.src} alt="Numspot" class="logo" />
 
-        <Icon name="logos/adobe" class="logo" aria-label="logo" />
+        <img src={pmuLogo.src} alt="PMU" class="logo logo-medium" />
 
-        <Icon name="logos/zoom" class="logo" aria-label="logo" />
+        <img src={pointbaseLogo.src} alt="Pointbase" class="logo logo-large" />
+
+        <img src={zenikaLogo.src} alt="Zenika" class="logo logo-medium" />
       </div>
     </div>
   </div>
@@ -83,5 +96,13 @@ import { Icon } from "astro-icon/components";
 
   .logo {
     @apply h-10 w-auto;
+  }
+
+  .logo-large {
+    @apply h-16;
+  }
+
+  .logo-medium {
+    @apply h-12;
   }
 </style>

@@ -2,7 +2,7 @@
 import { Icon } from "astro-icon/components";
 ---
 
-<div class="pipeline-animation-container relative w-[800px]">
+<div class="pipeline-animation-container relative w-full lg:w-[800px]">
   <div
     class="from-primary-400 to-base-300/70 after:bg-base-100/30 dark:from-primary-500 dark:to-base-300/50 dark:after:bg-base-800/50 relative overflow-clip rounded-2xl bg-gradient-to-b to-40% p-1 after:absolute after:inset-[1px] after:rounded-[calc(1rem-1px)] md:p-2"
   >
@@ -10,7 +10,7 @@ import { Icon } from "astro-icon/components";
       class="dark border-base-600/60 relative z-10 w-full overflow-clip rounded-xl border bg-[var(--astro-code-background)] md:rounded-lg"
     >
       <!-- Code Typing Stage -->
-      <div id="code-stage" class="code-stage h-80 bg-[var(--astro-code-background)] relative p-4">
+      <div id="code-stage" class="code-stage  h-96 md:h-80 bg-[var(--astro-code-background)] relative p-4">
         <div class="flex items-center gap-2 border-b border-base-600/60 pb-3 mb-4">
           <div class="flex gap-2">
             <div class="size-3 rounded-full bg-red-500/50"></div>
@@ -19,11 +19,11 @@ import { Icon } from "astro-icon/components";
           </div>
           <span class="text-xs text-base-400 ml-2">.gitlab-ci.yml</span>
         </div>
-        <pre class="font-mono text-sm text-base-300"><code id="typing-code" class="block whitespace-pre"></code></pre>
+        <pre class="font-mono text-sm text-base-300"><code id="typing-code" class="block whitespace-pre-wrap"></code></pre>
       </div>
 
       <!-- Pipeline Running Stage -->
-      <div id="pipeline-stage" class="pipeline-stage h-80 bg-[var(--astro-code-background)] relative p-4 hidden">
+      <div id="pipeline-stage" class="pipeline-stage  h-96 md:h-80 bg-[var(--astro-code-background)] relative p-4 hidden">
         <div class="flex items-center gap-2 border-b border-base-600/60 pb-3 mb-4">
           <div class="flex gap-2">
             <div class="size-3 rounded-full bg-red-500/50"></div>
@@ -34,10 +34,15 @@ import { Icon } from "astro-icon/components";
         </div>
         <div class="flex flex-col gap-3 mt-6">
           <!-- Pipeline Stages -->
-          <div id="test-stage" class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-base-800/30 border border-base-600/30">
-            <div id="test-spinner" class="pipeline-spinner size-5 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"></div>
+          <div id="pre-stage" class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-base-800/30 border border-base-600/30">
+            <div id="pre-spinner" class="pipeline-spinner size-5 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-sm text-base-300">.pre</span>
+            <span id="pre-status" class="text-xs text-base-500 ml-auto">Running...</span>
+          </div>
+          <div id="test-stage" class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-base-800/30 border border-base-600/30 opacity-50">
+            <div class="size-5"></div>
             <span class="text-sm text-base-300">test</span>
-            <span id="test-status" class="text-xs text-base-500 ml-auto">Running...</span>
+            <span class="text-xs text-base-500 ml-auto">Pending</span>
           </div>
           <div id="build-stage" class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-base-800/30 border border-base-600/30 opacity-50">
             <div class="size-5"></div>
@@ -53,7 +58,7 @@ import { Icon } from "astro-icon/components";
       </div>
 
       <!-- Pipeline Complete with Warning Stage -->
-      <div id="pipeline-complete-stage" class="pipeline-complete-stage h-80 bg-[var(--astro-code-background)] relative p-4 hidden">
+      <div id="pipeline-complete-stage" class="pipeline-complete-stage  h-96 md:h-80 bg-[var(--astro-code-background)] relative p-4 hidden">
         <div class="flex items-center gap-2 border-b border-base-600/60 pb-3 mb-4">
           <div class="flex gap-2">
             <div class="size-3 rounded-full bg-red-500/50"></div>
@@ -89,7 +94,7 @@ import { Icon } from "astro-icon/components";
       </div>
 
       <!-- Results Stage -->
-      <div id="results-stage" class="results-stage h-80 bg-[var(--astro-code-background)] relative p-4 hidden overflow-hidden">
+      <div id="results-stage" class="results-stage  h-96 md:h-80 bg-[var(--astro-code-background)] relative p-4 hidden overflow-hidden">
         <div class="flex items-center gap-2 border-b border-base-600/60 pb-3 mb-4">
           <div class="flex gap-2">
             <div class="size-3 rounded-full bg-red-500/50"></div>
@@ -99,7 +104,13 @@ import { Icon } from "astro-icon/components";
           <span class="text-xs text-base-400 ml-2">Compliance Results</span>
         </div>
         
-        <div class="overflow-auto h-[calc(100%-4rem)] px-1 flex grow">
+        <!-- Mobile version: simplified text -->
+        <div class="md:hidden overflow-auto h-[calc(100%-4rem)] px-1">
+          <div id="cli-output-mobile" class="text-xs text-base-300 space-y-3"></div>
+        </div>
+        
+        <!-- Desktop version: ASCII tables -->
+        <div class="hidden md:flex overflow-auto h-[calc(100%-4rem)] px-1 grow">
           <pre class="font-mono text-sm text-base-300" style="tab-size: 2;"><code id="cli-output" class="block whitespace-pre"></code></pre>
         </div>
       </div>
@@ -168,35 +179,35 @@ import { Icon } from "astro-icon/components";
           codeStage.classList.add('hidden');
           pipelineStage.classList.remove('hidden');
           
-          // Stage 2: Show test stage running for 2 seconds
+          // Stage 2: Show .pre stage running for 2 seconds
           setTimeout(() => {
             if (!pipelineStage) {
               return;
             }
             
-            // Make test stage fail
-            const testSpinner = document.getElementById('test-spinner');
-            const testStatus = document.getElementById('test-status');
-            const testStage = document.getElementById('test-stage');
+            // Make .pre stage fail
+            const preSpinner = document.getElementById('pre-spinner');
+            const preStatus = document.getElementById('pre-status');
+            const preStage = document.getElementById('pre-stage');
             
-            if (testSpinner && testStatus && testStage) {
+            if (preSpinner && preStatus && preStage) {
               // Remove spinner and add failed icon
-              testSpinner.remove();
+              preSpinner.remove();
               const failedIcon = document.createElement('span');
               failedIcon.className = 'text-red-400 size-5 flex items-center justify-center';
               failedIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>';
-              const firstChild = testStage.firstChild;
+              const firstChild = preStage.firstChild;
               if (firstChild && firstChild.nextSibling) {
-                testStage.insertBefore(failedIcon, firstChild.nextSibling);
+                preStage.insertBefore(failedIcon, firstChild.nextSibling);
               } else {
-                testStage.insertBefore(failedIcon, testStage.firstChild);
+                preStage.insertBefore(failedIcon, preStage.firstChild);
               }
               
               // Update status and border color
-              testStatus.textContent = 'Failed';
-              testStatus.className = 'text-xs text-red-400 ml-auto';
-              testStage.classList.remove('border-base-600/30');
-              testStage.classList.add('border-red-400');
+              preStatus.textContent = 'Failed';
+              preStatus.className = 'text-xs text-red-400 ml-auto';
+              preStage.classList.remove('border-base-600/30');
+              preStage.classList.add('border-red-400');
             }
             
             // Stage 3: After 2 seconds, go directly to compliance results
@@ -218,7 +229,7 @@ import { Icon } from "astro-icon/components";
                   }
                 }, 100);
               }
-            }, 2000); // 2 seconds showing failed test
+            }, 2000); // 2 seconds showing failed .pre
           }, 2000); // 2 seconds pipeline running
         }, 1000);
       }
@@ -418,9 +429,103 @@ import { Icon } from "astro-icon/components";
       return output;
     }
 
-    // Function to type CLI output line by line with scrolling
+    // Generate simplified mobile output
+    function generateMobileOutput() {
+      const totalCompliance = calculateTotalCompliance();
+      const statusText = totalCompliance === 100 ? 'PASSED' : 'FAILED';
+      const statusColor = totalCompliance === 100 ? 'text-green-400' : 'text-red-400';
+      const statusSvg = getStatusIconSvg(totalCompliance);
+
+      let output = '<div class="space-y-4">';
+      
+      // Status
+      output += `<div class="pb-2 border-b border-base-600/30">`;
+      output += `<div class="flex items-center gap-2">`;
+      output += `<span class="text-base-400">Status:</span>`;
+      output += `<span class="${statusColor} font-semibold">${statusText} ${statusSvg}</span>`;
+      output += `</div>`;
+      output += `</div>`;
+
+      // Compliance Summary
+      output += `<div>`;
+      output += `<h3 class="text-base-400 font-semibold mb-2">Compliance</h3>`;
+      output += `<div class="space-y-2">`;
+      
+      // Mutable Image Tags
+      const mutColor = getCliComplianceTextColor(complianceData.mutableImageTags.percentage);
+      const mutStatusColor = getStatusColor(complianceData.mutableImageTags.percentage);
+      const mutStatusSvg = getStatusIconSvg(complianceData.mutableImageTags.percentage);
+      output += `<div class="flex items-center justify-between gap-2">`;
+      output += `<span class="text-base-300 text-xs">Mutable Image Tags</span>`;
+      output += `<div class="flex items-center gap-2">`;
+      output += `<span class="${mutColor} text-xs">${complianceData.mutableImageTags.percentage.toFixed(1)}%</span>`;
+      output += `<span class="${mutStatusColor}">${mutStatusSvg}</span>`;
+      output += `</div>`;
+      output += `</div>`;
+      
+      // Untrusted Image Sources
+      const untrustedColor = getCliComplianceTextColor(complianceData.untrustedImageSources.percentage);
+      const untrustedStatusColor = getStatusColor(complianceData.untrustedImageSources.percentage);
+      const untrustedStatusSvg = getStatusIconSvg(complianceData.untrustedImageSources.percentage);
+      output += `<div class="flex items-center justify-between gap-2">`;
+      output += `<span class="text-base-300 text-xs">Untrusted Image Sources</span>`;
+      output += `<div class="flex items-center gap-2">`;
+      output += `<span class="${untrustedColor} text-xs">${complianceData.untrustedImageSources.percentage.toFixed(1)}%</span>`;
+      output += `<span class="${untrustedStatusColor}">${untrustedStatusSvg}</span>`;
+      output += `</div>`;
+      output += `</div>`;
+      
+      // Branch Protection
+      const branchColor = getCliComplianceTextColor(complianceData.branchProtection.percentage);
+      const branchStatusColor = getStatusColor(complianceData.branchProtection.percentage);
+      const branchStatusSvg = getStatusIconSvg(complianceData.branchProtection.percentage);
+      output += `<div class="flex items-center justify-between gap-2">`;
+      output += `<span class="text-base-300 text-xs">Branch Protection</span>`;
+      output += `<div class="flex items-center gap-2">`;
+      output += `<span class="${branchColor} text-xs">${complianceData.branchProtection.percentage.toFixed(1)}%</span>`;
+      output += `<span class="${branchStatusColor}">${branchStatusSvg}</span>`;
+      output += `</div>`;
+      output += `</div>`;
+      
+      // Total
+      const totalStatusColor = totalCompliance === 100 ? 'text-green-400' : 'text-red-400';
+      const totalStatusSvg = getStatusIconSvg(totalCompliance);
+      output += `<div class="flex items-center justify-between gap-2 pt-2 border-t border-base-600/30">`;
+      output += `<span class="text-base-300 text-xs font-semibold">Total (required: 100%)</span>`;
+      output += `<div class="flex items-center gap-2">`;
+      output += `<span class="${totalStatusColor} text-xs font-semibold">${totalCompliance.toFixed(1)}%</span>`;
+      output += `<span class="${totalStatusColor}">${totalStatusSvg}</span>`;
+      output += `</div>`;
+      output += `</div>`;
+      
+      output += `</div>`;
+      output += `</div>`;
+
+      // Issues Summary
+      output += `<div>`;
+      output += `<h3 class="text-base-400 font-semibold mb-2">Issues</h3>`;
+      output += `<div class="space-y-1">`;
+      output += `<div class="flex justify-between"><span class="text-base-300 text-xs">Mutable Image Tags:</span><span class="text-base-300 text-xs">${complianceData.mutableImageTags.issues}</span></div>`;
+      output += `<div class="flex justify-between"><span class="text-base-300 text-xs">Untrusted Image Sources:</span><span class="text-base-300 text-xs">${complianceData.untrustedImageSources.issues}</span></div>`;
+      output += `<div class="flex justify-between"><span class="text-base-300 text-xs">Branch Protection:</span><span class="text-base-300 text-xs">${complianceData.branchProtection.issues}</span></div>`;
+      output += `</div>`;
+      output += `</div>`;
+      
+      output += '</div>';
+      return output;
+    }
+
+    // Function to type CLI output line by line with scrolling (desktop version)
     function typeCliOutput() {
       const cliOutput = document.getElementById('cli-output');
+      const cliOutputMobile = document.getElementById('cli-output-mobile');
+      
+      // Populate mobile version immediately
+      if (cliOutputMobile) {
+        cliOutputMobile.innerHTML = generateMobileOutput();
+      }
+      
+      // Type desktop version line by line
       if (!cliOutput) return;
 
       const fullOutput = generateCliOutput();
@@ -459,10 +564,14 @@ import { Icon } from "astro-icon/components";
         // Clear previous output and start typing animation
         setTimeout(() => {
           const cliOutput = document.getElementById('cli-output');
+          const cliOutputMobile = document.getElementById('cli-output-mobile');
           if (cliOutput) {
             cliOutput.innerHTML = '';
-            typeCliOutput();
           }
+          if (cliOutputMobile) {
+            cliOutputMobile.innerHTML = '';
+          }
+          typeCliOutput();
         }, 100);
       });
     }
@@ -480,6 +589,32 @@ import { Icon } from "astro-icon/components";
 
   // Also handle Astro view transitions
   document.addEventListener('astro:after-swap', startPipelineAnimation);
+
+  // Handle window resize to keep scroll at bottom
+  let resizeTimeout: NodeJS.Timeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      const resultsStage = document.getElementById('results-stage');
+      if (resultsStage && !resultsStage.classList.contains('hidden')) {
+        // Scroll desktop version to bottom
+        const cliOutput = document.getElementById('cli-output');
+        if (cliOutput) {
+          const preElement = cliOutput.parentElement;
+          const scrollContainer = preElement?.parentElement;
+          if (scrollContainer) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          }
+        }
+        
+        // Scroll mobile version to bottom
+        const cliOutputMobile = document.getElementById('cli-output-mobile');
+        if (cliOutputMobile && cliOutputMobile.parentElement) {
+          cliOutputMobile.parentElement.scrollTop = cliOutputMobile.parentElement.scrollHeight;
+        }
+      }
+    }, 100); // Debounce resize events
+  });
 </script>
 
 <style>

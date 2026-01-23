@@ -17,6 +17,14 @@
   opacity: 0;
 }
 
+/* Lock animated elements in their final state to prevent re-animation on resize */
+.use-animations [data-mos^="fade"].mos-animate,
+.use-animations [data-mos^="zoom"].mos-animate {
+  opacity: 1 !important;
+  /* Lock the transform to prevent re-triggering */
+  will-change: auto !important;
+}
+
 /* slide presets */
 .use-animations [data-mos^="slide"] {
   will-change: transform;

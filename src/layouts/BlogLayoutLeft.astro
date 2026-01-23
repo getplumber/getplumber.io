@@ -31,79 +31,7 @@ const authorsData = await getEntries(authors);
   postFrontmatter={post.data}
 >
   <article class="site-container mt-16 md:mt-28">
-    <!-- Blog post info -->
-    <div class="flex w-full flex-col items-center justify-center">
-      <div class="mx-auto w-full max-w-[800px] text-center">
-        <!-- title -->
-        <h1 class="h1 text-pretty">{title}</h1>
 
-        <!-- categories -->
-        {
-          categories && categories.length > 0 && (
-            <div class="mt-4 flex flex-wrap justify-center gap-2">
-              {categories.map((category) => (
-                <Category category={category} />
-              ))}
-            </div>
-          )
-        }
-
-        <!-- description -->
-        <!-- <p class="mt-2 text-pretty opacity-90 dark:opacity-80">{description}</p> -->
-
-        <div class="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
-          <!-- author info -->
-          {
-            authorsData.map((authorData, index) => (
-              <>
-                <div class="mb-auto flex">
-                  <figure>
-                    <Image
-                      src={authorData.data.avatar}
-                      alt={`${authorData.data.name} avatar`}
-                      width={100}
-                      quality="high"
-                      class="h-7 w-7 rounded-full object-cover"
-                    />
-                  </figure>
-                  <div class="my-auto ml-2">
-                    <a
-                      class="opacity-80 transition hover:opacity-100"
-                      href={authorData.data.authorLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {authorData.data.name}
-                    </a>
-                  </div>
-                </div>
-                {index < authorsData.length - 1 && <span>·</span>}
-              </>
-            ))
-          }
-
-          <span>·</span>
-
-          <!-- Date -->
-          <time class="text-sm opacity-90 dark:opacity-80" datetime={pubDate.toISOString()}
-            >{formatDate(pubDate, currLocale)}</time
-          >
-        </div>
-      </div>
-
-      <!-- blog post main image -->
-      <div class="mt-6 overflow-hidden">
-        <Image
-          src={heroImage}
-          alt={`Cover for ${title}`}
-          width={2000}
-          quality="high"
-          class="border-base-300 dark:border-base-600/60 rounded-lg border object-cover"
-          loading="eager"
-          format="webp"
-        />
-      </div>
-    </div>
 
     <div class="mx-auto mt-10 grid w-full max-w-2xl gap-10 lg:max-w-none lg:grid-cols-3">
       <!-- table of contents -->
