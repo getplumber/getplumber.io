@@ -33,16 +33,23 @@ const featureData: FeatureData[] = [
 <section id="plumber-features" class="my-12 md:my-24">
   <div class="site-container">
     <div class="mb-12 text-center">
-      <p class="colored-title inline">What it does</p>
-      <h2 class="h2 mt-4">Plumber scans your GitLab CI/CD configuration</h2>
-      <p class="description mt-4 max-w-2xl mx-auto">
+      <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#plumber-features">What it does</p>
+      <h2 class="h2 mt-4" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#plumber-features">Plumber scans your GitLab CI/CD configuration</h2>
+      <p class="description mt-4 max-w-2xl mx-auto" data-mos="fade-up" data-mos-delay="0.2" data-mos-anchor="#plumber-features">
         Analyze your pipelines for security and compliance issues with automated checks.
       </p>
     </div>
     <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
       {
-        featureData.map((feature) => (
-          <FeatureCard title={feature.title} text={feature.text} icon={feature.icon} />
+        featureData.map((feature, idx) => (
+          <FeatureCard 
+            title={feature.title} 
+            text={feature.text} 
+            icon={feature.icon}
+            data-mos="fade-up"
+            data-mos-delay={`${idx * 0.25 + 0.3}`}
+            data-mos-anchor="#plumber-features"
+          />
         ))
       }
     </div>

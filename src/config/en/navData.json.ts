@@ -11,6 +11,10 @@
 import { type navItem } from "../types/configDataTypes";
 
 const navConfig: navItem[] = [
+  {
+    text: "OpenSource CLI",
+    link: "/",
+  },
   // {
   //   text: "Overview",
   //   link: "/overview/",
@@ -131,6 +135,11 @@ const navConfig: navItem[] = [
   {
     text: "Blog",
     link: "/blog/",
+  },
+  {
+    text: "Community",
+    link: "https://plumber.discord.io",
+    newTab: true,
   },
   // uncomment below to add a dropdown example
   // {

@@ -37,13 +37,13 @@ const features: string[] = [
 
     <!-- center content -->
     <div class="mx-auto site-container">
-          <p class="colored-title inline">At Plumber</p>
-        <h2 class="h2 mt-8">We made an AI-powered platform
+          <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#atPlumber">At Plumber</p>
+        <h2 class="h2 mt-8" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#atPlumber">We made an AI-powered platform
             that <span class="text-primary-500">maps</span>, <span class="text-primary-500">audits</span>, and <span class="text-primary-500">remediates</span>
             CI/CD compliance gaps — Continously</h2>
             <ul class="mt-6 flex flex-col gap-4">
-                {features.map((feature) => (
-                  <li class="flex items-center">
+                {features.map((feature, idx) => (
+                  <li class="flex items-center" data-mos="fade-up" data-mos-delay={`${idx * 0.1 + 0.2}`} data-mos-anchor="#atPlumber">
                     <Icon
                       name="tabler/check"
                       class="text-primary-600 dark:text-primary-400 h-5 w-5"
@@ -53,7 +53,7 @@ const features: string[] = [
                   </li>
                 ))}
               </ul>
-      <div class="mt-6 max-w-4xl">
+      <div class="mt-6 max-w-4xl" data-mos="fade-up" data-mos-delay="0.8" data-mos-anchor="#atPlumber">
 
           <Image
             src={dashboard}

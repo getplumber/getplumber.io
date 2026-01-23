@@ -1,5 +1,5 @@
 ---
-import Cta2 from "@components/Cta/Cta2.astro";
+import Cta3 from "@components/Cta/Cta3.astro";
 import PlumberFeatures from "@components/Feature/PlumberFeatures.astro";
 import PlumberQuickStart from "@components/Feature/PlumberQuickStart.astro";
 import PlumberHero from "@components/Hero/PlumberHero.astro";
@@ -11,9 +11,8 @@ const currLocale = getLocaleFromUrl(Astro.url);
 const siteData = getTranslatedData("siteData", currLocale);
 ---
 
-<BaseLayout title="Plumber - Trust Policy Manager for GitLab CI/CD" description="Analyze your GitLab CI/CD pipelines for security and compliance issues. Scan for mutable image tags, untrusted registries, and branch protection compliance.">
+<BaseLayout title="Plumber - OpenSource compliance CLI for GitLab CI/CD" description="Analyze your GitLab CI/CD pipelines for security and compliance issues. Scan for mutable image tags, untrusted registries, and branch protection compliance.">
   <PlumberHero />
   <PlumberFeatures />
   <PlumberQuickStart />
-  <Cta2 />
 </BaseLayout>

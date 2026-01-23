@@ -1,180 +1,366 @@
 ---
 /**
  * * Platform pricing section with Free and Enterprise plans
- * This is designed for 2 pricing items
+ * This is designed for 2 pricing items, based on Pricing3 design
  */
 import Button from "@components/Button/Button.astro";
-// import Switch from "@components/starwind/switch"; // Commented out - may be needed later for monthly/yearly toggle
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { Icon } from "astro-icon/components";
 
 // get the current page locale to use in links to other pages
 const currLocale = getLocaleFromUrl(Astro.url);
 
-interface pricingItem {
+interface planInfo {
   name: string; // plan name
-  subtitle: string; // plan subtitle
-  description?: string; // plan description (optional)
-  price: {
-    amount: string; // price amount (e.g., "0", "500")
-    note?: string; // optional note below price (e.g., "pricing may vary")
-    // monthly?: number; // monthly price if paid by month - commented out for future use
-    // yearly?: number; // monthly price if paid by year - commented out for future use
-  };
-  features: string[]; // list of features
+  description: string; // plan description
+  featured?: boolean; // if true, will be highlighted or otherwise featured
+  price: string; // price display (e.g., "0", "Let's talk")
 }
 
-// This is designed for 2 pricing items: Free and Enterprise
-const pricingData: pricingItem[] = [
-  {
-    name: "Free",
-    subtitle: "Discover your supply chain risks",
-    price: {
-      amount: "0€",
+/*
+ * feature rows can either be true / false to show if the feature is included in the plan
+ * But you can also put a string there to show a custom message
+ * ex. if only plan 2 includes this feature, looks like [false, true]
+ * ex. if plans have different limits, looks like ["Limited to 5 projects", "From 6 to unlimited"]
+ */
+interface featureRow {
+  feature: string; // feature name
+  plans: (boolean | string)[];
+}
+// Features are grouped into sections
+interface featureGrouping {
+  title: string;
+  features: featureRow[];
+}
+
+interface pricingTable {
+  plans: planInfo[];
+  featureTable: featureGrouping[];
+}
+
+// This is designed for 2 pricing plans: Free and Enterprise
+const pricingData: pricingTable = {
+  plans: [
+    {
+      name: "Free",
+      description: "Discover your supply chain risks",
+      price: "0",
     },
-    features: [
-      "Limited to 500 projects",
-      "All policies coverage",
-      "All risks identification",
-      "Norms compliance: OWASP, NIS2, ISO27001, SOC2",
-      "Community support",
-    ],
-  },
-  {
-    name: "Enterprise",
-    subtitle: "Ensure your compliance",
-    price: {
-      amount: "500€",
-      note: "starting price",
+    {
+      name: "Enterprise",
+      description: "Ensure your compliance",
+      featured: true,
+      price: "Let's talk",
     },
-    features: [
-      "All policies coverage",
-      "All risks identification",
-      "Norms compliance: OWASP, NIS2, ISO27001, SOC2",
-      "Dedicated support",
-    ],
-  },
-];
+  ],
+  featureTable: [
+    {
+      title: "Projects limit",
+      features: [
+        {
+          feature: "Projects limit",
+          plans: ["Limited to 5 projects", "From 6 to unlimited"],
+        },
+      ],
+    },
+    {
+      title: "Controls",
+      features: [
+        {
+          feature: "CI/CD Container Images",
+          plans: [true, true],
+        },
+        {
+          feature: "CI/CD Variables",
+          plans: [true, true],
+        },
+        {
+          feature: "CI/CD Secrets",
+          plans: [true, true],
+        },
+        {
+          feature: "Pipeline Composition",
+          plans: [true, true],
+        },
+        {
+          feature: "AI Pipeline Composition",
+          plans: [true, true],
+        },
+        {
+          feature: "Access and Authorization",
+          plans: [true, true],
+        },
+      ],
+    },
+    {
+      title: "Auto-fix",
+      features: [
+        {
+          feature: "AI Suggestion",
+          plans: [true, true],
+        },
+        {
+          feature: "Projects settings",
+          plans: [true, true],
+        },
+        {
+          feature: "Merge request creation",
+          plans: [true, true],
+        },
+      ],
+    },
+    {
+      title: "Features",
+      features: [
+        {
+          feature: "Portfolios",
+          plans: [true, true],
+        },
+        {
+          feature: "Export",
+          plans: [true, true],
+        },
+        {
+          feature: "GitLab integration",
+          plans: [true, true],
+        },
+        {
+          feature: "Compliance & issues history",
+          plans: [true, true],
+        },
+        {
+          feature: "Scheduled analysis",
+          plans: [true, true],
+        },
+      ],
+    },
+    {
+      title: "Support",
+      features: [
+        {
+          feature: "Community",
+          plans: [true, true],
+        },
+        {
+          feature: "Dedicated",
+          plans: [false, true],
+        },
+      ],
+    },
+  ],
+};
 ---
 
 <section id="pricing-platform" class="my-24 overflow-hidden md:my-36">
-  <div class="site-container relative">
+  <div class="relative mx-auto max-w-7xl px-4">
     <div class="flex justify-center">
-      <p class="colored-title inline">Pricing</p>
+      <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#pricing-platform">Pricing</p>
     </div>
-    <h2 class="h2 mt-8 text-center">A plan for every business</h2>
+    <h2 class="h2 mt-8 text-center" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#pricing-platform">A plan for every business</h2>
 
-    <!-- Toggle switch for monthly or yearly pricing - commented out for now, may be added later -->
-    <!-- <div class="mt-6 flex justify-center">
-      <label
-        for="plan-platform__toggle"
-        class="relative inline-flex cursor-pointer items-center select-none"
-      >
-        <span class="label flex items-center text-sm">Monthly</span>
-        <Switch variant="primary" id="plan-platform__toggle" class="mx-4" />
-        <span class="label flex items-center text-sm">Yearly</span>
-      </label>
-    </div> -->
-
-    <!-- works for 2 pricing plans -->
-    <div class="mx-auto mt-12 grid w-full max-w-4xl gap-6 sm:grid-cols-2">
-      {
-        pricingData.map((plan) => (
-          // pricing cards
-          <div
-            class="pricing-plan relative mx-auto h-full w-full max-w-sm overflow-hidden rounded-2xl from-primary-400 to-base-300 dark:from-primary-500 dark:to-base-600/60 bg-gradient-to-br to-40%"
-          >
-            <div class="relative h-full p-px">
-              <div class="bg-base-200 dark:bg-base-800 relative z-10 flex h-full flex-col overflow-hidden rounded-[calc(1rem-1px)]">
-                {/* inside card glow for featured effect */}
+    <!-- This is designed for 2 pricing plans -->
+    <div class="mx-auto mt-12 grid w-full grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <!-- pricing plan top info -->
+      <div class="col-span-1 md:col-span-2 grid gap-3 md:grid-cols-2 lg:col-span-2 lg:col-start-2 lg:gap-0">
+        {
+          pricingData.plans.map((plan, planIdx) => (
+            // pricing cards
+            <div
+              class="pricing-plan relative h-full w-full overflow-hidden rounded-2xl lg:rounded-b-none"
+              class:list={[
+                {
+                  "from-primary-400 to-base-300 dark:from-primary-500 dark:to-base-600/60 bg-gradient-to-br to-40%":
+                    plan.featured === true,
+                },
+              ]}
+              data-mos="fade-up"
+              data-mos-delay={`${planIdx * 0.2 + 0.2}`}
+              data-mos-anchor="#pricing-platform"
+            >
+              <div class="relative h-full p-px lg:pb-0">
                 <div
-                  class="bg-primary-300/40 dark:bg-primary-600/20 absolute top-0 left-0 -z-10 mx-auto aspect-square w-full max-w-7xl -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
-                  aria-hidden="true"
-                />
-                <div class="mx-auto flex h-full w-full max-w-[20rem] flex-col px-6 pb-6">
-                  <div class="flex w-full justify-between pt-6">
-                    <h3 class="text-2xl font-semibold main-text-gradient">
-                      {plan.name}
-                    </h3>
-                  </div>
-                  <div class="pt-3">
-                    <p class="opacity-90 dark:opacity-80">{plan.subtitle}</p>
-                    <p class="mt-3 font-semibold">
-                      <div class="pricing-display">
-                        <span class="main-text-gradient text-5xl font-semibold">
-                          {plan.price.amount}
-                        </span>
-                        <span class="main-text-gradient text-3xl">/mo</span>
-                        {plan.price.note && (
-                          <>
-                            <br />
-                            <p class="mt-1 text-sm font-normal opacity-70">({plan.price.note})</p>
-                          </>
-                        )}
-                      </div>
-                    </p>
-                  </div>
-                  <ul class="my-6 flex w-full flex-col gap-2">
-                    {plan.features.map((feature) => (
-                      <li class="flex items-start text-base-700 dark:text-base-300">
-                        <Icon
-                          name="tabler/check"
-                          class="text-primary-600 dark:text-primary-400 h-5 w-5 flex-shrink-0 mt-0.5"
-                          aria-hidden="true"
-                        />
-                        <span class="ml-2 inline">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div class="mt-auto">
-                    <Button
-                      variant="outline"
-                      href={"/signup/"}
-                    >
-                      Get Started
-                    </Button>
+                  class="relative z-10 flex h-full flex-col overflow-hidden rounded-[calc(1rem-1px)] lg:rounded-b-none"
+                  class:list={[
+                    {
+                      "bg-primary-100 dark:bg-base-800": plan.featured === true,
+                    },
+                    {
+                      // "bg-base-200 dark:bg-base-800": plan.featured !== true,
+                    },
+                  ]}
+                >
+                  {plan.featured === true && (
+                    // inside card glow for featured
+                    <div
+                      class="bg-primary-300/40 dark:bg-primary-600/20 absolute top-0 left-0 -z-10 mx-auto aspect-square w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <div class="flex h-full w-full flex-col px-6 pb-6">
+                    <div class="flex w-full justify-between pt-6">
+                      <h3
+                        class:list={[
+                          "text-lg font-semibold",
+                          {
+                            "main-text-gradient": plan.featured === true,
+                          },
+                        ]}
+                      >
+                        {plan.name}
+                      </h3>
+                    </div>
+                    <div class="pt-3">
+                      <p class="opacity-90 dark:opacity-80">{plan.description}</p>
+                      <p class="mt-3 font-semibold">
+                        {
+                          plan.price === "Let's talk" ? (
+                            <div class="pricing-display">
+                              <span class="text-primary-600 dark:text-primary-400 text-3xl font-semibold">
+                                {plan.price}
+                              </span>
+                            </div>
+                          ) : plan.price === "0" ? (
+                            <div class="pricing-display">
+                              <span class="text-primary-600 dark:text-primary-400 text-3xl font-semibold">
+                                Free
+                              </span>
+                            </div>
+                          ) : (
+                            <div class="pricing-display">
+                              <span class="text-primary-600 dark:text-primary-400 text-5xl font-semibold">
+                                {plan.price}
+                              </span>
+                              <span class="text-3xl">/mo</span>
+                            </div>
+                          )
+                        }
+                      </p>
+                    </div>
+                    <ul class="mt-6 flex w-full flex-col gap-2 lg:sr-only">
+                      {pricingData.featureTable.map((featureGroup) =>
+                        // features inside cards for mobile views
+                        featureGroup.features.map(
+                          (featureRow) =>
+                            featureRow.plans[planIdx] !== false && (
+                              <li
+                                class:list={[
+                                  "flex items-start",
+                                  {
+                                    "opacity-90": plan.featured !== true,
+                                  },
+                                ]}
+                              >
+                                <Icon
+                                  name="tabler/check"
+                                  class="text-primary-600 dark:text-primary-400 mt-0.5 h-5 w-5 shrink-0"
+                                  aria-hidden="true"
+                                />
+                                <span class="ml-2 inline">
+                                  {featureRow.feature}
+                                  <span>
+                                    {
+                                      // if the feature row has a string, show it
+                                      typeof featureRow.plans[planIdx] === "string" && (
+                                        <span class="text-base-700 dark:text-base-300 ml-1 text-sm">
+                                          ({featureRow.plans[planIdx]})
+                                        </span>
+                                      )
+                                    }
+                                  </span>
+                                </span>
+                              </li>
+                            ),
+                        ),
+                      )}
+                    </ul>
+                    <div class="mt-auto">
+                      <Button
+                        variant={plan.featured === true ? "primary" : "outline"}
+                        href={"/signup"}
+                        class="mt-6"
+                      >
+                        Get Started
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))
-      }
+          ))
+        }
+      </div>
+
+      <!-- feature rows for desktop -->
+      <div class="col-span-1 md:col-span-2 lg:col-span-3 hidden lg:block" data-mos="fade-up" data-mos-delay="0.5" data-mos-anchor="#pricing-platform">
+        {
+          // loop over feature groups
+          pricingData.featureTable.map((featureGroup) => (
+            <div>
+              <div class="border-base-600/40 grid grid-cols-3 border-b text-lg">
+                <p class="pt-8 pb-2 font-semibold">{featureGroup.title}</p>
+                {pricingData.plans.map((plan, planIdx) => (
+                  <div
+                    class={`${
+                      plan.featured === true
+                        ? "border-base-300 bg-primary-100 dark:border-base-600/60 dark:bg-base-800 border-x"
+                        : ""
+                    }`}
+                  />
+                ))}
+              </div>
+              {featureGroup.features.map((feature) => (
+                // each feature group has feature name, and data for each plan to display in the row
+                <div class="border-base-600/40 grid grid-cols-3 border-b">
+                  <p class="py-2 opacity-90 dark:opacity-80">{feature.feature}</p>
+                  {feature.plans.map((plan, planIdx) => (
+                    <div
+                      class="flex items-center justify-center py-2"
+                      class:list={[
+                        {
+                          "border-base-300 bg-primary-100 dark:border-base-600/60 dark:bg-base-800 border-x":
+                            pricingData.plans[planIdx].featured,
+                        },
+                      ]}
+                    >
+                      {
+                        // if the feature row has a string, show it
+                        typeof feature.plans[planIdx] === "string" ? (
+                          <span
+                            class={
+                              pricingData.plans[planIdx].featured === true
+                                ? ""
+                                : "opacity-90 dark:opacity-80"
+                            }
+                          >
+                            {feature.plans[planIdx]}
+                          </span>
+                        ) : // otherwise show a checkmark if true, or a dash icon if false
+                        plan === false ? (
+                          <Icon
+                            name="tabler/minus"
+                            class={`h-5 w-5 shrink-0 opacity-90 dark:opacity-80`}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <Icon
+                            name="tabler/check"
+                            class={`text-primary-600 dark:text-primary-400 h-5 w-5 shrink-0 ${
+                              pricingData.plans[planIdx].featured === true
+                                ? ""
+                                : "opacity-90 dark:opacity-80"
+                            }`}
+                            aria-hidden="true"
+                          />
+                        )
+                      }
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))
+        }
+      </div>
     </div>
   </div>
 </section>
-
-<!-- Script for monthly/yearly toggle - commented out for now, may be needed later -->
-<!-- <script>
-  function setupPricingToggle() {
-    const pricingSection = document.getElementById("pricing-platform") as HTMLElement;
-    const toggle = pricingSection.querySelector("#plan-platform__toggle") as HTMLInputElement;
-    const monthlyPrices = pricingSection?.querySelectorAll(".pricing-monthly");
-    const yearlyPrices = pricingSection?.querySelectorAll(".pricing-yearly");
-
-    if (!toggle || !monthlyPrices || !yearlyPrices) return;
-
-    // Create a new MutationObserver to watch for aria-checked changes
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === "attributes" && mutation.attributeName === "aria-checked") {
-          const isYearly = toggle.getAttribute("aria-checked") === "true";
-          monthlyPrices.forEach((price) => price.classList.toggle("hidden", isYearly));
-          yearlyPrices.forEach((price) => price.classList.toggle("hidden", !isYearly));
-        }
-      });
-    });
-
-    // Start observing the toggle button for attribute changes
-    observer.observe(toggle, {
-      attributes: true,
-      attributeFilter: ["aria-checked"], // only watch for aria-checked changes
-    });
-  }
-
-  // runs on initial page load
-  setupPricingToggle();
-
-  // runs on view transitions navigation
-  document.addEventListener("astro:after-swap", setupPricingToggle);
-</script> -->

@@ -15,18 +15,14 @@ const navData = getTranslatedData("navData", currLocale);
 import { locales } from "@config/siteSettings.json";
 
 // Generate docs menu items dynamically and add to navData if not already present
-const docsMenuColumns = await generateDocsMenuItems();
+const docsMenuItem = await generateDocsMenuItems();
 const finalNavData = [...navData]; // Create a copy to avoid mutating the original
 
 // Check if Docs menu already exists
 const docsMenuExists = finalNavData.some((item) => item.text === "Docs");
 
-// Add docs menu to navData if it has columns and doesn't already exist
-if (docsMenuColumns.length > 0 && !docsMenuExists) {
-  const docsMenuItem = {
-    text: "Docs",
-    megaMenuColumns: docsMenuColumns,
-  };
+// Add docs menu to navData if it doesn't already exist
+if (!docsMenuExists) {
   // Insert docs menu after Platform (or after Overview if Platform doesn't exist)
   const platformIndex = finalNavData.findIndex((item) => item.text === "Platform");
   const overviewIndex = finalNavData.findIndex((item) => item.text === "Overview");

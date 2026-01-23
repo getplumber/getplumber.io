@@ -42,7 +42,7 @@ if (!link.includes(domain) && !link.startsWith("/") && !link.startsWith("#")) {
 <li class="w-full">
   <a
     class:list={[
-      `nav__link--base primary-focus relative flex items-center gap-1.5 px-4 py-1.5 ${className}`,
+      `nav__link--base primary-focus relative flex items-center gap-1.5 shrink-0 whitespace-nowrap px-4 py-1.5 ${className}`,
       {
         // styling for current active page link
         "text-primary-600 dark:text-primary-400": comparePathsWithTrailingSlash(

@@ -1,80 +1,29 @@
 ---
 /**
- * * Feature cards for quick start steps
- * Based on Feature1.astro but customized for Plumber
+ * * Quick Start CTA section
+ * Based on Cta3.astro design
  */
-import FeatureCard from "@components/FeatureCard/FeatureCardSmall.astro";
 import Button from "@components/Button/Button.astro";
-
-interface FeatureData {
-  icon: string;
-  title: string;
-  text: string;
-}
-
-const featureData: FeatureData[] = [
-  {
-    icon: "tabler/lock-square",
-    title: "Add your token",
-    text: `Go to Settings → CI/CD → Variables and add GITLAB_TOKEN with read_api and read_repository scopes.`,
-  },
-  {
-    icon: "tabler/file-text",
-    title: "Add to .gitlab-ci.yml",
-    text: `Include the Plumber component in your pipeline configuration. That's it! Plumber runs automatically.`,
-  },
-  {
-    icon: "tabler/check",
-    title: "Automatic analysis",
-    text: `Plumber runs on MRs, main branch, and tags. Get compliance reports without any manual intervention.`,
-  },
-  {
-    icon: "tabler/wand",
-    title: "Customize as needed",
-    text: `Override any input to fit your needs: GitLab URL, branch, threshold, config file, and more.`,
-  },
-];
 ---
 
-<section id="plumber-quick-start" class="my-12 md:my-24">
+<section id="plumber-cta" class="border-base-300 dark:border-base-600/60 mt-24 border-t py-20 md:mt-36">
   <div class="site-container">
-    <div class="flex flex-col gap-12 md:flex-row md:gap-12 lg:gap-20">
-      <!-- Left side: Text content -->
-      <div class="flex flex-col gap-4 md:w-1/2">
-        <p class="colored-title inline">Quick Start</p>
-      <div class="flex flex-col gap-4">
-
-        <h2 class="h2">Get started in minutes</h2>
-        <p class="description">
-          Set up Plumber in your GitLab CI/CD pipeline with just a few simple steps.
-        </p>
-        <div class=" flex justify-start">
-            <Button
-              variant="outline"
-              href="/docs/cli/"
-              arrow="right"
-              class="text-sm mt-2"
-            >
-              View CLI Reference
-            </Button>
-          </div>
-        </div>
+    <div class="flex flex-col ">
+      <div class="flex justify-start">
+        <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#plumber-cta">Quick Start</p>
       </div>
-
-      <!-- Right side: Steps -->
-      <div class="flex flex-col gap-6 md:w-1/2">
-        {
-          featureData.map((feature, idx) => (
-            <FeatureCard
-              title={feature.title}
-              text={feature.text}
-              icon={feature.icon}
-              data-mos="fade-up"
-              data-mos-delay={0.15 * idx}
-              data-mos-anchor="#plumber-quick-start"
-            />
-          ))
-        }
+      <h2 class="h1 mt-8" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#plumber-cta">Get started in minutes</h2>
+      <p class="description mt-6" data-mos="fade-up" data-mos-delay="0.2" data-mos-anchor="#plumber-cta">
+        Set up Plumber in your GitLab CI/CD pipeline with just a few simple steps.
+      </p>
+      <div class="flex justify-start mt-12" data-mos="fade-up" data-mos-delay="0.3" data-mos-anchor="#plumber-cta">
+        <Button
+          variant="outline"
+          href="/docs/cli/"
+          arrow="right"
+        >
+          View CLI Documentation
+        </Button>
       </div>
     </div>
   </div>

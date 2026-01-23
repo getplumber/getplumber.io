@@ -1,17 +1,22 @@
 import mdx from "@astrojs/mdx";
-import vercel from "@astrojs/vercel";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
+import vercel from "@astrojs/vercel";
 import keystatic from "@keystatic/astro";
 import compress from "@playform/compress";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "astro/config";
+import { defineConfig, sharpImageService } from "astro/config";
 import AutoImport from "astro-auto-import";
 import icon from "astro-icon";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://galaxy.cosmicthemes.com",
+  image: {
+    service: sharpImageService({
+      limitInputPixels: false, // Allow processing of large images like GIFs
+    }),
+  },
   adapter: vercel({
     imageService: false,
   }),

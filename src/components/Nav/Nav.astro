@@ -20,18 +20,14 @@ import DocsSearch from "@/docs/components/search/Search.astro";
 
 
 // Generate docs menu items dynamically and add to navData if not already present
-const docsMenuColumns = await generateDocsMenuItems();
+const docsMenuItem = await generateDocsMenuItems();
 const finalNavData = [...navData]; // Create a copy to avoid mutating the original
 
 // Check if Docs menu already exists
 const docsMenuExists = finalNavData.some((item) => item.text === "Docs");
 
-// Add docs menu to navData if it has columns and doesn't already exist
-if (docsMenuColumns.length > 0 && !docsMenuExists) {
-  const docsMenuItem = {
-    text: "Docs",
-    megaMenuColumns: docsMenuColumns,
-  };
+// Add docs menu to navData if it doesn't already exist
+if (!docsMenuExists) {
   // Insert docs menu after Platform (or after Overview if Platform doesn't exist)
   const platformIndex = finalNavData.findIndex((item) => item.text === "Platform");
   const overviewIndex = finalNavData.findIndex((item) => item.text === "Overview");
@@ -93,23 +89,18 @@ if (docsMenuColumns.length > 0 && !docsMenuExists) {
             </nav>
             <div class="flex items-center">
               <ThemeToggle class="hidden md:flex" />
-              <!-- <Button
-                variant="ghost"
-                href={"/login"}
-                class="hidden whitespace-nowrap md:flex"
-              >
-                Sign In
-              </Button>
-              <Button
-                variant="primary"
-                href={"/signup"}
-                class="hidden whitespace-nowrap md:flex">Sign up</Button
-              > -->
-
-              {!Astro.url.pathname.startsWith("/docs") ? <Search class="md:ml-2" /> : <DocsSearch class="md:ml-2" />}
               
+              {Astro.url.pathname.startsWith("/docs") && <DocsSearch class="md:ml-2" />}
 
               {locales.length > 1 && <LanguageSelect class="ml-2 hidden md:flex" />}
+              
+              <Button
+                variant="primary"
+                href={"/contact"}
+                class="hidden whitespace-nowrap md:flex ml-2"
+              >
+                Contact us
+              </Button>
             </div>
 
             <!-- mobile nav menu, only load on small screens where it is visible -->

@@ -12,9 +12,9 @@ import { Image } from "astro:assets";
           <div class="mx-auto flex md:flex-row flex-col gap-8 rounded-2xl md:gap-12 lg:gap-20">
             <!-- text -->
             <div
-              class=`md:order-last" flex flex-col gap-3`
+              class="md:order-last flex flex-col gap-3"
               data-mos="fade-right"
-              data-mos-anchor=""
+              data-mos-anchor="#complianceIsHard"
             >
 
               <h2 class="h2">Ensuring CI/CD compliance is hard. Proving it is even harder.</h2>
@@ -34,9 +34,10 @@ import { Image } from "astro:assets";
                   src={illustration}
                   alt={"Ensuring CI/CD compliance is hard. Proving it is even harder."}
                   width={300}
-                  data-mos=`fade-left`
+                  data-mos="fade-left"
+                  data-mos-anchor="#complianceIsHard"
                 />
-                <p class="ml-auto text-gray-500 text-xs">Vital questions - hard to answer.</p>
+                <p class="ml-auto text-gray-500 text-xs" data-mos="fade-left" data-mos-delay="0.2" data-mos-anchor="#complianceIsHard">Vital questions - hard to answer.</p>
               <!-- </div> -->
             </div>
           </div>

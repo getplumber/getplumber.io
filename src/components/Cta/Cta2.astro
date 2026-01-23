@@ -10,6 +10,8 @@ import Button from "@components/Button/Button.astro";
   <div class="site-container">
     <div
       class="pricing-plan from-primary-400 to-base-300 dark:from-primary-500 dark:to-base-600/60 relative mx-auto h-full w-full overflow-hidden rounded-2xl bg-gradient-to-br to-40%"
+      data-mos="fade-up"
+      data-mos-anchor="#CTA"
     >
       <div class="relative h-full p-px">
         <div
@@ -25,14 +27,14 @@ import Button from "@components/Button/Button.astro";
           <div class="mx-auto grid max-w-3xl gap-8 px-4 py-20 md:grid-cols-3 md:py-24">
             <div class="md:col-span-2">
               <div class="flex justify-start">
-                <p class="colored-title inline">Make more money</p>
+                <p class="colored-title inline" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#CTA">Make more money</p>
               </div>
-              <h2 class="h1 mt-8">What are you waiting for?</h2>
-              <p class="description mt-6">
+              <h2 class="h1 mt-8" data-mos="fade-up" data-mos-delay="0.2" data-mos-anchor="#CTA">What are you waiting for?</h2>
+              <p class="description mt-6" data-mos="fade-up" data-mos-delay="0.3" data-mos-anchor="#CTA">
                 Get your beautiful and effective website up in running in a snap with Galaxy today.
               </p>
             </div>
-            <div class="flex items-end justify-start md:justify-end">
+            <div class="flex items-end justify-start md:justify-end" data-mos="fade-up" data-mos-delay="0.4" data-mos-anchor="#CTA">
               <Button
                 variant="primary"
                 href="https://cosmicthemes.com/themes/galaxy/"
@@ -46,41 +48,5 @@ import Button from "@components/Button/Button.astro";
         </div>
       </div>
     </div>
-    <!-- <div
-      class=`group relative h-full w-full rounded-2xl bg-gradient-to-br from-primary-500 via-base-300/50 to-primary-500
-          after:absolute after:rounded-[calc(1rem-1px)] after:bg-base-100/30 dark:after:bg-base-800/50 after:inset-[1px]`
-    > -->
-    <!-- background glows -->
-    <!-- <div
-        class="absolute left-0 top-0 -z-10 mx-auto aspect-square w-[20%] bg-primary-600/70 blur-3xl"
-      >
-      </div>
-
-      <div
-        class="absolute bottom-0 right-0 -z-10 mx-auto aspect-square w-[20%] bg-primary-600/70 blur-3xl"
-      >
-      </div> -->
-
-    <!-- center card -->
-    <!-- <div class="relative z-10 p-1">
-        <div class="rounded-xl bg-base-100 dark:bg-base-800 px-4 py-20">
-          <div class="mx-auto grid max-w-3xl gap-8 md:grid-cols-3">
-            <div class="md:col-span-2">
-              <div class="flex justify-start">
-                <p class="colored-title inline">Make more money</p>
-              </div>
-              <h2 class="h1 mt-8">What are you waiting for?</h2>
-              <p class="description mt-6">
-                Get your beautiful and effective website up in running in a snap
-                with Galaxy today.
-              </p>
-            </div>
-            <div class="flex items-end justify-start md:justify-end">
-              <Button variant="primary" href="/signup/">Get Started</Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div> -->
   </div>
 </section>

@@ -1,0 +1,557 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<div class="pipeline-animation-container relative w-[800px]">
+  <div
+    class="from-primary-400 to-base-300/70 after:bg-base-100/30 dark:from-primary-500 dark:to-base-300/50 dark:after:bg-base-800/50 relative overflow-clip rounded-2xl bg-gradient-to-b to-40% p-1 after:absolute after:inset-[1px] after:rounded-[calc(1rem-1px)] md:p-2"
+  >
+    <div
+      class="dark border-base-600/60 relative z-10 w-full overflow-clip rounded-xl border bg-[var(--astro-code-background)] md:rounded-lg"
+    >
+      <!-- Code Typing Stage -->
+      <div id="code-stage" class="code-stage h-80 bg-[var(--astro-code-background)] relative p-4">
+        <div class="flex items-center gap-2 border-b border-base-600/60 pb-3 mb-4">
+          <div class="flex gap-2">
+            <div class="size-3 rounded-full bg-red-500/50"></div>
+            <div class="size-3 rounded-full bg-yellow-500/50"></div>
+            <div class="size-3 rounded-full bg-green-500/50"></div>
+          </div>
+          <span class="text-xs text-base-400 ml-2">.gitlab-ci.yml</span>
+        </div>
+        <pre class="font-mono text-sm text-base-300"><code id="typing-code" class="block whitespace-pre"></code></pre>
+      </div>
+
+      <!-- Pipeline Running Stage -->
+      <div id="pipeline-stage" class="pipeline-stage h-80 bg-[var(--astro-code-background)] relative p-4 hidden">
+        <div class="flex items-center gap-2 border-b border-base-600/60 pb-3 mb-4">
+          <div class="flex gap-2">
+            <div class="size-3 rounded-full bg-red-500/50"></div>
+            <div class="size-3 rounded-full bg-yellow-500/50"></div>
+            <div class="size-3 rounded-full bg-green-500/50"></div>
+          </div>
+          <span class="text-xs text-base-400 ml-2">Pipeline #1234</span>
+        </div>
+        <div class="flex flex-col gap-3 mt-6">
+          <!-- Pipeline Stages -->
+          <div id="test-stage" class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-base-800/30 border border-base-600/30">
+            <div id="test-spinner" class="pipeline-spinner size-5 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-sm text-base-300">test</span>
+            <span id="test-status" class="text-xs text-base-500 ml-auto">Running...</span>
+          </div>
+          <div id="build-stage" class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-base-800/30 border border-base-600/30 opacity-50">
+            <div class="size-5"></div>
+            <span class="text-sm text-base-300">build</span>
+            <span class="text-xs text-base-500 ml-auto">Pending</span>
+          </div>
+          <div id="deploy-stage" class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-base-800/30 border border-base-600/30 opacity-50">
+            <div class="size-5"></div>
+            <span class="text-sm text-base-300">deploy</span>
+            <span class="text-xs text-base-500 ml-auto">Pending</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline Complete with Warning Stage -->
+      <div id="pipeline-complete-stage" class="pipeline-complete-stage h-80 bg-[var(--astro-code-background)] relative p-4 hidden">
+        <div class="flex items-center gap-2 border-b border-base-600/60 pb-3 mb-4">
+          <div class="flex gap-2">
+            <div class="size-3 rounded-full bg-red-500/50"></div>
+            <div class="size-3 rounded-full bg-yellow-500/50"></div>
+            <div class="size-3 rounded-full bg-green-500/50"></div>
+          </div>
+          <span class="text-xs text-base-400 ml-2">Pipeline #1234</span>
+        </div>
+        <div class="flex flex-col gap-3 mt-6">
+          <!-- Pipeline Jobs with Status -->
+          <div class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-base-800/30 border border-base-600/30">
+            <Icon name="tabler/check" class="size-5 text-green-400" />
+            <span class="text-sm text-base-300">analyze</span>
+            <span class="text-xs text-green-400 ml-auto">Passed</span>
+          </div>
+          <div class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-base-800/30 border border-base-600/30">
+            <Icon name="tabler/check" class="size-5 text-green-400" />
+            <span class="text-sm text-base-300">build</span>
+            <span class="text-xs text-green-400 ml-auto">Passed</span>
+          </div>
+          <div class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-base-800/30 border border-base-600/30">
+            <Icon name="tabler/check" class="size-5 text-green-400" />
+            <span class="text-sm text-base-300">test</span>
+            <span class="text-xs text-green-400 ml-auto">Passed</span>
+          </div>
+          <!-- Warning Icon -->
+          <div id="warning-icon" class="pipeline-job flex items-center gap-3 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 cursor-pointer hover:bg-yellow-500/20 transition-colors">
+            <Icon name="tabler/alert-triangle" class="size-5 text-yellow-400" />
+            <span class="text-sm text-base-300">Compliance Check</span>
+            <span class="text-xs text-yellow-400 ml-auto">Warning</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Stage -->
+      <div id="results-stage" class="results-stage h-80 bg-[var(--astro-code-background)] relative p-4 hidden overflow-hidden">
+        <div class="flex items-center gap-2 border-b border-base-600/60 pb-3 mb-4">
+          <div class="flex gap-2">
+            <div class="size-3 rounded-full bg-red-500/50"></div>
+            <div class="size-3 rounded-full bg-yellow-500/50"></div>
+            <div class="size-3 rounded-full bg-green-500/50"></div>
+          </div>
+          <span class="text-xs text-base-400 ml-2">Compliance Results</span>
+        </div>
+        
+        <div class="overflow-auto h-[calc(100%-4rem)] px-1 flex grow">
+          <pre class="font-mono text-sm text-base-300" style="tab-size: 2;"><code id="cli-output" class="block whitespace-pre"></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function startPipelineAnimation() {
+    const codeStage = document.getElementById('code-stage');
+    const pipelineStage = document.getElementById('pipeline-stage');
+    const pipelineCompleteStage = document.getElementById('pipeline-complete-stage');
+    const resultsStage = document.getElementById('results-stage');
+    const typingCode = document.getElementById('typing-code');
+    const warningIcon = document.getElementById('warning-icon');
+
+    if (!codeStage || !pipelineStage || !pipelineCompleteStage || !resultsStage || !typingCode) {
+      return;
+    }
+
+    const codeToType = 'include:\n  - component: gitlab.com/getplumber/plumber/analyze@~latest';
+    let charIndex = 0;
+
+    // Create cursor element template
+    function createCursor() {
+      const cursor = document.createElement('span');
+      cursor.id = 'typing-cursor';
+      cursor.className = 'inline-block w-0.5 h-4 bg-primary-400 ml-0.5 align-middle animate-pulse';
+      cursor.style.verticalAlign = 'baseline';
+      cursor.style.marginLeft = '1px';
+      return cursor;
+    }
+
+    // Stage 1: Type the code
+    function typeCode() {
+      if (!typingCode || !codeStage || !pipelineStage || !pipelineCompleteStage) {
+        return;
+      }
+
+      if (charIndex < codeToType.length) {
+        // Update text content
+        const textSoFar = codeToType.substring(0, charIndex + 1);
+        
+        // Remove cursor if it exists
+        const existingCursor = typingCode.querySelector('#typing-cursor');
+        if (existingCursor) {
+          existingCursor.remove();
+        }
+        
+        // Set text and add cursor inline
+        typingCode.textContent = textSoFar;
+        typingCode.appendChild(createCursor());
+        
+        charIndex++;
+        setTimeout(typeCode, 33); // Typing speed: 50ms / 1.5 = ~33ms for 1.5x faster
+      } else {
+        // Code typing complete, remove cursor and wait a bit then move to pipeline
+        const existingCursor = typingCode.querySelector('#typing-cursor');
+        if (existingCursor) {
+          existingCursor.remove();
+        }
+        setTimeout(() => {
+          if (!codeStage || !pipelineStage || !pipelineCompleteStage) {
+            return;
+          }
+          codeStage.classList.add('hidden');
+          pipelineStage.classList.remove('hidden');
+          
+          // Stage 2: Show test stage running for 2 seconds
+          setTimeout(() => {
+            if (!pipelineStage) {
+              return;
+            }
+            
+            // Make test stage fail
+            const testSpinner = document.getElementById('test-spinner');
+            const testStatus = document.getElementById('test-status');
+            const testStage = document.getElementById('test-stage');
+            
+            if (testSpinner && testStatus && testStage) {
+              // Remove spinner and add failed icon
+              testSpinner.remove();
+              const failedIcon = document.createElement('span');
+              failedIcon.className = 'text-red-400 size-5 flex items-center justify-center';
+              failedIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>';
+              const firstChild = testStage.firstChild;
+              if (firstChild && firstChild.nextSibling) {
+                testStage.insertBefore(failedIcon, firstChild.nextSibling);
+              } else {
+                testStage.insertBefore(failedIcon, testStage.firstChild);
+              }
+              
+              // Update status and border color
+              testStatus.textContent = 'Failed';
+              testStatus.className = 'text-xs text-red-400 ml-auto';
+              testStage.classList.remove('border-base-600/30');
+              testStage.classList.add('border-red-400');
+            }
+            
+            // Stage 3: After 2 seconds, go directly to compliance results
+            setTimeout(() => {
+              if (!pipelineStage) {
+                return;
+              }
+              pipelineStage.classList.add('hidden');
+              
+              // Show results stage and start typing animation
+              const resultsStage = document.getElementById('results-stage');
+              if (resultsStage) {
+                resultsStage.classList.remove('hidden');
+                setTimeout(() => {
+                  const cliOutput = document.getElementById('cli-output');
+                  if (cliOutput) {
+                    cliOutput.innerHTML = '';
+                    typeCliOutput();
+                  }
+                }, 100);
+              }
+            }, 2000); // 2 seconds showing failed test
+          }, 2000); // 2 seconds pipeline running
+        }, 1000);
+      }
+    }
+
+    // Compliance data
+    const complianceData = {
+      mutableImageTags: {
+        percentage: 0,
+        issues: 10,
+        details: {
+          totalImages: 10,
+          usingMutableTags: 10,
+          found: [
+            { job: 'build', image: 'docker.io/library/node:latest' },
+            { job: 'test', image: 'docker.io/library/python:latest' },
+            { job: 'deploy', image: 'docker.io/library/nginx:latest' },
+            { job: 'lint', image: 'docker.io/library/golang:latest' },
+            { job: 'scan', image: 'docker.io/library/ruby:latest' },
+            { job: 'compile', image: 'docker.io/library/java:latest' },
+            { job: 'package', image: 'docker.io/library/php:latest' },
+            { job: 'analyze', image: 'docker.io/library/rust:latest' },
+            { job: 'validate', image: 'docker.io/library/node:latest' },
+            { job: 'verify', image: 'docker.io/library/python:latest' }
+          ]
+        }
+      },
+      untrustedImageSources: {
+        percentage: 40,
+        issues: 6,
+        details: {
+          totalImages: 10,
+          trusted: 4,
+          untrusted: 6,
+          found: [
+            { job: 'sls_scan', image: 'docker.io/shiftleft/sast-scan:v1.15.1' },
+            { job: 'gitleaks', image: 'docker.io/zricethezav/gitleaks:v8.15.0' },
+            { job: 'golint', image: 'docker.io/docker/golangci-lint:2.5.0-go1.25.3' },
+            { job: 'tag-production-image', image: 'gcr.io/go-containerregistry/crane:debug' },
+            { job: 'prometheus', image: 'quay.io/prometheus/prometheus:latest' },
+            { job: 'deploy', image: 'registry.gitlab.com/example/image:tag' }
+          ]
+        }
+      },
+      branchProtection: {
+        percentage: 100,
+        issues: 0,
+        details: {
+          totalBranches: 8,
+          branchesToProtect: 1,
+          protectedBranches: 1,
+          unprotected: 0,
+          nonCompliant: 0,
+          found: []
+        }
+      }
+    };
+
+    // Calculate total compliance
+    function calculateTotalCompliance() {
+      const total = (complianceData.mutableImageTags.percentage + 
+                     complianceData.untrustedImageSources.percentage + 
+                     complianceData.branchProtection.percentage) / 3;
+      return Math.round(total * 10) / 10; // Round to 1 decimal place
+    }
+
+    // Get color class for compliance percentage
+    function getCliComplianceTextColor(percentage: number): string {
+      if (percentage === 0) {
+        return 'text-red-400';
+      } else if (percentage === 100) {
+        return 'text-green-400';
+      } else {
+        return 'text-orange-400';
+      }
+    }
+
+    // Get status icon SVG content
+    function getStatusIconSvg(percentage: number): string {
+      if (percentage === 100) {
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M5 12l5 5l10 -10" /></svg>';
+      } else {
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>';
+      }
+    }
+
+    // Get status color
+    function getStatusColor(percentage: number): string {
+      return percentage === 100 ? 'text-green-400' : 'text-red-400';
+    }
+
+    // Generate CLI output
+    function generateCliOutput() {
+      const totalCompliance = calculateTotalCompliance();
+      const totalStatusColor = totalCompliance === 100 ? 'text-green-400' : 'text-red-400';
+      const totalStatusSvg = getStatusIconSvg(totalCompliance);
+      const statusText = totalCompliance === 100 ? 'PASSED' : 'FAILED';
+      const statusColor = totalCompliance === 100 ? 'text-green-400' : 'text-red-400';
+
+      let output = '';
+
+      // Mutable Image Tags
+      const mutColor = getCliComplianceTextColor(complianceData.mutableImageTags.percentage);
+      output += '──────────────────────────────────────────────────\n';
+      output += `<span class="${mutColor}">Mutable Image Tags (${complianceData.mutableImageTags.percentage.toFixed(1)}% compliant)</span>\n`;
+      output += '──────────────────────────────────────────────────\n';
+      output += '  Total Images: ' + complianceData.mutableImageTags.details.totalImages + '\n';
+      output += '  Using Mutable Tags: ' + complianceData.mutableImageTags.details.usingMutableTags + '\n';
+      if (complianceData.mutableImageTags.details.found.length > 0) {
+        output += '\n  Mutable Tags Found:\n';
+        complianceData.mutableImageTags.details.found.forEach(item => {
+          output += `    • Job '${item.job}' uses mutable tag: ${item.image}\n`;
+        });
+      }
+      output += '\n';
+
+      // Untrusted Image Sources
+      const untrustedColor = getCliComplianceTextColor(complianceData.untrustedImageSources.percentage);
+      output += '──────────────────────────────────────────────────\n';
+      output += `<span class="${untrustedColor}">Untrusted Image Sources (${complianceData.untrustedImageSources.percentage.toFixed(1)}% compliant)</span>\n`;
+      output += '──────────────────────────────────────────────────\n';
+      output += '  Total Images: ' + complianceData.untrustedImageSources.details.totalImages + '\n';
+      output += '  Trusted: ' + complianceData.untrustedImageSources.details.trusted + '\n';
+      output += '  Untrusted: ' + complianceData.untrustedImageSources.details.untrusted + '\n';
+      if (complianceData.untrustedImageSources.details.found.length > 0) {
+        output += '\n  Untrusted Images Found:\n';
+        complianceData.untrustedImageSources.details.found.forEach(item => {
+          output += `    • Job '${item.job}' uses untrusted image: ${item.image}\n`;
+        });
+      }
+      output += '\n';
+
+      // Branch Protection
+      const branchColor = getCliComplianceTextColor(complianceData.branchProtection.percentage);
+      output += '──────────────────────────────────────────────────\n';
+      output += `<span class="${branchColor}">Branch Protection (${complianceData.branchProtection.percentage.toFixed(1)}% compliant)</span>\n`;
+      output += '──────────────────────────────────────────────────\n';
+      output += '  Total Branches: ' + complianceData.branchProtection.details.totalBranches + '\n';
+      output += '  Branches to Protect: ' + complianceData.branchProtection.details.branchesToProtect + '\n';
+      output += '  Protected Branches: ' + complianceData.branchProtection.details.protectedBranches + '\n';
+      output += '  Unprotected: ' + complianceData.branchProtection.details.unprotected + '\n';
+      output += '  Non-Compliant: ' + complianceData.branchProtection.details.nonCompliant + '\n';
+      output += '\n';
+
+      // Summary
+      output += '────────────────────\n';
+      output += 'Summary\n';
+      output += '────────────────────\n\n';
+      output += `  Status: <span class="${statusColor}">${statusText} ${totalStatusSvg}</span>\n\n`;
+
+      // Issues table - fixed alignment
+      output += '  Issues\n';
+      output += '  ╔══════════════════════════════╤══════════╗\n';
+      output += '  ║ Control                      │   Issues ║\n';
+      output += '  ╟──────────────────────────────┼──────────╢\n';
+      const issues1 = String(complianceData.mutableImageTags.issues).padStart(6);
+      const issues2 = String(complianceData.untrustedImageSources.issues).padStart(6);
+      const issues3 = String(complianceData.branchProtection.issues).padStart(6);
+      output += `  ║ Mutable Image Tags           │   ${issues1} ║\n`;
+      output += `  ║ Untrusted Image Sources      │   ${issues2} ║\n`;
+      output += `  ║ Branch Protection            │   ${issues3} ║\n`;
+      output += '  ╚══════════════════════════════╧══════════╝\n\n';
+
+      // Compliance table - exact alignment with fixed character positions
+      // Border lines: exactly 50 chars = "  " (2) + 48 border chars
+      output += '  Compliance\n';
+      output += '  ╔══════════════════════════════╤════════════╤══════════╗\n';
+      output += '  ║ Control                      │ Compliance │   Status ║\n';
+      output += '  ╟──────────────────────────────┼────────────┼──────────╢\n';
+      
+      // Each data row: "  ║ " (4) + Control (27) + " │ " (3) + Compliance (12) + " │ " (3) + Status (8) + " ║" (2)
+      // Use inline SVG icons for consistent width
+      const mutStatusColor = getStatusColor(complianceData.mutableImageTags.percentage);
+      const mutPercent = complianceData.mutableImageTags.percentage.toFixed(1);
+      const mutPercentFormatted = (mutPercent + '%').padStart(6);
+      const mutStatusSvg = getStatusIconSvg(complianceData.mutableImageTags.percentage);
+      output += `  ║ Mutable Image Tags           │     <span class="${mutColor}">${mutPercentFormatted}</span> │       <span class="${mutStatusColor}">${mutStatusSvg}</span> ║\n`;
+      
+      const untrustedStatusColor = getStatusColor(complianceData.untrustedImageSources.percentage);
+      const untrustedPercent = complianceData.untrustedImageSources.percentage.toFixed(1);
+      const untrustedPercentFormatted = (untrustedPercent + '%').padStart(6);
+      const untrustedStatusSvg = getStatusIconSvg(complianceData.untrustedImageSources.percentage);
+      output += `  ║ Untrusted Image Sources      │     <span class="${untrustedColor}">${untrustedPercentFormatted}</span> │       <span class="${untrustedStatusColor}">${untrustedStatusSvg}</span> ║\n`;
+      
+      const branchStatusColor = getStatusColor(complianceData.branchProtection.percentage);
+      const branchPercent = complianceData.branchProtection.percentage.toFixed(1);
+      const branchPercentFormatted = (branchPercent + '%').padStart(6);
+      const branchStatusSvg = getStatusIconSvg(complianceData.branchProtection.percentage);
+      output += `  ║ Branch Protection            │     <span class="${branchColor}">${branchPercentFormatted}</span> │       <span class="${branchStatusColor}">${branchStatusSvg}</span> ║\n`;
+      
+      output += '  ╟──────────────────────────────┼────────────┼──────────╢\n';
+      const totalPercent = totalCompliance.toFixed(1);
+      const totalPercentFormatted = (totalPercent + '%').padStart(6);
+      output += `  ║ Total (required: 100%)       │     <span class="${totalStatusColor}">${totalPercentFormatted}</span> │       <span class="${totalStatusColor}">${totalStatusSvg}</span> ║\n`;
+      output += '  ╚══════════════════════════════╧════════════╧══════════╝\n';
+
+      return output;
+    }
+
+    // Function to type CLI output line by line with scrolling
+    function typeCliOutput() {
+      const cliOutput = document.getElementById('cli-output');
+      if (!cliOutput) return;
+
+      const fullOutput = generateCliOutput();
+      const lines = fullOutput.split('\n');
+      let currentLine = 0;
+      let currentContent = '';
+
+      function typeNextLine() {
+        if (!cliOutput) return;
+        
+        if (currentLine < lines.length) {
+          currentContent += lines[currentLine] + '\n';
+          cliOutput.innerHTML = currentContent;
+          
+          // Auto-scroll to bottom
+          const preElement = cliOutput.parentElement;
+          const scrollContainer = preElement?.parentElement;
+          if (scrollContainer) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          }
+          
+          currentLine++;
+          setTimeout(typeNextLine, 50); // Adjust speed here (50ms per line)
+        }
+      }
+
+      typeNextLine();
+    }
+
+    // Handle warning icon click
+    if (warningIcon) {
+      warningIcon.addEventListener('click', () => {
+        pipelineCompleteStage.classList.add('hidden');
+        resultsStage.classList.remove('hidden');
+        
+        // Clear previous output and start typing animation
+        setTimeout(() => {
+          const cliOutput = document.getElementById('cli-output');
+          if (cliOutput) {
+            cliOutput.innerHTML = '';
+            typeCliOutput();
+          }
+        }, 100);
+      });
+    }
+
+    // Start the animation
+    typeCode();
+  }
+
+  // Start animation when component loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startPipelineAnimation);
+  } else {
+    startPipelineAnimation();
+  }
+
+  // Also handle Astro view transitions
+  document.addEventListener('astro:after-swap', startPipelineAnimation);
+</script>
+
+<style>
+  @import "tailwindcss/theme" theme(reference);
+  @import "@/styles/tailwind-theme.css" theme(reference);
+
+  .pipeline-animation-container {
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .pipeline-animation-container * {
+    pointer-events: none;
+  }
+
+  .pipeline-animation-container #warning-icon {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .code-stage code {
+    font-family: var(--font-mono);
+    color: var(--color-base-300);
+  }
+
+  #cli-output {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  #cli-output span {
+    display: inline;
+  }
+
+  .pipeline-spinner {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .compliance-metric {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  .compliance-metric:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .compliance-metric:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .compliance-metric:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

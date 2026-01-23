@@ -4,7 +4,7 @@ This theme uses Astro v5 and Tailwind CSS v4, and includes some of my up-coming 
 
 ## Quickstart
 
-1. To get started, first install all necessary packages with `npm install` or `pnpm install`, then run an initial build to make sure the setup works `npm run build` or `pnpm build`.
+1. To get started, first install all necessary packages with `npm install`, then run an initial build to make sure the setup works `npm run build`.
 2. Copy the Pagefind build (for site search) to be available for the dev environment. This varies depending on your OS. I've created a few commands to help.
    - For Windows, run `npm run winsearch`
    - For OSX or Linux, run `npm run osxsearch`
