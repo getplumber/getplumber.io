@@ -11,9 +11,7 @@ import BaseLayoutDocs from "@/docs/layouts/BaseLayoutDocs.astro";
 
 export async function getStaticPaths() {
   // replace any starting or ending slashes, then remove anything before the first slash remaining if necessary
-  const localizedDocsRoute = docsRoute
-    .replace(/^\/|\/$/g, "")
-    .replace(/^[^/]+\//, "");
+  const localizedDocsRoute = docsRoute.replace(/^\/|\/$/g, "").replace(/^[^/]+\//, "");
 
   return [
     {

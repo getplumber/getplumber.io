@@ -1,6 +1,6 @@
 ---
 sidebar_position: 5
-slug: '/self-managed/local-docker-compose'
+slug: "/self-managed/local-docker-compose"
 ---
 
 # Local Docker compose
@@ -11,6 +11,7 @@ R2Devops for **testing purposes** using Docker-compose on **your local
 computer**. This is not suitable for production
 
     See production ready methods on [Home page](../index.md)
+
 :::
 
 :::success[Data Confidentiality]
@@ -54,30 +55,30 @@ Preferences > Applications` (example:
 ## 📚 Update the configuration
 
 1. Edit the `.env` file:
-
    - Copy/paste the `Application ID` and the `Secret` from
      the GitLab application you just created
 
-      ```bash title=".env"
-      GITLAB_OAUTH2_CLIENT_ID="<application-id>"
-      GITLAB_OAUTH2_CLIENT_SECRET="<application-secret>"
-      ```
+     ```bash title=".env"
+     GITLAB_OAUTH2_CLIENT_ID="<application-id>"
+     GITLAB_OAUTH2_CLIENT_SECRET="<application-secret>"
+     ```
 
    - Replace `<your-gitlab-url>` by domain of your GitLab server
 
-      ```bash title=".env"
-      JOBS_GITLAB_URL="https://<your-gitlab-url>"
-      ```
+     ```bash title=".env"
+     JOBS_GITLAB_URL="https://<your-gitlab-url>"
+     ```
 
    - **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
-      ```bash title=".env"
-      ORGANIZATION="<group-path>"
-      ```
+
+     ```bash title=".env"
+     ORGANIZATION="<group-path>"
+     ```
 
    - **If you want to connect R2Devops to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
-      ```bash title=".env"
-      ORGANIZATION=""
-      ```
+     ```bash title=".env"
+     ORGANIZATION=""
+     ```
 
 1. Run the following commands to generate random secrets for all components:
 

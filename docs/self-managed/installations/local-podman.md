@@ -1,6 +1,6 @@
 ---
 sidebar_position: 6
-slug: '/self-managed/local-podman'
+slug: "/self-managed/local-podman"
 ---
 
 # Local Podman
@@ -15,6 +15,7 @@ R2Devops for **testing purposes** using podman on **your local
 computer**. This is not suitable for production
 
     See production ready methods on [Home page](../index.md)
+
 :::
 
 :::success[Data Confidentiality]
@@ -28,6 +29,7 @@ confidentiality and security of your information.
 - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - [podman](https://https://podman.io/docs/installation)
 - Docker hub registry must be resolved by podman in file **/etc/containers/registries.conf**
+
 ```bash title="/etc/containers/registries.conf" hl_lines="1"
 unqualified-search-registries = ["docker.io"]
 ```
@@ -62,30 +64,30 @@ Preferences > Applications` (example:
 ## 📚 Update the configuration
 
 1. Edit the `.env` file:
-
    - Copy/paste the `Application ID` and the `Secret` from
      the GitLab application you just created
 
-      ```bash title=".env"
-      GITLAB_OAUTH2_CLIENT_ID="<application-id>"
-      GITLAB_OAUTH2_CLIENT_SECRET="<application-secret>"
-      ```
+     ```bash title=".env"
+     GITLAB_OAUTH2_CLIENT_ID="<application-id>"
+     GITLAB_OAUTH2_CLIENT_SECRET="<application-secret>"
+     ```
 
    - Replace `<your-gitlab-url>` by domain of your GitLab server
 
-      ```bash title=".env"
-      JOBS_GITLAB_URL="https://<your-gitlab-url>"
-      ```
+     ```bash title=".env"
+     JOBS_GITLAB_URL="https://<your-gitlab-url>"
+     ```
 
    - **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
-      ```bash title=".env"
-      ORGANIZATION="<group-path>"
-      ```
+
+     ```bash title=".env"
+     ORGANIZATION="<group-path>"
+     ```
 
    - **If you want to connect R2Devops to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
-      ```bash title=".env"
-      ORGANIZATION=""
-      ```
+     ```bash title=".env"
+     ORGANIZATION=""
+     ```
 
 1. Run the following commands to generate random secrets for all components:
 
@@ -104,6 +106,7 @@ podman network create intranet
 ```
 
 Generate podman socket
+
 ```bash
 systemctl --user start podman.socket
 systemctl --user enable podman.socket

@@ -1,6 +1,6 @@
 ---
 sidebar_position: 3
-slug: '/self-managed/kubernetes'
+slug: "/self-managed/kubernetes"
 ---
 
 # Kubernetes
@@ -32,13 +32,13 @@ and/or `Redis`. Both alternatives are detailed below.
 ### 📥 Initialize your cluster
 
 1. Create the namespace for R2Devops
-    ```sh
-    kubectl create ns r2devops
-    ```
+   ```sh
+   kubectl create ns r2devops
+   ```
 1. Add R2Devops repo
-    ```sh
-    helm repo add r2devops https://charts.r2devops.io/
-    ```
+   ```sh
+   helm repo add r2devops https://charts.r2devops.io/
+   ```
 
 ### 📄 Domain name
 
@@ -47,13 +47,13 @@ You need a domain to run R2Devops. For example, if you have the domain name
 `mydomain.com`:
 
     - R2Devops URL will be `https://r2devops.mydomain.com`
+
 :::
 
 1. Create DNS record
-
-    - Name: `<r2devops_domain_name>`
-    - Type: `A`
-    - Content: `<your-cluster-public-ip>`
+   - Name: `<r2devops_domain_name>`
+   - Type: `A`
+   - Content: `<your-cluster-public-ip>`
 
 ### 🦊 GitLab OIDC
 
@@ -64,18 +64,17 @@ to connect it to your GitLab instance.
    any group. Open the chosen group in GitLab interface and navigate through
    `Settings > Applications`:
 
-    ![Profile_Menu](./img/profile_menu_gitlab.png)
+   ![Profile_Menu](./img/profile_menu_gitlab.png)
 
 1. Then, create an application with the following information
-
-    - Name: `R2Devops self-managed`
-    - Redirect URI : `https://<r2devops_domain_name>/api/auth/gitlab/callback`
-    - Confidential: `true` (let the box checked)
-    - Scopes: `api`
+   - Name: `R2Devops self-managed`
+   - Redirect URI : `https://<r2devops_domain_name>/api/auth/gitlab/callback`
+   - Confidential: `true` (let the box checked)
+   - Scopes: `api`
 
 1. Click on `Save Application` and you should see the following screen:
 
-    ![Application](./img/application_created_gitlab.png)
+   ![Application](./img/application_created_gitlab.png)
 
 1. Store `Application ID` and `Secret` somewhere safe, we will need to use them
    in next step
@@ -102,54 +101,54 @@ custom value file.
 
    Replace all occurrences of `REDACTED` by your R2Devops secrets encoded in
    base64 and create following secret:
-    - `secret-key`: 256 bit secret key used to encrypt sensitive data (`openssl rand -hex 32`)
-    - `gitlab-oauth2-client-id`: Application ID of the GitLab application
-    - `gitlab-oauth2-client-secret`: Secret of the GitLab application
+   - `secret-key`: 256 bit secret key used to encrypt sensitive data (`openssl rand -hex 32`)
+   - `gitlab-oauth2-client-id`: Application ID of the GitLab application
+   - `gitlab-oauth2-client-secret`: Secret of the GitLab application
 
-    ```yaml
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: r2devops-secret
-      namespace: r2devops
-    type: Opaque
-    data:
-      secret-key: REDACTED
-      gitlab-oauth2-client-id: REDACTED
-      gitlab-oauth2-client-secret: REDACTED
-    ```
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: r2devops-secret
+     namespace: r2devops
+   type: Opaque
+   data:
+     secret-key: REDACTED
+     gitlab-oauth2-client-id: REDACTED
+     gitlab-oauth2-client-secret: REDACTED
+   ```
 
 1. PostgreSQL secret
 
-    Replace `REDACTED` by your postgres password encoded in base64. If you want
-    to use postgres embedded in this chart, choose the value.
+   Replace `REDACTED` by your postgres password encoded in base64. If you want
+   to use postgres embedded in this chart, choose the value.
 
-    ```yaml
-    apiVersion: v1
-    kind: Secret
-    metadata:
-        name: postgresql-secret
-        namespace: r2devops
-    type: Opaque
-    data:
-        password: REDACTED
-    ```
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: postgresql-secret
+     namespace: r2devops
+   type: Opaque
+   data:
+     password: REDACTED
+   ```
 
 1. Redis secret
 
-    Replace `REDACTED` by your redis password encoded in base64. If you want to
-    use redis embedded in this chart, choose the value.
+   Replace `REDACTED` by your redis password encoded in base64. If you want to
+   use redis embedded in this chart, choose the value.
 
-    ```yaml
-    apiVersion: v1
-    kind: Secret
-    metadata:
-        name: redis-secret
-        namespace: r2devops
-    type: Opaque
-    data:
-        password: REDACTED
-    ```
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: redis-secret
+     namespace: r2devops
+   type: Opaque
+   data:
+     password: REDACTED
+   ```
 
 #### 🤖 R2Devops
 
@@ -157,87 +156,87 @@ Add R2Devops related configuration in your new values file `custom_values.yaml`:
 
 1. Add R2Devops domain
 
-    ```yaml
-    front:
-      host: 'r2devops.mydomain.com'
+   ```yaml
+   front:
+     host: "r2devops.mydomain.com"
 
-    jobs:
-      host: 'r2devops.mydomain.com'
+   jobs:
+     host: "r2devops.mydomain.com"
 
-      # Not using secret for configuration (comment if you use secret)
-      extraEnv:
-        - name: SECRET_KEY
-          value: '<secret-key>'
-        - name: GITLAB_OAUTH2_CLIENT_ID
-          value: '<gitlab-oauth2-client-id>'
-        - name: GITLAB_OAUTH2_CLIENT_SECRET
-          value: '<gitlab-oauth2-client-secret>'
+     # Not using secret for configuration (comment if you use secret)
+     extraEnv:
+       - name: SECRET_KEY
+         value: "<secret-key>"
+       - name: GITLAB_OAUTH2_CLIENT_ID
+         value: "<gitlab-oauth2-client-id>"
+       - name: GITLAB_OAUTH2_CLIENT_SECRET
+         value: "<gitlab-oauth2-client-secret>"
 
-      # Using existing secret for configuration (uncomment if you use secret)
-      #extraEnv:
-      #  - name: SECRET_KEY
-      #    valueFrom:
-      #      secretKeyRef:
-      #        name: "r2devops-secret"
-      #        key: "secret-key"
-      #  - name: GITLAB_OAUTH2_CLIENT_ID
-      #    valueFrom:
-      #      secretKeyRef:
-      #        name: "r2devops-secret"
-      #        key: "gitlab-oauth2-client-id"
-      #  - name: GITLAB_OAUTH2_CLIENT_SECRET
-      #    valueFrom:
-      #      secretKeyRef:
-      #        name: "r2devops-secret"
-      #        key: "gitlab-oauth2-client-secret"
+     # Using existing secret for configuration (uncomment if you use secret)
+     #extraEnv:
+     #  - name: SECRET_KEY
+     #    valueFrom:
+     #      secretKeyRef:
+     #        name: "r2devops-secret"
+     #        key: "secret-key"
+     #  - name: GITLAB_OAUTH2_CLIENT_ID
+     #    valueFrom:
+     #      secretKeyRef:
+     #        name: "r2devops-secret"
+     #        key: "gitlab-oauth2-client-id"
+     #  - name: GITLAB_OAUTH2_CLIENT_SECRET
+     #    valueFrom:
+     #      secretKeyRef:
+     #        name: "r2devops-secret"
+     #        key: "gitlab-oauth2-client-secret"
 
-    worker:
-      replicaCount: 5 # Default is 5. Increase it depending of your needs
-    ```
+   worker:
+     replicaCount: 5 # Default is 5. Increase it depending of your needs
+   ```
 
 1. Add your GitLab instance domain and organization
+   - **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `organization` (to run the onboarding, you must be at least **Maintainer in this group**)
 
-    - **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `organization` (to run the onboarding, you must be at least **Maintainer in this group**)
-        ```yaml
-        gitlab:
-            domain: 'https://gitlab.mydomain.com'
-            organization: '<group-path>'
-        ```
+     ```yaml
+     gitlab:
+       domain: "https://gitlab.mydomain.com"
+       organization: "<group-path>"
+     ```
 
-    - **If you want to connect R2Devops to the whole GitLab instance**: let `organization` empty (to run the onboarding, you must be a **GitLab instance Admin**)
-        ```yaml
-        gitlab:
-            domain: 'https://gitlab.mydomain.com'
-            organization: ''
-        ```
+   - **If you want to connect R2Devops to the whole GitLab instance**: let `organization` empty (to run the onboarding, you must be a **GitLab instance Admin**)
+     ```yaml
+     gitlab:
+       domain: "https://gitlab.mydomain.com"
+       organization: ""
+     ```
 
 1. Add your Ingress configuration
 
    ```yaml
    ingress:
      enabled: true
-     className: '' # Add class name for your ingress controller
+     className: "" # Add class name for your ingress controller
      annotations: {} # Add annotation required by your ingress controller or certificate manager
    ```
 
 1. (Optional) Add your custom Certificate Authority
 
-    You can either:
-    - Reference an existing secret containing your CA public root certificate
-      using the `existingSecret` key.
-    - Or manually add your CA public root certificate in the values using the
-      `certificates` key.
+   You can either:
+   - Reference an existing secret containing your CA public root certificate
+     using the `existingSecret` key.
+   - Or manually add your CA public root certificate in the values using the
+     `certificates` key.
 
-    ```yaml
-    customCertificateAuthority:
-      existingSecret: ""
-      certificates: []
-      # - name: rootCA.crt # Must have the .crt extension
-      #   value: |
-      #     -----BEGIN CERTIFICATE-----
-      #     (SNIPPED FOR BREVITY)
-      #     -----END CERTIFICATE-----
-    ```
+   ```yaml
+   customCertificateAuthority:
+     existingSecret: ""
+     certificates: []
+     # - name: rootCA.crt # Must have the .crt extension
+     #   value: |
+     #     -----BEGIN CERTIFICATE-----
+     #     (SNIPPED FOR BREVITY)
+     #     -----END CERTIFICATE-----
+   ```
 
 #### 📘 PostgreSQL
 
@@ -245,16 +244,14 @@ Add following configuration in your `custom_values.yaml` file
 
 ```yaml
 postgresql:
-
   custom:
     host: REPLACE_ME_BY_POSTGRES_HOST
     dbName: REPLACE_ME_BY_POSTGRES_DB_NAME
-    sslmode: 'require'
+    sslmode: "require"
     port: 5432
 
   global:
     postgresql:
-
       # Not using secret for auth (comment if you use secret)
       auth:
         username: REPLACE_ME_BY_POSTGRES_USERNAME
@@ -275,7 +272,6 @@ Add following configuration in your `custom_values.yaml` file:
 
 ```yaml
 redis:
-
   custom:
     port: 6379
     host: REPLACE_ME_BY_REDIS_HOST
@@ -314,6 +310,7 @@ Did you encounter a problem during the installation process ? See the
 
 :::info
 This example run in a Kubernetes cluster using:
+
 - `nginx` as ingressController
 - `cert-manager`
 - A clusterIssuer named `letsencrypt-production`
@@ -368,16 +365,17 @@ redis:
       REDACTED
       -----END CERTIFICATE-----
 ```
+
 :::
 
 ## ⏫ Update
 
 1. Update R2Devops Helm repository
-    ```sh
-    helm repo update
-    ```
+   ```sh
+   helm repo update
+   ```
 1. Run the helm upgrade
-    ```sh
-    helm upgrade -n $R2DEVOPS_NS --install r2devops r2devops/r2devops -f custom_values.yaml
-    ```
+   ```sh
+   helm upgrade -n $R2DEVOPS_NS --install r2devops r2devops/r2devops -f custom_values.yaml
+   ```
 1. You have successfully updated R2Devops 🎉

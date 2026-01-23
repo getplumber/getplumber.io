@@ -19,7 +19,6 @@ export const dataTranslations = {
     faqData: faqDataEn,
     testimonialData: testimonialDataEn,
   },
-  
 } as const;
 
 /**
@@ -43,7 +42,6 @@ export const textTranslations = {
     back_to_all_posts: "Back to all posts",
     updated: "Updated",
   },
-  
 } as const;
 
 /**
@@ -65,7 +63,6 @@ export const routeTranslations = {
     categoryKey3: "categories",
     blogKey: "blog",
   },
-  
 } as const;
 
 /**
@@ -80,7 +77,7 @@ export const routeTranslations = {
  */
 export const localizedCollections = {
   blog: {
-		en: "blog"
-	},
+    en: "blog",
+  },
   // Add more collections/locales as needed
 } as const;

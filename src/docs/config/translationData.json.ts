@@ -19,7 +19,6 @@ export const dataTranslations = {
     sidebarNavData: sidebarNavDataEn,
     testimonialData: testimonialDataEn,
   },
-  
 } as const;
 
 /**
@@ -42,7 +41,6 @@ export const textTranslations = {
     hero_description: `A modern, fast, and feature-rich documentation theme built with Astro v5 and Tailwind CSS v4. This theme is the documentation for itself, explore and learn!`,
     back_to_all_posts: "Back to all posts",
   },
-  
 } as const;
 
 /**
@@ -63,7 +61,6 @@ export const routeTranslations = {
     docsKey2: "docs/*",
     docsKey3: "docs",
   },
-  
 } as const;
 
 /**
@@ -78,7 +75,7 @@ export const routeTranslations = {
  */
 export const localizedCollections = {
   docs: {
-		en: "docs"
-	},
+    en: "docs",
+  },
   // Add more collections/locales as needed
 } as const;

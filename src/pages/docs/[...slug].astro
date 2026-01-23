@@ -64,8 +64,8 @@ export async function getStaticPaths() {
     for (const tab of documentationTabs) {
       // Get sections for this tab
       const tabSections = tab.sections || [];
-      const tabSectionIds = new Set(tabSections.map(s => s.id));
-      
+      const tabSectionIds = new Set(tabSections.map((s) => s.id));
+
       // Get all docs for this tab - match by folder structure (first segment of doc.id)
       const tabDocs = filteredDocs.filter((doc) => {
         const firstSegment = doc.id.split("/")[0];
@@ -76,7 +76,7 @@ export async function getStaticPaths() {
       const tabPaths = tabDocs.flatMap((doc) => generatePathsForDoc(doc, tab.id));
       paths.push(...tabPaths);
     }
-    
+
     // If no paths were generated, fall back to generating all docs
     if (paths.length === 0) {
       const defaultPaths = filteredDocs.flatMap((doc) => generatePathsForDoc(doc, "main"));

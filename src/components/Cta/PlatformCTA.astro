@@ -6,30 +6,37 @@
 import Button from "@components/Button/Button.astro";
 ---
 
-<section id="platform-cta" class="border-base-300 dark:border-base-600/60 mt-24 border-t py-20 md:mt-36">
+<section
+  id="platform-cta"
+  class="border-base-300 dark:border-base-600/60 mt-24 border-t py-20 md:mt-36"
+>
   <div class="site-container">
-    <div class="flex flex-col ">
+    <div class="flex flex-col">
       <div class="flex justify-start">
-        <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#platform-cta">Get Started</p>
+        <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#platform-cta">
+          Get Started
+        </p>
       </div>
-      <h2 class="h1 mt-8" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#platform-cta">Ready to get started?</h2>
-      <p class="description mt-6" data-mos="fade-up" data-mos-delay="0.2" data-mos-anchor="#platform-cta">
-        Start your journey towards CI/CD compliance today. Get in touch or explore our documentation.
+      <h2 class="h1 mt-8" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#platform-cta">
+        Ready to get started?
+      </h2>
+      <p
+        class="description mt-6"
+        data-mos="fade-up"
+        data-mos-delay="0.2"
+        data-mos-anchor="#platform-cta"
+      >
+        Start your journey towards CI/CD compliance today. Get in touch or explore our
+        documentation.
       </p>
-      <div class="flex justify-start mt-12 gap-4 flex-wrap" data-mos="fade-up" data-mos-delay="0.3" data-mos-anchor="#platform-cta">
-        <Button
-          variant="outline"
-          href="/contact"
-        >
-          Contact us
-        </Button>
-        <Button
-          variant="primary"
-          href="/docs/getting-started"
-          arrow="right"
-        >
-          Get started
-        </Button>
+      <div
+        class="mt-12 flex flex-wrap justify-start gap-4"
+        data-mos="fade-up"
+        data-mos-delay="0.3"
+        data-mos-anchor="#platform-cta"
+      >
+        <Button variant="outline" href="/contact"> Contact us </Button>
+        <Button variant="primary" href="/docs/getting-started" arrow="right"> Get started </Button>
       </div>
     </div>
   </div>

@@ -11,7 +11,10 @@ const currLocale = getLocaleFromUrl(Astro.url);
 const siteData = getTranslatedData("siteData", currLocale);
 ---
 
-<BaseLayout title="Plumber - OpenSource compliance CLI for GitLab CI/CD" description="Analyze your GitLab CI/CD pipelines for security and compliance issues. Scan for mutable image tags, untrusted registries, and branch protection compliance.">
+<BaseLayout
+  title="Plumber - OpenSource compliance CLI for GitLab CI/CD"
+  description="Analyze your GitLab CI/CD pipelines for security and compliance issues. Scan for mutable image tags, untrusted registries, and branch protection compliance."
+>
   <PlumberHero />
   <PlumberFeatures />
   <PlumberQuickStart />

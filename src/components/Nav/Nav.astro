@@ -24,15 +24,21 @@ const finalNavData = getTranslatedData("navData", currLocale);
   class:list={[
     "fixed top-0 left-0 z-30 flex w-full flex-col border-b transition-all duration-300",
     // Add background on docs pages to prevent content showing through
-    Astro.url.pathname.startsWith("/docs") ? "bg-background/80 backdrop-blur border-foreground/10" : "navbar--initial",
+    Astro.url.pathname.startsWith("/docs")
+      ? "bg-background/80 border-foreground/10 backdrop-blur"
+      : "navbar--initial",
   ]}
 >
   <div class="mx-auto flex w-full">
-    <div class:list={[
-      "flex w-full items-center",
-      // Add padding on docs pages to prevent content showing through
-      Astro.url.pathname.startsWith("/docs") ? "docs-site-container border-r border-l border-foreground/10" : "site-container",
-    ]}>
+    <div
+      class:list={[
+        "flex w-full items-center",
+        // Add padding on docs pages to prevent content showing through
+        Astro.url.pathname.startsWith("/docs")
+          ? "docs-site-container border-foreground/10 border-r border-l"
+          : "site-container",
+      ]}
+    >
       <header class="relative flex w-full items-center gap-2">
         <!-- home button / image -->
         <div class="flex h-full flex-auto justify-start">
@@ -46,7 +52,7 @@ const finalNavData = getTranslatedData("navData", currLocale);
         <!-- desktop nav menu -->
         <div>
           <div class="flex h-full flex-auto justify-end">
-            <nav class="hidden md:block">
+            <nav class="hidden lg:block">
               <ul class="flex h-full items-center">
                 {
                   // if dropdown exists, setup the dropdown, otherwise it is just a link
@@ -69,23 +75,23 @@ const finalNavData = getTranslatedData("navData", currLocale);
               </ul>
             </nav>
             <div class="flex items-center">
-              <ThemeToggle class="hidden md:flex" />
-              
-              {Astro.url.pathname.startsWith("/docs") && <DocsSearch class="md:ml-2" />}
+              <ThemeToggle class="hidden lg:flex" />
 
-              {locales.length > 1 && <LanguageSelect class="ml-2 hidden md:flex" />}
-              
+              {Astro.url.pathname.startsWith("/docs") && <DocsSearch class="lg:ml-2" />}
+
+              {locales.length > 1 && <LanguageSelect class="ml-2 hidden lg:flex" />}
+
               <Button
                 variant="primary"
                 href={"/contact"}
-                class="hidden whitespace-nowrap md:flex ml-2"
+                class="ml-2 hidden whitespace-nowrap lg:flex"
               >
                 Contact us
               </Button>
             </div>
 
             <!-- mobile nav menu, only load on small screens where it is visible -->
-            <div class="flex items-center md:hidden">
+            <div class="flex items-center lg:hidden">
               <MobileNav />
             </div>
           </div>
@@ -115,7 +121,7 @@ const finalNavData = getTranslatedData("navData", currLocale);
   function scrollHandler() {
     if (navbar) {
       const isDocsPage = window.location.pathname.startsWith("/docs");
-      
+
       if (window.scrollY > 50) {
         // if we have scrolled down the page a bit, add a frosted-glass look to the navbar
         if (!isDocsPage) {

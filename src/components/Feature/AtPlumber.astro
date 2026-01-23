@@ -8,20 +8,18 @@ import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 
 const features: string[] = [
-    "Your CI/CD mapped and fully monitored — No more blind spots",
-    "90% less manual effort to make CI/CD secured & compliant",
-    "Always audit-ready",
-    "Plug & Play — No friction for your tech teams",
-    "GitLab Partner and backed by certified integrators",
-    "Privacy respected with Self-Hosted Instance",
-  ];
-
-
+  "Your CI/CD mapped and fully monitored — No more blind spots",
+  "90% less manual effort to make CI/CD secured & compliant",
+  "Always audit-ready",
+  "Plug & Play — No friction for your tech teams",
+  "GitLab Partner and backed by certified integrators",
+  "Privacy respected with Self-Hosted Instance",
+];
 ---
 
-<section id="atPlumber" class="my-16  md:my-24">
+<section id="atPlumber" class="my-16 md:my-24">
   <!-- Text and image -->
-  <div class=" relative overflow-hidden py-16">
+  <div class="relative overflow-hidden py-16">
     <!-- background glows -->
     <div
       class="bg-primary-600/30 absolute top-0 left-0 -z-10 mx-auto aspect-square w-full max-w-7xl -translate-x-2/3 -translate-y-1/2 rounded-full blur-[100px]"
@@ -36,33 +34,47 @@ const features: string[] = [
     </div>
 
     <!-- center content -->
-    <div class="mx-auto site-container">
-          <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#atPlumber">At Plumber</p>
-        <h2 class="h2 mt-8" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#atPlumber">We made an AI-powered platform
-            that <span class="text-primary-500">maps</span>, <span class="text-primary-500">audits</span>, and <span class="text-primary-500">remediates</span>
-            CI/CD compliance gaps — Continously</h2>
-            <ul class="mt-6 flex flex-col gap-4">
-                {features.map((feature, idx) => (
-                  <li class="flex items-center" data-mos="fade-up" data-mos-delay={`${idx * 0.1 + 0.2}`} data-mos-anchor="#atPlumber">
-                    <Icon
-                      name="tabler/check"
-                      class="text-primary-600 dark:text-primary-400 h-5 w-5"
-                      aria-hidden="true"
-                    />
-                    <span class="ml-2 inline">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-      <div class="mt-6 max-w-4xl" data-mos="fade-up" data-mos-delay="0.8" data-mos-anchor="#atPlumber">
-
-          <Image
-            src={dashboard}
-            alt="logo"
-            loading="lazy"
-            width={1500}
-            class="relative z-10 rounded-2xl p-1 md:rounded-xl md:p-2"
-          />
-        </div>
+    <div class="site-container mx-auto">
+      <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#atPlumber">At Plumber</p>
+      <h2 class="h2 mt-8" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#atPlumber">
+        We made an AI-powered platform that <span class="text-primary-500">maps</span>, <span
+          class="text-primary-500">audits</span
+        >, and <span class="text-primary-500">remediates</span>
+        CI/CD compliance gaps — Continously
+      </h2>
+      <ul class="mt-6 flex flex-col gap-4">
+        {
+          features.map((feature, idx) => (
+            <li
+              class="flex items-center"
+              data-mos="fade-up"
+              data-mos-delay={`${idx * 0.1 + 0.2}`}
+              data-mos-anchor="#atPlumber"
+            >
+              <Icon
+                name="tabler/check"
+                class="text-primary-600 dark:text-primary-400 h-5 w-5"
+                aria-hidden="true"
+              />
+              <span class="ml-2 inline">{feature}</span>
+            </li>
+          ))
+        }
+      </ul>
+      <div
+        class="mt-6 max-w-4xl"
+        data-mos="fade-up"
+        data-mos-delay="0.8"
+        data-mos-anchor="#atPlumber"
+      >
+        <Image
+          src={dashboard}
+          alt="logo"
+          loading="lazy"
+          width={1500}
+          class="relative z-10 rounded-2xl p-1 md:rounded-xl md:p-2"
+        />
+      </div>
     </div>
   </div>
 </section>

@@ -1,11 +1,10 @@
 ---
 import Button from "@components/Button/Button.astro";
+import HeroIllustration from "@images/hero-illustration.svg";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getLocalizedRoute, useTranslations } from "@js/translationUtils";
 import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
-import HeroIllustration from "@images/hero-illustration.svg";
-
 
 const currLocale = getLocaleFromUrl(Astro.url);
 ---
@@ -62,7 +61,8 @@ const currLocale = getLocaleFromUrl(Astro.url);
       data-mos="fade-up"
       data-mos-anchor="#hero1"
     >
-      Reach CI/CD compliance <br/> <span class="text-primary-500">without effort</span>
+      Reach CI/CD compliance <br />
+      <span class="text-primary-500">without effort</span>
     </h1>
     <p
       class="description mx-auto mt-2 max-w-sm sm:max-w-md md:max-w-lg"
@@ -70,7 +70,8 @@ const currLocale = getLocaleFromUrl(Astro.url);
       data-mos-delay="0.2"
       data-mos-anchor="#hero1"
     >
-    Audit, detect, and remediate drifts — continuously. <br/> Be ready for regulatory demands (ISO 27001, NIS2, DORA, SOC 2…).
+      Audit, detect, and remediate drifts — continuously. <br /> Be ready for regulatory demands (ISO
+      27001, NIS2, DORA, SOC 2…).
       <!-- Get your SaaS landing page and blog running in a snap. Save time with
       multiple pre-designed pages, sections, and components. Built with Astro
       and Tailwind CSS. -->
@@ -98,13 +99,16 @@ const currLocale = getLocaleFromUrl(Astro.url);
         Overview
       </Button>
     </div> -->
-    
   </div>
 </section>
 
-<div class="flex items-center justify-center mx-auto mb-8" data-mos="fade-up" data-mos-delay="0.4" data-mos-anchor="#hero1"
-    id="howdygo-embed"
-    style="width: 100%;
+<div
+  class="mx-auto mb-8 flex items-center justify-center"
+  data-mos="fade-up"
+  data-mos-delay="0.4"
+  data-mos-anchor="#hero1"
+  id="howdygo-embed"
+  style="width: 100%;
       max-width: 1388px;
       background-color: #020817;
       border: 1px solid #1e293b;
@@ -113,29 +117,29 @@ const currLocale = getLocaleFromUrl(Astro.url);
       box-shadow:
         0px 0px 1px rgba(45, 55, 72, 0.05),
         0px 4px 8px rgba(45, 55, 72, 0.1);"
-  >
-    <script src="https://js.howdygo.com/v1.2.1/index.js" ></script>
-    <div
-      id="howdygo-wrapper"
-      style="position: relative;
+>
+  <script src="https://js.howdygo.com/v1.2.1/index.js"></script>
+  <div
+    id="howdygo-wrapper"
+    style="position: relative;
       width: 100%;
       height: 0;
       padding-bottom: calc(50.43227665706051%);
       overflow: hidden;"
-    >
-      <iframe
-        id="howdygo-frame"
-        src="https://app.howdygo.com/prescreen-embed/78c46efe-d55a-4f93-8a19-837213035e56?mobileStrategy=inline&launchButton=Launch+interactive+demo"
-        frameborder="0"
-        scrolling="no"
-        allow="autoplay"
-        allowfullscreen
-        title="interactive demo"
-        style="position: absolute; top: -40px; left: 0; width: 100%; height: calc(100% + 40px)"
-      ></iframe>
-    </div>
+  >
+    <iframe
+      id="howdygo-frame"
+      src="https://app.howdygo.com/prescreen-embed/78c46efe-d55a-4f93-8a19-837213035e56?mobileStrategy=inline&launchButton=Launch+interactive+demo"
+      frameborder="0"
+      scrolling="no"
+      allow="autoplay"
+      allowfullscreen
+      title="interactive demo"
+      style="position: absolute; top: -40px; left: 0; width: 100%; height: calc(100% + 40px)"
+    ></iframe>
   </div>
-    <!-- <div class="flex items-center justify-center"       data-mos="fade-up"
+</div>
+<!-- <div class="flex items-center justify-center"       data-mos="fade-up"
     data-mos-delay="0.2"
     data-mos-anchor="#hero1">
 

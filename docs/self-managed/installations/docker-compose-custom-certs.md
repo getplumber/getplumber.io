@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-slug: '/self-managed/docker-compose-custom-certs'
+slug: "/self-managed/docker-compose-custom-certs"
 ---
 
 # Docker compose with custom certificates
@@ -13,25 +13,25 @@ This page describes how to set up a self-managed instance of R2Devops using
 - **GitLab instance version >=17.7**
 - The system requires a Linux server. It runs in 🐳 Docker containers using a
   docker-compose configuration. Specifications:
-   - OS: Ubuntu or Debian
-   - Hardware
-      - CPU x86_64/amd64 with at least 2 cores
-      - 4 GB RAM
-      - 250 GB of storage for R2Devops
-   - Network
-      - Users must be able to reach the R2Devops server on TCP ports 80 and 443
-      - The R2Devops server must be able to access internet
-      - The R2Devops server must be able to communicate with GitLab instance
-      - The installation process requires write access to the DNS Zone
-         to set up R2Devops domain
-      - If the server is not reachable from internet or if you want to use your
-         own certificate for HTTPS, you need to be able to generate certificate
-         during the installation process for R2Devops domain
-   - Installed software
-      - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-      - [Docker](https://docs.docker.com/engine/install/)
-      - Note: both compose plugin (`docker compose`) and `docker-compose` CLI are
-         working. The first one is installed by default with `Docker`
+  - OS: Ubuntu or Debian
+  - Hardware
+    - CPU x86_64/amd64 with at least 2 cores
+    - 4 GB RAM
+    - 250 GB of storage for R2Devops
+  - Network
+    - Users must be able to reach the R2Devops server on TCP ports 80 and 443
+    - The R2Devops server must be able to access internet
+    - The R2Devops server must be able to communicate with GitLab instance
+    - The installation process requires write access to the DNS Zone
+      to set up R2Devops domain
+    - If the server is not reachable from internet or if you want to use your
+      own certificate for HTTPS, you need to be able to generate certificate
+      during the installation process for R2Devops domain
+  - Installed software
+    - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+    - [Docker](https://docs.docker.com/engine/install/)
+    - Note: both compose plugin (`docker compose`) and `docker-compose` CLI are
+      working. The first one is installed by default with `Docker`
 
 ## 🛠️ Installation
 
@@ -52,14 +52,15 @@ This page describes how to set up a self-managed instance of R2Devops using
 **In your `.env` file:**
 
 - **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
-   ```bash title=".env" hl_lines="1"
-   ORGANIZATION="<group-path>"
-   ```
+
+  ```bash title=".env" hl_lines="1"
+  ORGANIZATION="<group-path>"
+  ```
 
 - **If you want to connect R2Devops to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
-   ```bash title=".env" hl_lines="1"
-   ORGANIZATION=""
-   ```
+  ```bash title=".env" hl_lines="1"
+  ORGANIZATION=""
+  ```
 
 ### 📄 Domain name
 
@@ -75,8 +76,8 @@ This page describes how to set up a self-managed instance of R2Devops using
    DOMAIN_NAME="r2devops.mydomain.com"
    JOBS_GITLAB_URL="https://gitlab.mydomain.com"
    ```
-1. Create DNS record
 
+1. Create DNS record
    - Name: `<r2devops_domain_name>`
    - Type: `A`
    - Content: `<your-server-public-ip>`
@@ -132,14 +133,15 @@ sed -i."" "s/REPLACE_ME_BY_JOBS_REDIS_PASSWORD/$(openssl rand -hex 16)/g" .env
 
    :::info
    - If you already have certificate or if you want to generate it using
-   your own process, you can directly go to step 2
+     your own process, you can directly go to step 2
    - This step requires [certbot](https://github.com/certbot/certbot)
-   :::
+     :::
 
    ```bash
    certbot certonly --manual --preferred-challenges dns -d <r2devops_domain_name>
    # Add DNS entry to solve DNS challenge
    ```
+
 1. Copy the fullchain and the private key
 
    :::info
@@ -173,14 +175,17 @@ Run the following command to start the system:
 ```bash
 docker compose -f compose.custom_certs.yml up -d
 ```
+
 :::
 
 :::info[Reconfigure]
 If you need to reconfigure some files and relaunch the application,
 after your updates you can simply run the command again to do so.
+
 ```bash
 docker compose -f compose.custom_certs.yml up -d
 ```
+
 :::
 
 :::danger[Not the same behavior]
@@ -198,7 +203,7 @@ Follow these steps to update your self-managed instance to a new version:
    ```sh
    git pull
    ```
-1. Open the `.env.example` file and copy the values of  `FRONTEND_IMAGE_TAG`
+1. Open the `.env.example` file and copy the values of `FRONTEND_IMAGE_TAG`
    and `BACKEND_IMAGE_TAG` variables
 1. Edit the `.env` file by updating values of `FRONTEND_IMAGE_TAG` and
    `BACKEND_IMAGE_TAG` variables with the values previously copied
@@ -243,9 +248,11 @@ it prefixed with the date (`backup_r2-$DATE`)
 :::note[Regular backup]
 You can use a cron job to perform regular backups.
 Here is a cron job that launch a backup every day at 2am:
+
 ```bash
 0 2 * * * /r2devops/scripts/backup.sh 13
 ```
+
 It can be added to your crontab with the command `crontab -e`. Check more
 information about cron jobs
 [here](https://help.ubuntu.com/community/CronHowto).
@@ -275,5 +282,3 @@ To restore a backup from scratch on a new system, follow this process:
 Did you encounter a problem during the restore process ? See the
 [troubleshooting](../troubleshooting.md) section.
 :::
-
-

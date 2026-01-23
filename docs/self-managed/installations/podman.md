@@ -1,6 +1,6 @@
 ---
 sidebar_position: 4
-slug: '/self-managed/podman'
+slug: "/self-managed/podman"
 ---
 
 # Podman
@@ -16,25 +16,26 @@ This page describes how to set up a self-managed instance of R2Devops using
 
 - **GitLab instance version >=17.7**
 - The system requires a Linux server. It runs in 🕸 podman containers using a
-   yaml configuration. Specifications:
+  yaml configuration. Specifications:
   - OS: Ubuntu or Debian
   - Hardware
     - CPU x86_64/amd64 with at least 2 cores
     - 4 GB RAM
     - 250 GB of storage for R2Devops
   - Network
-   - Users must be able to reach the R2Devops server on TCP ports 80 and 443
-   - The R2Devops server must be able to access internet
-   - The R2Devops server must be able to communicate with GitLab instance
-   - The installation process requires write access to the DNS Zone
-      to set up R2Devops domain
-   - If the server is not reachable from internet or if you want to use your
-      own certificate for HTTPS, you need to be able to generate certificate
-      during the installation process for R2Devops domain
-   - Installed software
-      - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-      - [podman](https://https://podman.io/docs/installation)- Docker hub registry
-         must be resolved by podman in file **/etc/containers/registries.conf**
+  - Users must be able to reach the R2Devops server on TCP ports 80 and 443
+  - The R2Devops server must be able to access internet
+  - The R2Devops server must be able to communicate with GitLab instance
+  - The installation process requires write access to the DNS Zone
+    to set up R2Devops domain
+  - If the server is not reachable from internet or if you want to use your
+    own certificate for HTTPS, you need to be able to generate certificate
+    during the installation process for R2Devops domain
+  - Installed software
+    - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+    - [podman](https://https://podman.io/docs/installation)- Docker hub registry
+      must be resolved by podman in file **/etc/containers/registries.conf**
+
 ```bash title="/etc/containers/registries.conf" hl_lines="1"
 unqualified-search-registries = ["docker.io"]
 ```
@@ -58,14 +59,15 @@ unqualified-search-registries = ["docker.io"]
 **In your `.env` file:**
 
 - **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
-   ```bash title=".env" hl_lines="1"
-   ORGANIZATION="<group-path>"
-   ```
+
+  ```bash title=".env" hl_lines="1"
+  ORGANIZATION="<group-path>"
+  ```
 
 - **If you want to connect R2Devops to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
-   ```bash title=".env" hl_lines="1"
-   ORGANIZATION=""
-   ```
+  ```bash title=".env" hl_lines="1"
+  ORGANIZATION=""
+  ```
 
 ### 📄 Domain name
 
@@ -82,7 +84,6 @@ unqualified-search-registries = ["docker.io"]
    ```
 
 1. Create DNS record
-
    - Name: `<r2devops_domain_name>`
    - Type: `A`
    - Content: `<your-server-public-ip>`
@@ -91,6 +92,7 @@ unqualified-search-registries = ["docker.io"]
 A certificate will be auto-generated using Let's encrypt at the application
 launch
 :::
+
 ### 🦊 GitLab OIDC
 
 R2Devops uses GitLab as an OAuth2 provider to authenticate users. Let's see how
@@ -142,6 +144,7 @@ If your GitLab instance is using a TLS certificate signed with your own
 Certificate authority (CA):
 
 # TEST-AND-EDIT
+
 - Add the CA certificate file in `podman ?`
 
 ### 📄 Prepare podman for launch
@@ -160,7 +163,7 @@ systemctl --user enable podman.socket
 ```
 
 If you encounter this error **Failed to connect to bus: No medium found**
- use these commands with your user as sudoer:
+use these commands with your user as sudoer:
 
 ```bash
 sudo loginctl enable-linger <your_local_user>
@@ -178,6 +181,7 @@ envsubst < configmap.yml.example > configmap.yml
 ```
 
 Allow port 80 and above in system for local user:
+
 1. Add this line to **/etc/sysctl.conf** file as sudo user or root:
    ```title="/etc/sysctl.conf" hl_lines="1-2"
    net.ipv4.ip_unprivileged_port_start=80
@@ -199,14 +203,17 @@ Run the following command to start the system:
 ```bash
 podman play kube podman.yml --configmap configmap.yml --network intranet
 ```
+
 :::
 
 :::info[Reconfigure]
 If you need to reconfigure some files and relaunch the application,
 after your updates you can simply run the command again to do so.
+
 ```bash
 podman play kube podman.yml --replace --configmap configmap.yml --network intranet
 ```
+
 :::
 
 :::danger[Not the same behavior]
@@ -224,7 +231,7 @@ Follow these steps to update your self-managed instance to a new version:
    ```sh
    git pull
    ```
-1. Open the `.env.example` file and copy the values of  `FRONTEND_IMAGE_TAG`
+1. Open the `.env.example` file and copy the values of `FRONTEND_IMAGE_TAG`
    and `BACKEND_IMAGE_TAG` variables
 1. Edit the `.env` file by updating values of `FRONTEND_IMAGE_TAG` and
    `BACKEND_IMAGE_TAG` variables with the values previously copied
@@ -272,9 +279,11 @@ it prefixed with the date (`backup_r2-$DATE`)
 :::note[Regular backup]
 You can use a cron job to perform regular backups.
 Here is a cron job that launch a backup every day at 2am:
+
 ```bash
 0 2 * * * /r2devops/scripts/backup_podman.sh 13
 ```
+
 It can be added to your crontab with the command `crontab -e`. Check more
 information about cron jobs
 [here](https://help.ubuntu.com/community/CronHowto).

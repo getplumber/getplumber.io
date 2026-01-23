@@ -33,7 +33,7 @@ const { navItem } = Astro.props as Props;
     aria-labelledby={`${slugify(navItem.text)}-dropdown-menu`}
     data-state="closed"
     class:list={[
-      "nav__dropdown-content absolute left-0 z-10 top-full pt-1 transition-all",
+      "nav__dropdown-content absolute top-full left-0 z-10 pt-1 transition-all",
       "slide-in-from-top-2 fade-in-0 animate-in hidden will-change-transform",
       "data-[state=closed]:fade-out-0 data-[state=closed]:animate-out",
     ]}

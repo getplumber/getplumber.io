@@ -1,9 +1,10 @@
 ---
-import { Image } from "astro:assets";
-import { getLocalizedRoute } from "@/docs/js/translationUtils";
+import logo from "@images/site-logo.svg";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
-import logo from "@images/site-logo.svg";
+import { Image } from "astro:assets";
+
+import { getLocalizedRoute } from "@/docs/js/translationUtils";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const siteData = getTranslatedData("siteData", currLocale);
@@ -19,7 +20,7 @@ const siteData = getTranslatedData("siteData", currLocale);
     alt="Plumber logo"
     loading="eager"
     height={100}
-    class="h-10 my-2 w-auto"
+    class="my-2 h-10 w-auto"
     aria-hidden="true"
     fetchpriority="high"
   />

@@ -41,7 +41,6 @@ const navConfig: navItem[] = [
     link: "https://plumber.discord.io",
     newTab: true,
   },
-
 ];
 
 export default navConfig;

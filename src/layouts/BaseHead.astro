@@ -100,8 +100,19 @@ import interVariable from "@fontsource-variable/inter/files/inter-latin-wght-nor
 <!-- Plausible Analytics -->
 <script async src="/js/script.js"></script>
 <script is:inline>
-  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  /* eslint-disable @typescript-eslint/no-unused-expressions, prefer-rest-params */
+  ((window.plausible =
+    window.plausible ||
+    function () {
+      (plausible.q = plausible.q || []).push(arguments);
+    }),
+    (plausible.init =
+      plausible.init ||
+      function (i) {
+        plausible.o = i || {};
+      }));
+  /* eslint-enable @typescript-eslint/no-unused-expressions, prefer-rest-params */
   plausible.init({
-    endpoint: "/api/event"
-  })
+    endpoint: "/api/event",
+  });
 </script>
