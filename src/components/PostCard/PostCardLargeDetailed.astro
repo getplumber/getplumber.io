@@ -1,5 +1,4 @@
 ---
-import Category from "@components/Category/CategoryBadge.astro";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { formatDate } from "@js/textUtils";
 import { Image } from "astro:assets";
@@ -14,7 +13,7 @@ interface Props {
 }
 
 const { post, showDescription = false, class: className, ...rest } = Astro.props as Props;
-const { title, description, pubDate, heroImage, categories, authors } = post.data;
+const { title, description, pubDate, heroImage, authors } = post.data;
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const authorsData = await getEntries(authors);
@@ -73,17 +72,6 @@ const authorsData = await getEntries(authors);
         <p class="description mt-2 line-clamp-3 hidden text-sm md:block lg:text-base">
           {description}
         </p>
-      )
-    }
-
-    <!-- categories -->
-    {
-      categories && categories.length > 0 && (
-        <div class="mt-3 flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <Category category={category} />
-          ))}
-        </div>
       )
     }
   </div>

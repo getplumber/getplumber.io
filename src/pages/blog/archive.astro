@@ -1,0 +1,29 @@
+---
+import { getAllArchivedReleasePosts } from "@js/blogUtils";
+import { getLocaleFromUrl } from "@js/localeUtils";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import BlogIndexLayout from "@layouts/BlogIndexLayout2.astro";
+
+const currLocale = getLocaleFromUrl(Astro.url);
+const archivedReleasePosts = await getAllArchivedReleasePosts(currLocale);
+---
+
+<BaseLayout
+  title="R2Devops Release Archive"
+  description="Archive of R2Devops product releases. The product has been renamed to Plumber and we're starting fresh with version 1.0.0."
+>
+  <div class="site-container mt-24 md:mt-36">
+    <div class="flex">
+      <p class="colored-title">Archive</p>
+    </div>
+    <h1 class="h2 mt-6">R2Devops Release Archive</h1>
+    <div class="mt-6 rounded-lg border border-base-300 bg-base-200/50 p-6">
+      <p class="text-base-content/80">
+        <strong>Note:</strong> This page contains archived release notes from when the product was named <strong>R2Devops</strong>. 
+        The product has been renamed to <strong>Plumber</strong> and we're starting fresh with version 1.0.0. 
+        These historical releases are kept here for reference purposes.
+      </p>
+    </div>
+    <BlogIndexLayout posts={archivedReleasePosts} class="mt-10" />
+  </div>
+</BaseLayout>

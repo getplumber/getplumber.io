@@ -743,13 +743,6 @@ npm run lint      # Check for issues
 npm run format    # Auto-fix issues
 ```
 
-### Viewing Example Pages
-
-Visit `/examples/` routes to see all component variations:
-- `/examples/hero-sections`
-- `/examples/feature-sections`
-- `/examples/pricing-sections`
-
 ### Code Tours
 
 Install the [CodeTour extension](https://marketplace.visualstudio.com/items?itemName=vsls-contrib.codetour) to view guided tours in `.tours/`.
