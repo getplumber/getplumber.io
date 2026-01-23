@@ -57,7 +57,7 @@ import { Icon } from "astro-icon/components";
             id="test-stage"
             class="pipeline-job bg-base-800/30 border-base-600/30 flex items-center gap-3 rounded-lg border p-3 opacity-50"
           >
-            <div class="size-5"></div>
+            <div class="size-5 rounded-full border-2 border-base-500/50"></div>
             <span class="text-base-300 text-sm">test</span>
             <span class="text-base-500 ml-auto text-xs">Pending</span>
           </div>
@@ -65,7 +65,7 @@ import { Icon } from "astro-icon/components";
             id="build-stage"
             class="pipeline-job bg-base-800/30 border-base-600/30 flex items-center gap-3 rounded-lg border p-3 opacity-50"
           >
-            <div class="size-5"></div>
+            <div class="size-5 rounded-full border-2 border-base-500/50"></div>
             <span class="text-base-300 text-sm">build</span>
             <span class="text-base-500 ml-auto text-xs">Pending</span>
           </div>
@@ -73,7 +73,7 @@ import { Icon } from "astro-icon/components";
             id="deploy-stage"
             class="pipeline-job bg-base-800/30 border-base-600/30 flex items-center gap-3 rounded-lg border p-3 opacity-50"
           >
-            <div class="size-5"></div>
+            <div class="size-5 rounded-full border-2 border-base-500/50"></div>
             <span class="text-base-300 text-sm">deploy</span>
             <span class="text-base-500 ml-auto text-xs">Pending</span>
           </div>
@@ -231,18 +231,14 @@ import { Icon } from "astro-icon/components";
             const preStage = document.getElementById("pre-stage");
 
             if (preSpinner && preStatus && preStage) {
-              // Remove spinner and add failed icon
-              preSpinner.remove();
+              // Create failed icon
               const failedIcon = document.createElement("span");
               failedIcon.className = "text-red-400 size-5 flex items-center justify-center";
               failedIcon.innerHTML =
                 '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>';
-              const firstChild = preStage.firstChild;
-              if (firstChild && firstChild.nextSibling) {
-                preStage.insertBefore(failedIcon, firstChild.nextSibling);
-              } else {
-                preStage.insertBefore(failedIcon, preStage.firstChild);
-              }
+              
+              // Replace spinner with failed icon
+              preStage.replaceChild(failedIcon, preSpinner);
 
               // Update status and border color
               preStatus.textContent = "Failed";
