@@ -41,6 +41,6 @@ default storage class or if you want to use a specific storage class you need to
 ## Support
 
 :::info[Don't find what you're looking for ?]
-Reach our support using the `#support` channel on [Discord](https://discord.r2devops.io)
-You can also send an email to [support@r2devops.io](mailto:support@r2devops.io)
+Reach our support using the `#support` channel on [Discord](https://discord.getplumber.io)
+You can also send an email to [support@getplumber.io](mailto:support@getplumber.io)
 :::

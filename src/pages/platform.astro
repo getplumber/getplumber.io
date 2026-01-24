@@ -8,6 +8,7 @@ import PlatformHero from "@components/Hero/PlatformHero.astro";
 import LogoCloud2 from "@components/LogoCloud/LogoCloud2.astro";
 import Pricing3 from "@components/Pricing/Pricing3.astro";
 import PricingPlatform from "@components/Pricing/PricingPlatform.astro";
+import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
@@ -21,9 +22,14 @@ const siteData = getTranslatedData("siteData", currLocale);
   <LogoCloud2 />
   <PipelineBlindSpot />
   <ComplianceIsHard />
+
+
   <AtPlumber />
+
   <FeatureMetrics />
   <!-- <Testimonials2 /> -->
+  <SectionDivider />
+
   <PricingPlatform />
   <!-- <Faq1 /> -->
   <PlatformCTA />

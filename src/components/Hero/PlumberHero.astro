@@ -12,7 +12,7 @@ const currLocale = getLocaleFromUrl(Astro.url);
 >
   <!-- background glow -->
   <div
-    class="bg-primary-600/30 dark:bg-primary-500/50 absolute inset-0 bottom-1/2 -z-10 mx-auto aspect-square w-[65%] max-w-5xl -translate-y-2/3 rounded-full blur-[100px]"
+    class="bg-primary-500/40 dark:bg-primary-500/50 absolute inset-0 bottom-1/2 -z-10 mx-auto aspect-square w-[65%] max-w-5xl -translate-y-2/3 rounded-full blur-[100px]"
     aria-hidden="true"
   >
   </div>
@@ -21,7 +21,7 @@ const currLocale = getLocaleFromUrl(Astro.url);
   <div class="absolute inset-0 -z-20 flex overflow-hidden">
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      class="text-base-400/10 dark:text-base-500/5 relative h-full w-full xl:scale-125"
+      class="text-base-500/5 dark:text-base-500/5 relative h-full w-full xl:scale-125"
       aria-hidden="true"
     >
       <defs>
@@ -42,7 +42,7 @@ const currLocale = getLocaleFromUrl(Astro.url);
         data-mos="fade-up"
         data-mos-anchor="#plumber-hero"
       >
-        OpenSource compliance CLI <br /> for <span class="text-primary-500">GitLab CI/CD</span>
+        OpenSource compliance CLI <br /> for <span class="text-primary-500 text-shadow-base-700 text-shadow-xs">GitLab CI/CD</span>
       </h1>
       <p
         class="description mx-auto mt-4 max-w-2xl"
@@ -83,4 +83,6 @@ const currLocale = getLocaleFromUrl(Astro.url);
       <PipelineAnimation />
     </div>
   </div>
+
+
 </section>

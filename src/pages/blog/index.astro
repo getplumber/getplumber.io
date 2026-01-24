@@ -7,7 +7,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import BlogIndexLayout from "@layouts/BlogIndexLayout2.astro";
 
 const currLocale = getLocaleFromUrl(Astro.url);
-const posts = await getAllPosts(currLocale, true); // exclude archived R2Devops releases
+const posts = await getAllPosts(currLocale, true); // exclude archived Plumber releases
 ---
 
 <BaseLayout
@@ -20,16 +20,17 @@ const posts = await getAllPosts(currLocale, true); // exclude archived R2Devops 
     </div>
     <div class="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <h1 class="h2">Blog posts to help you on your journey</h1>
-      <a
-        href="/blog/archive"
-        class="text-sm text-base-content/60 hover:text-base-content underline md:mt-0"
-      >
-        View R2Devops release archive
-      </a>
+
     </div>
     <!-- <div class="mt-4 flex">
       <CategoryCloud showCount={false} />
     </div> -->
     <BlogIndexLayout posts={posts} class="mt-10" />
+    <a
+    href="/blog/archive"
+    class="text-sm text-base-content/60 hover:text-base-content underline md:mt-0 text-right"
+  >
+    View Plumber release archive
+  </a>
   </div>
 </BaseLayout>

@@ -13,7 +13,7 @@ const rssLocale = defaultLocale;
 const authors: CollectionEntry<"authors">[] = await getCollection("authors");
 
 export async function GET(context) {
-  const posts = await getAllPosts(rssLocale, true); // exclude archived R2Devops releases from RSS
+  const posts = await getAllPosts(rssLocale, true); // exclude archived Plumber releases from RSS
 
   // TODO: (maybe?) handle multiple authors instead of just putting the first author's data
   return rss({

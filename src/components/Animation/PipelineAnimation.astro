@@ -2,7 +2,10 @@
 import { Icon } from "astro-icon/components";
 ---
 
-<div class="pipeline-animation-container relative w-full lg:w-[800px]">
+<div
+  class="pipeline-animation-container relative w-full lg:w-[800px]"
+  data-pipeline-animation-root
+>
   <div
     class="from-primary-400 to-base-300/70 after:bg-base-100/30 dark:from-primary-500 dark:to-base-300/50 dark:after:bg-base-800/50 relative overflow-clip rounded-2xl bg-gradient-to-b to-40% p-1 after:absolute after:inset-[1px] after:rounded-[calc(1rem-1px)] md:p-2"
   >
@@ -159,17 +162,48 @@ import { Icon } from "astro-icon/components";
 </div>
 
 <script>
-  function startPipelineAnimation() {
-    const codeStage = document.getElementById("code-stage");
-    const pipelineStage = document.getElementById("pipeline-stage");
-    const pipelineCompleteStage = document.getElementById("pipeline-complete-stage");
-    const resultsStage = document.getElementById("results-stage");
-    const typingCode = document.getElementById("typing-code");
-    const warningIcon = document.getElementById("warning-icon");
+  function initAllPipelineAnimations() {
+    const roots = document.querySelectorAll<HTMLElement>("[data-pipeline-animation-root]");
+    roots.forEach((root) => {
+      if (root.dataset.pipelineAnimationInitialized === "true") return;
+      root.dataset.pipelineAnimationInitialized = "true";
+      startPipelineAnimation(root);
+    });
+  }
 
-    if (!codeStage || !pipelineStage || !pipelineCompleteStage || !resultsStage || !typingCode) {
-      return;
-    }
+  function startPipelineAnimation(root: HTMLElement) {
+    const codeStage = root.querySelector<HTMLElement>("#code-stage");
+    const pipelineStage = root.querySelector<HTMLElement>("#pipeline-stage");
+    const pipelineCompleteStage = root.querySelector<HTMLElement>("#pipeline-complete-stage");
+    const resultsStage = root.querySelector<HTMLElement>("#results-stage");
+    const typingCode = root.querySelector<HTMLElement>("#typing-code");
+    const warningIcon = root.querySelector<HTMLElement>("#warning-icon");
+
+    if (!codeStage || !pipelineStage || !pipelineCompleteStage || !resultsStage || !typingCode) return;
+
+    // Keep timeout typing loose here because this script runs in the browser,
+    // but the project TS types include Node timers in some contexts.
+    const timeouts: any[] = [];
+    const schedule = (fn: () => void, ms: number) => {
+      const id = window.setTimeout(() => {
+        // Stop running if the element is no longer in the DOM (view transition / navigation)
+        if (!root.isConnected) return;
+        fn();
+      }, ms);
+      timeouts.push(id);
+      return id;
+    };
+
+    let aborted = false;
+    const abort = () => {
+      if (aborted) return;
+      aborted = true;
+      timeouts.forEach((t) => window.clearTimeout(t));
+    };
+
+    // Cancel timers when navigating away (view transitions)
+    document.addEventListener("astro:before-swap", abort, { once: true });
+    window.addEventListener("pagehide", abort, { once: true });
 
     const codeToType = "include:\n  - component: gitlab.com/getplumber/plumber/analyze@~latest";
     let charIndex = 0;
@@ -205,14 +239,14 @@ import { Icon } from "astro-icon/components";
         typingCode.appendChild(createCursor());
 
         charIndex++;
-        setTimeout(typeCode, 33); // Typing speed: 50ms / 1.5 = ~33ms for 1.5x faster
+        schedule(typeCode, 33); // Typing speed: 50ms / 1.5 = ~33ms for 1.5x faster
       } else {
         // Code typing complete, remove cursor and wait a bit then move to pipeline
         const existingCursor = typingCode.querySelector("#typing-cursor");
         if (existingCursor) {
           existingCursor.remove();
         }
-        setTimeout(() => {
+        schedule(() => {
           if (!codeStage || !pipelineStage || !pipelineCompleteStage) {
             return;
           }
@@ -220,15 +254,15 @@ import { Icon } from "astro-icon/components";
           pipelineStage.classList.remove("hidden");
 
           // Stage 2: Show .pre stage running for 2 seconds
-          setTimeout(() => {
+          schedule(() => {
             if (!pipelineStage) {
               return;
             }
 
             // Make .pre stage fail
-            const preSpinner = document.getElementById("pre-spinner");
-            const preStatus = document.getElementById("pre-status");
-            const preStage = document.getElementById("pre-stage");
+            const preSpinner = root.querySelector<HTMLElement>("#pre-spinner");
+            const preStatus = root.querySelector<HTMLElement>("#pre-status");
+            const preStage = root.querySelector<HTMLElement>("#pre-stage");
 
             if (preSpinner && preStatus && preStage) {
               // Create failed icon
@@ -248,18 +282,18 @@ import { Icon } from "astro-icon/components";
             }
 
             // Stage 3: After 2 seconds, go directly to compliance results
-            setTimeout(() => {
+            schedule(() => {
               if (!pipelineStage) {
                 return;
               }
               pipelineStage.classList.add("hidden");
 
               // Show results stage and start typing animation
-              const resultsStage = document.getElementById("results-stage");
+              const resultsStage = root.querySelector<HTMLElement>("#results-stage");
               if (resultsStage) {
                 resultsStage.classList.remove("hidden");
-                setTimeout(() => {
-                  const cliOutput = document.getElementById("cli-output");
+                schedule(() => {
+                  const cliOutput = root.querySelector<HTMLElement>("#cli-output");
                   if (cliOutput) {
                     cliOutput.innerHTML = "";
                     typeCliOutput();
@@ -566,8 +600,8 @@ import { Icon } from "astro-icon/components";
 
     // Function to type CLI output line by line with scrolling (desktop version)
     function typeCliOutput() {
-      const cliOutput = document.getElementById("cli-output");
-      const cliOutputMobile = document.getElementById("cli-output-mobile");
+      const cliOutput = root.querySelector<HTMLElement>("#cli-output");
+      const cliOutputMobile = root.querySelector<HTMLElement>("#cli-output-mobile");
 
       // Populate mobile version immediately
       if (cliOutputMobile) {
@@ -597,7 +631,7 @@ import { Icon } from "astro-icon/components";
           }
 
           currentLine++;
-          setTimeout(typeNextLine, 50); // Adjust speed here (50ms per line)
+          schedule(typeNextLine, 50); // Adjust speed here (50ms per line)
         }
       }
 
@@ -611,9 +645,9 @@ import { Icon } from "astro-icon/components";
         resultsStage.classList.remove("hidden");
 
         // Clear previous output and start typing animation
-        setTimeout(() => {
-          const cliOutput = document.getElementById("cli-output");
-          const cliOutputMobile = document.getElementById("cli-output-mobile");
+        schedule(() => {
+          const cliOutput = root.querySelector<HTMLElement>("#cli-output");
+          const cliOutputMobile = root.querySelector<HTMLElement>("#cli-output-mobile");
           if (cliOutput) {
             cliOutput.innerHTML = "";
           }
@@ -629,41 +663,48 @@ import { Icon } from "astro-icon/components";
     typeCode();
   }
 
-  // Start animation when component loads
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", startPipelineAnimation);
-  } else {
-    startPipelineAnimation();
+  const GLOBAL_KEY = "__pipelineAnimationGlobalBound__";
+  const globalAny = globalThis as unknown as Record<string, unknown>;
+
+  if (!globalAny[GLOBAL_KEY]) {
+    globalAny[GLOBAL_KEY] = true;
+
+    // Start / re-init on initial load and on view transitions
+    document.addEventListener("DOMContentLoaded", initAllPipelineAnimations);
+    document.addEventListener("astro:after-swap", initAllPipelineAnimations);
+
+    // Handle window resize to keep scroll at bottom (only bind once)
+    let resizeTimeout: any;
+    window.addEventListener("resize", () => {
+      if (resizeTimeout) window.clearTimeout(resizeTimeout);
+      resizeTimeout = window.setTimeout(() => {
+        document
+          .querySelectorAll<HTMLElement>("[data-pipeline-animation-root]")
+          .forEach((root) => {
+            const resultsStage = root.querySelector<HTMLElement>("#results-stage");
+            if (resultsStage && !resultsStage.classList.contains("hidden")) {
+              // Scroll desktop version to bottom
+              const cliOutput = root.querySelector<HTMLElement>("#cli-output");
+              if (cliOutput) {
+                const preElement = cliOutput.parentElement;
+                const scrollContainer = preElement?.parentElement;
+                if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
+              }
+
+              // Scroll mobile version to bottom
+              const cliOutputMobile = root.querySelector<HTMLElement>("#cli-output-mobile");
+              if (cliOutputMobile && cliOutputMobile.parentElement) {
+                cliOutputMobile.parentElement.scrollTop =
+                  cliOutputMobile.parentElement.scrollHeight;
+              }
+            }
+          });
+      }, 100); // Debounce resize events
+    });
   }
 
-  // Also handle Astro view transitions
-  document.addEventListener("astro:after-swap", startPipelineAnimation);
-
-  // Handle window resize to keep scroll at bottom
-  let resizeTimeout: NodeJS.Timeout;
-  window.addEventListener("resize", () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      const resultsStage = document.getElementById("results-stage");
-      if (resultsStage && !resultsStage.classList.contains("hidden")) {
-        // Scroll desktop version to bottom
-        const cliOutput = document.getElementById("cli-output");
-        if (cliOutput) {
-          const preElement = cliOutput.parentElement;
-          const scrollContainer = preElement?.parentElement;
-          if (scrollContainer) {
-            scrollContainer.scrollTop = scrollContainer.scrollHeight;
-          }
-        }
-
-        // Scroll mobile version to bottom
-        const cliOutputMobile = document.getElementById("cli-output-mobile");
-        if (cliOutputMobile && cliOutputMobile.parentElement) {
-          cliOutputMobile.parentElement.scrollTop = cliOutputMobile.parentElement.scrollHeight;
-        }
-      }
-    }, 100); // Debounce resize events
-  });
+  // Run once for the currently-rendered page
+  initAllPipelineAnimations();
 </script>
 
 <style>

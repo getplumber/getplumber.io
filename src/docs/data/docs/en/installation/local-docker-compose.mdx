@@ -1,6 +1,6 @@
 ---
 title: Local Docker compose
-description: This page describes how to quickly setup a self-managed instance of R2Devops for testing purposes using Docker-compose on your local computer.
+description: This page describes how to quickly setup a self-managed instance of Plumber for testing purposes using Docker-compose on your local computer.
 sidebar:
   order: 5
   label: Local Docker Compose
@@ -11,7 +11,7 @@ sidebar:
 **Only for testing purposes on your local computer**
 
 This page describes how to quickly setup a self-managed instance of
-R2Devops for **testing purposes** using Docker-compose on **your local
+Plumber for **testing purposes** using Docker-compose on **your local
 computer**. This is not suitable for production
 
     See production ready methods on [Home page](index)
@@ -43,7 +43,7 @@ confidentiality and security of your information.
    Create an application with the following information :
 
    <Steps>
-   1. Name: `R2Devops self-managed`
+   1. Name: `Plumber self-managed`
    2. Redirect URI : `http://localhost:3001/api/auth/gitlab/callback`
    3. Confidential: `true` (let the box checked)
    4. Scopes: `api`
@@ -86,12 +86,12 @@ confidentiality and security of your information.
       JOBS_GITLAB_URL="https://<your-gitlab-url>"
       ```
 
-   - **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
+   - **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
       ```bash title=".env"
       ORGANIZATION="<group-path>"
       ```
 
-   - **If you want to connect R2Devops to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
+   - **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
       ```bash title=".env"
       ORGANIZATION=""
       ```
@@ -104,18 +104,18 @@ confidentiality and security of your information.
    sed -i."" "s/REPLACE_ME_BY_JOBS_REDIS_PASSWORD/$(openssl rand -hex 16)/g" .env
    ```
 
-4. ### 🚀 Launch R2Devops!
+4. ### 🚀 Launch Plumber!
 
-   Start R2Devops
+   Start Plumber
    ```bash
    docker compose -f compose.local.yml up -d
    ```
 
-   Open your R2Devops test instance 👉 [click here 🎉](http://localhost:3000)
+   Open your Plumber test instance 👉 [click here 🎉](http://localhost:3000)
 
 </Steps>
 
-## ⏫ Update R2Devops
+## ⏫ Update Plumber
 
 Follow these steps to update your self-managed instance to a new version:
 
@@ -144,7 +144,7 @@ Follow these steps to update your self-managed instance to a new version:
    docker compose -f compose.local.yml up -d
    ```
 
-6. You have successfully updated R2Devops on your server 🎉
+6. You have successfully updated Plumber on your server 🎉
 
 </Steps>
 

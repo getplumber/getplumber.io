@@ -1,0 +1,28 @@
+---
+// Visual section divider with glow + centered accent.
+// Intended for use between major homepage sections.
+---
+
+<div aria-hidden="true" class="relative -mb-8 md:-mb-16">
+  <!-- soft glow -->
+  <div
+    class="pointer-events-none absolute inset-x-0 top-0 mx-auto h-24 w-[min(900px,92%)] -translate-y-1/2 rounded-full bg-primary-500/40 blur-3xl dark:bg-primary-500/15"
+  ></div>
+
+  <div class="site-container">
+    <div class="relative flex items-center justify-center">
+      <!-- gradient rule -->
+      <div
+        class="h-px w-full bg-gradient-to-r from-transparent via-primary-500/50 to-transparent dark:via-primary-500/35"
+      ></div>
+
+      <!-- center accent -->
+      <div class="absolute grid place-items-center">
+        <div
+          class="h-10 w-10 rounded-full bg-background shadow-sm ring-1 ring-primary-500/25 dark:ring-primary-500/40"
+        ></div>
+        <div class="absolute h-5 w-5 rounded-full bg-primary-500/60 dark:bg-primary-500/60"></div>
+      </div>
+    </div>
+  </div>
+</div>

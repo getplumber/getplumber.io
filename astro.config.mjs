@@ -11,7 +11,7 @@ import icon from "astro-icon";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://galaxy.cosmicthemes.com",
+  site: "https://getplumber.io",
   image: {
     service: sharpImageService({
       limitInputPixels: false, // Allow processing of large images like GIFs
@@ -20,9 +20,6 @@ export default defineConfig({
   adapter: vercel({
     imageService: false,
   }),
-  redirects: {
-    "/admin": "/keystatic",
-  },
   // i18n configuration must match src/config/translations.json.ts
   i18n: {
     defaultLocale: "en",

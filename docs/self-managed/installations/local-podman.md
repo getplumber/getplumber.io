@@ -6,12 +6,12 @@ slug: "/self-managed/local-podman"
 # Local Podman
 
 :::info
-This method is supported by [R2DevOps community](https://discord.r2devops.io/).
+This method is supported by [Plumber community](https://discord.r2devops.io/).
 :::
 
 :::warning[Only for testing purposes on your local computer]
 This page describes how to quickly setup a self-managed instance of
-R2Devops for **testing purposes** using podman on **your local
+Plumber for **testing purposes** using podman on **your local
 computer**. This is not suitable for production
 
     See production ready methods on [Home page](../index.md)
@@ -40,7 +40,7 @@ unqualified-search-registries = ["docker.io"]
 Preferences > Applications` (example:
    [gitlab.com](https://gitlab.com/-/profile/applications))
 1. Create an application with the following information :
-   - Name: `R2Devops self-managed`
+   - Name: `Plumber self-managed`
    - Redirect URI : `http://localhost:3001/api/auth/gitlab/callback`
    - Confidential: `true` (let the box checked)
    - Scopes: `api`
@@ -78,13 +78,13 @@ Preferences > Applications` (example:
      JOBS_GITLAB_URL="https://<your-gitlab-url>"
      ```
 
-   - **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
+   - **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
 
      ```bash title=".env"
      ORGANIZATION="<group-path>"
      ```
 
-   - **If you want to connect R2Devops to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
+   - **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
      ```bash title=".env"
      ORGANIZATION=""
      ```
@@ -121,15 +121,15 @@ envsubst < podman.local.yml.example > podman.yml
 envsubst < configmap.local.yml.example > configmap.yml
 ```
 
-## 🚀 Launch R2Devops!
+## 🚀 Launch Plumber!
 
-1. Start R2Devops
+1. Start Plumber
    ```bash
    podman play kube podman.yml --configmap configmap.yml --network intranet
    ```
-1. Open your R2Devops test instance 👉 [click here 🎉](http://localhost:3000)
+1. Open your Plumber test instance 👉 [click here 🎉](http://localhost:3000)
 
-## ⏫ Update R2Devops
+## ⏫ Update Plumber
 
 Follow these steps to update your self-managed instance to a new version:
 
@@ -158,4 +158,4 @@ Follow these steps to update your self-managed instance to a new version:
    ```sh
    podman play kube podman.yml --replace --configmap configmap.yml --network intranet
    ```
-1. You have successfully updated R2Devops on your server 🎉
+1. You have successfully updated Plumber on your server 🎉

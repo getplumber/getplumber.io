@@ -3,7 +3,6 @@ function detectPackageManager() {
     const lockFiles = {
         "package-lock.json": "npm",
         "bun.lockb": "bun",
-        "yarn.lock": "yarn",
         "pnpm-lock.yaml": "pnpm",
     };
     try {

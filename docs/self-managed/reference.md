@@ -4,7 +4,7 @@ sidebar_position: 100
 
 # Reference
 
-This reference explains the global configuration options for R2Devops. All configuration is managed through environment variables.
+This reference explains the global configuration options for Plumber. All configuration is managed through environment variables.
 
 ## API Configuration
 
@@ -51,7 +51,7 @@ This reference explains the global configuration options for R2Devops. All confi
 ## Security Scanning
 
 - **`GITLEAKS_PATH`**: The path to the Gitleaks binary for detecting secrets. **Required**
-- **`JOBS_R2DEVOPS_ISSUES_CLEANUP_DATE`**: Date after which to cleanup R2Devops issues (RFC3339 format). Default: `2025-10-01T00:00:00Z`
+- **`JOBS_R2DEVOPS_ISSUES_CLEANUP_DATE`**: Date after which to cleanup Plumber issues (RFC3339 format). Default: `2025-10-01T00:00:00Z`
 
 ## PostgreSQL Database
 
@@ -80,7 +80,7 @@ This reference explains the global configuration options for R2Devops. All confi
 ## Frontend Configuration
 
 - **`DEBUG`**: Enables debug mode for the frontend when set to `true`. Default: `false`
-- **`ALLOW_EXTERNAL_QUERIES`**: When set to `true`, allows the frontend to perform external queries. Set to `false` to prevent R2Devops from initiating queries to sources other than backend and GitLab. Default: `true`
+- **`ALLOW_EXTERNAL_QUERIES`**: When set to `true`, allows the frontend to perform external queries. Set to `false` to prevent Plumber from initiating queries to sources other than backend and GitLab. Default: `true`
 
 ## Advanced
 

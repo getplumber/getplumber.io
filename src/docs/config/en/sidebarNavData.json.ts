@@ -26,8 +26,8 @@ const sidebarNavData: DocsSidebarNavData = {
           title: "Installation",
         },
         {
-          id: "use-r2devops",
-          title: "Use R2Devops",
+          id: "use-plumber",
+          title: "Use Plumber",
         },
       ],
     },

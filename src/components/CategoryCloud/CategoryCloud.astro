@@ -5,7 +5,7 @@ import { categorify, humanize } from "@js/textUtils";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 
-const posts = await getAllPosts(currLocale, true); // exclude archived R2Devops releases from category cloud
+const posts = await getAllPosts(currLocale, true); // exclude archived Plumber releases from category cloud
 const allCategories = posts.map((post) => post.data.categories).flat();
 const filteredCategories = allCategories.filter(
   (category): category is string => typeof category === "string",

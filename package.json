@@ -1,7 +1,10 @@
 {
-  "name": "galaxy",
+  "name": "plumber",
   "type": "module",
   "version": "7.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "astro dev",
     "winsearch": "robocopy dist/pagefind public/pagefind /E",
@@ -12,6 +15,7 @@
     "astro": "astro",
     "config-i18n": "node ./scripts/config-i18n.js",
     "remove-keystatic": "node ./scripts/remove-keystatic.js",
+    "seo-audit": "node ./scripts/seo-audit.js",
     "format": "eslint . --fix && prettier -w \"**/*\" --ignore-unknown --cache",
     "lint": "eslint ."
   },
@@ -60,6 +64,9 @@
     "typescript-eslint": "8.46.1"
   },
   "overrides": {
-    "sharp": "^0.33.0"
+    "sharp": "^0.33.0",
+    "path-to-regexp": "^8.3.0",
+    "chokidar": "^5.0.0",
+    "lodash": "^4.17.22"
   }
 }

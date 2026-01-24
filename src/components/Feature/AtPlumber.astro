@@ -17,32 +17,32 @@ const features: string[] = [
 ];
 ---
 
-<section id="atPlumber" class="my-16 md:my-24">
+<section id="atPlumber" class="my-16 md:my-24 relative overflow-hidden">
   <!-- Text and image -->
-  <div class="relative overflow-hidden py-16">
-    <!-- background glows -->
-    <div
-      class="bg-primary-600/30 absolute top-0 left-0 -z-10 mx-auto aspect-square w-full max-w-7xl -translate-x-2/3 -translate-y-1/2 rounded-full blur-[100px]"
-      aria-hidden="true"
-    >
-    </div>
+  <div
+    class="dark:bg-primary-500/30 bg-primary-300 absolute top-0 left-0  mx-auto aspect-square w-full max-w-7xl -translate-x-2/3 -translate-y-1/2 rounded-full blur-[100px]"
+    aria-hidden="true"
+  >
+  </div>
 
-    <div
-      class="bg-primary-600/30 absolute right-0 bottom-0 -z-10 mx-auto aspect-square w-full max-w-7xl translate-x-1/2 translate-y-1/2 rounded-full blur-[100px]"
-      aria-hidden="true"
-    >
-    </div>
+  <div
+    class="dark:bg-primary-500/30 bg-primary-300 absolute right-0 bottom-0  mx-auto aspect-square w-full max-w-7xl translate-x-1/2 translate-y-1/2 rounded-full blur-[100px]"
+    aria-hidden="true"
+  >
+  </div>
+  <div class="relative overflow-hidden py-16 bg-primary-950/50 dark:bg-primary-950/20">
+    <!-- background glows -->
 
     <!-- center content -->
     <div class="site-container mx-auto">
-      <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#atPlumber">At Plumber</p>
-      <h2 class="h2 mt-8" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#atPlumber">
-        We made an AI-powered platform that <span class="text-primary-500">maps</span>, <span
-          class="text-primary-500">audits</span
-        >, and <span class="text-primary-500">remediates</span>
+      <p class="from-primary-300 to-primary-500 dark:from-primary-400 dark:to-primary-200 bg-gradient-to-r bg-clip-text text-lg text-transparent  inline" data-mos="fade-up" data-mos-anchor="#atPlumber">At Plumber</p>
+      <h2 class="h2 mt-8 text-base-100 dark:text-base-100" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#atPlumber">
+        We made an AI-powered platform that <span class="dark:text-primary-500 text-primary-300">maps</span>, <span
+          class="dark:text-primary-500">audits</span
+        >, and <span class="dark:text-primary-500 text-primary-300">remediates</span>
         CI/CD compliance gaps — Continously
       </h2>
-      <ul class="mt-6 flex flex-col gap-4">
+      <ul class="mt-6 flex flex-col gap-4 text-base-300 dark:text-base-300">
         {
           features.map((feature, idx) => (
             <li
@@ -53,7 +53,7 @@ const features: string[] = [
             >
               <Icon
                 name="tabler/check"
-                class="text-primary-600 dark:text-primary-400 h-5 w-5"
+                class="text-primary-300 dark:text-primary-400 h-5 w-5"
                 aria-hidden="true"
               />
               <span class="ml-2 inline">{feature}</span>

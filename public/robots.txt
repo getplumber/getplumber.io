@@ -1,1 +1,1 @@
-Sitemap: https://galaxy.cosmicthemes.com/sitemap-index.xml
+Sitemap: https://getplumber.io/sitemap-index.xml

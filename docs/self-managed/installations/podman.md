@@ -6,10 +6,10 @@ slug: "/self-managed/podman"
 # Podman
 
 :::info
-This method is supported by [R2DevOps community](https://discord.r2devops.io/).
+This method is supported by [Plumber community](https://discord.r2devops.io/).
 :::
 
-This page describes how to set up a self-managed instance of R2Devops using
+This page describes how to set up a self-managed instance of Plumber using
 **podman**.
 
 ## 💻 Requirements
@@ -21,16 +21,16 @@ This page describes how to set up a self-managed instance of R2Devops using
   - Hardware
     - CPU x86_64/amd64 with at least 2 cores
     - 4 GB RAM
-    - 250 GB of storage for R2Devops
+    - 250 GB of storage for Plumber
   - Network
-  - Users must be able to reach the R2Devops server on TCP ports 80 and 443
-  - The R2Devops server must be able to access internet
-  - The R2Devops server must be able to communicate with GitLab instance
+  - Users must be able to reach the Plumber server on TCP ports 80 and 443
+  - The Plumber server must be able to access internet
+  - The Plumber server must be able to communicate with GitLab instance
   - The installation process requires write access to the DNS Zone
-    to set up R2Devops domain
+    to set up Plumber domain
   - If the server is not reachable from internet or if you want to use your
     own certificate for HTTPS, you need to be able to generate certificate
-    during the installation process for R2Devops domain
+    during the installation process for Plumber domain
   - Installed software
     - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
     - [podman](https://https://podman.io/docs/installation)- Docker hub registry
@@ -58,13 +58,13 @@ unqualified-search-registries = ["docker.io"]
 
 **In your `.env` file:**
 
-- **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
+- **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
 
   ```bash title=".env" hl_lines="1"
   ORGANIZATION="<group-path>"
   ```
 
-- **If you want to connect R2Devops to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
+- **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
   ```bash title=".env" hl_lines="1"
   ORGANIZATION=""
   ```
@@ -78,7 +78,7 @@ unqualified-search-registries = ["docker.io"]
    JOBS_GITLAB_URL="https://<url_of_your_gitlab_instance>"
    ```
 
-   ```bash title="Example with domain name 'r2devops.mydomain.com' for R2Devops and 'gitlab.mydomain.com' for GitLab" hl_lines="1-3"
+   ```bash title="Example with domain name 'r2devops.mydomain.com' for Plumber and 'gitlab.mydomain.com' for GitLab" hl_lines="1-3"
    DOMAIN_NAME="r2devops.mydomain.com"
    JOBS_GITLAB_URL="https://gitlab.mydomain.com"
    ```
@@ -95,7 +95,7 @@ launch
 
 ### 🦊 GitLab OIDC
 
-R2Devops uses GitLab as an OAuth2 provider to authenticate users. Let's see how
+Plumber uses GitLab as an OAuth2 provider to authenticate users. Let's see how
 to connect it to your GitLab instance.
 
 #### Create an application
@@ -108,7 +108,7 @@ group. Open the chosen group in GitLab interface and navigate through
 
 Then, create an application with the following information :
 
-- Name: `R2Devops self-managed`
+- Name: `Plumber self-managed`
 - Redirect URI : `https://<r2devops_domain_name>/api/auth/gitlab/callback`
 - Confidential: `true` (let the box checked)
 - Scopes: `api`
@@ -194,7 +194,7 @@ Allow port 80 and above in system for local user:
 ### 🚀 Launch the application
 
 :::success[Congratulations]
-You have successfully installed R2Devops on your server 🎉
+You have successfully installed Plumber on your server 🎉
 
     Now you can launch the application and ensure everything works as expected.
 
@@ -246,11 +246,11 @@ Follow these steps to update your self-managed instance to a new version:
    envsubst < podman.local.yml.example > podman.yml
    envsubst < configmap.local.yml.example > configmap.yml
    ```
-1. You have successfully updated R2Devops on your server 🎉
+1. You have successfully updated Plumber on your server 🎉
 
 ## 🔄 Backup and restore
 
-Data required to fully backup and restore a R2Devops system are the following:
+Data required to fully backup and restore a Plumber system are the following:
 
 - Configuration file: `.env`
 - Databases:

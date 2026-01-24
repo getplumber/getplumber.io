@@ -5,7 +5,7 @@ slug: "/self-managed/kubernetes"
 
 # Kubernetes
 
-This page describes how to run a self-managed instance of R2Devops on
+This page describes how to run a self-managed instance of Plumber on
 **Kubernetes**.
 
 ## 💻 Requirements
@@ -20,7 +20,7 @@ This page describes how to run a self-managed instance of R2Devops on
 - Your local environment with CLI to interact with Kubernetes API:
   - [Helm](https://github.com/helm/helm)
   - [Kubectl](https://github.com/kubernetes/kubectl)
-- Write access to the DNS zone of the domain to use with R2Devops
+- Write access to the DNS zone of the domain to use with Plumber
 - A user account on the GitLab instance
 
 ## 🛠️ Installation
@@ -31,11 +31,11 @@ and/or `Redis`. Both alternatives are detailed below.
 
 ### 📥 Initialize your cluster
 
-1. Create the namespace for R2Devops
+1. Create the namespace for Plumber
    ```sh
    kubectl create ns r2devops
    ```
-1. Add R2Devops repo
+1. Add Plumber repo
    ```sh
    helm repo add r2devops https://charts.r2devops.io/
    ```
@@ -43,10 +43,10 @@ and/or `Redis`. Both alternatives are detailed below.
 ### 📄 Domain name
 
 :::info
-You need a domain to run R2Devops. For example, if you have the domain name
+You need a domain to run Plumber. For example, if you have the domain name
 `mydomain.com`:
 
-    - R2Devops URL will be `https://r2devops.mydomain.com`
+    - Plumber URL will be `https://r2devops.mydomain.com`
 
 :::
 
@@ -57,7 +57,7 @@ You need a domain to run R2Devops. For example, if you have the domain name
 
 ### 🦊 GitLab OIDC
 
-R2Devops uses GitLab as an OAuth2 provider to authenticate users. Let's see how
+Plumber uses GitLab as an OAuth2 provider to authenticate users. Let's see how
 to connect it to your GitLab instance.
 
 1. Choose a group on your GitLab instance to create an application. It can be
@@ -67,7 +67,7 @@ to connect it to your GitLab instance.
    ![Profile_Menu](./img/profile_menu_gitlab.png)
 
 1. Then, create an application with the following information
-   - Name: `R2Devops self-managed`
+   - Name: `Plumber self-managed`
    - Redirect URI : `https://<r2devops_domain_name>/api/auth/gitlab/callback`
    - Confidential: `true` (let the box checked)
    - Scopes: `api`
@@ -97,9 +97,9 @@ located in your current directory and be named `custom_values.yaml`
 to store secrets values as kubernetes secrets instead of writing them in your
 custom value file.
 
-1. R2Devops secret
+1. Plumber secret
 
-   Replace all occurrences of `REDACTED` by your R2Devops secrets encoded in
+   Replace all occurrences of `REDACTED` by your Plumber secrets encoded in
    base64 and create following secret:
    - `secret-key`: 256 bit secret key used to encrypt sensitive data (`openssl rand -hex 32`)
    - `gitlab-oauth2-client-id`: Application ID of the GitLab application
@@ -150,11 +150,11 @@ custom value file.
      password: REDACTED
    ```
 
-#### 🤖 R2Devops
+#### 🤖 Plumber
 
-Add R2Devops related configuration in your new values file `custom_values.yaml`:
+Add Plumber related configuration in your new values file `custom_values.yaml`:
 
-1. Add R2Devops domain
+1. Add Plumber domain
 
    ```yaml
    front:
@@ -195,7 +195,7 @@ Add R2Devops related configuration in your new values file `custom_values.yaml`:
    ```
 
 1. Add your GitLab instance domain and organization
-   - **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `organization` (to run the onboarding, you must be at least **Maintainer in this group**)
+   - **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `organization` (to run the onboarding, you must be at least **Maintainer in this group**)
 
      ```yaml
      gitlab:
@@ -203,7 +203,7 @@ Add R2Devops related configuration in your new values file `custom_values.yaml`:
        organization: "<group-path>"
      ```
 
-   - **If you want to connect R2Devops to the whole GitLab instance**: let `organization` empty (to run the onboarding, you must be a **GitLab instance Admin**)
+   - **If you want to connect Plumber to the whole GitLab instance**: let `organization` empty (to run the onboarding, you must be a **GitLab instance Admin**)
      ```yaml
      gitlab:
        domain: "https://gitlab.mydomain.com"
@@ -298,7 +298,7 @@ helm upgrade -n r2devops --create-namespace --install r2devops r2devops/r2devops
 ```
 
 :::success[Congratulations]
-You have successfully installed R2Devops on your Kubernetes cluster 🎉
+You have successfully installed Plumber on your Kubernetes cluster 🎉
 :::
 
 :::danger[Not the same behavior]
@@ -370,7 +370,7 @@ redis:
 
 ## ⏫ Update
 
-1. Update R2Devops Helm repository
+1. Update Plumber Helm repository
    ```sh
    helm repo update
    ```
@@ -378,4 +378,4 @@ redis:
    ```sh
    helm upgrade -n $R2DEVOPS_NS --install r2devops r2devops/r2devops -f custom_values.yaml
    ```
-1. You have successfully updated R2Devops 🎉
+1. You have successfully updated Plumber 🎉

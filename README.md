@@ -26,7 +26,7 @@ The website features:
 ### Prerequisites
 
 - Node.js 18+ 
-- npm or yarn
+- npm
 
 ### Installation & Setup
 
@@ -67,6 +67,7 @@ The website features:
 | `npm run lint` | Run ESLint |
 | `npm run config-i18n` | Configure internationalization |
 | `npm run remove-keystatic` | Remove Keystatic CMS if not needed |
+| `npm run seo-audit` | Run SEO audit on the site |
 
 ---
 
@@ -419,19 +420,12 @@ The following components are auto-imported in all documentation files:
 <Tabs defaultValue="npm">
   <TabsList>
     <TabsTrigger value="npm">npm</TabsTrigger>
-    <TabsTrigger value="yarn">Yarn</TabsTrigger>
     <TabsTrigger value="pnpm">pnpm</TabsTrigger>
   </TabsList>
   
   <TabsContent value="npm">
     ```bash
     npm install plumber-cli
-    ```
-  </TabsContent>
-  
-  <TabsContent value="yarn">
-    ```bash
-    yarn add plumber-cli
     ```
   </TabsContent>
   
