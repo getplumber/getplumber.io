@@ -1,5 +1,7 @@
 ---
 import Button from "@components/Button/Button.astro";
+import anssiLogo from "@images/anssi_logo.svg";
+import gitlabBadge from "@images/gitlab-alliance-partner-badge.svg";
 import HeroIllustration from "@images/hero-illustration.svg";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getLocalizedRoute, useTranslations } from "@js/translationUtils";
@@ -9,7 +11,7 @@ import { Icon } from "astro-icon/components";
 const currLocale = getLocaleFromUrl(Astro.url);
 ---
 
-<section id="hero1" class="relative flex flex-col gap-18 w-full overflow-hidden pt-32 pb-16 md:pt-40 md:pb-24">
+<section id="hero1" class="relative flex flex-col gap-18 w-full overflow-hidden pt-32 pb-16 md:pt-40 md:pb-16">
   <!-- background glow -->
   <div
     class="bg-primary-500/40 dark:bg-primary-500/50 absolute inset-0 bottom-1/2 -z-10 mx-auto aspect-square w-[65%] max-w-5xl -translate-y-2/3 rounded-full blur-[100px]"
@@ -76,6 +78,14 @@ const currLocale = getLocaleFromUrl(Astro.url);
       multiple pre-designed pages, sections, and components. Built with Astro
       and Tailwind CSS. -->
     </p>
+    <!-- <div class="flex border-t pt-4 mt-4 justify-center items-center gap-4 border-base-700 dark:border-base-300/60 w-9/12 mx-auto"
+    data-mos="fade-up"
+    data-mos-delay="0.2"
+    data-mos-anchor="#hero1"
+    >
+      <Image src={gitlabBadge} width={70} height={70} alt="GitLab Alliance Partner Badge" class="" />
+      <Image src={anssiLogo} width={70} height={70} alt="ANSSI Logo" class="" />
+    </div> -->
 
     <!-- CTA -->
     <!-- <div class="mx-auto mt-8 flex max-w-sm flex-col justify-center gap-4 px-4 sm:flex-row">
@@ -102,21 +112,16 @@ const currLocale = getLocaleFromUrl(Astro.url);
   </div>
 
 <div
-  class="mx-auto mb-8 flex items-center justify-center from-primary-400 to-base-300/70 after:bg-base-100/30 dark:from-primary-500 dark:to-base-300/50 dark:after:bg-base-800/50 relative overflow-clip rounded-2xl bg-gradient-to-b to-40% p-1 after:rounded-[calc(1rem-1px)] md:p-2"
+  class="mx-auto flex items-center justify-center border-2 border-base-800 dark:border-base-800/60 rounded-lg overflow-hidden shadow-lg shadow-base-900 dark:shadow-primary-500/20"
   data-mos="fade-up"
   data-mos-delay="0.4"
   data-mos-anchor="#hero1"
   id="howdygo-embed"
   style="width: 100%;
       max-width: 1388px;
-      background-color: #020817;
-      border: 1px solid #1e293b;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow:
-        0px 0px 1px rgba(45, 55, 72, 0.05),
-        0px 4px 8px rgba(45, 55, 72, 0.1);"
->
+"
+        >
+
   <script src="https://js.howdygo.com/v1.2.1/index.js"></script>
   <div
     id="howdygo-wrapper"
