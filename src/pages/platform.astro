@@ -9,12 +9,23 @@ import LogoCloud2 from "@components/LogoCloud/LogoCloud2.astro";
 import Pricing3 from "@components/Pricing/Pricing3.astro";
 import PricingPlatform from "@components/Pricing/PricingPlatform.astro";
 import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
+import PageSidebarNav from "@components/Nav/PageSidebarNav.astro";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const siteData = getTranslatedData("siteData", currLocale);
+
+// Define page sections for sidebar navigation
+const pageSections = [
+  { id: "CTA", label: "CI/CD Blind Spots" },
+  { id: "complianceIsHard", label: "Compliance Challenges" },
+  { id: "atPlumber", label: "At Plumber" },
+  { id: "feature5", label: "Trusted by thousands" },
+  { id: "pricing-platform", label: "Pricing" },
+  { id: "platform-cta", label: "Get Started" },
+];
 ---
 
 <BaseLayout title={siteData.title} description={siteData.description}>
@@ -33,4 +44,7 @@ const siteData = getTranslatedData("siteData", currLocale);
   <PricingPlatform />
   <!-- <Faq1 /> -->
   <PlatformCTA />
+  
+  <!-- Floating sidebar navigation -->
+  <PageSidebarNav sections={pageSections} />
 </BaseLayout>

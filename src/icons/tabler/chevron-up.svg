@@ -1,8 +1,8 @@
 <!--
-tags: [move, next, swipe, bottom]
+tags: [move, top]
 category: Arrows
 version: "1.0"
-unicode: "ea5f"
+unicode: "ea62"
 -->
 <svg
   xmlns="http://www.w3.org/2000/svg"
@@ -15,5 +15,5 @@ unicode: "ea5f"
   stroke-linecap="round"
   stroke-linejoin="round"
 >
-  <path d="M6 9l6 6l6 -6" />
+  <path d="M6 15l6 -6l6 6" />
 </svg>
