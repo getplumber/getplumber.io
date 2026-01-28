@@ -80,6 +80,8 @@
   /* code block styling */
   .docs-markdown-content pre:not(:where(.not-content, .not-content *)) {
     @apply border-border my-4 rounded-lg border px-4 py-3;
+    background-color: var(--astro-code-color-background) !important;
+    color: var(--astro-code-color-text);
     tab-size: 2;
   }
 
@@ -87,6 +89,7 @@
   .docs-markdown-content pre code:not(:where(.not-content, .not-content *)) {
     all: unset;
     @apply font-mono;
+    background-color: transparent !important;
   }
 
   /* blockquotes */

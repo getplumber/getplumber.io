@@ -48,7 +48,7 @@
 
     /* Shiki syntax highlighting variables for light theme - GitHub Light */
     --astro-code-color-text: #24292f;
-    --astro-code-color-background: #ffffff;
+    --astro-code-color-background: #e8e8e8;
     --astro-code-token-constant: #0550ae;
     --astro-code-token-string: #0a3069;
     --astro-code-token-comment: #57606a;

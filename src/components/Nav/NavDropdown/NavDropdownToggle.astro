@@ -9,12 +9,32 @@ interface Props {
 }
 
 const { navItem } = Astro.props as Props;
+
+// Active when current path is this dropdown's section (e.g. Docs active on /docs and /docs/*)
+const pathname = Astro.url.pathname;
+const isDropdownActive =
+  navItem.dropdown?.some((item) => {
+    if (!item.link.startsWith("/")) return false;
+    const base = item.link.split("?")[0];
+    // Match exact path, path under link, or path is parent of link (e.g. /docs when link is /docs/...)
+    return (
+      pathname === base ||
+      pathname.startsWith(`${base}/`) ||
+      (pathname.length > 1 && base.startsWith(`${pathname}/`))
+    );
+  }) ?? false;
 ---
 
 <!-- non-mobile dropdown menu -->
 <div class="nav__dropdown group relative" data-hover-dropdown="true">
   <button
-    class="nav__link--base primary-focus nav__dropdown-button hidden w-full items-center gap-1 px-4 py-1.5 whitespace-nowrap md:flex"
+    class:list={[
+      "primary-focus nav__dropdown-button hidden w-full items-center gap-1 px-4 py-1.5 whitespace-nowrap md:flex",
+      {
+        "nav__link--base": !isDropdownActive,
+        "text-primary-600 dark:text-primary-400": isDropdownActive,
+      },
+    ]}
     type="button"
     id={`${slugify(navItem.text)}-dropdown-menu`}
     aria-expanded="false"

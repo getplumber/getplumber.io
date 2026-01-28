@@ -54,19 +54,18 @@
 
     --radius: 0.5rem;
 
-    /* custom shiki styling for markdown code blocks. These are the variables Astro uses
-		Shiki Themes: https://shiki.style/themes   https://shiki.matsu.io/guide/theme-colors#css-variables-theme */
-    --astro-code-foreground: var(--color-base-50);
-    --astro-code-background: #202022;
-    --astro-code-token-constant: #a5b4fc; /* recommend making this a slightly off color from your primary-300 color */
-    --astro-code-token-string: var(--color-primary-600);
-    --astro-code-token-comment: var(--color-base-400);
-    --astro-code-token-keyword: var(--color-base-300);
-    --astro-code-token-parameter: var(--color-sky-400);
-    --astro-code-token-function: var(--color-base-50);
-    --astro-code-token-string-expression: var(--color-primary-300);
-    --astro-code-token-punctuation: var(--color-base-200);
-    --astro-code-token-link: var(--color-base-50);
+    /* Shiki syntax highlighting - GitHub Light theme for light mode */
+    --astro-code-color-text: #24292f;
+    --astro-code-color-background: #e8e8e8;
+    --astro-code-token-constant: #0550ae;
+    --astro-code-token-string: #0a3069;
+    --astro-code-token-comment: #57606a;
+    --astro-code-token-keyword: #cf222e;
+    --astro-code-token-parameter: #953800;
+    --astro-code-token-function: #6639ba;
+    --astro-code-token-string-expression: #0a3069;
+    --astro-code-token-punctuation: #24292f;
+    --astro-code-token-link: #0969da;
 
     --font-fallback:
       "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial",
@@ -111,6 +110,19 @@
     --border: var(--color-base-800);
     --input: var(--color-base-800);
     --outline: var(--color-base-50);
+
+    /* Shiki syntax highlighting - GitHub Dark theme for dark mode */
+    --astro-code-color-text: #e6edf3;
+    --astro-code-color-background: #0d1117;
+    --astro-code-token-constant: #79c0ff;
+    --astro-code-token-string: #a5d6ff;
+    --astro-code-token-comment: #8b949e;
+    --astro-code-token-keyword: #ff7b72;
+    --astro-code-token-parameter: #ffa657;
+    --astro-code-token-function: #d2a8ff;
+    --astro-code-token-string-expression: #a5d6ff;
+    --astro-code-token-punctuation: #c9d1d9;
+    --astro-code-token-link: #58a6ff;
   }
 
   /* starwind preflight merged with Cosmic Themes */
