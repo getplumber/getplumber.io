@@ -7,7 +7,7 @@ import { Icon } from "astro-icon/components";
   data-pipeline-animation-root
 >
   <div
-    class="from-primary-400 to-base-300/70 after:bg-base-100/30 dark:from-primary-500 dark:to-base-300/50 dark:after:bg-base-800/50 relative overflow-clip rounded-2xl bg-gradient-to-b to-40% p-1 after:absolute after:inset-[1px] after:rounded-[calc(1rem-1px)] md:p-2"
+    class="from-primary-400 to-base-300/70 after:bg-base-100/30 dark:from-primary-500 dark:to-base-600/50 dark:after:bg-base-800/50 relative overflow-clip bg-gradient-to-b to-40% p-1 after:absolute after:inset-[1px] rounded-2xl after:rounded-[calc(1rem-1px)] md:p-2"
   >
     <div
       class="dark border-base-600/60 relative z-10 w-full overflow-clip rounded-xl border bg-[var(--astro-code-background)] md:rounded-lg"
@@ -205,7 +205,7 @@ import { Icon } from "astro-icon/components";
     document.addEventListener("astro:before-swap", abort, { once: true });
     window.addEventListener("pagehide", abort, { once: true });
 
-    const codeToType = "include:\n  - component: gitlab.com/getplumber/plumber/analyze@~latest";
+    const codeToType = "include:\n  - component: gitlab.com/getplumber/plumber/plumber@~latest";
     let charIndex = 0;
 
     // Create cursor element template
