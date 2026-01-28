@@ -1,5 +1,6 @@
 ---
 import logo from "@images/site-logo.svg";
+import logoDark from "@images/site-logo-dark.svg";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
 import { Image } from "astro:assets";
@@ -15,12 +16,23 @@ const siteData = getTranslatedData("siteData", currLocale);
   href={getLocalizedRoute(currLocale)}
   aria-label={`${siteData.name} - Go to homepage`}
 >
+  {/* Dark theme: site-logo.svg */}
   <Image
     src={logo}
     alt="Plumber logo"
     loading="eager"
     height={100}
-    class="my-2 h-10 w-auto"
+    class="my-2 h-10 w-auto dark:block hidden"
+    aria-hidden="true"
+    fetchpriority="high"
+  />
+  {/* Light theme: site-logo-dark.svg */}
+  <Image
+    src={logoDark}
+    alt="Plumber logo"
+    loading="eager"
+    height={100}
+    class="my-2 h-10 w-auto block dark:hidden"
     aria-hidden="true"
     fetchpriority="high"
   />
