@@ -16,6 +16,7 @@
     "config-i18n": "node ./scripts/config-i18n.js",
     "remove-keystatic": "node ./scripts/remove-keystatic.js",
     "seo-audit": "node ./scripts/seo-audit.js",
+    "generate-favicon-ico": "node ./scripts/generate-favicon-ico.js",
     "format": "eslint . --fix && prettier -w \"**/*\" --ignore-unknown --cache",
     "lint": "eslint ."
   },
@@ -61,6 +62,7 @@
     "pagefind": "1.4.0",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "0.7.0",
+    "sharp-ico": "^0.1.5",
     "typescript-eslint": "8.46.1"
   },
   "overrides": {
