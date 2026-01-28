@@ -4,9 +4,8 @@
  * Apply styling with the "docs-markdown-content" class
  * Cancel out the styling with the "not-content" class
  */
-
-@import "tailwindcss/theme" theme(reference);
-@import "@/styles/tailwind-theme.css" theme(reference);
+@import "tailwindcss/theme";
+@import "@/styles/tailwind-theme.css";
 
 @layer base {
   /* text coloring for most items */

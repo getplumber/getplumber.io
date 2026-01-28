@@ -4,7 +4,7 @@
 
 ## 📋 Summary
 
-This is a comprehensive documentation and marketing website for **Plumber** - an open-source tool for analyzing GitLab CI/CD pipelines for security and compliance issues. Plumber helps you:
+This is a comprehensive documentation and website for **Plumber** - a tool for analyzing GitLab CI/CD pipelines for security and compliance issues. Plumber helps you:
 
 - Map out complex CI/CD landscapes
 - Detect CI/CD security issues

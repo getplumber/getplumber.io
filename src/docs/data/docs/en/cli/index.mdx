@@ -6,32 +6,132 @@ sidebar:
   order: 1
 section: "api"
 ---
+import { Icon } from "astro-icon/components";
 
 The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command line. This is useful for local testing, CI/CD integration, or automated compliance checks.
 
+<Button variant="outline" class="!border-base-900 dark:!border-base-100 hover:!border-primary-500/90 dark:hover:!border-primary-100/90" href="https://github.com/getplumber/plumber"><Icon name="tabler/brand-github" class="mr-2" />View on GitHub</Button>
+
 ## Installation
 
-### Using Docker
+<Tabs defaultValue="binary">
+  <TabsList>
+    <TabsTrigger value="binary">Binary</TabsTrigger>
+    <TabsTrigger value="docker">Docker</TabsTrigger>
+    <TabsTrigger value="source">Build from Source</TabsTrigger>
+  </TabsList>
 
-The easiest way to use Plumber is via Docker:
+  <TabsContent value="binary">
+    Pre-built binaries are available for each release.
 
-```bash
-docker pull getplumber/plumber:latest
-```
+    **Linux (amd64)**
+    ```bash
+    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-linux-amd64
+    chmod +x plumber-linux-amd64
+    sudo mv plumber-linux-amd64 /usr/local/bin/plumber
+    ```
 
-### Building from Source
+    **Linux (arm64)**
+    ```bash
+    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-linux-arm64
+    chmod +x plumber-linux-arm64
+    sudo mv plumber-linux-arm64 /usr/local/bin/plumber
+    ```
 
-```bash
-git clone https://github.com/getplumber/plumber.git
-cd plumber
-go build -o plumber .
-```
+    **macOS (Apple Silicon)**
+    ```bash
+    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-darwin-arm64
+    chmod +x plumber-darwin-arm64
+    sudo mv plumber-darwin-arm64 /usr/local/bin/plumber
+    ```
 
-## Command: `analyze`
+    **macOS (Intel)**
+    ```bash
+    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-darwin-amd64
+    chmod +x plumber-darwin-amd64
+    sudo mv plumber-darwin-amd64 /usr/local/bin/plumber
+    ```
+
+    **Windows (PowerShell)**
+    ```powershell
+    Invoke-WebRequest -Uri https://github.com/getplumber/plumber/releases/latest/download/plumber-windows-amd64.exe -OutFile plumber.exe
+    ```
+
+    **Verify checksum** (optional):
+    ```bash
+    curl -LO https://github.com/getplumber/plumber/releases/latest/download/checksums.txt
+    sha256sum -c checksums.txt --ignore-missing
+    ```
+  </TabsContent>
+
+  <TabsContent value="docker">
+    Pull the latest image from Docker Hub:
+
+    ```bash
+    docker pull getplumber/plumber:latest
+    ```
+
+    Run analysis directly with Docker:
+
+    ```bash
+    docker run --rm \
+      -e GITLAB_TOKEN=glpat-xxxx \
+      getplumber/plumber:latest analyze \
+      --gitlab-url https://gitlab.com \
+      --project mygroup/myproject \
+      --branch main \
+      --config /.plumber.yaml \
+      --threshold 100
+    ```
+  </TabsContent>
+
+  <TabsContent value="source">
+    Clone the repository and build:
+
+    ```bash
+    git clone https://github.com/getplumber/plumber.git
+    cd plumber
+    go build -o plumber .
+    ```
+
+    <Aside variant="info">
+      Requires Go 1.24 or later.
+    </Aside>
+  </TabsContent>
+</Tabs>
+
+## Quick Start
+
+<Steps>
+1. **Set your GitLab token**
+
+   Create a token with `read_api` + `read_repository` scopes:
+
+   ```bash
+   export GITLAB_TOKEN=glpat-xxxx
+   ```
+
+2. **Run analysis**
+
+   ```bash
+   plumber analyze \
+     --gitlab-url https://gitlab.com \
+     --project mygroup/myproject \
+     --branch main \
+     --config .plumber.yaml \
+     --threshold 100
+   ```
+
+3. **Review results**
+
+   Plumber will output compliance status and any issues found.
+</Steps>
+
+## Command Reference
+
+### `plumber analyze`
 
 The main command for analyzing GitLab CI/CD pipelines.
-
-### Usage
 
 ```bash
 plumber analyze [flags]
@@ -42,7 +142,7 @@ plumber analyze [flags]
 | Flag | Required | Default | Description |
 |------|----------|---------|-------------|
 | `--gitlab-url` | Yes | - | GitLab instance URL (e.g., `https://gitlab.com`) |
-| `--project` | Yes | - | Project path, e.g., `group/project` |
+| `--project` | Yes | - | Project path (e.g., `group/project`) |
 | `--config` | Yes | - | Path to `.plumber.yaml` configuration file |
 | `--threshold` | Yes | - | Minimum compliance % to pass (0-100) |
 | `--branch` | No | Project default | Branch to analyze |
@@ -55,34 +155,16 @@ plumber analyze [flags]
 |----------|----------|-------------|
 | `GITLAB_TOKEN` | Yes | GitLab API token with `read_api` and `read_repository` scopes |
 
-### Examples
+### Exit Codes
 
-#### Basic Analysis
+| Code | Meaning |
+|------|---------|
+| `0` | Passed (compliance ≥ threshold) |
+| `1` | Failed (compliance < threshold or error) |
 
-```bash
-export GITLAB_TOKEN=glpat-xxxx
-./plumber analyze \
-  --gitlab-url https://gitlab.com \
-  --project mygroup/myproject \
-  --branch main \
-  --config .plumber.yaml \
-  --threshold 100
-```
+## Usage Examples
 
-#### Using Docker
-
-```bash
-docker run --rm \
-  -e GITLAB_TOKEN=glpat-xxxx \
-  getplumber/plumber:latest analyze \
-  --gitlab-url https://gitlab.com \
-  --project mygroup/myproject \
-  --branch main \
-  --config /.plumber.yaml \
-  --threshold 100
-```
-
-#### Save JSON Output
+### Save JSON Output
 
 ```bash
 docker run --rm \
@@ -97,10 +179,10 @@ docker run --rm \
   --output /output/results.json
 ```
 
-#### Self-Hosted GitLab
+### Self-Hosted GitLab
 
 ```bash
-./plumber analyze \
+plumber analyze \
   --gitlab-url https://gitlab.example.com \
   --project mygroup/myproject \
   --branch develop \
@@ -108,44 +190,37 @@ docker run --rm \
   --threshold 80
 ```
 
-## Exit Codes
+### Silent Mode (JSON Only)
 
-| Code | Meaning |
-|------|---------|
-| `0` | Passed (compliance ≥ threshold) |
-| `1` | Failed (compliance < threshold or error) |
+```bash
+plumber analyze \
+  --gitlab-url https://gitlab.com \
+  --project mygroup/myproject \
+  --config .plumber.yaml \
+  --threshold 100 \
+  --output results.json \
+  --print false
+```
 
 ## Example Output
 
-```text
-=== Pipeline Analysis Results ===
+<Aside variant="tip">
+  The CLI output is color-coded in your terminal for easy scanning - green for passing controls, red for failures.
+</Aside>
 
-Project: mygroup/myproject
+![Plumber CLI output showing compliance results](./img/cli-output.png)
 
---- Mutable Image Tag Control ---
-  Compliance: 50.0%
-  Issues Found:
-    - Job 'build' uses mutable tag 'latest' (image: docker.io/node:latest)
+<Aside variant="tip">
+  When using `--output`, results are saved as JSON for programmatic access and CI/CD integration.
+</Aside>
 
---- Untrusted Image Control ---
-  Compliance: 100.0%
-  Trusted: 8, Untrusted: 0
+## Configuration
 
---- Branch Protection Control ---
-  Compliance: 100.0%
-  Protected: 2, Unprotected: 0
+Plumber uses a `.plumber.yaml` configuration file to customize checks. 
 
-=== Summary ===
-  Overall Compliance: 83.3%
-  Threshold: 100.0%
-  Status: FAILED ✗
-```
-
-## Configuration File
-
-Plumber uses a `.plumber.yaml` configuration file to customize checks. See the [Configuration](#configuration) section for details.
-
-### Configuration File Format
+<Aside variant="tip">
+   See the [Configuration](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) section for full details.
+</Aside>
 
 ```yaml
 version: "1.0"
@@ -174,8 +249,6 @@ controls:
 
 ## Troubleshooting
 
-### Common Issues
-
 | Issue | Solution |
 |-------|----------|
 | `GITLAB_TOKEN environment variable is required` | Set the `GITLAB_TOKEN` environment variable with a valid GitLab token |
@@ -184,43 +257,6 @@ controls:
 | `404 Not Found` | Verify the project path and GitLab URL are correct |
 | Configuration file not found | Ensure the path to `.plumber.yaml` is correct (use absolute path in Docker) |
 
-### Getting Help
-
-- **GitHub Issues**: [https://github.com/getplumber/plumber/issues](https://github.com/getplumber/plumber/issues)
-- **Documentation**: [https://github.com/getplumber/plumber](https://github.com/getplumber/plumber)
-
-## Advanced Usage
-
-### Custom Configuration Path
-
-```bash
-./plumber analyze \
-  --gitlab-url https://gitlab.com \
-  --project mygroup/myproject \
-  --config /path/to/custom/.plumber.yaml \
-  --threshold 100
-```
-
-### Silent Mode (JSON Only)
-
-```bash
-./plumber analyze \
-  --gitlab-url https://gitlab.com \
-  --project mygroup/myproject \
-  --config .plumber.yaml \
-  --threshold 100 \
-  --output results.json \
-  --print false
-```
-
-### Analyzing Different Branches
-
-```bash
-# Analyze develop branch
-./plumber analyze \
-  --gitlab-url https://gitlab.com \
-  --project mygroup/myproject \
-  --branch develop \
-  --config .plumber.yaml \
-  --threshold 100
-```
+<Aside variant="info">
+  **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](https://discord.gg/932xkSU24f).
+</Aside>
