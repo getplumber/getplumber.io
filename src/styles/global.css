@@ -57,6 +57,7 @@
     /* Shiki syntax highlighting - GitHub Light theme for light mode */
     --astro-code-color-text: #24292f;
     --astro-code-color-background: #e8e8e8;
+    --astro-code-background: var(--astro-code-color-background); /* Alias for backward compatibility */
     --astro-code-token-constant: #0550ae;
     --astro-code-token-string: #0a3069;
     --astro-code-token-comment: #57606a;
@@ -114,6 +115,7 @@
     /* Shiki syntax highlighting - GitHub Dark theme for dark mode */
     --astro-code-color-text: #e6edf3;
     --astro-code-color-background: #0d1117;
+    --astro-code-background: var(--astro-code-color-background); /* Alias for backward compatibility */
     --astro-code-token-constant: #79c0ff;
     --astro-code-token-string: #a5d6ff;
     --astro-code-token-comment: #8b949e;
