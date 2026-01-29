@@ -1,14 +1,14 @@
 ---
-title: Local Podman
+title: Podman Local
 description: This page describes how to quickly setup a self-managed instance of Plumber for testing purposes using podman on your local computer.
 sidebar:
-  order: 8
-  label: Local Podman
+  order: 6
+  label: ➡️ Podman Local
 ---
 
 
 <Aside variant="info">
-This method is supported by [Plumber community](https://discord.r2devops.io/).
+This method is supported by [Plumber community](https://discord.getplumber.io/).
 </Aside>
 
 <Aside variant="caution">
@@ -17,15 +17,6 @@ This method is supported by [Plumber community](https://discord.r2devops.io/).
 This page describes how to quickly setup a self-managed instance of
 Plumber for **testing purposes** using podman on **your local
 computer**. This is not suitable for production
-
-    See production ready methods on [Home page](index)
-</Aside>
-
-<Aside variant="tip">
-**Data Confidentiality**
-
-During the analysis, **no data leaves your environment**, ensuring the
-confidentiality and security of your information.
 </Aside>
 
 ## 💻 Requirements
@@ -67,8 +58,8 @@ unqualified-search-registries = ["docker.io"]
 
    Clone the repository locally
    ```sh
-   git clone https://github.com/r2devops/self-managed.git r2devops
-   cd r2devops
+   git clone https://github.com/getplumber/platform.git plumber-platform
+   cd plumber-platform
    ```
 
    Create your configuration file
@@ -153,7 +144,7 @@ Follow these steps to update your self-managed instance to a new version:
 <Steps>
 
 1. Navigate to the location of your
-   [`self-managed`](https://github.com/r2devops/self-managed/) git repository
+   [`platform`](https://github.com/getplumber/platform/) git repository
 
 2. Update it
    ```sh

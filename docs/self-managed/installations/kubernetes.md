@@ -83,7 +83,7 @@ to connect it to your GitLab instance.
 
 This section describes how to configure your custom values file. The default
 `values.yaml` is available
-[here](https://github.com/r2devops/self-managed/blob/main/charts/r2devops/values.yaml).
+[here](https://github.com/getplumber/platform/blob/main/charts/plumber/values.yaml).
 An [example](#-configuration-example) is available at the end of this documentation.
 
 :::note

@@ -44,8 +44,8 @@ Preferences > Applications` (example:
 
 1. Clone the repository locally
    ```sh
-   git clone https://github.com/r2devops/self-managed.git r2devops
-   cd r2devops
+   git clone https://github.com/getplumber/platform.git plumber-platform
+   cd plumber-platform
    ```
 1. Create your configuration file
    ```sh
@@ -101,7 +101,7 @@ Preferences > Applications` (example:
 Follow these steps to update your self-managed instance to a new version:
 
 1. Navigate to the location of your
-   [`self-managed`](https://github.com/r2devops/self-managed/) git repository
+   [`platform`](https://github.com/getplumber/platform/) git repository
 1. Update it
    ```sh
    git pull

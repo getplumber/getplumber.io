@@ -7,9 +7,20 @@ sidebar_position: 1
 # Installation
 
 This section describes how to setup your self-managed instance of Plumber.
-To find out more about the application architecture, [read this](self-managed/infrastructure.mdx).
 
-Several methods are available.
+## Infrastructure
+
+The Plumber Infrastructure is composed of the following components:
+
+<div style={{maxWidth: "480px"}}>
+![Plumber infrastructure](./img/r2devops-containers.svg)
+</div>
+
+- **Plumber frontend**: the Plumber interface
+- **Plumber backend**: the Plumber backend and API
+- **Plumber worker**: used to run the tasks of asynchronous requests
+- **[PostgreSQL](https://github.com/postgres/postgres)**: used to store Plumber backend data
+- **[Redis](https://github.com/redis/redis)**: used to cache Plumber data and create tasks lists for workers
 
 ## Installation methods supported by Plumber
 

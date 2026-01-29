@@ -39,8 +39,8 @@ This page describes how to set up a self-managed instance of Plumber using
 
 1. Clone the repository on your server
    ```sh
-   git clone https://github.com/r2devops/self-managed.git r2devops
-   cd r2devops
+   git clone https://github.com/getplumber/platform.git plumber-platform
+   cd plumber-platform
    ```
 1. Create your configuration file
    ```sh
@@ -173,7 +173,7 @@ Did you encounter a problem during the installation process ? See the
 Follow these steps to update your self-managed instance to a new version:
 
 1. Navigate to the location of your
-   [`self-managed`](https://github.com/r2devops/self-managed/) git repository
+   [`platform`](https://github.com/getplumber/platform/) git repository
 1. Update it
    ```sh
    git pull
@@ -218,14 +218,14 @@ following command:
 ```
 
 The script will create a `backups` directory and create a backup archive inside
-it prefixed with the date (`backup_r2-$DATE`)
+it prefixed with the date (`backup_plumber-$DATE`)
 
 :::note[Regular backup]
 You can use a cron job to perform regular backups.
 Here is a cron job that launch a backup every day at 2am:
 
 ```bash
-0 2 * * * /r2devops/scripts/backup.sh 13
+0 2 * * * /plumber-platform/scripts/backup.sh 13
 ```
 
 It can be added to your crontab with the command `crontab -e`. Check more
@@ -242,8 +242,8 @@ To restore a backup from scratch on a new system, follow this process:
 1. Copy the backup file on your new server
 1. Clone the installation repository
    ```bash
-   git clone https://gitlab.com/r2devops/self-managed.git r2devops
-   cd r2devops/docker-compose
+   git clone https://github.com/getplumber/platform.git plumber-platform
+   cd plumber-platform
    ```
 1. If the IP address of your server changed from your previous installation,
    update your DNS records. See [section
