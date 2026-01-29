@@ -145,6 +145,6 @@ const finalNavData = getTranslatedData("navData", currLocale);
   // runs on initial page load
   initNav();
 
-  // runs on view transitions navigation. Not needed if item has "transition:persist"
+  // runs on view transitions navigation
   document.addEventListener("astro:after-swap", initNav);
 </script>

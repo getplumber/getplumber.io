@@ -20,24 +20,23 @@ const navConfig: navItem[] = [
     link: "/platform/",
   },
   {
-    text: "Docs",
-    dropdown: [
+    text: "Resources",
+    megaMenuColumns: [
       {
-        text: "Platform",
-        link: "/docs/getting-started",
+        title: "Documentation",
+        items: [
+          { text: "Platform", link: "/docs/getting-started" },
+          { text: "OpenSource CLI", link: "/docs/cli" },
+        ],
       },
       {
-        text: "OpenSource CLI",
-        link: "/docs/cli",
+        title: "Blog",
+        items: [{ text: "Blog", link: "/blog/" }],
       },
     ],
   },
   {
-    text: "Blog",
-    link: "/blog/",
-  },
-  {
-    text: "Community",
+    text: "Discord",
     link: "https://plumber.discord.io",
     newTab: true,
   },

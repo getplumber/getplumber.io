@@ -18,8 +18,10 @@ import { locales } from "@config/siteSettings.json";
 const docsMenuItem = await generateDocsMenuItems();
 const finalNavData = [...navData]; // Create a copy to avoid mutating the original
 
-// Check if Docs menu already exists
-const docsMenuExists = finalNavData.some((item) => item.text === "Docs");
+// Check if Docs menu or Resources (containing docs) already exists
+const docsMenuExists =
+  finalNavData.some((item) => item.text === "Docs") ||
+  finalNavData.some((item) => item.text === "Resources");
 
 // Add docs menu to navData if it doesn't already exist
 if (!docsMenuExists) {

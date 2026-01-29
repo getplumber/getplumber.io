@@ -162,9 +162,9 @@
     @apply text-base-700 dark:text-base-300 md:text-lg;
   }
 
-  /* styles navbar links */
+  /* styles navbar links - no transition so no color animation on hover/focus */
   .nav__link--base {
-    @apply text-base-900 hover:text-base-600 dark:text-base-200/90 dark:hover:text-base-50 leading-tight transition;
+    @apply text-base-900 hover:text-base-600 dark:text-base-200/90 dark:hover:text-base-50 leading-tight;
   }
 
   .site-container {

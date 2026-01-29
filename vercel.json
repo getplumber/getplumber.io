@@ -1,19 +1,20 @@
 {
-  "rewrites": [
-    {
-      "source": "/js/script.js",
-      "destination": "https://plausible.io/js/pa-FjBxSSyV_Pp4KTEJXiVfW.js"
-    },
-    {
-      "source": "/api/event",
-      "destination": "https://plausible.io/api/event"
-    }
-  ],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
       "source": "/admin",
       "destination": "/keystatic",
       "permanent": true
+    },
+    {
+      "source": "/js/script.js",
+      "destination": "https://plausible.io/js/pa-FjBxSSyV_Pp4KTEJXiVfW.js",
+      "statusCode": 200
+    },
+    {
+      "source": "/api/event",
+      "destination": "https://plausible.io/api/event",
+      "statusCode": 200
     }
   ]
 }

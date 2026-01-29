@@ -29,7 +29,7 @@ const isDropdownActive =
 <div class="nav__dropdown group relative" data-hover-dropdown="true">
   <button
     class:list={[
-      "primary-focus nav__dropdown-button hidden w-full items-center gap-1 px-4 py-1.5 whitespace-nowrap md:flex",
+      "primary-focus nav__dropdown-button nav__dropdown-button--no-transition hidden w-full items-center gap-1 px-4 py-1.5 whitespace-nowrap md:flex",
       {
         "nav__link--base": !isDropdownActive,
         "text-primary-600 dark:text-primary-400": isDropdownActive,
@@ -54,7 +54,7 @@ const isDropdownActive =
     data-state="closed"
     class:list={[
       "nav__dropdown-content absolute top-full left-0 z-10 pt-1 transition-all",
-      "slide-in-from-top-2 fade-in-0 animate-in hidden will-change-transform",
+      "fade-in-0 animate-in hidden will-change-transform",
       "data-[state=closed]:fade-out-0 data-[state=closed]:animate-out",
     ]}
   >
@@ -205,6 +205,12 @@ const isDropdownActive =
 	// runs on view transitions navigation
 	document.addEventListener("astro:after-swap", dropdownToggleSetup);
 </script> -->
+
+<style>
+  .nav__dropdown-button--no-transition {
+    transition: none !important;
+  }
+</style>
 
 <!-- <style>
 	@import "tailwindcss/theme" theme(reference);

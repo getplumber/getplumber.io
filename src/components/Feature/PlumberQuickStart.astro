@@ -1,9 +1,34 @@
 ---
 /**
- * * Quick Start CTA section
- * Based on Cta3.astro design
+ * * Quick Start CTA section with 3 steps
+ * Based on Cta3.astro design; steps use FeatureCardLarge like PlumberFeatures
  */
 import Button from "@components/Button/Button.astro";
+import FeatureCard from "@components/FeatureCard/FeatureCardLarge.astro";
+
+interface StepData {
+  icon: string;
+  title: string;
+  text: string;
+}
+
+const steps: StepData[] = [
+  {
+    icon: "tabler/terminal-2",
+    title: "Setup Plumber in your GitLab project",
+    text: "Add the Plumber component to your pipeline and configure controls (registries, branch protection, etc.).",
+  },
+  {
+    icon: "tabler/player-play",
+    title: "Run your CI/CD pipeline",
+    text: "Plumber runs as part of your pipeline and scans your CI configuration and job definitions.",
+  },
+  {
+    icon: "tabler/file-text",
+    title: "Get your compliance report",
+    text: "View results in the job output or download the report artifact for audit and remediation.",
+  },
+];
 ---
 
 <section
@@ -21,17 +46,33 @@ import Button from "@components/Button/Button.astro";
         Get started in minutes
       </h2>
       <p
-        class="description mt-6"
+        class="description mt-6 max-w-2xl"
         data-mos="fade-up"
         data-mos-delay="0.2"
         data-mos-anchor="#plumber-cta"
       >
         Set up Plumber in your GitLab CI/CD pipeline with just a few simple steps.
       </p>
+
+      <div class="mt-12 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+        {
+          steps.map((step, idx) => (
+            <FeatureCard
+              title={step.title}
+              text={step.text}
+              icon={step.icon}
+              data-mos="fade-up"
+              data-mos-delay={`${idx * 0.15 + 0.25}`}
+              data-mos-anchor="#plumber-cta"
+            />
+          ))
+        }
+      </div>
+
       <div
         class="mt-12 flex justify-start"
         data-mos="fade-up"
-        data-mos-delay="0.3"
+        data-mos-delay="0.7"
         data-mos-anchor="#plumber-cta"
       >
         <Button variant="outline" href="/docs/cli/" arrow="right"> View CLI Documentation </Button>

@@ -8,16 +8,13 @@ import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 
 const features: string[] = [
-  "Your CI/CD mapped and fully monitored — No more blind spots",
+  "Your CI/CD mapped and fully monitored",
   "90% less manual effort to make CI/CD secured & compliant",
   "Always audit-ready",
-  "Plug & Play — No friction for your tech teams",
-  "GitLab Partner and backed by certified integrators",
-  "Privacy respected with Self-Hosted Instance",
 ];
 ---
 
-<section id="atPlumber" class=" relative overflow-hidden">
+<section id="howitworks" class=" relative overflow-hidden">
   <!-- Text and image -->
   <div
     class="dark:bg-primary-500/30 bg-primary-300 absolute top-0 left-0  mx-auto aspect-square w-full max-w-7xl -translate-x-2/3 -translate-y-1/2 rounded-full blur-[100px]"
@@ -35,9 +32,9 @@ const features: string[] = [
 
     <!-- center content -->
     <div class="site-container mx-auto">
-      <p class="from-primary-300 to-primary-500 dark:from-primary-400 dark:to-primary-200 bg-gradient-to-r bg-clip-text text-lg text-transparent  inline" data-mos="fade-up" data-mos-anchor="#atPlumber">At Plumber</p>
-      <h2 class="h2 mt-8 text-base-100 dark:text-base-100" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#atPlumber">
-        We made an AI-powered platform that <span class="dark:text-primary-500 text-primary-300">maps</span>, <span
+      <p class="from-primary-300 to-primary-500 dark:from-primary-400 dark:to-primary-200 bg-gradient-to-r bg-clip-text text-lg text-transparent  inline" data-mos="fade-up" data-mos-anchor="#howitworks">How it works</p>
+      <h2 class="h2 mt-8 text-base-100 dark:text-base-100" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#howitworks">
+        Plumber is an AI-powered platform that <span class="dark:text-primary-500 text-primary-300">maps</span>, <span
           class="dark:text-primary-500">audits</span
         >, and <span class="dark:text-primary-500 text-primary-300">remediates</span>
         CI/CD compliance gaps — Continously
@@ -49,7 +46,7 @@ const features: string[] = [
               class="flex items-center"
               data-mos="fade-up"
               data-mos-delay={`${idx * 0.1 + 0.2}`}
-              data-mos-anchor="#atPlumber"
+              data-mos-anchor="#howitworks"
             >
 
               <span class="inline">
@@ -67,7 +64,7 @@ const features: string[] = [
         class="mt-6 max-w-4xl"
         data-mos="fade-up"
         data-mos-delay="0.8"
-        data-mos-anchor="#atPlumber"
+        data-mos-anchor="#howitworks"
       >
         <Image
           src={dashboard}
