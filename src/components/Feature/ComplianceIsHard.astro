@@ -1,7 +1,5 @@
 ---
-import FeatureCard from "@components/FeatureCard/FeatureCardSideImage.astro";
 import illustration from "@images/proving-compliance.svg";
-import { Image } from "astro:assets";
 ---
 
 <section id="complianceIsHard" class="my-24 overflow-clip md:my-36">
@@ -31,10 +29,10 @@ import { Image } from "astro:assets";
                 after:absolute after:rounded-[calc(1rem-1px)] after:bg-base-100/30 dark:after:bg-base-800/50 after:inset-[1px]`
                 data-mos=`fade-right`
               > -->
-          <Image
+          <img
             class="relative z-10 w-full rounded-2xl border border-transparent object-cover"
-            src={illustration}
-            alt={"Ensuring CI/CD compliance is hard. Proving it is even harder."}
+            src={typeof illustration === "string" ? illustration : illustration.src}
+            alt="Ensuring CI/CD compliance is hard. Proving it is even harder."
             width={300}
             data-mos="fade-left"
             data-mos-anchor="#complianceIsHard"

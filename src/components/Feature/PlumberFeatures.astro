@@ -3,6 +3,7 @@
  * * Feature cards showcasing Plumber capabilities
  * Based on Feature2.astro but customized for Plumber
  */
+import Button from "@components/Button/Button.astro";
 import FeatureCard from "@components/FeatureCard/FeatureCardLarge.astro";
 
 interface FeatureData {
@@ -67,12 +68,14 @@ const featureData: FeatureData[] = [
         ))
       }
     </div>
-    <div         data-mos="fade-up"
-    data-mos-delay="2"  class="mt-4 text-center">
 
-      <a class="text-center text-primary-400 hover:text-primary-200" href="/docs/use-plumber/controls">
-        And more...
-      </a>
-    </div>
+    <div
+    class="mt-12 flex justify-start"
+    data-mos="fade-up"
+    data-mos-delay="0.7"
+    data-mos-anchor="#plumber-cta"
+  >
+    <Button variant="outline" href="/docs/use-plumber/controls" arrow="right"> And more</Button>
+  </div>
   </div>
 </section>
