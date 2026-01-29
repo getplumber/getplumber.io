@@ -63,9 +63,13 @@
     @apply text-foreground/85 font-medium md:text-lg;
   }
 
-  /* anchor tags */
+  /* anchor tags — signature blue, no underline */
   .docs-markdown-content a:not(:where(.not-content, .not-content *)) {
-    @apply text-foreground decoration-primary hover:decoration-primary/80 font-medium underline underline-offset-2 transition-colors;
+    color: var(--docs-link);
+    @apply font-medium no-underline transition-colors;
+  }
+  .docs-markdown-content a:not(:where(.not-content, .not-content *)):hover {
+    color: var(--docs-link-hover);
   }
 
   /* code */

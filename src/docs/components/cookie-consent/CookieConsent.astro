@@ -58,7 +58,7 @@ const currLocale = getLocaleFromUrl(Astro.url);
     acceptButton?.addEventListener("click", () => {
       cookieBanner?.classList.add("hidden");
       setConsentCookie("accept", 365);
-      const enable = (window as Record<string, unknown>)["enablePlausibleAnalytics"];
+      const enable = (window as unknown as Record<string, unknown>)["enablePlausibleAnalytics"];
       if (typeof enable === "function") (enable as () => void)();
     });
 
