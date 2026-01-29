@@ -100,22 +100,13 @@ import interVariable from "@fontsource-variable/inter/files/inter-latin-wght-nor
 <!-- no fallback as I saw issues with firefox fallback -->
 {siteSettings.useViewTransitions && <ClientRouter fallback="none" />}
 
-<!-- Plausible Analytics -->
+<!-- Plausible Analytics (proxy per https://plausible.io/docs/proxy/guides/vercel) -->
 <script async src="/js/script.js"></script>
 <script is:inline>
   /* eslint-disable @typescript-eslint/no-unused-expressions, prefer-rest-params */
-  ((window.plausible =
-    window.plausible ||
-    function () {
-      (plausible.q = plausible.q || []).push(arguments);
-    }),
-    (plausible.init =
-      plausible.init ||
-      function (i) {
-        plausible.o = i || {};
-      }));
-  /* eslint-enable @typescript-eslint/no-unused-expressions, prefer-rest-params */
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
   plausible.init({
-    endpoint: "/api/event",
-  });
+    endpoint: "/api/event"
+  })
+  /* eslint-enable @typescript-eslint/no-unused-expressions, prefer-rest-params */
 </script>
