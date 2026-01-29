@@ -9,13 +9,11 @@
     {
       "source": "/js/script.js",
       "destination": "https://plausible.io/js/pa-FjBxSSyV_Pp4KTEJXiVfW.js",
-      "permanent": false,
       "statusCode": 200
     },
     {
       "source": "/api/event",
       "destination": "https://plausible.io/api/event",
-      "permanent": false,
       "statusCode": 200
     }
   ]
