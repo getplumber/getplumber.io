@@ -1,7 +1,9 @@
 name: Deploy Production
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Lint"]
+    types: [completed]
     branches:
       - main
       - master
@@ -9,10 +11,13 @@ on:
 jobs:
   deploy-production:
     name: Deploy to Production
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
