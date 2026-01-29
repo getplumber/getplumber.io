@@ -1,16 +1,132 @@
 ---
-// main layout
-import ContactForm from "@components/Forms/ContactForm.astro";
+import Button from "@components/Button/Button.astro";
 import BaseLayout from "@layouts/BaseLayout.astro";
+
+const CALENDLY_URL =
+  "https://calendly.com/aurelien-r2devops/ensure-compliance-for-your-cicd-pipelines";
+const CONTACT_EMAIL = "contact@getplumber.io";
 ---
 
 <BaseLayout
   title="Contact Us"
-  description="Contact us and we will help you find the right plan or answer any questions."
+  description="Get in touch by email or book a meeting to discuss CI/CD compliance for your pipelines."
 >
   <div class="mt-24 md:mt-36">
-    <div class="site-container flex justify-center">
-      <ContactForm />
+    <div class="site-container">
+      <!-- Intro -->
+      <header class="mx-auto max-w-2xl text-center">
+        <h1 class="h1">Contact us</h1>
+        <p class="description mt-4">
+          Choose how you’d like to get in touch: send us an email or book a call directly.
+        </p>
+      </header>
+
+      <!-- Two choices: Email & Book a meeting -->
+      <div
+        class="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-2"
+        data-mos="fade-up"
+        data-mos-anchor="body"
+      >
+        <a
+          href={`mailto:${CONTACT_EMAIL}`}
+          class="group flex flex-col rounded-xl border border-base-300 bg-base-50 p-8 transition hover:border-primary-500 hover:shadow-lg dark:border-base-600 dark:bg-base-800/50 dark:hover:border-primary-400"
+        >
+          <span
+            class="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100 text-primary-600 dark:bg-primary-700/40 dark:text-primary-300"
+            aria-hidden="true"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+          </span>
+          <h2 class="mt-4 text-xl font-semibold text-base-900 dark:text-base-100">
+            Email us
+          </h2>
+          <p class="mt-2 text-base-600 dark:text-base-400">
+            Send a message to{" "}
+            <span class="font-medium text-primary-600 dark:text-primary-400">{CONTACT_EMAIL}</span>
+          </p>
+          <span
+            class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary-600 transition group-hover:gap-2 dark:text-primary-400"
+          >
+            Open mail client
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </a>
+
+        <a
+          href="#calendly-embed"
+          class="group flex flex-col rounded-xl border border-base-300 bg-base-50 p-8 transition hover:border-primary-500 hover:shadow-lg dark:border-base-600 dark:bg-base-800/50 dark:hover:border-primary-400"
+        >
+          <span
+            class="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100 text-primary-600 dark:bg-primary-700/40 dark:text-primary-300"
+            aria-hidden="true"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </span>
+          <h2 class="mt-4 text-xl font-semibold text-base-900 dark:text-base-100">
+            Book a meeting
+          </h2>
+          <p class="mt-2 text-base-600 dark:text-base-400">
+            Schedule a call to discuss compliance for your CI/CD pipelines.
+          </p>
+          <span
+            class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary-600 transition group-hover:gap-2 dark:text-primary-400"
+          >
+            Choose a time below
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </span>
+        </a>
+      </div>
+
+      <!-- Calendly embed -->
+      <section
+        id="calendly-embed"
+        class="mt-16 scroll-mt-24 md:mt-24 md:scroll-mt-36"
+        data-mos="fade-up"
+        data-mos-anchor="body"
+        data-mos-delay="0.1"
+      >
+        <h2 class="sr-only">Book a meeting</h2>
+        <div class="overflow-hidden rounded-xl border border-base-300 bg-base-50 dark:border-base-600 dark:bg-base-200/30">
+          <iframe
+            title="Schedule a meeting with Plumber"
+            src={`${CALENDLY_URL}?hide_landing_page_details=1`}
+            width="100%"
+            height="700"
+            class="min-h-[700px] border-0"
+            loading="lazy"
+          />
+        </div>
+      </section>
     </div>
   </div>
 </BaseLayout>
