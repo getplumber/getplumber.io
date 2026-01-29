@@ -4,48 +4,31 @@
 
 **A modern website for Plumber (open-source CI/CD compliance CLI), built with Astro, Tailwind CSS, and React.**
 
----
+### Summary of this README
 
-## 📑 Index
-
-### Site routes
-
-| Route | Description |
-|-------|-------------|
-| `/` | Homepage |
-| `/platform` | Platform product page |
-| `/contact` | Contact page |
-| `/blog` | Blog listing |
-| `/blog/archive` | Blog archive |
-| `/blog/[...]` | Blog posts (e.g. `/blog/releases/2.17`, `/blog/tj-actions-compromised`) |
-| `/categories` | Categories index |
-| `/categories/[category]` | Category pages (e.g. `/categories/cicd`) |
-| `/docs` | Documentation home |
-| `/docs/[...]` | Documentation pages (e.g. `/docs/getting-started`, `/docs/installation/docker-compose`) |
-| `/elements` | UI elements showcase (from content) |
-| `/privacy-policy` | Privacy policy (from content) |
-| `/terms-of-use` | Terms of use (from content) |
-| `/404` | Not found page |
-| `/rss.xml` | RSS feed |
-
-### Documentation (in-app)
-
-- **Getting started** — `src/docs/data/docs/en/getting-started/`
-- **Installation** — `installation/` (index, docker-compose, docker-compose-local, kubernetes, podman, podman-local, reference, troubleshooting)
-- **CLI** — `cli/` (index, gitlab-component)
-- **Use Plumber** — `use-plumber/` (controls, issues, register-templates, roles-permissions)
-- **Components** — `components/` (Aside, Badge, Button, Steps, Tabs — MDX reference)
-- **Reference** — `reference/` (elements, frontmatter-reference, nav-config, sidebar-navigation, site-settings)
-- **Authentication** — `authentication/overview`
-- **Ambassador program** — `ambassador-program.mdx`
-- **Tutorials** — `tutorials/advanced-techniques`
-
-### Content & config
-
-- **Blog content** — `src/data/blog/en/` (releases, articles)
-- **Authors** — `src/data/authors/`
-- **Other pages** — `src/data/otherPages/en/` (elements, privacy-policy, terms-of-use)
-- **Site config** — `src/config/` (siteData, navData, siteSettings, translationData)
+| Section |
+|--------|
+| [Summary](#-summary) |
+| [Quick Start](#-quick-start) |
+| [Architecture & Technology Stack](#️-architecture--technology-stack) |
+| [Project Structure](#-project-structure) |
+| [Creating Content](#️-creating-content) |
+| [Creating Documentation Articles](#-creating-documentation-articles) |
+| [Creating Custom Pages](#-creating-custom-pages) |
+| [Component Patterns](#-component-patterns) |
+| [Styling & Theming](#-styling--theming) |
+| [Search Configuration](#-search-configuration) |
+| [Internationalization (i18n)](#-internationalization-i18n) |
+| [Content Management (Keystatic CMS)](#-content-management-keystatic-cms) |
+| [Deployment](#-deployment) |
+| [Development Tips](#️-development-tips) |
+| [Content Collections API](#-content-collections-api) |
+| [Configuration Files](#-configuration-files) |
+| [Testing Locally](#-testing-locally) |
+| [Additional Resources](#-additional-resources) |
+| [Contributing](#-contributing) |
+| [License](#-license) |
+| [Support](#-support) |
 
 ---
 
@@ -679,7 +662,7 @@ Search is powered by Pagefind, built during the production build.
 
 **Building search index:**
 ```bash
-npm run build  # Automatically runs pagefind
+npm run build  # Runs pagefind and copies index into Vercel output for deployed search
 ```
 
 ---
@@ -921,7 +904,7 @@ npm run dev
 - **Plumber CLI**: Open-source GitLab CI/CD compliance tool
 - **Plumber Platform**: Full-featured compliance and security platform
 - **Discord Community**: Join for support and discussions
-- **Support Email**: support@plumber.dev
+- **Support Email**: hello@getplumber.io
 
 ### Framework Documentation
 
