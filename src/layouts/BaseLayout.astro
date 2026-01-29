@@ -52,8 +52,8 @@ const currLocale = getLocaleFromUrl(Astro.url);
     />
   </head>
   <body id="body" class="">
-    <!-- put cookie consent first so it is seen first by screen readers -->
-    <CookieConsent />
+    <!-- Cookie consent disabled: Plausible is cookieless, no banner required -->
+    <!-- <CookieConsent /> -->
     <div class="min-h-[100lvh]">
       <Nav />
       <main class="" data-pagefind-ignore>
