@@ -51,12 +51,14 @@ const features: string[] = [
               data-mos-delay={`${idx * 0.1 + 0.2}`}
               data-mos-anchor="#atPlumber"
             >
-              <Icon
+
+              <span class="inline">
+                <Icon
                 name="tabler/check"
-                class="text-primary-300 dark:text-primary-400 h-5 w-5"
+                class="text-primary-300 dark:text-primary-400 h-5 w-5 inline-block -mt-1"
                 aria-hidden="true"
               />
-              <span class="ml-2 inline">{feature}</span>
+                {feature}</span>
             </li>
           ))
         }
