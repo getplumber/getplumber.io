@@ -14,10 +14,21 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 
 ## Quick Start (GitLab.com)
 
+<Aside variant="info">
+  These instructions are for projects hosted on **gitlab.com**. For self-hosted GitLab instances, see [Self-Hosted GitLab](#self-hosted-gitlab) below.
+</Aside>
+
 <Steps>
 1. **Create a GitLab token**
 
-   Create a token with `read_api` + `read_repository` scopes and add it as `GITLAB_TOKEN` in **Settings → CI/CD → Variables** (masked & protected recommended).
+   - In GitLab, go to **User Settings → Access Tokens** ([or create one here](https://gitlab.com/-/user_settings/personal_access_tokens))
+   - Create a Personal Access Token with `read_api` + `read_repository` scopes
+   - Go to your project's **Settings → CI/CD → Variables**
+   - Add the token as `GITLAB_TOKEN` (masked recommended)
+
+   <Aside variant="tip">
+     You can also use a project or group access token if you prefer scoped permissions.
+   </Aside>
 
 2. **Add to your pipeline**
 
@@ -30,7 +41,7 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 
 3. **Run your pipeline**
 
-   Plumber will automatically analyze your CI/CD pipeline for compliance issues.
+   Plumber will now run on every pipeline (default branch, tags, and open merge requests) and report compliance issues.
 </Steps>
 
 <Aside variant="tip">
@@ -63,6 +74,7 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
 
        In your imported project:
        - Go to **Settings → General**
+       - Make sure the project has a **description** (required for CI/CD Catalog)
        - Expand **Visibility, project features, permissions**
        - Scroll down and toggle **CI/CD Catalog resource** to enabled
        - Click **Save changes**
@@ -74,7 +86,19 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
        - Click **Create tag**
        - The pipeline will create a release and publish the component to your instance's CI/CD Catalog
 
-    4. **Use the component in your pipelines**
+    4. **Create a GitLab token**
+
+       In the project you want to scan:
+       - Go to **User Settings → Access Tokens** on your GitLab instance
+       - Create a Personal Access Token with `read_api` + `read_repository` scopes
+       - Go to the project's **Settings → CI/CD → Variables**
+       - Add the token as `GITLAB_TOKEN` (masked recommended)
+
+       <Aside variant="tip">
+         You can also use a project or group access token if you prefer scoped permissions.
+       </Aside>
+
+    5. **Use the component in your pipelines**
 
        ```yaml
        include:
