@@ -7,6 +7,7 @@ import compress from "@playform/compress";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, sharpImageService } from "astro/config";
 import AutoImport from "astro-auto-import";
+import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
 
 // https://astro.build/config
@@ -51,6 +52,7 @@ export default defineConfig({
         "@/docs/components/mdx-components/TabsTrigger.astro",
       ],
     }),
+    expressiveCode(),
     mdx(),
     react(),
     icon(),
