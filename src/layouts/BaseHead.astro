@@ -100,32 +100,10 @@ import interVariable from "@fontsource-variable/inter/files/inter-latin-wght-nor
 <!-- no fallback as I saw issues with firefox fallback -->
 {siteSettings.useViewTransitions && <ClientRouter fallback="none" />}
 
-<!-- Plausible Analytics: loaded only after user consent (GDPR/CNIL). Proxy: https://plausible.io/docs/proxy/guides/vercel -->
+<!-- Plausible Analytics (cookieless; proxy per https://plausible.io/docs/proxy/guides/vercel) -->
+<script async src="/js/script.js"></script>
 <script is:inline>
-  (function () {
-    function getAnalyticsConsent() {
-      try {
-        const m = document.cookie.match(/cookie-consent=([^;]+)/);
-        return m ? m[1] : null;
-      } catch (_) {
-        return null;
-      }
-    }
-    window.plausible = window.plausible || function (...args) { (plausible.q = plausible.q || []).push(args); };
-    plausible.init = plausible.init || function (i) { plausible.o = i || {}; };
-    window.enablePlausibleAnalytics = function () {
-      if (window.__plausibleLoaded) return;
-      window.__plausibleLoaded = true;
-      const s = document.createElement("script");
-      s.async = true;
-      s.src = "/js/script.js";
-      s.onload = function () {
-        plausible.init({ endpoint: "/api/event" });
-      };
-      document.head.appendChild(s);
-    };
-    if (getAnalyticsConsent() === "accept") {
-      window.enablePlausibleAnalytics();
-    }
-  })();
+  window.plausible = window.plausible || function (...args) { (plausible.q = plausible.q || []).push(args); };
+  plausible.init = plausible.init || function (i) { plausible.o = i || {}; };
+  plausible.init({ endpoint: "/api/event" });
 </script>
