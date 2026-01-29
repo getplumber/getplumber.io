@@ -48,19 +48,10 @@ const currLocale = getLocaleFromUrl(Astro.url);
         <span class="docs-text-gradient">Pathfinder</span>
       </h1>
     </div>
-    <p class="text-muted-foreground mb-8 text-lg text-pretty md:text-xl">
-      Hero description
-    </p>
+    <p class="text-muted-foreground mb-8 text-lg text-pretty md:text-xl">Hero description</p>
     <div class="flex flex-wrap items-center justify-center gap-4">
-      <Button
-        href={`/${docsRoute}/getting-started`}
-        variant="secondary"
-      >
-        Get Started
-      </Button>
-      <Button href={`/${docsRoute}/components`} variant="ghost">
-        Components
-      </Button>
+      <Button href={`/${docsRoute}/getting-started`} variant="secondary"> Get Started </Button>
+      <Button href={`/${docsRoute}/components`} variant="ghost"> Components </Button>
     </div>
   </div>
 </div>

@@ -57,7 +57,7 @@ const { class: className } = Astro.props;
 
   /* Style headings within steps */
   .docs-steps li :is(h3, h4) {
-    @apply font-heading text-base font-semibold md:text-lg mt-0 mb-2;
+    @apply font-heading mt-0 mb-2 text-base font-semibold md:text-lg;
     /* Reset default heading margins since we're in a list item */
     margin-top: 0;
     /* Ensure headings don't break the step layout */

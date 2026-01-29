@@ -1,0 +1,75 @@
+---
+title: GitLab Integration & Permissions
+description: Learn about roles and permissions in Plumber.
+sidebar:
+  order: 4
+  label: Roles & Permissions
+---
+
+## 👥 Roles
+
+### Admin
+
+<Aside variant="info">
+**Onboarding Requirement**
+
+To complete the Plumber onboarding process after installation, the user must have **Admin** access as defined below.
+</Aside>
+
+- Admins have the highest level of access on the platform. They can manage authorized maintainers, configure policies, and have full control over settings.
+- **Who is Admin**:
+    - If your **Plumber instance** is connected to an entire **GitLab self-managed instance**: any GitLab instance Admin.
+    - If your **Plumber instance** is connected to a **GitLab group**: any user at least Maintainer in the root group.
+
+### Maintainer
+
+- Maintainers can manage projects, configure settings and policies, and run analysis if an organization token is set. They have significant control but cannot manage authorized maintainers.
+- **Who is Maintainer**: any user (starting from `Guest` level) from a group manually added in the `Settings > Authorization` page.
+
+### Member
+
+- Members can view filtered analyses based on their rights on GitLab projects.
+- **Who is Member**:
+    - If your **Plumber instance** is connected to an entire **GitLab self-managed instance**: any user logged into the GitLab instance.
+    - If your **Plumber instance** is connected to a **GitLab group**: any user between Guest and Developer (included) in the root group.
+
+### No one
+
+- This role has no permissions and cannot perform any actions on the platform.
+- **Who is No one**: any user not in the previously described roles.
+
+## 🔒 Permissions
+
+| Permission                            | Admin | Maintainer | Member | No one |
+|---------------------------------------|-------|------------|--------|--------|
+| Read policies compliance              | ✅    | ✅         | ✅     | ❌     |
+| Read projects compliance              | ✅    | ✅         | 🟡     | ❌     |
+| Read issues                           | ✅    | ✅         | 🟡     | ❌     |
+| Read inventory                        | ✅    | ✅         | 🟡     | ❌     |
+| Read settings                         | ✅    | ✅         | 🟡     | ❌     |
+| Edit policies                         | ✅    | ✅         | ❌     | ❌     |
+| Edit issues                           | ✅    | ✅         | ❌     | ❌     |
+| Edit settings                         | ✅    | ✅         | ❌     | ❌     |
+| Run new analysis                      | ✅    | ✅         | ❌     | ❌     |
+| Edit authorized maintainers settings  | ✅    | ❌         | ❌     | ❌     |
+
+🟡 : access filtered on projects and groups that users can read on GitLab
+
+## 🔑 GitLab Token Configuration
+
+Plumber uses GitLab tokens to communicate with your GitLab instance:
+- To run analysis, it uses the **Access Token** added in `Settings > Organization > Analysis Token`
+- To run all other queries, it uses the **OIDC Token** of the currently logged-in user
+
+To create the **Access Token**:
+- The token should be a Personal Access Token, ideally linked to a Service Account (not a human)
+- If your **Plumber instance** is connected to an entire **GitLab self-managed instance**
+    - If [Admin Mode](https://docs.gitlab.com/administration/settings/sign_in_restrictions/#admin-mode) is NOT enabled on your instance
+        - Option 1: the token owner must be **Admin** and the token scope must be **`api`**
+        - Option 2: the token owner must be **Maintainer** of all root groups and the token scope must be **`api`**
+    - If [Admin Mode](https://docs.gitlab.com/administration/settings/sign_in_restrictions/#admin-mode) is enabled on your instance
+        - Option 1: the token owner must be **Admin** and the token scope must be **`api`** and **`admin_mode`**
+        - Option 2: the token owner must be **Maintainer** of all root groups and the token scope must be **`api`**
+- If your **Plumber instance** is connected to a **GitLab group**
+    - The token owner must be **Maintainer** of the root group and the token scope must be **`api`**
+

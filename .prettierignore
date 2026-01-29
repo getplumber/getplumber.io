@@ -10,8 +10,8 @@ node_modules
 netlify 
 
 # Ignore MDX files as Keystatic expects a specific JSX component structure
-# IF using Keystatic, I recommend uncommenting the below line so you don't accidentally format things incorrectly
-# **/*.mdx
+# Prettier has known issues with MDX formatting that can break indentation in JSX components
+**/*.mdx
 
 # Ignore tours
 .tours

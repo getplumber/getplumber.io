@@ -29,6 +29,7 @@ import { slugify } from "@/js/textUtils";
  */
 export async function getAllPosts(
   lang?: (typeof locales)[number],
+  excludeArchivedReleases?: boolean,
 ): Promise<CollectionEntry<"blog">[]> {
   const posts = await getCollection("blog", ({ data }) => {
     // filter out draft posts
@@ -44,6 +45,12 @@ export async function getAllPosts(
   } else {
     // console.log("no language passed, returning all posts");
     filteredPosts = posts;
+  }
+
+  // filter out archived Plumber release posts if excludeArchivedReleases is true
+  // (new Plumber releases will still appear)
+  if (excludeArchivedReleases) {
+    filteredPosts = filteredPosts.filter((post) => !isArchivedReleasePost(post));
   }
 
   // filter out future posts and sort by date
@@ -120,6 +127,53 @@ export function formatPosts(
   }
 
   return filteredPosts;
+}
+
+// --------------------------------------------------------
+/**
+ * * returns true if the post is an archived Plumber release post (in releases/ subdirectory)
+ * @param post: CollectionEntry<"blog">
+ * @returns true if the post is an archived release post, false if not
+ */
+export function isArchivedReleasePost(post: CollectionEntry<"blog">): boolean {
+  // Check if post ID starts with "releases/" - these are the old Plumber releases
+  return post.id.startsWith("releases/");
+}
+
+// --------------------------------------------------------
+/**
+ * * get all archived Plumber release posts in a formatted array
+ * @param lang: string (optional) - language to filter by (matching a locale in i18nUtils.ts)
+ * @returns all archived release blog posts, filtered for drafts, sorted by date, future posts removed, locale removed from slug, and filtered by language if passed
+ */
+export async function getAllArchivedReleasePosts(
+  lang?: (typeof locales)[number],
+): Promise<CollectionEntry<"blog">[]> {
+  const posts = await getCollection("blog", ({ data }) => {
+    // filter out draft posts
+    return data.draft !== true;
+  });
+
+  // if a language is passed, filter the posts by that language
+  let filteredPosts: CollectionEntry<"blog">[];
+  if (lang) {
+    filteredPosts = filterCollectionByLanguage(posts, lang) as CollectionEntry<"blog">[];
+  } else {
+    filteredPosts = posts;
+  }
+
+  // filter to only archived release posts (old Plumber releases)
+  filteredPosts = filteredPosts.filter((post) => isArchivedReleasePost(post));
+
+  // filter out future posts and sort by date
+  const formattedPosts = formatPosts(filteredPosts, {
+    filterOutFuturePosts: true,
+    sortByDate: true,
+    limit: undefined,
+    removeLocale: true,
+  });
+
+  return formattedPosts;
 }
 
 // --------------------------------------------------------

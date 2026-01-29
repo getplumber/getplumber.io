@@ -8,5 +8,12 @@
       "source": "/api/event",
       "destination": "https://plausible.io/api/event"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/admin",
+      "destination": "/keystatic",
+      "permanent": true
+    }
   ]
 }

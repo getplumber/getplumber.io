@@ -11,7 +11,7 @@ const sidebarNavData: DocsSidebarNavData = {
   tabs: [
     {
       id: "main",
-      title: "Documentation",
+      title: "Platform",
       description: "Main documentation",
       icon: "tabler/file-text",
       // Ordered list of sidebar sections for the 'main' tab
@@ -26,14 +26,14 @@ const sidebarNavData: DocsSidebarNavData = {
           title: "Installation",
         },
         {
-          id: "use-r2devops",
-          title: "Use R2Devops",
+          id: "use-plumber",
+          title: "Use Plumber",
         },
       ],
     },
     {
       id: "api",
-      title: "CLI Reference",
+      title: "OpenSource CLI",
       description: "CLI documentation",
       icon: "tabler/terminal-2",
       // Ordered list of sidebar sections for the 'api' tab
@@ -42,10 +42,8 @@ const sidebarNavData: DocsSidebarNavData = {
           id: "cli",
           title: "CLI",
         },
-
       ],
     },
-   
   ],
 };
 

@@ -1,0 +1,186 @@
+---
+title: "GitLab Component"
+description: "Use Plumber as a GitLab CI/CD component for automated compliance checks"
+sidebar:
+  label: "GitLab Component"
+  order: 2
+section: "api"
+---
+import { Icon } from "astro-icon/components";
+
+The Plumber GitLab Component lets you add compliance scanning directly to your GitLab CI/CD pipelines with a single line of configuration.
+
+<Button variant="outline" class="!border-base-900 dark:!border-base-100 hover:!border-primary-500/90 dark:hover:!border-primary-100/90" href="https://gitlab.com/getplumber/plumber"><Icon name="tabler/brand-gitlab" class="mr-2" />View on GitLab</Button>
+
+## Quick Start (GitLab.com)
+
+<Steps>
+1. **Create a GitLab token**
+
+   Create a token with `read_api` + `read_repository` scopes and add it as `GITLAB_TOKEN` in **Settings → CI/CD → Variables** (masked & protected recommended).
+
+2. **Add to your pipeline**
+
+   Add this to your `.gitlab-ci.yml`:
+
+   ```yaml
+   include:
+     - component: gitlab.com/getplumber/plumber/plumber@~latest
+   ```
+
+3. **Run your pipeline**
+
+   Plumber will automatically analyze your CI/CD pipeline for compliance issues.
+</Steps>
+
+<Aside variant="tip">
+  Everything is customizable — GitLab URL, branch, threshold, and more. See [Customize](#customize) below.
+</Aside>
+
+## Self-Hosted GitLab
+
+If you're running a self-hosted GitLab instance, you'll need to create your own component since `gitlab.com` components can't be accessed from your instance.
+
+<Tabs defaultValue="fork">
+  <TabsList>
+    <TabsTrigger value="fork">Fork Component</TabsTrigger>
+    <TabsTrigger value="manual">Manual Setup</TabsTrigger>
+  </TabsList>
+
+  <TabsContent value="fork">
+    Fork our [GitLab component](https://gitlab.com/getplumber/plumber) to your instance, then reference it:
+
+    ```yaml
+    include:
+      - component: gitlab.example.com/your-group/plumber/plumber@~latest
+    ```
+  </TabsContent>
+
+  <TabsContent value="manual">
+    Create a component using [`templates/plumber.yml`](https://gitlab.com/getplumber/plumber/-/blob/main/templates/plumber.yml) as a base.
+
+    See [GitLab's CI/CD component documentation](https://docs.gitlab.com/ee/ci/components/) for setup instructions.
+  </TabsContent>
+</Tabs>
+
+## Compliance Controls
+
+Plumber scans your GitLab CI/CD configuration and runs the following controls:
+
+| Control | Description |
+|---------|-------------|
+| **Authorized image tags** | Flags `latest`, `dev`, and other non-reproducible tags for container images used in CI/CD pipelines |
+| **Authorized image sources** | Ensures container images used in your CI/CD pipelines come from approved sources |
+| **Branch protection** | Verifies that repository branches are properly protected |
+
+<Aside variant="info">
+  More controls are coming soon. Check the [GitHub releases](https://github.com/getplumber/plumber/releases) for updates.
+</Aside>
+
+## Customize
+
+Override any input to fit your needs:
+
+```yaml
+include:
+  - component: gitlab.com/getplumber/plumber/plumber@~latest
+    inputs:
+      # Target (defaults to current project)
+      server_url: https://gitlab.example.com # Self-hosted GitLab
+      project_path: other-group/other-project # Analyze a different project
+      branch: develop # Analyze a specific branch
+
+      # Compliance
+      threshold: 80 # Minimum % to pass (default: 100)
+      config_file: configs/my-plumber.yaml # Custom config path
+
+      # Output
+      output_file: plumber-report.json # Export JSON report
+      print_output: true # Print to stdout
+
+      # Job behavior
+      stage: test # Run in a different stage
+      allow_failure: true # Don't block pipeline on failure
+      gitlab_token: $MY_CUSTOM_TOKEN # Different variable name
+      verbose: true # Enable debug output
+```
+
+### All Inputs
+
+| Input | Default | Description |
+|-------|---------|-------------|
+| `server_url` | `$CI_SERVER_URL` | GitLab instance URL |
+| `project_path` | `$CI_PROJECT_PATH` | Project to analyze |
+| `branch` | `$CI_COMMIT_REF_NAME` | Branch to analyze |
+| `gitlab_token` | `$GITLAB_TOKEN` | GitLab API token (requires `read_api` + `read_repository` scopes) |
+| `threshold` | `100` | Minimum compliance % to pass |
+| `config_file` | *(auto-detect)* | Path to config file (relative to repo root). Auto-detects `.plumber.yaml` in repo, falls back to default |
+| `output_file` | `plumber-report.json` | Path to write JSON results |
+| `print_output` | `true` | Print text output to stdout |
+| `stage` | `.pre` | Pipeline stage for the job |
+| `image` | `getplumber/plumber:0.1` | Docker image to use |
+| `allow_failure` | `false` | Allow job to fail without blocking |
+| `verbose` | `false` | Enable debug output for troubleshooting |
+
+## Configuration
+
+The component automatically detects your configuration using this priority:
+
+1. **`config_file` input set** → Uses your specified path (relative to repo root)
+2. **`.plumber.yaml` in repo root** → Uses your repo's config file
+3. **No config found** → Uses the default [configuration](https://github.com/getplumber/plumber/blob/main/.plumber.yaml)  embedded in the container
+
+### Example Configuration
+
+Create a `.plumber.yaml` file in your repository root:  
+
+<Aside variant="tip">
+   See the [Configuration](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) section for full details.
+</Aside>
+
+
+```yaml
+version: "1.0"
+
+controls:
+  imageMutable:
+    enabled: true
+    mutableTags:
+      - latest
+      - dev
+
+  imageUntrusted:
+    enabled: true
+    trustDockerHubOfficialImages: true
+    trustedUrls:
+      - registry.gitlab.com/*
+      - $CI_REGISTRY_IMAGE:*
+
+  branchProtection:
+    enabled: true
+    defaultMustBeProtected: true
+    namePatterns:
+      - main
+      - release/*
+```
+
+## Example Output
+
+<Aside variant="tip">
+  The output is color-coded in your CI/CD job logs for easy scanning - green for passing controls, red for failures.
+</Aside>
+
+![Plumber CLI output showing compliance results](./img/cli-output.png)
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| `GITLAB_TOKEN environment variable is required` | Add `GITLAB_TOKEN` in **Settings → CI/CD → Variables** |
+| `401 Unauthorized` | Check that your token has `read_api` + `read_repository` scopes |
+| `403 Forbidden` on MR settings | Expected on non-Premium GitLab; continues without that data |
+| Component not found | For self-hosted GitLab, you must fork the component to your instance |
+
+<Aside variant="info">
+  **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](https://discord.gg/932xkSU24f).
+</Aside>

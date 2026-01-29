@@ -1,11 +1,10 @@
 ---
 import Button from "@components/Button/Button.astro";
+import HeroIllustration from "@images/hero-illustration.svg";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getLocalizedRoute, useTranslations } from "@js/translationUtils";
 import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
-import HeroIllustration from "@images/hero-illustration.svg";
-
 
 const currLocale = getLocaleFromUrl(Astro.url);
 ---
@@ -13,7 +12,7 @@ const currLocale = getLocaleFromUrl(Astro.url);
 <section id="hero1" class="relative flex w-full overflow-hidden pt-32 pb-28 md:pt-40 md:pb-36">
   <!-- background glow -->
   <div
-    class="bg-primary-500/50 absolute inset-0 bottom-1/2 -z-10 mx-auto aspect-square w-[65%] max-w-5xl -translate-y-2/3 rounded-full blur-[100px]"
+    class="bg-primary-600/30 dark:bg-primary-500/50 absolute inset-0 bottom-1/2 -z-10 mx-auto aspect-square w-[65%] max-w-5xl -translate-y-2/3 rounded-full blur-[100px]"
     aria-hidden="true"
   >
   </div>
@@ -62,7 +61,8 @@ const currLocale = getLocaleFromUrl(Astro.url);
       data-mos="fade-up"
       data-mos-anchor="#hero1"
     >
-      Reach CI/CD compliance <br/> <span class="text-primary-500">without effort</span>
+      Reach CI/CD compliance <br />
+      <span class="text-primary-500">without effort</span>
     </h1>
     <p
       class="description mx-auto mt-2 max-w-sm sm:max-w-md md:max-w-lg"
@@ -70,7 +70,8 @@ const currLocale = getLocaleFromUrl(Astro.url);
       data-mos-delay="0.2"
       data-mos-anchor="#hero1"
     >
-    Audit, detect, and remediate drifts — continuously. <br/> Be ready for regulatory demands (ISO 27001, NIS2, DORA, SOC 2…).
+      Audit, detect, and remediate drifts — continuously. <br /> Be ready for regulatory demands (ISO
+      27001, NIS2, DORA, SOC 2…).
       <!-- Get your SaaS landing page and blog running in a snap. Save time with
       multiple pre-designed pages, sections, and components. Built with Astro
       and Tailwind CSS. -->
@@ -80,12 +81,12 @@ const currLocale = getLocaleFromUrl(Astro.url);
     <!-- <div class="mx-auto mt-8 flex max-w-sm flex-col justify-center gap-4 px-4 sm:flex-row">
       <Button
         variant="primary"
-        href="https://cosmicthemes.com/themes/galaxy/"
+        href=""
         data-mos="fade-up"
         data-mos-delay="0.8"
         data-mos-anchor="#hero1"
       >
-        Get Galaxy
+        Get Plumber
       </Button>
       <Button
         variant="outline"
@@ -99,8 +100,7 @@ const currLocale = getLocaleFromUrl(Astro.url);
       </Button>
     </div> -->
     <div class="flex items-center justify-center">
-
-      <HeroIllustration  class="mx-auto w-full"  />
+      <HeroIllustration class="mx-auto w-full" />
     </div>
   </div>
 </section>

@@ -7,7 +7,7 @@ import { type InferGetStaticPropsType } from "astro";
 import { render } from "astro:content";
 
 export async function getStaticPaths() {
-  const posts = await getAllPosts(defaultLocale);
+  const posts = await getAllPosts(defaultLocale, false); // include all posts (including archived releases) so they're still accessible
 
   return posts.map((post) => ({
     params: { slug: post.id },

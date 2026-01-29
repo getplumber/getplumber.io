@@ -63,11 +63,66 @@ const { class: classList, ...rest } = Astro.props as Props;
     const onIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
     onIdle(async () => {
       const { PagefindUI } = await import("@pagefind/default-ui");
-      new PagefindUI({
+      // Always use "/" as baseUrl to prevent "client/" prefix in search result URLs
+      // Use processResult to strip "/client/" prefix from URLs if present
+      const pagefind = new PagefindUI({
         element: "#search",
         showImages: false,
         showSubResults: true,
+        baseUrl: "/",
+        processResult: function(result) {
+          // Remove "/client/" prefix from URLs if present
+          if (result.url && result.url.startsWith("/client/")) {
+            result.url = result.url.replace(/^\/client/, "");
+          }
+          // Also process nested results
+          if (result.results && Array.isArray(result.results)) {
+            result.results = result.results.map(nested => {
+              if (nested.url && nested.url.startsWith("/client/")) {
+                nested.url = nested.url.replace(/^\/client/, "");
+              }
+              return nested;
+            });
+          }
+          return result;
+        },
       });
+
+      // Intercept clicks on search result links to fix URLs
+      const fixSearchLinks = () => {
+        const searchElement = document.querySelector("#search");
+        if (!searchElement) return;
+
+        // Use event delegation to catch all clicks on result links
+        searchElement.addEventListener("click", (e) => {
+          const target = e.target as HTMLElement | null;
+          if (!target) return;
+          const link = target.closest("a.pagefind-ui__result-link") as HTMLAnchorElement | null;
+          if (link && link.href) {
+            // Check if URL contains "/client/" and fix it
+            try {
+              const url = new URL(link.href);
+              if (url.pathname.startsWith("/client/")) {
+                e.preventDefault();
+                const fixedPath = url.pathname.replace(/^\/client/, "");
+                const newUrl = url.origin + fixedPath + url.search + url.hash;
+                window.location.href = newUrl;
+              }
+            } catch (err) {
+              // Invalid URL, ignore
+            }
+          }
+        }, true);
+      };
+
+      // Fix links after Pagefind renders results
+      setTimeout(fixSearchLinks, 100);
+      // Also fix links when new results are rendered
+      const observer = new MutationObserver(fixSearchLinks);
+      const searchContainer = document.querySelector("#search");
+      if (searchContainer) {
+        observer.observe(searchContainer, { childList: true, subtree: true });
+      }
     });
   };
 

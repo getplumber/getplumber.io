@@ -9,12 +9,32 @@ interface Props {
 }
 
 const { navItem } = Astro.props as Props;
+
+// Active when current path is this dropdown's section (e.g. Docs active on /docs and /docs/*)
+const pathname = Astro.url.pathname;
+const isDropdownActive =
+  navItem.dropdown?.some((item) => {
+    if (!item.link.startsWith("/")) return false;
+    const base = item.link.split("?")[0];
+    // Match exact path, path under link, or path is parent of link (e.g. /docs when link is /docs/...)
+    return (
+      pathname === base ||
+      pathname.startsWith(`${base}/`) ||
+      (pathname.length > 1 && base.startsWith(`${pathname}/`))
+    );
+  }) ?? false;
 ---
 
 <!-- non-mobile dropdown menu -->
-<div class="nav__dropdown group relative">
+<div class="nav__dropdown group relative" data-hover-dropdown="true">
   <button
-    class="nav__link--base primary-focus nav__dropdown-button hidden w-full items-center gap-1 px-4 py-1.5 whitespace-nowrap md:flex"
+    class:list={[
+      "primary-focus nav__dropdown-button hidden w-full items-center gap-1 px-4 py-1.5 whitespace-nowrap md:flex",
+      {
+        "nav__link--base": !isDropdownActive,
+        "text-primary-600 dark:text-primary-400": isDropdownActive,
+      },
+    ]}
     type="button"
     id={`${slugify(navItem.text)}-dropdown-menu`}
     aria-expanded="false"
@@ -33,13 +53,13 @@ const { navItem } = Astro.props as Props;
     aria-labelledby={`${slugify(navItem.text)}-dropdown-menu`}
     data-state="closed"
     class:list={[
-      "nav__dropdown-content absolute left-0 z-10 mt-[7px] transition-all",
+      "nav__dropdown-content absolute top-full left-0 z-10 pt-1 transition-all",
       "slide-in-from-top-2 fade-in-0 animate-in hidden will-change-transform",
       "data-[state=closed]:fade-out-0 data-[state=closed]:animate-out",
     ]}
   >
     <ul
-      class="border-base-400/60 bg-base-100 dark:border-base-600/60 dark:bg-base-800 mt-2 w-fit max-w-xs min-w-[150px] rounded-md border border-solid py-1 whitespace-nowrap drop-shadow-md"
+      class="border-base-400/60 bg-base-100 dark:border-base-600/60 dark:bg-base-800 w-fit max-w-xs min-w-[150px] rounded-md border border-solid py-1 whitespace-nowrap drop-shadow-md"
     >
       {navItem.dropdown.map((dropdownItem) => <NavLink navItem={dropdownItem} class="w-full" />)}
     </ul>
@@ -53,6 +73,7 @@ const { navItem } = Astro.props as Props;
     private dropdownChevron: HTMLElement | null;
     private dropdownContent: HTMLDivElement | null;
     private animationDuration: number = 150;
+    private closeTimeout: number | null = null;
 
     constructor(navDropdown: HTMLDivElement) {
       this.navDropdown = navDropdown;
@@ -68,21 +89,30 @@ const { navItem } = Astro.props as Props;
     }
 
     private init() {
-      this.dropdownButton?.addEventListener("click", this.handleDropdownClick.bind(this));
+      // Use hover for dropdown instead of click
+      this.navDropdown.addEventListener("mouseenter", this.handleMouseEnter.bind(this));
+      this.navDropdown.addEventListener("mouseleave", this.handleMouseLeave.bind(this));
       document.addEventListener("click", this.handleOutsideClick.bind(this));
     }
 
-    private handleDropdownClick(event: MouseEvent) {
-      if (!this.dropdownContent?.classList.contains("active")) {
-        this.openDropdown();
-      } else {
-        this.closeDropdown();
+    private handleMouseEnter() {
+      // Clear any pending close timeout
+      if (this.closeTimeout !== null) {
+        clearTimeout(this.closeTimeout);
+        this.closeTimeout = null;
       }
-      event.preventDefault();
-      return false;
+      this.openDropdown();
+    }
+
+    private handleMouseLeave() {
+      // Add a small delay before closing to allow mouse to move to dropdown
+      this.closeTimeout = window.setTimeout(() => {
+        this.closeDropdown();
+      }, 100);
     }
 
     private handleOutsideClick(event: MouseEvent) {
+      // Only handle outside clicks if dropdown is active (for keyboard/mobile support)
       if (
         !this.navDropdown?.contains(event.target as Node) &&
         this.navDropdown?.classList.contains("active")
@@ -100,6 +130,11 @@ const { navItem } = Astro.props as Props;
     }
 
     private closeDropdown() {
+      // Clear any pending timeout
+      if (this.closeTimeout !== null) {
+        clearTimeout(this.closeTimeout);
+        this.closeTimeout = null;
+      }
       this.navDropdown.classList.remove("active");
       this.dropdownButton?.setAttribute("aria-expanded", "false");
       this.dropdownContent?.setAttribute("data-state", "closed");

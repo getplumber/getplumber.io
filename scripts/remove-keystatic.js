@@ -10,7 +10,6 @@ const destinationPath = join(destinationDir, sourcePath);
 function getUninstallCommand(packageManager, packages) {
     const commands = {
         npm: `npm uninstall ${packages.join(" ")}`,
-        yarn: `yarn remove ${packages.join(" ")}`,
         pnpm: `pnpm remove ${packages.join(" ")}`,
         bun: `bun remove ${packages.join(" ")}`,
     };

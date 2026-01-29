@@ -1,7 +1,8 @@
 ---
 import type { CollectionEntry } from "astro:content";
 
-import SidebarCta from "@/docs/components/cta/SidebarCta.astro";
+// import SidebarCta from "@/docs/components/cta/SidebarCta.astro";
+// Commented out - we might use this example later
 import DocsPagination from "@/docs/components/nav/DocsPagination.astro";
 import SidebarNav from "@/docs/components/nav/SidebarNav.astro";
 import TableOfContents from "@/docs/components/table-of-contents/TableOfContents.astro";
@@ -53,20 +54,22 @@ const { prev, next } = await getAdjacentPages(doc.id, currLocale, sectionId);
     {/* Main Content */}
     <main class="w-full min-w-0">
       {/* Mobile Table of Contents Dropdown */}
-      <div class="sticky top-[calc(var(--nav-height)-1px)] z-40 -mx-4 mb-4 md:-ml-0 lg:hidden">
-        <details class="mobile-toc bg-background/90 relative border-b px-4 py-2 backdrop-blur">
-          <summary class="cursor-pointer list-none font-medium">On this page</summary>
-          <nav
-            class="bg-background absolute top-full right-0 left-0 space-y-1 border-b px-4 pt-2 pb-4"
-          >
-            {
-              filteredHeadings.map((heading) => (
-                <TocLink heading={heading} minHeadingLevel={minHeadingLevel} />
-              ))
-            }
-          </nav>
-        </details>
-      </div>
+      {filteredHeadings.length > 0 && (
+        <div class="sticky top-[calc(var(--nav-height)-1px)] z-40 -mx-4 mb-4 md:-ml-0 lg:hidden">
+          <details class="mobile-toc bg-background/90 relative border-b px-4 py-2 backdrop-blur">
+            <summary class="cursor-pointer list-none font-medium">On this page</summary>
+            <nav
+              class="bg-background absolute top-full right-0 left-0 space-y-1 border-b px-4 pt-2 pb-4"
+            >
+              {
+                filteredHeadings.map((heading) => (
+                  <TocLink heading={heading} minHeadingLevel={minHeadingLevel} />
+                ))
+              }
+            </nav>
+          </details>
+        </div>
+      )}
 
       {/* Content */}
       <div
@@ -92,9 +95,12 @@ const { prev, next } = await getAdjacentPages(doc.id, currLocale, sectionId);
         <div
           class="max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-(--main-content-pt) pb-4"
         >
-          <TableOfContents headings={filteredHeadings} minHeadingLevel={minHeadingLevel} />
+          {filteredHeadings.length > 0 && (
+            <TableOfContents headings={filteredHeadings} minHeadingLevel={minHeadingLevel} />
+          )}
 
-          <SidebarCta class="mt-10 mr-5 2xl:mr-12" />
+          {/* <SidebarCta class="mt-10 mr-5 2xl:mr-12" /> */}
+          {/* Commented out - we might use this example later */}
         </div>
       </div>
     </aside>

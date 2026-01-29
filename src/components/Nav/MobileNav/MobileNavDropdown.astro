@@ -22,11 +22,30 @@ if ("dropdown" in navItem) {
     dropdown: navItem.items,
   };
 }
+
+// Active when current path is this dropdown's section (e.g. Docs active on /docs and /docs/*)
+const pathname = Astro.url.pathname;
+const isDropdownActive =
+  dropdownItem.dropdown?.some((item) => {
+    if (!item.link.startsWith("/")) return false;
+    const base = item.link.split("?")[0];
+    return (
+      pathname === base ||
+      pathname.startsWith(`${base}/`) ||
+      (pathname.length > 1 && base.startsWith(`${pathname}/`))
+    );
+  }) ?? false;
 ---
 
 <li class="mobile-nav__dropdown group relative w-full">
   <button
-    class="nav__link--base primary-focus mobile-nav__dropdown-button w-full gap-1 px-4 py-1 lg:hidden lg:px-4"
+    class:list={[
+      "primary-focus mobile-nav__dropdown-button w-full gap-1 px-4 py-1 lg:hidden lg:px-4",
+      {
+        "nav__link--base": !isDropdownActive,
+        "text-primary-600 dark:text-primary-400": isDropdownActive,
+      },
+    ]}
     type="button"
     id={`${slugify(dropdownItem.text)}-mobile-dropdown-menu`}
     aria-expanded="false"

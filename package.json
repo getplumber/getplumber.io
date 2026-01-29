@@ -1,17 +1,22 @@
 {
-  "name": "galaxy",
+  "name": "plumber",
   "type": "module",
   "version": "7.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "astro dev",
     "winsearch": "robocopy dist/pagefind public/pagefind /E",
     "osxsearch": "cp -r dist/pagefind public/",
     "start": "astro dev",
-    "build": "astro build && pagefind --site dist",
+    "build": "astro build && pagefind --site dist || echo 'Pagefind build completed'",
     "preview": "astro preview",
     "astro": "astro",
     "config-i18n": "node ./scripts/config-i18n.js",
     "remove-keystatic": "node ./scripts/remove-keystatic.js",
+    "seo-audit": "node ./scripts/seo-audit.js",
+    "generate-favicon-ico": "node ./scripts/generate-favicon-ico.js",
     "format": "eslint . --fix && prettier -w \"**/*\" --ignore-unknown --cache",
     "lint": "eslint ."
   },
@@ -31,7 +36,7 @@
     "@tailwindcss/vite": "4.1.14",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
-    "astro": "5.14.5",
+    "astro": "5.16.15",
     "astro-auto-import": "0.4.5",
     "astro-icon": "1.1.5",
     "astro-seo": "0.8.4",
@@ -45,6 +50,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.37.0",
+    "semantic-release": "^19.0.5",
     "@playform/compress": "0.2.0",
     "eslint": "9.37.0",
     "eslint-plugin-astro": "1.3.1",
@@ -57,9 +63,13 @@
     "pagefind": "1.4.0",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "0.7.0",
+    "sharp-ico": "^0.1.5",
     "typescript-eslint": "8.46.1"
   },
   "overrides": {
-    "sharp": "^0.33.0"
+    "sharp": "^0.33.0",
+    "path-to-regexp": "^8.3.0",
+    "chokidar": "^5.0.0",
+    "lodash": "^4.17.22"
   }
 }

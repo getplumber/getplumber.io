@@ -2,8 +2,11 @@
 import Button from "@components/Button/Button.astro";
 import FooterLink from "@components/Footer/FooterLink.astro";
 import SiteLogo from "@components/SiteLogo/SiteLogo.astro";
+import anssiLogo from "@images/anssi_logo.svg";
+import gitlabBadge from "@images/gitlab-alliance-partner-badge.svg";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
+import { Image } from "astro:assets";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const siteData = getTranslatedData("siteData", currLocale);
@@ -11,79 +14,54 @@ const siteData = getTranslatedData("siteData", currLocale);
 const today = new Date();
 ---
 
-<div 
-
-class:list={[
-  "border-t-base-300 dark:border-t-base-600/60 border-t",
-  // Add background on docs pages to prevent content showing through
-  !Astro.url.pathname.startsWith("/docs") && "mt-20",
-
-]}
->
-  <footer 
+<div
   class:list={[
-    " m-auto w-full pb-6",
+    "border-t-base-300 dark:border-t-base-600/60 border-t",
     // Add background on docs pages to prevent content showing through
-    Astro.url.pathname.startsWith("/docs") ? "docs-site-container" : "site-container",
-
+    !Astro.url.pathname.startsWith("/docs") && "mt-20",
   ]}
+>
+  <footer
+    class:list={[
+      "m-auto w-full pb-6",
+      // Add background on docs pages to prevent content showing through
+      Astro.url.pathname.startsWith("/docs") ? "docs-site-container" : "site-container",
+    ]}
   >
     <div class="flex w-full flex-col justify-between gap-4 sm:flex-row sm:gap-10">
       <div class="mt-6 flex flex-col items-start gap-2">
         <SiteLogo />
-        <p>Sign up for our newsletter</p>
-        <form id="newsletter-form" name="newsletter-form" class="mt-1 mr-auto flex max-w-lg gap-3">
-          <label for="newsletter-email" class="description text-base-100 mb-1 hidden">*Email</label>
-          <input
-            type="email"
-            class="form__input"
-            name="newsletter-email"
-            id="newsletter-email"
-            inputmode="email"
-            placeholder="Email"
-            required
-          />
-
-          <Button variant="primary" type="submit">Subscribe</Button>
-        </form>
+        <h3 class="text-lg font-semibold">Supported by</h3>
+        <div class="flex  gap-4 mt-2">
+          <Image src={gitlabBadge} width={100} height={100} alt="GitLab Alliance Partner Badge" class="" />
+          <Image src={anssiLogo} width={100} height={100} alt="ANSSI Logo" class="" />
+        </div>
       </div>
       <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
         <!-- Navigation -->
         <div class="flex flex-col">
           <h3 class="mt-6 mb-2 text-lg font-semibold">Navigation</h3>
-          <FooterLink href={"/blog"}>Blog</FooterLink>
-          <FooterLink href={"/docs"}>Docs</FooterLink>
-          <FooterLink href={"/overview"}>Overview</FooterLink>
+          <FooterLink href={"/"}>OpenSource CLI</FooterLink>
           <FooterLink href={"/platform"}>Platform</FooterLink>
-          <FooterLink href={"/about"}>About</FooterLink>
+          <FooterLink href={"/docs"}>Docs</FooterLink>
+          <FooterLink href={"/blog"}>Blog</FooterLink>
           <FooterLink href={"/contact"}>Contact</FooterLink>
         </div>
 
         <!-- Legal -->
         <div class="flex flex-col">
           <h3 class="mt-6 mb-2 text-lg font-semibold">Legal</h3>
-          <FooterLink href="https://cosmicthemes.com/license/" newTab={true}> License </FooterLink>
-          <FooterLink href="https://cosmicthemes.com/refund/" newTab={true}>
-            Refund policy
-          </FooterLink>
-          <FooterLink href="https://cosmicthemes.com/terms/" newTab={true}>
-            Terms of use
-          </FooterLink>
-          <FooterLink href="https://cosmicthemes.com/privacy/" newTab={true}>
-            Privacy policy
-          </FooterLink>
-          <FooterLink href="https://cosmicthemes.com/support/" newTab={true}> Support </FooterLink>
+          <FooterLink href="/privacy-policy"> Privacy policy </FooterLink>
+          <FooterLink href="/terms-of-use"> Terms of use </FooterLink>
         </div>
 
         <!-- In the Know -->
         <div class="flex flex-col">
-          <h3 class="mt-6 mb-2 text-lg font-semibold">In the Know</h3>
-          <FooterLink href="https://twitter.com/BowTiedWebReapr" newTab={true}>
-            @BowTiedWebReapr
-          </FooterLink>
-          <FooterLink href="https://twitter.com/Cosmic_Themes" newTab={true}>
-            @Cosmic_Themes
-          </FooterLink>
+          <h3 class="mt-6 mb-2 text-lg font-semibold">Socials</h3>
+          <FooterLink href="https://x.com/BowTiedWebReapr" newTab={true}> X </FooterLink>
+          <FooterLink href="https://linkedin.com/in/boston343" newTab={true}> LinkedIn </FooterLink>
+          <FooterLink href="https://github.com/Boston343" newTab={true}> GitHub </FooterLink>
+          <FooterLink href="https://discord.gg/plumber" newTab={true}> Discord </FooterLink>
         </div>
       </div>
     </div>

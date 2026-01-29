@@ -1,40 +1,41 @@
 ---
 sidebar_position: 4
-slug: '/self-managed/podman'
+slug: "/self-managed/podman"
 ---
 
 # Podman
 
 :::info
-This method is supported by [R2DevOps community](https://discord.r2devops.io/).
+This method is supported by [Plumber community](https://discord.r2devops.io/).
 :::
 
-This page describes how to set up a self-managed instance of R2Devops using
+This page describes how to set up a self-managed instance of Plumber using
 **podman**.
 
 ## 💻 Requirements
 
 - **GitLab instance version >=17.7**
 - The system requires a Linux server. It runs in 🕸 podman containers using a
-   yaml configuration. Specifications:
+  yaml configuration. Specifications:
   - OS: Ubuntu or Debian
   - Hardware
     - CPU x86_64/amd64 with at least 2 cores
     - 4 GB RAM
-    - 250 GB of storage for R2Devops
+    - 250 GB of storage for Plumber
   - Network
-   - Users must be able to reach the R2Devops server on TCP ports 80 and 443
-   - The R2Devops server must be able to access internet
-   - The R2Devops server must be able to communicate with GitLab instance
-   - The installation process requires write access to the DNS Zone
-      to set up R2Devops domain
-   - If the server is not reachable from internet or if you want to use your
-      own certificate for HTTPS, you need to be able to generate certificate
-      during the installation process for R2Devops domain
-   - Installed software
-      - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-      - [podman](https://https://podman.io/docs/installation)- Docker hub registry
-         must be resolved by podman in file **/etc/containers/registries.conf**
+  - Users must be able to reach the Plumber server on TCP ports 80 and 443
+  - The Plumber server must be able to access internet
+  - The Plumber server must be able to communicate with GitLab instance
+  - The installation process requires write access to the DNS Zone
+    to set up Plumber domain
+  - If the server is not reachable from internet or if you want to use your
+    own certificate for HTTPS, you need to be able to generate certificate
+    during the installation process for Plumber domain
+  - Installed software
+    - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+    - [podman](https://https://podman.io/docs/installation)- Docker hub registry
+      must be resolved by podman in file **/etc/containers/registries.conf**
+
 ```bash title="/etc/containers/registries.conf" hl_lines="1"
 unqualified-search-registries = ["docker.io"]
 ```
@@ -57,15 +58,16 @@ unqualified-search-registries = ["docker.io"]
 
 **In your `.env` file:**
 
-- **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
-   ```bash title=".env" hl_lines="1"
-   ORGANIZATION="<group-path>"
-   ```
+- **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
 
-- **If you want to connect R2Devops to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
-   ```bash title=".env" hl_lines="1"
-   ORGANIZATION=""
-   ```
+  ```bash title=".env" hl_lines="1"
+  ORGANIZATION="<group-path>"
+  ```
+
+- **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
+  ```bash title=".env" hl_lines="1"
+  ORGANIZATION=""
+  ```
 
 ### 📄 Domain name
 
@@ -76,13 +78,12 @@ unqualified-search-registries = ["docker.io"]
    JOBS_GITLAB_URL="https://<url_of_your_gitlab_instance>"
    ```
 
-   ```bash title="Example with domain name 'r2devops.mydomain.com' for R2Devops and 'gitlab.mydomain.com' for GitLab" hl_lines="1-3"
+   ```bash title="Example with domain name 'r2devops.mydomain.com' for Plumber and 'gitlab.mydomain.com' for GitLab" hl_lines="1-3"
    DOMAIN_NAME="r2devops.mydomain.com"
    JOBS_GITLAB_URL="https://gitlab.mydomain.com"
    ```
 
 1. Create DNS record
-
    - Name: `<r2devops_domain_name>`
    - Type: `A`
    - Content: `<your-server-public-ip>`
@@ -91,9 +92,10 @@ unqualified-search-registries = ["docker.io"]
 A certificate will be auto-generated using Let's encrypt at the application
 launch
 :::
+
 ### 🦊 GitLab OIDC
 
-R2Devops uses GitLab as an OAuth2 provider to authenticate users. Let's see how
+Plumber uses GitLab as an OAuth2 provider to authenticate users. Let's see how
 to connect it to your GitLab instance.
 
 #### Create an application
@@ -106,7 +108,7 @@ group. Open the chosen group in GitLab interface and navigate through
 
 Then, create an application with the following information :
 
-- Name: `R2Devops self-managed`
+- Name: `Plumber self-managed`
 - Redirect URI : `https://<r2devops_domain_name>/api/auth/gitlab/callback`
 - Confidential: `true` (let the box checked)
 - Scopes: `api`
@@ -142,6 +144,7 @@ If your GitLab instance is using a TLS certificate signed with your own
 Certificate authority (CA):
 
 # TEST-AND-EDIT
+
 - Add the CA certificate file in `podman ?`
 
 ### 📄 Prepare podman for launch
@@ -160,7 +163,7 @@ systemctl --user enable podman.socket
 ```
 
 If you encounter this error **Failed to connect to bus: No medium found**
- use these commands with your user as sudoer:
+use these commands with your user as sudoer:
 
 ```bash
 sudo loginctl enable-linger <your_local_user>
@@ -178,6 +181,7 @@ envsubst < configmap.yml.example > configmap.yml
 ```
 
 Allow port 80 and above in system for local user:
+
 1. Add this line to **/etc/sysctl.conf** file as sudo user or root:
    ```title="/etc/sysctl.conf" hl_lines="1-2"
    net.ipv4.ip_unprivileged_port_start=80
@@ -190,7 +194,7 @@ Allow port 80 and above in system for local user:
 ### 🚀 Launch the application
 
 :::success[Congratulations]
-You have successfully installed R2Devops on your server 🎉
+You have successfully installed Plumber on your server 🎉
 
     Now you can launch the application and ensure everything works as expected.
 
@@ -199,14 +203,17 @@ Run the following command to start the system:
 ```bash
 podman play kube podman.yml --configmap configmap.yml --network intranet
 ```
+
 :::
 
 :::info[Reconfigure]
 If you need to reconfigure some files and relaunch the application,
 after your updates you can simply run the command again to do so.
+
 ```bash
 podman play kube podman.yml --replace --configmap configmap.yml --network intranet
 ```
+
 :::
 
 :::danger[Not the same behavior]
@@ -224,7 +231,7 @@ Follow these steps to update your self-managed instance to a new version:
    ```sh
    git pull
    ```
-1. Open the `.env.example` file and copy the values of  `FRONTEND_IMAGE_TAG`
+1. Open the `.env.example` file and copy the values of `FRONTEND_IMAGE_TAG`
    and `BACKEND_IMAGE_TAG` variables
 1. Edit the `.env` file by updating values of `FRONTEND_IMAGE_TAG` and
    `BACKEND_IMAGE_TAG` variables with the values previously copied
@@ -239,11 +246,11 @@ Follow these steps to update your self-managed instance to a new version:
    envsubst < podman.local.yml.example > podman.yml
    envsubst < configmap.local.yml.example > configmap.yml
    ```
-1. You have successfully updated R2Devops on your server 🎉
+1. You have successfully updated Plumber on your server 🎉
 
 ## 🔄 Backup and restore
 
-Data required to fully backup and restore a R2Devops system are the following:
+Data required to fully backup and restore a Plumber system are the following:
 
 - Configuration file: `.env`
 - Databases:
@@ -272,9 +279,11 @@ it prefixed with the date (`backup_r2-$DATE`)
 :::note[Regular backup]
 You can use a cron job to perform regular backups.
 Here is a cron job that launch a backup every day at 2am:
+
 ```bash
 0 2 * * * /r2devops/scripts/backup_podman.sh 13
 ```
+
 It can be added to your crontab with the command `crontab -e`. Check more
 information about cron jobs
 [here](https://help.ubuntu.com/community/CronHowto).

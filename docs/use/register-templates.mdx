@@ -5,8 +5,8 @@ sidebar_position: 4
 # CI/CD templates
 
 :::info[What is a catalog?]
-To use R2Devops, you have to register your CI/CD templates and components in
-your R2Devops instance catalog. This is a registry of GitLab CI/CD templates
+To use Plumber, you have to register your CI/CD templates and components in
+your Plumber instance catalog. This is a registry of GitLab CI/CD templates
 sourced from a git repository.
 :::
 
@@ -16,7 +16,7 @@ sourced from a git repository.
 
 :::info
 
-- Sources of R2Devops catalog are GitLab repositories
+- Sources of Plumber catalog are GitLab repositories
 - You can store several templates per repository
 - You must have at least `Maintainer` access
   :::
@@ -28,24 +28,24 @@ sourced from a git repository.
    3. _(optional)_ Create [documentation file](#-template-documentation)
    4. _(optional)_ Setup [versioning](#-template-versioning)
    5. _(optional)_ Create [changelog file](#-template-changelog)
-3. Login on R2Devops
+3. Login on Plumber
 4. In `CI/CD Catalog > Import R2 templates` page: import your repository
 
 ### 🔄 Update catalog resources
 
 1. Update your template(s) in the GitLab repository
 1. Create new version tag
-1. Login on R2Devops
+1. Login on Plumber
 1. In "Import templates" page: click on refresh button
 
 ### ❌ Delete catalog resources
 
-1. Login on R2Devops
+1. Login on Plumber
 1. In "Import templates" page: click on delete button
 
 ## ⚙️ Template R2 file
 
-Each template on R2Devops must have its own R2 file. It defines template
+Each template on Plumber must have its own R2 file. It defines template
 metadata.
 
 - It can be located anywhere in a repository
@@ -157,7 +157,6 @@ Path of files is relative from the location of the R2 file
 - TypeScript
 - Unit Test
 - Virus Scanning
-- Yarn
 
 </details>
 :::
@@ -228,7 +227,7 @@ using [kaniko](https://github.com/GoogleContainerTools/kaniko).
 ## 📄 Template versioning
 
 Template versioning rely on source repository git tags. 2 options are supported
-in R2Devops:
+in Plumber:
 
 1. Tags scoped to all templates of the repository, without prefix. Ex: `1.2.3`
 1. Tags scoped to only one template, prefixed with its path. Ex: `docker_build@1.2.3`

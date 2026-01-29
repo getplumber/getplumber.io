@@ -1,0 +1,222 @@
+---
+/**
+ * * Floating sidebar navigation for landing pages
+ * Shows sections of the page with smooth scroll anchors
+ * Visible on mobile always, on desktop when scrolling down
+ * Includes scroll-to-top and scroll-to-bottom buttons
+ */
+
+import { Icon } from "astro-icon/components";
+
+interface Section {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  sections: Section[];
+}
+
+const { sections } = Astro.props;
+---
+
+<aside
+  id="page-sidebar-nav"
+  class="fixed right-4 top-1/2 z-40 -translate-y-1/2 transition-all duration-300 md:right-6 lg:right-8"
+  aria-label="Page navigation"
+>
+  <nav
+    class="border-base-300 dark:border-base-600/60 bg-base-100/40 dark:bg-base-800/40 flex flex-col gap-2 rounded-2xl border p-3 shadow-xl backdrop-blur-sm"
+  >
+    <!-- Scroll to top button -->
+    <button
+      id="scroll-to-top"
+      class="hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 text-base-600 dark:text-base-400 flex items-center justify-center rounded-lg p-2 transition-all xl:justify-start xl:gap-2"
+      aria-label="Scroll to top"
+      title="Scroll to top"
+    >
+      <Icon name="tabler/chevron-up" class="h-5 w-5 shrink-0" />
+      <span class="hidden text-sm font-medium xl:inline">Top</span>
+    </button>
+
+    <!-- Divider -->
+    <div class="border-base-300 dark:border-base-600/60 h-px w-full border-t"></div>
+
+    <!-- Section links -->
+    <ul class="flex flex-col gap-1">
+      {
+        sections.map((section) => (
+          <li>
+            <a
+              href={`#${section.id}`}
+              data-section-id={section.id}
+              class="sidebar-nav-link hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 text-base-600 dark:text-base-400 data-[active=true]:bg-primary-500/20 data-[active=true]:text-primary-600 data-[active=true]:dark:text-primary-400 flex items-center justify-center rounded-lg p-2 transition-all xl:justify-start xl:gap-2"
+              title={section.label}
+              aria-label={section.label}
+            >
+              <span class="h-2 w-2 shrink-0 rounded-full bg-current" />
+              <span class="hidden text-sm font-medium xl:inline">{section.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <!-- Divider -->
+    <div class="border-base-300 dark:border-base-600/60 h-px w-full border-t"></div>
+
+    <!-- Scroll to bottom button -->
+    <button
+      id="scroll-to-bottom"
+      class="hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 text-base-600 dark:text-base-400 flex items-center justify-center rounded-lg p-2 transition-all xl:justify-start xl:gap-2"
+      aria-label="Scroll to bottom"
+      title="Scroll to bottom"
+    >
+      <Icon name="tabler/chevron-down" class="h-5 w-5 shrink-0" />
+      <span class="hidden text-sm font-medium xl:inline">Bottom</span>
+    </button>
+  </nav>
+</aside>
+
+<script>
+  function initPageSidebarNav() {
+    const sidebar = document.getElementById("page-sidebar-nav");
+    const scrollToTopBtn = document.getElementById("scroll-to-top");
+    const scrollToBottomBtn = document.getElementById("scroll-to-bottom");
+    const sectionLinks = document.querySelectorAll(".sidebar-nav-link");
+
+    if (!sidebar || !scrollToTopBtn || !scrollToBottomBtn) return;
+
+    // Find the hero section (could be either hero1 or plumber-hero)
+    const heroSection = document.getElementById("hero1") || document.getElementById("plumber-hero");
+
+    // Show/hide sidebar based on scroll position and hero visibility
+    function updateSidebarVisibility() {
+      const scrollY = window.scrollY;
+      
+      if (!heroSection) {
+        // If no hero section found, show sidebar immediately
+        sidebar?.classList.remove("translate-x-full", "opacity-0");
+        sidebar?.classList.add("translate-x-0", "opacity-100");
+        return;
+      }
+
+      // Calculate when 50% of hero section has been scrolled past
+      const heroRect = heroSection.getBoundingClientRect();
+      const heroTop = heroSection.offsetTop;
+      const heroHeight = heroSection.offsetHeight;
+      const heroHalfPoint = heroTop + (heroHeight * 0.5);
+      
+      // Show sidebar only after scrolling past 50% of hero
+      if (scrollY > heroHalfPoint) {
+        sidebar?.classList.remove("translate-x-full", "opacity-0");
+        sidebar?.classList.add("translate-x-0", "opacity-100");
+      } else {
+        sidebar?.classList.add("translate-x-full", "opacity-0");
+        sidebar?.classList.remove("translate-x-0", "opacity-100");
+      }
+    }
+
+    // Scroll to top
+    scrollToTopBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // Scroll to bottom
+    scrollToBottomBtn.addEventListener("click", () => {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: "smooth",
+      });
+    });
+
+    // Section link clicks - smooth scroll
+    sectionLinks.forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const targetId = link.getAttribute("href")?.substring(1);
+        if (!targetId) return;
+
+        const targetSection = document.getElementById(targetId);
+        if (targetSection) {
+          // Calculate offset for fixed header (if any)
+          const offset = 80; // Adjust based on your header height
+          const targetPosition = targetSection.offsetTop - offset;
+
+          window.scrollTo({
+            top: targetPosition,
+            behavior: "smooth",
+          });
+        }
+      });
+    });
+
+    // Intersection Observer for active section highlighting
+    const observerOptions: IntersectionObserverInit = {
+      root: null,
+      rootMargin: "-20% 0px -60% 0px",
+      threshold: 0,
+    };
+
+    function setActiveSection(entries: IntersectionObserverEntry[]) {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          sectionLinks.forEach((link) => link.removeAttribute("data-active"));
+
+          const activeLink = document.querySelector(
+            `.sidebar-nav-link[data-section-id="${entry.target.id}"]`
+          );
+          if (activeLink) {
+            activeLink.setAttribute("data-active", "true");
+          }
+        }
+      });
+    }
+
+    const observer = new IntersectionObserver(setActiveSection, observerOptions);
+
+    // Observe all sections
+    sectionLinks.forEach((link) => {
+      const sectionId = link.getAttribute("data-section-id");
+      if (sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+          observer.observe(section);
+        }
+      }
+    });
+
+    // Initial check
+    updateSidebarVisibility();
+
+    // Update on scroll
+    window.addEventListener("scroll", updateSidebarVisibility);
+
+    // Update on resize
+    window.addEventListener("resize", updateSidebarVisibility);
+  }
+
+  // Run on initial page load
+  initPageSidebarNav();
+
+  // Re-run on view transitions (Astro's navigation)
+  document.addEventListener("astro:after-swap", initPageSidebarNav);
+</script>
+
+<style>
+  /* Start hidden for all screen sizes - JavaScript will control visibility */
+  #page-sidebar-nav {
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+  }
+
+  /* Smooth transition when showing/hiding */
+  #page-sidebar-nav.translate-x-0 {
+    transform: translateX(0);
+  }
+
+  #page-sidebar-nav.opacity-100 {
+    opacity: 1;
+  }
+</style>

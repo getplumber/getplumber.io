@@ -1,37 +1,37 @@
 ---
 sidebar_position: 1
-slug: '/self-managed/docker-compose'
+slug: "/self-managed/docker-compose"
 ---
 
 # Docker compose
 
-This page describes how to set up a self-managed instance of R2Devops using
+This page describes how to set up a self-managed instance of Plumber using
 **Docker-compose**.
 
 ## 💻 Requirements
 
 - **GitLab instance version >=17.7**
 - The system requires a Linux server. It runs in 🐳 Docker containers using a
-   docker-compose configuration. Specifications:
-   - OS: Ubuntu or Debian
-   - Hardware
-      - CPU x86_64/amd64 with at least 2 cores
-      - 4 GB RAM
-      - 250 GB of storage for R2Devops
-   - Network
-      - Users must be able to reach the R2Devops server on TCP ports 80 and 443
-      - The R2Devops server must be able to access internet
-      - The R2Devops server must be able to communicate with GitLab instance
-      - The installation process requires write access to the DNS Zone
-         to set up R2Devops domain
-      - If the server is not reachable from internet or if you want to use your
-         own certificate for HTTPS, you need to be able to generate certificate
-         during the installation process for R2Devops domain
-   - Installed software
-      - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-      - [Docker](https://docs.docker.com/engine/install/)
-      - Note: both compose plugin (`docker compose`) and `docker-compose` CLI are
-         working. The first one is installed by default with `Docker`
+  docker-compose configuration. Specifications:
+  - OS: Ubuntu or Debian
+  - Hardware
+    - CPU x86_64/amd64 with at least 2 cores
+    - 4 GB RAM
+    - 250 GB of storage for Plumber
+  - Network
+    - Users must be able to reach the Plumber server on TCP ports 80 and 443
+    - The Plumber server must be able to access internet
+    - The Plumber server must be able to communicate with GitLab instance
+    - The installation process requires write access to the DNS Zone
+      to set up Plumber domain
+    - If the server is not reachable from internet or if you want to use your
+      own certificate for HTTPS, you need to be able to generate certificate
+      during the installation process for Plumber domain
+  - Installed software
+    - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+    - [Docker](https://docs.docker.com/engine/install/)
+    - Note: both compose plugin (`docker compose`) and `docker-compose` CLI are
+      working. The first one is installed by default with `Docker`
 
 ## 🛠️ Installation
 
@@ -51,15 +51,16 @@ This page describes how to set up a self-managed instance of R2Devops using
 
 **In your `.env` file:**
 
-- **If you want to connect R2Devops to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
-   ```bash title=".env" hl_lines="1"
-   ORGANIZATION="<group-path>"
-   ```
+- **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
 
-- **If you want to connect R2Devops to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
-   ```bash title=".env" hl_lines="1"
-   ORGANIZATION=""
-   ```
+  ```bash title=".env" hl_lines="1"
+  ORGANIZATION="<group-path>"
+  ```
+
+- **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
+  ```bash title=".env" hl_lines="1"
+  ORGANIZATION=""
+  ```
 
 ### 📄 Domain name
 
@@ -70,13 +71,12 @@ This page describes how to set up a self-managed instance of R2Devops using
    JOBS_GITLAB_URL="https://<url_of_your_gitlab_instance>"
    ```
 
-   ```bash title="Example with domain name 'r2devops.mydomain.com' for R2Devops and 'gitlab.mydomain.com' for GitLab" hl_lines="1-3"
+   ```bash title="Example with domain name 'r2devops.mydomain.com' for Plumber and 'gitlab.mydomain.com' for GitLab" hl_lines="1-3"
    DOMAIN_NAME="r2devops.mydomain.com"
    JOBS_GITLAB_URL="https://gitlab.mydomain.com"
    ```
 
 1. Create DNS record
-
    - Name: `<r2devops_domain_name>`
    - Type: `A`
    - Content: `<your-server-public-ip>`
@@ -85,9 +85,10 @@ This page describes how to set up a self-managed instance of R2Devops using
 A certificate will be auto-generated using Let's encrypt at the application
 launch
 :::
+
 ### 🦊 GitLab OIDC
 
-R2Devops uses GitLab as an OAuth2 provider to authenticate users. Let's see how
+Plumber uses GitLab as an OAuth2 provider to authenticate users. Let's see how
 to connect it to your GitLab instance.
 
 #### Create an application
@@ -100,7 +101,7 @@ group. Open the chosen group in GitLab interface and navigate through
 
 Then, create an application with the following information :
 
-- Name: `R2Devops self-managed`
+- Name: `Plumber self-managed`
 - Redirect URI : `https://<r2devops_domain_name>/api/auth/gitlab/callback`
 - Confidential: `true` (let the box checked)
 - Scopes: `api`
@@ -140,7 +141,7 @@ Certificate authority (CA):
 ### 🚀 Launch the application
 
 :::success[Congratulations]
-You have successfully installed R2Devops on your server 🎉
+You have successfully installed Plumber on your server 🎉
 
     Now you can launch the application and ensure everything works as expected.
 
@@ -149,14 +150,17 @@ Run the following command to start the system:
 ```bash
 docker compose up -d
 ```
+
 :::
 
 :::info[Reconfigure]
 If you need to reconfigure some files and relaunch the application,
 after your updates you can simply run the command again to do so.
+
 ```bash
 docker compose up -d
 ```
+
 :::
 
 :::danger[Not the same behavior]
@@ -174,7 +178,7 @@ Follow these steps to update your self-managed instance to a new version:
    ```sh
    git pull
    ```
-1. Open the `.env.example` file and copy the values of  `FRONTEND_IMAGE_TAG`
+1. Open the `.env.example` file and copy the values of `FRONTEND_IMAGE_TAG`
    and `BACKEND_IMAGE_TAG` variables
 1. Edit the `.env` file by updating values of `FRONTEND_IMAGE_TAG` and
    `BACKEND_IMAGE_TAG` variables with the values previously copied
@@ -186,11 +190,11 @@ Follow these steps to update your self-managed instance to a new version:
    ```sh
    docker compose up -d
    ```
-1. You have successfully updated R2Devops on your server 🎉
+1. You have successfully updated Plumber on your server 🎉
 
 ## 🔄 Backup and restore
 
-Data required to fully backup and restore a R2Devops system are the following:
+Data required to fully backup and restore a Plumber system are the following:
 
 - Configuration file: `.env`
 - Databases:
@@ -219,9 +223,11 @@ it prefixed with the date (`backup_r2-$DATE`)
 :::note[Regular backup]
 You can use a cron job to perform regular backups.
 Here is a cron job that launch a backup every day at 2am:
+
 ```bash
 0 2 * * * /r2devops/scripts/backup.sh 13
 ```
+
 It can be added to your crontab with the command `crontab -e`. Check more
 information about cron jobs
 [here](https://help.ubuntu.com/community/CronHowto).

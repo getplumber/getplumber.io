@@ -3,6 +3,7 @@
 The installation is not working as expected ? You're at the right place !
 
 Here are the common errors and how to solve them
+
 ## General
 
 Issues related to all installation methods
@@ -34,10 +35,12 @@ default storage class or if you want to use a specific storage class you need to
       global:
         storageClass: REPLACE_ME_BY_STORAGE_CLASS
     ```
+
 :::
+
 ## Support
 
 :::info[Don't find what you're looking for ?]
-Reach our support using the `#support` channel on [Discord](https://discord.r2devops.io)
-You can also send an email to [support@r2devops.io](mailto:support@r2devops.io)
+Reach our support using the `#support` channel on [Discord](https://discord.getplumber.io)
+You can also send an email to [support@getplumber.io](mailto:support@getplumber.io)
 :::

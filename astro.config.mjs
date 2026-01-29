@@ -1,23 +1,25 @@
 import mdx from "@astrojs/mdx";
-import vercel from "@astrojs/vercel/serverless";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
+import vercel from "@astrojs/vercel";
 import keystatic from "@keystatic/astro";
 import compress from "@playform/compress";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "astro/config";
+import { defineConfig, sharpImageService } from "astro/config";
 import AutoImport from "astro-auto-import";
 import icon from "astro-icon";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://galaxy.cosmicthemes.com",
+  site: "https://getplumber.io",
+  image: {
+    service: sharpImageService({
+      limitInputPixels: false, // Allow processing of large images like GIFs
+    }),
+  },
   adapter: vercel({
     imageService: false,
   }),
-  redirects: {
-    "/admin": "/keystatic",
-  },
   // i18n configuration must match src/config/translations.json.ts
   i18n: {
     defaultLocale: "en",

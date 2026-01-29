@@ -53,11 +53,11 @@ if (sidebarTabs && sidebarTabs.length > 0) {
   // Get the current tab configuration
   const currentTab = getTabById(sectionId, currLocale);
   const currentTabSections = currentTab?.sections || [];
-  
+
   if (currentTabSections.length > 0) {
     // Get all section IDs for the current tab
-    const sectionIds = new Set(currentTabSections.map(s => s.id));
-    
+    const sectionIds = new Set(currentTabSections.map((s) => s.id));
+
     // Filter docs where the first segment of doc.id matches one of the tab's sections
     sectionFilteredDocs = filteredDocs.filter((doc) => {
       const firstSegment = doc.id.split("/")[0];
@@ -78,8 +78,8 @@ if (sidebarTabs) {
   for (const tab of sidebarTabs) {
     // Get sections for this tab
     const tabSections = getTabSections(tab.id, currLocale);
-    const tabSectionIds = tabSections ? new Set(tabSections.map(s => s.id)) : new Set();
-    
+    const tabSectionIds = tabSections ? new Set(tabSections.map((s) => s.id)) : new Set();
+
     // Get all docs for this tab - match by folder structure (first segment of doc.id)
     const tabDocs = filteredDocs.filter((doc) => {
       const firstSegment = doc.id.split("/")[0];

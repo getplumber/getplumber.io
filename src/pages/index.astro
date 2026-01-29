@@ -1,19 +1,32 @@
 ---
-import Cta2 from "@components/Cta/Cta2.astro";
 import PlumberFeatures from "@components/Feature/PlumberFeatures.astro";
 import PlumberQuickStart from "@components/Feature/PlumberQuickStart.astro";
 import PlumberHero from "@components/Hero/PlumberHero.astro";
+import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
+import PageSidebarNav from "@components/Nav/PageSidebarNav.astro";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const siteData = getTranslatedData("siteData", currLocale);
+
+// Define page sections for sidebar navigation
+const pageSections = [
+  { id: "plumber-features", label: "What it does" },
+  { id: "plumber-cta", label: "Quick Start" },
+];
 ---
 
-<BaseLayout title="Plumber - Trust Policy Manager for GitLab CI/CD" description="Analyze your GitLab CI/CD pipelines for security and compliance issues. Scan for mutable image tags, untrusted registries, and branch protection compliance.">
+<BaseLayout
+  title="Plumber - OpenSource compliance CLI for GitLab CI/CD"
+  description="Analyze your GitLab CI/CD pipelines for security and compliance issues. Scan for mutable image tags, untrusted registries, and branch protection compliance."
+>
   <PlumberHero />
+  <SectionDivider />
   <PlumberFeatures />
   <PlumberQuickStart />
-  <Cta2 />
+  
+  <!-- Floating sidebar navigation -->
+  <PageSidebarNav sections={pageSections} />
 </BaseLayout>
