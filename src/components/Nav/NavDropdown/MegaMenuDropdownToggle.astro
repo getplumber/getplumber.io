@@ -36,9 +36,10 @@ if (cols >= 5) {
     class:list={[
       "nav__link--base primary-focus mega-menu__dropdown-button hidden w-full items-center gap-1 px-4 py-1.5 whitespace-nowrap md:flex",
       {
-        // styling for current active page link (when on docs pages)
+        // styling for current active page link (when on docs or blog)
         "text-primary-600 dark:text-primary-400":
-          navItem.text === "Docs" && Astro.url.pathname.startsWith("/docs"),
+          navItem.text === "Resources" &&
+          (Astro.url.pathname.startsWith("/docs") || Astro.url.pathname.startsWith("/blog")),
       },
     ]}
     type="button"

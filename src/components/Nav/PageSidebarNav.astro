@@ -31,12 +31,12 @@ const { sections } = Astro.props;
     <!-- Scroll to top button -->
     <button
       id="scroll-to-top"
-      class="hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 text-base-600 dark:text-base-400 flex items-center justify-center rounded-lg p-2 transition-all xl:justify-start xl:gap-2"
+      class="hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 text-base-600 dark:text-base-400 flex items-center justify-center rounded-lg p-2 transition-all 2xl:justify-start 2xl:gap-2"
       aria-label="Scroll to top"
       title="Scroll to top"
     >
       <Icon name="tabler/chevron-up" class="h-5 w-5 shrink-0" />
-      <span class="hidden text-sm font-medium xl:inline">Top</span>
+      <span class="hidden text-sm font-medium 2xl:inline">Top</span>
     </button>
 
     <!-- Divider -->
@@ -50,12 +50,12 @@ const { sections } = Astro.props;
             <a
               href={`#${section.id}`}
               data-section-id={section.id}
-              class="sidebar-nav-link hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 text-base-600 dark:text-base-400 data-[active=true]:bg-primary-500/20 data-[active=true]:text-primary-600 data-[active=true]:dark:text-primary-400 flex items-center justify-center rounded-lg p-2 transition-all xl:justify-start xl:gap-2"
+              class="sidebar-nav-link hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 text-base-600 dark:text-base-400 data-[active=true]:bg-primary-500/20 data-[active=true]:text-primary-600 data-[active=true]:dark:text-primary-400 flex items-center justify-center rounded-lg p-2 transition-all 2xl:justify-start 2xl:gap-2"
               title={section.label}
               aria-label={section.label}
             >
               <span class="h-2 w-2 shrink-0 rounded-full bg-current" />
-              <span class="hidden text-sm font-medium xl:inline">{section.label}</span>
+              <span class="hidden text-sm font-medium 2xl:inline">{section.label}</span>
             </a>
           </li>
         ))
@@ -68,12 +68,12 @@ const { sections } = Astro.props;
     <!-- Scroll to bottom button -->
     <button
       id="scroll-to-bottom"
-      class="hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 text-base-600 dark:text-base-400 flex items-center justify-center rounded-lg p-2 transition-all xl:justify-start xl:gap-2"
+      class="hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 text-base-600 dark:text-base-400 flex items-center justify-center rounded-lg p-2 transition-all 2xl:justify-start 2xl:gap-2"
       aria-label="Scroll to bottom"
       title="Scroll to bottom"
     >
       <Icon name="tabler/chevron-down" class="h-5 w-5 shrink-0" />
-      <span class="hidden text-sm font-medium xl:inline">Bottom</span>
+      <span class="hidden text-sm font-medium 2xl:inline">Bottom</span>
     </button>
   </nav>
 </aside>

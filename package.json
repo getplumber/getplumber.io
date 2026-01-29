@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.37.0",
+    "conventional-changelog-conventionalcommits": "^5.0.0",
     "semantic-release": "^19.0.5",
     "@playform/compress": "0.2.0",
     "eslint": "9.37.0",
