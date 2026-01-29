@@ -103,23 +103,24 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
 ## Quick Start
 
 <Steps>
-1. **Set your GitLab token**
+1. **Create and set your GitLab token**
 
-   Create a token with `read_api` + `read_repository` scopes:
+   In GitLab, go to **User Settings → Access Tokens** and create a Personal Access Token with `read_api` + `read_repository` scopes:
 
    ```bash
    export GITLAB_TOKEN=glpat-xxxx
    ```
+
+   <Aside variant="tip">
+     You can also use a project or group access token if you prefer scoped permissions.
+   </Aside>
 
 2. **Run analysis**
 
    ```bash
    plumber analyze \
      --gitlab-url https://gitlab.com \
-     --project mygroup/myproject \
-     --branch main \
-     --config .plumber.yaml \
-     --threshold 100
+     --project mygroup/myproject
    ```
 
 3. **Review results**
@@ -143,8 +144,8 @@ plumber analyze [flags]
 |------|----------|---------|-------------|
 | `--gitlab-url` | Yes | - | GitLab instance URL (e.g., `https://gitlab.com`) |
 | `--project` | Yes | - | Project path (e.g., `group/project`) |
-| `--config` | Yes | - | Path to `.plumber.yaml` configuration file |
-| `--threshold` | Yes | - | Minimum compliance % to pass (0-100) |
+| `--config` | No | `.plumber.yaml` | Path to configuration file |
+| `--threshold` | No | `100` | Minimum compliance % to pass (0-100) |
 | `--branch` | No | Project default | Branch to analyze |
 | `--output` | No | - | Write JSON results to file |
 | `--print` | No | `true` | Print text output to stdout |
