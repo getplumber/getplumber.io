@@ -58,12 +58,27 @@ export default function jsonLDGenerator(props: JsonLDProps) {
       }
     </script>`;
   }
-  return `<script type="application/ld+json">
-      {
-      "@context": "https://schema.org/",
-      "@type": "WebSite",
-      "name": "${siteData.title}",
-      "url": "${import.meta.env.SITE}"
-      }
-    </script>`;
+  // Organization + WebSite for SEO and AEO (answer engines use entity markup)
+  const baseUrl = import.meta.env.SITE?.replace(/\/$/, "") ?? "";
+  const organization = {
+    "@type": "Organization",
+    "@id": `${baseUrl}/#organization`,
+    name: siteData.name,
+    url: baseUrl,
+    description: siteData.description,
+    logo: {
+      "@type": "ImageObject",
+      url: `${baseUrl}${siteData.defaultImage.src.startsWith("/") ? "" : "/"}${siteData.defaultImage.src}`,
+    },
+  };
+  const webSite = {
+    "@type": "WebSite",
+    "@id": `${baseUrl}/#website`,
+    name: siteData.title,
+    url: baseUrl,
+    description: siteData.description,
+    publisher: { "@id": organization["@id"] },
+  };
+  const graph = [organization, webSite];
+  return `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph })}</script>`;
 }

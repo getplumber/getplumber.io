@@ -15,10 +15,10 @@ const siteData: SiteDataProps = {
     twitter: "Plumber",
   },
 
-  // default image for meta tags if the page doesn't have an image already
+  // default image for Open Graph / Twitter card (big link preview)
   defaultImage: {
-    src: "/images/favicon.svg",
-    alt: "Plumber logo",
+    src: "/social-media-card.svg",
+    alt: "Plumber - CI/CD compliance without effort",
   },
 };
 

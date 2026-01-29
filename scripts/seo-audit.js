@@ -106,14 +106,14 @@ function extractMetaTags(html) {
   const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
   if (titleMatch) meta.title = titleMatch[1].trim();
   
-  // Extract meta tags
+  // Extract meta tags (support both quoted and minified unquoted attributes)
   const metaRegex = /<meta\s+([^>]+)>/gi;
   let match;
   while ((match = metaRegex.exec(html)) !== null) {
     const attrs = match[1];
-    const nameMatch = attrs.match(/name=["']([^"']+)["']/i);
-    const propertyMatch = attrs.match(/property=["']([^"']+)["']/i);
-    const contentMatch = attrs.match(/content=["']([^"']+)["']/i);
+    const nameMatch = attrs.match(/name=["']([^"']+)["']/i) || attrs.match(/\bname=([^\s>]+)/i);
+    const propertyMatch = attrs.match(/property=["']([^"']+)["']/i) || attrs.match(/\bproperty=([^\s>]+)/i);
+    const contentMatch = attrs.match(/content=["']([^"']*)["']/i) || attrs.match(/\bcontent=([^\s>]+)/i);
     const charsetMatch = attrs.match(/charset=["']?([^"'\s>]+)/i);
     
     if (charsetMatch) {
@@ -121,9 +121,9 @@ function extractMetaTags(html) {
     }
     
     if (contentMatch) {
-      const content = contentMatch[1];
-      const name = nameMatch ? nameMatch[1].toLowerCase() : null;
-      const property = propertyMatch ? propertyMatch[1].toLowerCase() : null;
+      const content = contentMatch[1].trim();
+      const name = nameMatch ? nameMatch[1].toLowerCase().replace(/^["']|["']$/g, '') : null;
+      const property = propertyMatch ? propertyMatch[1].toLowerCase().replace(/^["']|["']$/g, '') : null;
       
       if (name === 'description') meta.description = content;
       if (name === 'keywords') meta.keywords = content;
@@ -139,8 +139,9 @@ function extractMetaTags(html) {
     }
   }
   
-  // Extract canonical
-  const canonicalMatch = html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i);
+  // Extract canonical (support quoted and unquoted href/rel)
+  const canonicalMatch = html.match(/<link[^>]+rel=["']?canonical["']?[^>]+href=["']?([^\s"'>]+)["']?/i)
+    || html.match(/<link[^>]+href=["']?([^\s"'>]+)["']?[^>]+rel=["']?canonical["']?/i);
   if (canonicalMatch) meta.canonical = canonicalMatch[1];
   
   return meta;
@@ -148,7 +149,8 @@ function extractMetaTags(html) {
 
 function extractStructuredData(html) {
   const scripts = [];
-  const scriptRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  // Support both quoted and unquoted type (minified HTML)
+  const scriptRegex = /<script[^>]*type=["']?application\/ld\+json["']?[^>]*>([\s\S]*?)<\/script>/gi;
   let match;
   while ((match = scriptRegex.exec(html)) !== null) {
     try {
@@ -358,10 +360,21 @@ async function checkStructuredData() {
     } else {
       results.checks.structuredData.passed.push(`Found ${structuredData.length} structured data block(s)`);
       
-      // Check for common schema types
-      const types = structuredData.map(sd => sd['@type'] || sd.type).filter(Boolean);
+      // Collect types from top-level and from @graph (JSON-LD graph format)
+      const types = [];
+      for (const sd of structuredData) {
+        if (Array.isArray(sd['@graph'])) {
+          sd['@graph'].forEach((node) => {
+            const t = node['@type'] || node.type;
+            if (t) types.push(t);
+          });
+        } else {
+          const t = sd['@type'] || sd.type;
+          if (t) types.push(t);
+        }
+      }
       if (types.length > 0) {
-        results.checks.structuredData.passed.push(`Schema types found: ${types.join(', ')}`);
+        results.checks.structuredData.passed.push(`Schema types found: ${[...new Set(types)].join(', ')}`);
       }
       
       // Check for Organization schema
@@ -445,7 +458,7 @@ async function checkAccessibility() {
     const html = response.body;
     
     // Check for lang attribute
-    if (html.match(/<html[^>]*lang=["']/i)) {
+    if (html.match(/<html[^>]*\blang=["']/i) || html.match(/<html[^>]*\blang=[^\s>]+/i)) {
       results.checks.accessibility.passed.push('HTML lang attribute found');
     } else {
       results.checks.accessibility.warnings.push('Missing HTML lang attribute');

@@ -3,6 +3,7 @@ import { getImage } from "astro:assets";
 import { type CollectionEntry } from "astro:content";
 import { SEO } from "astro-seo";
 
+import jsonLDGenerator from "@/js/jsonLD";
 import { getLocaleFromUrl } from "@/docs/js/localeUtils";
 import { getTranslatedData } from "@/docs/js/translationUtils";
 
@@ -21,7 +22,7 @@ interface Props {
 const { title, description, image, noindex = false } = Astro.props;
 
 let optimizedImage;
-let jsonLD;
+const jsonLD = jsonLDGenerator({ type: "general" });
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 
 if (image) {
@@ -82,3 +83,6 @@ const imageUrl =
 
 <!-- hreflang attributes -->
 <HrefLang />
+
+<!-- JSON-LD (Organization + WebSite for SEO/AEO) -->
+<Fragment set:html={jsonLD} />

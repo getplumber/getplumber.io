@@ -38,10 +38,10 @@ const docsSiteData: DocsSiteData = {
       icon: "tabler/brand-github",
     },
   ],
-  // default image for meta tags if the page doesn't have an image already
+  // default image for Open Graph / Twitter card (big link preview)
   defaultImage: {
-    src: "/images/cosmic-themes-logo.png",
-    alt: "Cosmic Themes logo",
+    src: "/social-media-card.svg",
+    alt: "Plumber - CI/CD compliance without effort",
   },
   // Your information for SEO purposes
   author: {

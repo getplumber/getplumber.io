@@ -1,6 +1,53 @@
 # Plumber - Website
 
+![Plumber logo](src/assets/images/site-logo.svg)
+
 **A modern website for Plumber (open-source CI/CD compliance CLI), built with Astro, Tailwind CSS, and React.**
+
+---
+
+## 📑 Index
+
+### Site routes
+
+| Route | Description |
+|-------|-------------|
+| `/` | Homepage |
+| `/platform` | Platform product page |
+| `/contact` | Contact page |
+| `/blog` | Blog listing |
+| `/blog/archive` | Blog archive |
+| `/blog/[...]` | Blog posts (e.g. `/blog/releases/2.17`, `/blog/tj-actions-compromised`) |
+| `/categories` | Categories index |
+| `/categories/[category]` | Category pages (e.g. `/categories/cicd`) |
+| `/docs` | Documentation home |
+| `/docs/[...]` | Documentation pages (e.g. `/docs/getting-started`, `/docs/installation/docker-compose`) |
+| `/elements` | UI elements showcase (from content) |
+| `/privacy-policy` | Privacy policy (from content) |
+| `/terms-of-use` | Terms of use (from content) |
+| `/404` | Not found page |
+| `/rss.xml` | RSS feed |
+
+### Documentation (in-app)
+
+- **Getting started** — `src/docs/data/docs/en/getting-started/`
+- **Installation** — `installation/` (index, docker-compose, docker-compose-local, kubernetes, podman, podman-local, reference, troubleshooting)
+- **CLI** — `cli/` (index, gitlab-component)
+- **Use Plumber** — `use-plumber/` (controls, issues, register-templates, roles-permissions)
+- **Components** — `components/` (Aside, Badge, Button, Steps, Tabs — MDX reference)
+- **Reference** — `reference/` (elements, frontmatter-reference, nav-config, sidebar-navigation, site-settings)
+- **Authentication** — `authentication/overview`
+- **Ambassador program** — `ambassador-program.mdx`
+- **Tutorials** — `tutorials/advanced-techniques`
+
+### Content & config
+
+- **Blog content** — `src/data/blog/en/` (releases, articles)
+- **Authors** — `src/data/authors/`
+- **Other pages** — `src/data/otherPages/en/` (elements, privacy-policy, terms-of-use)
+- **Site config** — `src/config/` (siteData, navData, siteSettings, translationData)
+
+---
 
 ## 📋 Summary
 
@@ -25,7 +72,7 @@ The website features:
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 20+
 - npm
 
 ### Installation & Setup
@@ -62,12 +109,13 @@ The website features:
 |---------|--------|
 | `npm run dev` | Start local dev server at `localhost:4321` |
 | `npm run build` | Build production site to `./dist/` with search indexing |
-| `npm run preview` | Preview production build locally |
+| `npm run preview` | Preview production build (not supported with Vercel adapter) |
 | `npm run format` | Format code with ESLint and Prettier |
 | `npm run lint` | Run ESLint |
 | `npm run config-i18n` | Configure internationalization |
 | `npm run remove-keystatic` | Remove Keystatic CMS if not needed |
 | `npm run seo-audit` | Run SEO audit on the site |
+| `npm run generate-favicon-ico` | Generate favicon.ico from favicon.svg |
 
 ---
 
@@ -103,15 +151,17 @@ The website features:
 ```
 .
 ├── .github/
-│   └── workflows/          # CI/CD workflows (lint, preview, production, security)
-├── docs/                   # Legacy documentation (being migrated)
+│   └── workflows/          # CI/CD (lint, preview, production, security, seo-audit)
 ├── public/                 # Static assets
-│   ├── favicons/          
-│   └── robots.txt         
+│   ├── favicons/
+│   ├── robots.txt
+│   └── social-media-card.svg
 ├── scripts/                # Utility scripts
 │   ├── config-i18n.js     # i18n configuration wizard
+│   ├── generate-favicon-ico.js
 │   ├── i18n/              # i18n management utilities
-│   └── remove-keystatic.js
+│   ├── remove-keystatic.js
+│   └── seo-audit.js
 ├── src/
 │   ├── assets/            # Images, videos (optimized by Astro)
 │   ├── components/        # Reusable Astro/React components
@@ -122,8 +172,9 @@ The website features:
 │   │   ├── Footer/        
 │   │   └── ...
 │   ├── config/            # Site configuration
-│   │   ├── siteSettings.json.ts    # Global site settings
-│   │   └── translationData.json.ts # Translation data
+│   │   ├── en/            # Locale-specific (siteData, navData, faqData, etc.)
+│   │   ├── siteSettings.json.ts
+│   │   └── translationData.json.ts
 │   ├── data/              # Content collections data
 │   │   ├── blog/          # Blog posts (by language)
 │   │   │   └── en/        
@@ -157,15 +208,21 @@ The website features:
 │   │   │   └── [...slug].astro   # Blog post
 │   │   ├── docs/
 │   │   │   ├── index.astro       # Docs home
+│   │   │   ├── [docsRoute]/index.astro
 │   │   │   └── [...slug].astro   # Docs pages
 │   │   ├── categories/    # Category pages
 │   │   ├── contact.astro
+│   │   ├── [...page].astro # Other pages (elements, privacy-policy, terms-of-use)
 │   │   ├── 404.astro
 │   │   └── rss.xml.ts     # RSS feed
 │   ├── styles/            # Global styles
 │   │   ├── global.css
+│   │   ├── tailwind-theme.css
 │   │   ├── buttons.css
-│   │   └── markdown-content.css
+│   │   ├── markdown-content.css
+│   │   ├── fonts.css
+│   │   ├── mos.css
+│   │   └── keystatic.css
 │   └── content.config.ts  # Content collections schema
 ├── astro.config.mjs       # Astro configuration
 ├── keystatic.config.tsx   # Keystatic CMS configuration
@@ -262,8 +319,9 @@ import CustomComponent from '@components/CustomComponent.astro';
 #### 6. Examples
 
 See existing blog posts in `src/data/blog/en/` for reference:
-- `example-1/index.mdx` - Simple article
-- `releases/*/index.mdx` - Release note examples
+- `releases/2.17/index.mdx` - Release notes
+- `tj-actions-compromised/index.mdx` - Article example
+- `top-5-cybersecurity-incidents-in-cicd/index.mdx` - Long-form article
 
 ### Creating Authors
 
@@ -452,9 +510,10 @@ The sidebar is auto-generated from:
 #### 6. Examples
 
 See existing docs for reference:
-- `src/docs/data/docs/en/getting-started/index.mdx` - Simple overview
-- `src/docs/data/docs/en/installation/` - Folder with multiple pages
-- `src/docs/data/docs/en/components/` - Using all MDX components
+- `src/docs/data/docs/en/getting-started/index.mdx` - Overview
+- `src/docs/data/docs/en/installation/` - Multiple pages (docker-compose, kubernetes, podman, etc.)
+- `src/docs/data/docs/en/components/` - MDX components (Aside, Badge, Button, Steps, Tabs)
+- `src/docs/data/docs/en/use-plumber/` - Controls, issues, register-templates, roles-permissions
 
 ---
 
@@ -539,7 +598,8 @@ import Pricing1 from '@components/Pricing/Pricing1.astro';
 - **Testimonials** - Customer testimonials
 - **LogoCloud** - Client/partner logos
 - **PostCard** - Blog post cards
-- **Nav/Footer** - Navigation components
+- **SiteLogo** - Site logo (nav, footer, mobile)
+- **Nav / Footer** - Navigation and footer
 
 ### Creating Custom Components
 
@@ -799,18 +859,18 @@ const { Content } = await post.render();
 ### `astro.config.mjs`
 
 Main Astro configuration:
-- Site URL
-- Integrations (MDX, React, Sitemap, etc.)
-- Markdown settings (syntax highlighting)
+- Site URL, image service
+- Integrations (MDX, React, Sitemap, Keystatic, Compress, etc.)
+- Markdown settings (Shiki syntax highlighting)
 - i18n configuration
-- Auto-imports
+- Auto-imports for MDX
 
 ### `content.config.ts`
 
 Content collections schema:
-- Defines validation for frontmatter fields
+- Defines validation for frontmatter (blog, authors, docs, otherPages)
 - Configures content loaders
-- Sets up relationships (e.g., blog posts → authors)
+- Sets up relationships (e.g. blog posts → authors)
 
 ### `package.json`
 
@@ -820,6 +880,7 @@ Dependencies and scripts. Key packages:
 - React 19.x
 - Keystatic CMS
 - Pagefind (search)
+- Node 20+
 
 ### `tsconfig.json`
 
@@ -837,8 +898,9 @@ TypeScript configuration with path aliases:
 
 ```bash
 npm run build
-npm run preview
 ```
+
+**Note:** With the Vercel adapter, `npm run preview` is not supported. To test the built site locally, use a static server (e.g. `npx serve dist/client -p 4321`) or deploy to a Vercel preview.
 
 ### Test Search
 
