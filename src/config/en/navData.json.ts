@@ -25,13 +25,13 @@ const navConfig: navItem[] = [
       {
         title: "Documentation",
         items: [
-          { text: "Platform", link: "/docs/getting-started" },
-          { text: "OpenSource CLI", link: "/docs/cli" },
+          { text: "Platform", link: "/docs/getting-started", icon: "tabler/file-text" },
+          { text: "OpenSource CLI", link: "/docs/cli", icon: "tabler/terminal-2" },
         ],
       },
       {
         title: "Blog",
-        items: [{ text: "Blog", link: "/blog/" }],
+        items: [{ text: "Blog", link: "/blog/", icon: "tabler/news" }],
       },
     ],
   },

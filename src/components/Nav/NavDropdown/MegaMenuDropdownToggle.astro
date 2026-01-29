@@ -12,26 +12,21 @@ const { navItem } = Astro.props as Props;
 
 const cols = navItem.megaMenuColumns.length;
 let gridClass: string;
-let insetClass: string;
 if (cols >= 5) {
   gridClass = "grid-cols-5";
-  insetClass = "inset-x-0";
 } else if (cols == 4) {
   gridClass = "grid-cols-4";
-  insetClass = "inset-x-4 lg:inset-x-24";
 } else if (cols == 3) {
   gridClass = "grid-cols-3";
-  insetClass = "inset-x-20 lg:inset-x-48";
 } else if (cols == 2) {
   gridClass = "grid-cols-2";
-  insetClass = "inset-x-32 lg:inset-x-72";
 } else {
   throw new Error("Mega menu dropdown must have at least 2 columns");
 }
 ---
 
 <!-- non-mobile mega menu -->
-<div class="mega-menu__dropdown group">
+<div class="mega-menu__dropdown group relative">
   <button
     class:list={[
       "nav__link--base primary-focus mega-menu__dropdown-button hidden w-full items-center gap-1 px-4 py-1.5 whitespace-nowrap md:flex",
@@ -60,22 +55,21 @@ if (cols >= 5) {
     aria-labelledby={`${slugify(navItem.text)}-mega-menu`}
     data-state="closed"
     class:list={[
-      "mega-menu__dropdown-content absolute top-full z-10 transition-all",
+      "mega-menu__dropdown-content absolute left-0 top-full z-10 transition-all",
       "slide-in-from-top-2 fade-in-0 animate-in hidden will-change-transform",
       "data-[state=closed]:fade-out-0 data-[state=closed]:animate-out",
-      insetClass,
     ]}
   >
     <ul
       class:list={[
-        "border-base-400/60 bg-base-100 dark:border-base-600/60 dark:bg-base-800 mt-2 grid w-full max-w-full min-w-[150px] gap-3 rounded-md border border-solid py-2 drop-shadow-md",
+        "border-base-500/40 bg-base-200/95 dark:border-base-500/50 dark:bg-base-900/95 mt-2 grid w-max min-w-[150px] max-w-md gap-3 rounded-lg border border-solid py-3 shadow-xl backdrop-blur-sm lg:max-w-sm",
         gridClass,
       ]}
     >
       {
         navItem.megaMenuColumns.map((col) => (
           <div>
-            <p class="border-base-400/60 dark:border-base-600/60 mx-4 mb-1 border-b py-1 text-lg font-medium">
+            <p class="border-base-500/40 dark:border-base-500/50 mx-4 mb-1 border-b py-1 text-base font-semibold text-foreground">
               {col.title}
             </p>
             {col.items.map((navItem) => (

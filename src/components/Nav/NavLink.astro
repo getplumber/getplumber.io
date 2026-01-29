@@ -56,7 +56,7 @@ if (!link.includes(domain) && !link.startsWith("/") && !link.startsWith("#")) {
     rel={newTab ? "noopener noreferrer" : ""}
     aria-label={text}
   >
-    {icon && !noIcon && <Icon name={icon} aria-hidden="true" class="size-4" />}
+    {icon && !noIcon && <Icon name={icon} aria-hidden="true" class="size-4 lg:block hidden" />}
 
     {text}
   </a>

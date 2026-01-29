@@ -97,11 +97,18 @@ if (!docsMenuExists) {
                   <hr class="border-border mx-4 my-1" />
                 </>
               ) : "megaMenuColumns" in navItem ? (
-                // mobile mega menu dropdowns
+                // mobile mega menu: Documentation = expandable (2 sub-links); Blog = single top-level link
                 <>
-                  {navItem.megaMenuColumns.map((navItem) => (
-                    <MobileNavDropdown navItem={navItem} />
-                  ))}
+                  {navItem.megaMenuColumns.map((column) => {
+                    const isSingleSameLabel =
+                      column.items.length === 1 &&
+                      column.items[0].text.toLowerCase() === column.title.toLowerCase();
+                    return isSingleSameLabel ? (
+                      <NavLink navItem={column.items[0]} />
+                    ) : (
+                      <MobileNavDropdown navItem={column} />
+                    );
+                  })}
                   <hr class="border-border mx-4 my-1" />
                 </>
               ) : (
