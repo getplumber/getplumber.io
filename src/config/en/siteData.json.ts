@@ -11,8 +11,8 @@ const siteData: SiteDataProps = {
   // Your information for blog post purposes
   author: {
     name: "Plumber",
-    email: "creator@plumber.com",
-    twitter: "Plumber",
+    email: "hello@getplumber.io",
+    twitter: "getplumber",
   },
 
   // default image for Open Graph / Twitter card (big link preview)
