@@ -77,19 +77,19 @@ unqualified-search-registries = ["docker.io"]
    Edit the `.env` file by updating value of `DOMAIN_NAME` and `JOBS_GITLAB_URL` variables
 
    ```bash title=".env" hl_lines="1-3"
-   DOMAIN_NAME="<r2devops_domain_name>"
+   DOMAIN_NAME="<plumber_domain_name>"
    JOBS_GITLAB_URL="https://<url_of_your_gitlab_instance>"
    ```
 
-   ```bash title="Example with domain name 'r2devops.mydomain.com' for Plumber and 'gitlab.mydomain.com' for GitLab" hl_lines="1-3"
-   DOMAIN_NAME="r2devops.mydomain.com"
+   ```bash title="Example with domain name 'plumber.mydomain.com' for Plumber and 'gitlab.mydomain.com' for GitLab" hl_lines="1-3"
+   DOMAIN_NAME="plumber.mydomain.com"
    JOBS_GITLAB_URL="https://gitlab.mydomain.com"
    ```
 
    Create DNS record
 
    <Steps>
-   1. Name: `<r2devops_domain_name>`
+   1. Name: `<plumber_domain_name>`
    2. Type: `A`
    3. Content: `<your-server-public-ip>`
    </Steps>
@@ -116,7 +116,7 @@ unqualified-search-registries = ["docker.io"]
 
    <Steps>
    1. Name: `Plumber self-managed`
-   2. Redirect URI : `https://<r2devops_domain_name>/api/auth/gitlab/callback`
+   2. Redirect URI : `https://<plumber_domain_name>/api/auth/gitlab/callback`
    3. Confidential: `true` (let the box checked)
    4. Scopes: `api`
    </Steps>
