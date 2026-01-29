@@ -8,18 +8,25 @@ sidebar:
 
 
 This section describes how to setup your self-managed instance of Plumber.
-To find out more about the application architecture, [read this](infrastructure).
 
-Several methods are available.
-
-## Installation methods supported by Plumber
+## Installation methods
 
 - [⏱️ Trying Plumber on your local computer using Docker-compose](local-docker-compose)
 - [🐳 Running Plumber using Docker-compose](docker-compose)
 - [🚀 Running Plumber on Kubernetes using a Helm chart](kubernetes)
+- [⏱️ Trying Plumber on your local computer using podman](local-podman) (supported by community)
+- [🕸 Running Plumber using podman](podman) (supported by community)
 
-## Installation methods supported by the community
+## Infrastructure
 
-- [⏱️ Trying Plumber on your local computer using podman](local-podman)
-- [🕸 Running Plumber using podman](podman)
+The Plumber Infrastructure is composed of the following components:
 
+<div style={{maxWidth: "480px"}}>
+![Plumber infrastructure](./img/plumber-infra.svg)
+</div>
+
+- **Plumber frontend**: the Plumber interface
+- **Plumber backend**: the Plumber backend and API
+- **Plumber worker**: used to run the tasks of asynchronous requests
+- **[PostgreSQL](https://github.com/postgres/postgres)**: used to store Plumber backend data
+- **[Redis](https://github.com/redis/redis)**: used to cache Plumber data and create tasks lists for workers
