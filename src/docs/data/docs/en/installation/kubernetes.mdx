@@ -37,27 +37,25 @@ and/or `Redis`. Both alternatives are detailed below.
 
    Create the namespace for Plumber
    ```sh
-   kubectl create ns r2devops
+   kubectl create ns plumber
    ```
 
    Add Plumber repo
    ```sh
-   helm repo add r2devops https://charts.r2devops.io/
+   helm repo add plumber https://charts.getplumber.io/
    ```
 
 2. ### 📄 Configure Domain name
 
    <Aside variant="info">
    You need a domain to run Plumber. For example, if you have the domain name
-   `mydomain.com`:
-
-       - Plumber URL will be `https://r2devops.mydomain.com`
+   `mydomain.com` then Plumber URL will be `https://plumber.mydomain.com`
    </Aside>
 
    Create DNS record
 
    <Steps>
-   1. Name: `<r2devops_domain_name>`
+   1. Name: `<your_plumber_domain>`
    2. Type: `A`
    3. Content: `<your-cluster-public-ip>`
    </Steps>
@@ -77,7 +75,7 @@ and/or `Redis`. Both alternatives are detailed below.
 
    <Steps>
    1. Name: `Plumber self-managed`
-   2. Redirect URI : `https://<r2devops_domain_name>/api/auth/gitlab/callback`
+   2. Redirect URI : `https://<your_plumber_domain>/api/auth/gitlab/callback`
    3. Confidential: `true` (let the box checked)
    4. Scopes: `api`
    </Steps>
@@ -111,16 +109,18 @@ and/or `Redis`. Both alternatives are detailed below.
 
    Replace all occurrences of `REDACTED` by your Plumber secrets encoded in
    base64 and create following secret:
-    - `secret-key`: 256 bit secret key used to encrypt sensitive data (`openssl rand -hex 32`)
-    - `gitlab-oauth2-client-id`: Application ID of the GitLab application
-    - `gitlab-oauth2-client-secret`: Secret of the GitLab application
+   <Steps>
+   1. `secret-key`: 256 bit secret key used to encrypt sensitive data (`openssl rand -hex 32`)
+   2. `gitlab-oauth2-client-id`: Application ID of the GitLab application
+   3. `gitlab-oauth2-client-secret`: Secret of the GitLab application
+   </Steps>
 
     ```yaml
     apiVersion: v1
     kind: Secret
     metadata:
-      name: r2devops-secret
-      namespace: r2devops
+      name: plumber-secret
+      namespace: plumber
     type: Opaque
     data:
       secret-key: REDACTED
@@ -138,7 +138,7 @@ and/or `Redis`. Both alternatives are detailed below.
     kind: Secret
     metadata:
         name: postgresql-secret
-        namespace: r2devops
+        namespace: plumber
     type: Opaque
     data:
         password: REDACTED
@@ -154,7 +154,7 @@ and/or `Redis`. Both alternatives are detailed below.
     kind: Secret
     metadata:
         name: redis-secret
-        namespace: r2devops
+        namespace: plumber
     type: Opaque
     data:
         password: REDACTED
@@ -168,10 +168,10 @@ and/or `Redis`. Both alternatives are detailed below.
 
    ```yaml
    front:
-     host: 'r2devops.mydomain.com'
+     host: 'plumber.mydomain.com'
 
    jobs:
-     host: 'r2devops.mydomain.com'
+     host: 'plumber.mydomain.com'
 
      # Not using secret for configuration (comment if you use secret)
      extraEnv:
@@ -187,17 +187,17 @@ and/or `Redis`. Both alternatives are detailed below.
      #  - name: SECRET_KEY
      #    valueFrom:
      #      secretKeyRef:
-     #        name: "r2devops-secret"
+     #        name: "plumber-secret"
      #        key: "secret-key"
      #  - name: GITLAB_OAUTH2_CLIENT_ID
      #    valueFrom:
      #      secretKeyRef:
-     #        name: "r2devops-secret"
+     #        name: "plumber-secret"
      #        key: "gitlab-oauth2-client-id"
      #  - name: GITLAB_OAUTH2_CLIENT_SECRET
      #    valueFrom:
      #      secretKeyRef:
-     #        name: "r2devops-secret"
+     #        name: "plumber-secret"
      #        key: "gitlab-oauth2-client-secret"
 
    worker:
@@ -206,19 +206,21 @@ and/or `Redis`. Both alternatives are detailed below.
 
    Add your GitLab instance domain and organization
 
-   - **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `organization` (to run the onboarding, you must be at least **Maintainer in this group**)
+   <Steps>
+   1. **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `organization` (to run the onboarding, you must be at least **Maintainer in this group**)
        ```yaml
        gitlab:
            domain: 'https://gitlab.mydomain.com'
            organization: '<group-path>'
        ```
 
-   - **If you want to connect Plumber to the whole GitLab instance**: let `organization` empty (to run the onboarding, you must be a **GitLab instance Admin**)
+   2. **If you want to connect Plumber to the whole GitLab instance**: let `organization` empty (to run the onboarding, you must be a **GitLab instance Admin**)
        ```yaml
        gitlab:
            domain: 'https://gitlab.mydomain.com'
            organization: ''
        ```
+   </Steps>
 
    Add your Ingress configuration
 
@@ -274,7 +276,7 @@ and/or `Redis`. Both alternatives are detailed below.
 
          # Using existing secret for auth password (uncomment if you use secret)
          #auth:
-         #  username: r2devops
+         #  username: plumber
          #  existingSecret: "postgresql-secret"
          #  secretKeys:
          #    adminPasswordKey: "password"
@@ -310,7 +312,7 @@ and/or `Redis`. Both alternatives are detailed below.
    Run the following command:
 
    ```sh
-   helm upgrade -n r2devops --create-namespace --install r2devops r2devops/r2devops -f custom_values.yaml
+   helm upgrade -n plumber --create-namespace --install plumber plumber/plumber -f custom_values.yaml
    ```
 
    <Aside variant="tip">
@@ -329,10 +331,10 @@ This example run in a Kubernetes cluster using:
 
 ```yaml
 front:
-  host: "r2devops.mydomain.com"
+  host: "plumber.mydomain.com"
 
 jobs:
-  host: "r2devops.mydomain.com"
+  host: "plumber.mydomain.com"
   extraEnv:
     - name: SECRET_KEY
       value: "REDACTED"
@@ -362,7 +364,7 @@ postgresql:
   custom:
     host: "database-1.REDACTED.us-east-1.rds.amazonaws.com"
     port: 5432
-    dbName: "r2devops"
+    dbName: "plumber"
     sslmode: "require"
 
 redis:
@@ -390,10 +392,9 @@ redis:
 
 2. Run the helm upgrade
    ```sh
-   helm upgrade -n $R2DEVOPS_NS --install r2devops r2devops/r2devops -f custom_values.yaml
+   helm upgrade -n plumber --install plumber plumber/plumber -f custom_values.yaml
    ```
 
 3. You have successfully updated Plumber 🎉
 
 </Steps>
-
