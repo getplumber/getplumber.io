@@ -21,16 +21,17 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 <Steps>
 1. **Create a GitLab token**
 
-   - In GitLab, go to **User Settings → Access Tokens** ([or create one here](https://gitlab.com/-/user_settings/personal_access_tokens))
-   - Create a Personal Access Token with `read_api` + `read_repository` scopes
-   - Go to your project's **Settings → CI/CD → Variables**
-   - Add the token as `GITLAB_TOKEN` (masked recommended)
+   In GitLab, go to **User Settings → Access Tokens** ([or create one here](https://gitlab.com/-/user_settings/personal_access_tokens)) and create a Personal Access Token with `read_api` + `read_repository` scopes.
+
+2. **Add the token to your project**
+
+   Go to your project's **Settings → CI/CD → Variables** and add the token as `GITLAB_TOKEN` (masked recommended).
 
    <Aside variant="tip">
      You can also use a project or group access token if you prefer scoped permissions.
    </Aside>
 
-2. **Add to your pipeline**
+3. **Add to your pipeline**
 
    Add this to your `.gitlab-ci.yml`:
 
@@ -39,7 +40,7 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
      - component: gitlab.com/getplumber/plumber/plumber@~latest
    ```
 
-3. **Run your pipeline**
+4. **Run your pipeline**
 
    Plumber will now run on every pipeline (default branch, tags, and open merge requests) and report compliance issues.
 </Steps>
@@ -62,37 +63,19 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
     <Steps>
     1. **Import the repository to your GitLab instance**
 
-       Go to **New Project → Import project → Repository by URL** and use this URL:
-
-       ```
-       https://gitlab.com/getplumber/plumber.git
-       ```
-
-       Choose a group and project name (e.g., `infrastructure/plumber`).
+       Go to **New Project → Import project → Repository by URL** and use this URL: `https://gitlab.com/getplumber/plumber.git`. Choose a group and project name (e.g., `infrastructure/plumber`).
 
     2. **Enable the CI/CD Catalog**
 
-       In your imported project:
-       - Go to **Settings → General**
-       - Make sure the project has a **description** (required for CI/CD Catalog)
-       - Expand **Visibility, project features, permissions**
-       - Scroll down and toggle **CI/CD Catalog resource** to enabled
-       - Click **Save changes**
+       In your imported project, go to **Settings → General** and make sure the project has a **description** (required for CI/CD Catalog). Then expand **Visibility, project features, permissions**, toggle **CI/CD Catalog resource** to enabled, and click **Save changes**.
 
     3. **Create a release**
 
-       - Go to **Code → Tags** and click **New tag**
-       - Enter a version number (e.g., `1.0.0`)
-       - Click **Create tag**
-       - The pipeline will create a release and publish the component to your instance's CI/CD Catalog
+       Go to **Code → Tags** and click **New tag**. Enter a version number (e.g., `1.0.0`) and click **Create tag**. The pipeline will create a release and publish the component to your instance's CI/CD Catalog.
 
     4. **Create a GitLab token**
 
-       In the project you want to scan:
-       - Go to **User Settings → Access Tokens** on your GitLab instance
-       - Create a Personal Access Token with `read_api` + `read_repository` scopes
-       - Go to the project's **Settings → CI/CD → Variables**
-       - Add the token as `GITLAB_TOKEN` (masked recommended)
+       In the project you want to scan, go to **User Settings → Access Tokens** and create a Personal Access Token with `read_api` + `read_repository` scopes. Then go to the project's **Settings → CI/CD → Variables** and add the token as `GITLAB_TOKEN` (masked recommended).
 
        <Aside variant="tip">
          You can also use a project or group access token if you prefer scoped permissions.
@@ -104,11 +87,9 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
        include:
          - component: gitlab.example.com/infrastructure/plumber/plumber@1.0.0
        ```
-    </Steps>
 
-    <Aside variant="tip">
-      The format is `<your-gitlab-host>/<project-path>/plumber@<tag>`. Replace with your actual values.
-    </Aside>
+       The format is `<your-gitlab-host>/<project-path>/plumber@<tag>`. Replace with your actual values.
+    </Steps>
   </TabsContent>
 
   <TabsContent value="manual">
@@ -179,20 +160,25 @@ include:
 
 ## Configuration
 
+Plumber works out of the box with sensible [defaults](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) embedded in the image.
+
 The component automatically detects your configuration using this priority:
 
 1. **`config_file` input set** → Uses your specified path (relative to repo root)
 2. **`.plumber.yaml` in repo root** → Uses your repo's config file
-3. **No config found** → Uses the default [configuration](https://github.com/getplumber/plumber/blob/main/.plumber.yaml)  embedded in the container
+3. **No config found** → Uses the [default](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) configuration embedded in the container
 
-### Example Configuration
+### (Optional) Create a Configuration File
 
-Create a `.plumber.yaml` file in your repository root:  
+**Option A:** If you have the [CLI](/docs/cli) installed:
 
-<Aside variant="tip">
-   See the [Configuration](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) section for full details.
-</Aside>
+```bash
+plumber generate config
+```
 
+This generates a default config file that you can customize.
+
+**Option B:** Create manually based on the [default config](https://github.com/getplumber/plumber/blob/main/.plumber.yaml):
 
 ```yaml
 version: "1.0"
@@ -206,18 +192,20 @@ controls:
 
   imageUntrusted:
     enabled: true
-    trustDockerHubOfficialImages: true
     trustedUrls:
       - registry.gitlab.com/*
       - $CI_REGISTRY_IMAGE:*
 
   branchProtection:
     enabled: true
-    defaultMustBeProtected: true
     namePatterns:
       - main
       - release/*
 ```
+
+<Aside variant="tip">
+   See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for all available options.
+</Aside>
 
 ## Example Output
 
