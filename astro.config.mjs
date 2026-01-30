@@ -52,7 +52,14 @@ export default defineConfig({
         "@/docs/components/mdx-components/TabsTrigger.astro",
       ],
     }),
-    expressiveCode(),
+    expressiveCode({
+      // Mono design: single high-contrast theme for doc code blocks so they look
+      // the same on all OS (avoids contrast issues on macOS with default dark theme).
+      themes: ["github-dark-high-contrast"],
+      useDarkModeMediaQuery: false,
+      // Ensure syntax token contrast (URLs, strings, paths) meets accessibility.
+      minSyntaxHighlightingColorContrast: 5.5,
+    }),
     mdx(),
     react(),
     icon(),
