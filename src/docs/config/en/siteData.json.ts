@@ -30,7 +30,7 @@ const docsSiteData: DocsSiteData = {
   ],
   // default image for Open Graph / Twitter card (big link preview)
   defaultImage: {
-    src: "/social-media-card.svg",
+    src: "/social-media-card.png",
     alt: "Plumber - CI/CD compliance without effort",
   },
   // Your information for SEO purposes

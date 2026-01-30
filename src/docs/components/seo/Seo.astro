@@ -63,9 +63,9 @@ const imageUrl =
       siteName: siteData.title,
     },
     image: {
-      type: "image/webp",
+      type: optimizedImage ? "image/webp" : "image/png",
       width: optimizedImage?.attributes.width || "1200",
-      height: optimizedImage?.attributes.height || "800",
+      height: optimizedImage?.attributes.height || "630",
       alt: title,
     },
   }}
