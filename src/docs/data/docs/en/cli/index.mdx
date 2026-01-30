@@ -78,10 +78,7 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
       -e GITLAB_TOKEN=glpat-xxxx \
       getplumber/plumber:latest analyze \
       --gitlab-url https://gitlab.com \
-      --project mygroup/myproject \
-      --branch main \
-      --config /.plumber.yaml \
-      --threshold 100
+      --project mygroup/myproject
     ```
   </TabsContent>
 
@@ -91,11 +88,12 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
     ```bash
     git clone https://github.com/getplumber/plumber.git
     cd plumber
-    go build -o plumber .
+    make build
+    # or: make install (builds and copies to /usr/local/bin/)
     ```
 
     <Aside variant="info">
-      Requires Go 1.24 or later.
+      Requires Go 1.24+ and Make.
     </Aside>
   </TabsContent>
 </Tabs>
@@ -103,9 +101,17 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
 ## Quick Start
 
 <Steps>
-1. **Create and set your GitLab token**
+1. **Generate a config file**
 
-   In GitLab, go to **User Settings → Access Tokens** and create a Personal Access Token with `read_api` + `read_repository` scopes:
+   ```bash
+   plumber generate config
+   ```
+
+   This creates `.plumber.yaml` with default compliance rules. You can customize it later.
+
+2. **Create and set your GitLab token**
+
+   In GitLab, go to **User Settings → Access Tokens** ([direct link](https://gitlab.com/-/user_settings/personal_access_tokens)) and create a Personal Access Token with `read_api` + `read_repository` scopes:
 
    ```bash
    export GITLAB_TOKEN=glpat-xxxx
@@ -115,7 +121,7 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
      You can also use a project or group access token if you prefer scoped permissions.
    </Aside>
 
-2. **Run analysis**
+3. **Run analysis**
 
    ```bash
    plumber analyze \
@@ -123,9 +129,9 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
      --project mygroup/myproject
    ```
 
-3. **Review results**
+4. **Review results**
 
-   Plumber will output compliance status and any issues found.
+   Plumber reads your `.plumber.yaml` config and outputs a compliance report.
 </Steps>
 
 ## Command Reference
@@ -162,6 +168,32 @@ plumber analyze [flags]
 |------|---------|
 | `0` | Passed (compliance ≥ threshold) |
 | `1` | Failed (compliance < threshold or error) |
+
+### `plumber generate config`
+
+Generate a default `.plumber.yaml` configuration file.
+
+```bash
+plumber generate config [flags]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--output`, `-o` | `.plumber.yaml` | Output file path |
+| `--force`, `-f` | `false` | Overwrite existing file |
+
+**Examples:**
+
+```bash
+# Generate default config
+plumber generate config
+
+# Custom filename
+plumber generate config --output my-plumber.yaml
+
+# Overwrite existing file
+plumber generate config --force
+```
 
 ## Usage Examples
 
