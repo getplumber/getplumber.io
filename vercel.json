@@ -15,6 +15,16 @@
       "source": "/admin",
       "destination": "/keystatic",
       "permanent": true
+    },
+    {
+      "source": "/docs",
+      "destination": "/docs/cli",
+      "permanent": false
+    },
+    {
+      "source": "/docs/",
+      "destination": "/docs/cli",
+      "permanent": false
     }
   ]
 }

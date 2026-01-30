@@ -15,18 +15,20 @@ const navConfig: navItem[] = [
     text: "OpenSource CLI",
     link: "/",
   },
-  {
-    text: "Platform",
-    link: "/platform/",
-  },
+  // TEMPORARY HIDE - EASY TO REVERT - Platform page access removed temporarily
+  // {
+  //   text: "Platform",
+  //   link: "/platform/",
+  // },
   {
     text: "Resources",
     megaMenuColumns: [
       {
         title: "Documentation",
         items: [
-          { text: "Platform", link: "/docs/getting-started", icon: "tabler/file-text" },
-          { text: "OpenSource CLI", link: "/docs/cli", icon: "tabler/terminal-2" },
+          // TEMPORARY HIDE - EASY TO REVERT - Platform docs removed temporarily
+          // { text: "Platform", link: "/docs/getting-started", icon: "tabler/file-text" },
+          { text: "OpenSource CLI", link: "/docs", icon: "tabler/terminal-2" }, // Changed from /docs/cli to /docs
         ],
       },
       {

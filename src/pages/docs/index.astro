@@ -1,5 +1,7 @@
 ---
 import { docsRoute } from "@/docs/js/docsUtils";
 
-return Astro.redirect(`/${docsRoute}/getting-started`, 301);
+// TEMPORARY CHANGE - EASY TO REVERT - Redirect to CLI docs instead of getting-started (Platform docs)
+// Original: return Astro.redirect(`/${docsRoute}/getting-started`, 301);
+return Astro.redirect(`/${docsRoute}/cli`, 302);
 ---

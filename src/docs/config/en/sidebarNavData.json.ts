@@ -9,28 +9,29 @@ const sidebarNavData: DocsSidebarNavData = {
    * These define the different top-level documentation section tabs
    */
   tabs: [
-    {
-      id: "main",
-      title: "Platform",
-      description: "Main documentation",
-      icon: "tabler/file-text",
-      // Ordered list of sidebar sections for the 'main' tab
-      // The "id" of each section should match a folder in the docs content collection
-      sections: [
-        {
-          id: "getting-started",
-          title: "Getting Started",
-        },
-        {
-          id: "installation",
-          title: "Installation",
-        },
-        {
-          id: "use-plumber",
-          title: "Use Plumber",
-        },
-      ],
-    },
+    // TEMPORARY HIDE - EASY TO REVERT - Platform documentation tab removed temporarily
+    // {
+    //   id: "main",
+    //   title: "Platform",
+    //   description: "Main documentation",
+    //   icon: "tabler/file-text",
+    //   // Ordered list of sidebar sections for the 'main' tab
+    //   // The "id" of each section should match a folder in the docs content collection
+    //   sections: [
+    //     {
+    //       id: "getting-started",
+    //       title: "Getting Started",
+    //     },
+    //     {
+    //       id: "installation",
+    //       title: "Installation",
+    //     },
+    //     {
+    //       id: "use-plumber",
+    //       title: "Use Plumber",
+    //     },
+    //   ],
+    // },
     {
       id: "api",
       title: "OpenSource CLI",
