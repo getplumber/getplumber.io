@@ -1,0 +1,43 @@
+---
+import DiscordLayout from "@layouts/DiscordLayout.astro";
+import logo from "@images/site-logo.svg";
+import { Image } from "astro:assets";
+
+const DISCORD_INVITE_URL = "https://discord.com/invite/5QKpGqR/";
+---
+<DiscordLayout title="Plumber Discord – Redirecting" description="Redirecting to Plumber Discord server…">
+  <main
+    class="overflow-hidden flex min-h-screen flex-col items-center justify-center relative px-5 sm:px-7 md:px-24 xl:px-0"
+  >
+    <div
+      class="absolute inset-0 -z-10 bg-[#121212]"
+      style="background-image: linear-gradient(to bottom right, transparent 80%, rgb(0 135 0 / 0.4)), linear-gradient(to bottom left, transparent 80%, rgb(0 135 0 / 0.4));"
+      aria-hidden="true"
+    />
+    <section class="flex flex-col items-center justify-center w-full h-full">
+      <Image
+        src={logo}
+        alt=""
+        width={346}
+        height={484}
+        class="mb-16 max-h-[40vh] w-auto"
+        loading="eager"
+        fetchpriority="high"
+      />
+      <h1 class="text-zinc-100 font-bold text-3xl text-center">
+        Redirecting to <span class="text-[#008700]">Plumber</span> Discord's server…
+      </h1>
+      <div
+        class="w-[60px] h-[60px] mt-10 border-4 border-zinc-400 border-t-transparent rounded-full animate-spin"
+        aria-hidden="true"
+      />
+    </section>
+  </main>
+  <script define:vars={{ DISCORD_INVITE_URL }}>
+    const redirectTimer = setTimeout(() => {
+      window.location.href = DISCORD_INVITE_URL;
+    }, 3000);
+
+    document.addEventListener("astro:before-swap", () => clearTimeout(redirectTimer));
+  </script>
+</DiscordLayout>

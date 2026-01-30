@@ -39,8 +39,7 @@ const navConfig: navItem[] = [
   },
   {
     text: "Discord",
-    link: "https://discord.getplumber.io",
-    newTab: true,
+    link: "/discord",
   },
 ];
 

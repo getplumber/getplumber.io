@@ -1,0 +1,21 @@
+---
+import "@/styles/global.css";
+
+import BaseHead from "@layouts/BaseHead.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Redirecting to Plumber Discord server." } = Astro.props;
+---
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <BaseHead type="general" title={title} description={description} />
+  </head>
+  <body class="min-h-screen bg-[#121212] antialiased">
+    <slot />
+  </body>
+</html>
