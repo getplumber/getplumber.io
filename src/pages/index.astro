@@ -2,7 +2,6 @@
 import PlumberFeatures from "@components/Feature/PlumberFeatures.astro";
 import PlumberQuickStart from "@components/Feature/PlumberQuickStart.astro";
 import PlumberHero from "@components/Hero/PlumberHero.astro";
-import PageSidebarNav from "@components/Nav/PageSidebarNav.astro";
 import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
@@ -10,12 +9,6 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const siteData = getTranslatedData("siteData", currLocale);
-
-// Define page sections for sidebar navigation
-const pageSections = [
-  { id: "plumber-features", label: "How it works" },
-  { id: "plumber-cta", label: "Quick Start" },
-];
 ---
 
 <BaseLayout
@@ -26,7 +19,4 @@ const pageSections = [
   <SectionDivider />
   <PlumberFeatures />
   <PlumberQuickStart />
-  
-  <!-- Floating sidebar navigation -->
-  <PageSidebarNav sections={pageSections} />
 </BaseLayout>
