@@ -19,24 +19,19 @@ interface FeatureCardData {
 // those are later down in this component
 const featureData: FeatureCardData[] = [
   {
-    icon: "tabler/zoom",
-    title: "300k+",
-    text: `CI/CD pipelines analyzed automatically`,
+    icon: "tabler/hourglass-empty",
+    title: "600k+",
+    text: `Engineering hours freed from manual CI/CD compliance.`,
   },
   {
-    icon: "tabler/circle-dashed-check",
-    title: "15k",
-    text: `Fixed vulnerabilities`,
+    icon: "tabler/zoom",
+    title: "150k+",
+    text: `CI/CD pipelines continuously made compliant`,
   },
   {
     icon: "tabler/shield-check",
-    title: "50k",
-    text: `Pipelines made compliant & secure`,
-  },
-  {
-    icon: "tabler/hourglass-empty",
-    title: "600k+",
-    text: `Hours saved across dev teams`,
+    title: "900k+",
+    text: `CI/CD security and compliance issues automatically fixed`,
   },
 ];
 ---
@@ -63,7 +58,7 @@ const featureData: FeatureCardData[] = [
       </p>
     </div>
 
-    <div id="feature5cards" class="xs:grid-cols-2 mt-8 grid gap-6 md:mt-16 md:grid-cols-4">
+    <div id="feature5cards" class="grid-cols-1 md:grid-cols-2 mt-8 grid gap-6 md:mt-16 md:grid-cols-3">
       {
         featureData.map((feature, idx) => (
           <FeatureCard
