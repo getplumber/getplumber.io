@@ -27,10 +27,6 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 
    Go to your project's **Settings → CI/CD → Variables** and add the token as `GITLAB_TOKEN` (masked recommended).
 
-   <Aside variant="tip">
-     You can also use a project or group access token if you prefer scoped permissions.
-   </Aside>
-
 3. **Add to your pipeline**
 
    Add this to your `.gitlab-ci.yml`:
@@ -76,10 +72,6 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
     4. **Create a GitLab token**
 
        In the project you want to scan, go to **User Settings → Access Tokens** and create a Personal Access Token with `read_api` + `read_repository` scopes. Then go to the project's **Settings → CI/CD → Variables** and add the token as `GITLAB_TOKEN` (masked recommended).
-
-       <Aside variant="tip">
-         You can also use a project or group access token if you prefer scoped permissions.
-       </Aside>
 
     5. **Use the component in your pipelines**
 
