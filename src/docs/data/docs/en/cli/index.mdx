@@ -147,14 +147,20 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
 3. **Run analysis**
 
    ```bash
-   plumber analyze \
-     --gitlab-url https://gitlab.com \
-     --project mygroup/myproject
+   # If you're in a git repo with a GitLab remote, just run:
+   # the gitlab url and projects are automatically detected from the .git
+   # auto-detection requires the remote to be set to 'origin'
+   plumber analyze
+
+   # Or specify the project explicitly:
+   plumber analyze --gitlab-url https://gitlab.com --project mygroup/myproject
    ```
+
+   Plumber auto-detects the GitLab URL and project from your git remote (requires remote to be set to `origin`).
 
 4. **Review results**
 
-   Plumber reads your `.plumber.yaml` config and outputs a compliance report. You can also tell it to store the output in JSON format with the `--output` flag.
+   Plumber reads your `.plumber.yaml` config and outputs a compliance report. You can also store the output in JSON format with the `--output` flag.
 </Steps>
 
 ## Command Reference
@@ -171,13 +177,18 @@ plumber analyze [flags]
 
 | Flag | Required | Default | Description |
 |------|----------|---------|-------------|
-| `--gitlab-url` | Yes | - | GitLab instance URL (e.g., `https://gitlab.com`) |
-| `--project` | Yes | - | Project path (e.g., `group/project`) |
+| `--gitlab-url` | No* | auto-detect | GitLab instance URL (e.g., `https://gitlab.com`) |
+| `--project` | No* | auto-detect | Project path (e.g., `group/project`) |
 | `--config` | No | `.plumber.yaml` | Path to configuration file |
 | `--threshold` | No | `100` | Minimum compliance % to pass (0-100) |
 | `--branch` | No | Project default | Branch to analyze |
 | `--output` | No | - | Write JSON results to file |
 | `--print` | No | `true` | Print text output to stdout |
+
+<Aside variant="info">
+  \* Auto-detected from git remote (requires `origin`) if not specified. Supports both SSH and HTTPS remote URLs.  
+  \* You can always override with `--gitlab-url` and `--project`
+</Aside>
 
 ### Environment Variables
 
@@ -192,12 +203,12 @@ plumber analyze [flags]
 | `0` | Passed (compliance ≥ threshold) |
 | `1` | Failed (compliance < threshold or error) |
 
-### `plumber generate config`
+### `plumber config generate`
 
 Generate a default `.plumber.yaml` configuration file.
 
 ```bash
-plumber generate config [flags]
+plumber config generate [flags]
 ```
 
 | Flag | Default | Description |
