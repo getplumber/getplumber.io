@@ -127,7 +127,7 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
 1. **Generate a config file**
 
    ```bash
-   plumber generate config
+   plumber config generate
    ```
 
    This creates `.plumber.yaml` with default compliance rules. You can customize it later.
@@ -209,13 +209,47 @@ plumber generate config [flags]
 
 ```bash
 # Generate default config
-plumber generate config
+plumber config generate
 
 # Custom filename
-plumber generate config --output my-plumber.yaml
+plumber config generate --output my-plumber.yaml
 
 # Overwrite existing file
-plumber generate config --force
+plumber config generate --force
+```
+
+### `plumber config view`
+
+Display a clean, human-readable view of the effective configuration without comments.
+
+```bash
+plumber config view [flags]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--config`, `-c` | `.plumber.yaml` | Path to configuration file |
+| `--no-color` | `false` | Disable colorized output |
+
+Booleans are colorized for quick scanning: `true` in green, `false` in red. Color is automatically disabled when piping output.
+
+<div style={{maxWidth: '400px'}}>
+
+![plumber config view output with colorized booleans](./img/config-view.png)
+
+</div>
+
+**Examples:**
+
+```bash
+# View the default .plumber.yaml
+plumber config view
+
+# View a specific config file
+plumber config view --config custom-plumber.yaml
+
+# View without colors (for piping or scripts)
+plumber config view --no-color
 ```
 
 ## Usage Examples
