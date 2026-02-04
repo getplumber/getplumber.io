@@ -8,7 +8,17 @@ section: "api"
 ---
 import { Icon } from "astro-icon/components";
 
-The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command line. This is useful for local testing, CI/CD integration, or automated compliance checks.
+The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command line for security and compliance issues like:
+
+- Container images using mutable tags (`latest`, `dev`)
+- Container images from untrusted registries
+- Unprotected branches
+- Hardcoded jobs not from includes/components
+- Outdated includes/templates
+- Forbidden version patterns (e.g., `main`, `HEAD`)
+- Missing required components or templates
+
+This is useful for local testing, CI/CD integration, or automated compliance checks.
 
 <Button variant="outline" class="!border-base-900 dark:!border-base-100 hover:!border-primary-500/90 dark:hover:!border-primary-100/90" href="https://github.com/getplumber/plumber"><Icon name="tabler/brand-github" class="mr-2" />View on GitHub</Button>
 
@@ -130,11 +140,15 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
    plumber config generate
    ```
 
-   This creates `.plumber.yaml` with default compliance rules. You can customize it later.
+   This creates `.plumber.yaml` with default compliance rules. You can customize it [later](#configuration).
 
 2. **Create and set your GitLab token**
 
    In GitLab, go to **User Settings → Access Tokens** ([direct link](https://gitlab.com/-/user_settings/personal_access_tokens)) and create a Personal Access Token with `read_api` + `read_repository` scopes:
+
+   <Aside variant="caution">
+     The token must belong to a user with **Maintainer** role (or higher) on the project to access branch protection settings and other project configurations.
+   </Aside>
 
    ```bash
    export GITLAB_TOKEN=glpat-xxxx
@@ -190,7 +204,7 @@ plumber analyze [flags]
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GITLAB_TOKEN` | Yes | GitLab API token with `read_api` and `read_repository` scopes |
+| `GITLAB_TOKEN` | Yes | GitLab API token with `read_api` + `read_repository` scopes (from a Maintainer or higher) |
 
 ### Exit Codes
 
@@ -301,47 +315,93 @@ plumber analyze \
 
 ## Example Output
 
-<Aside variant="tip">
-  The CLI output is color-coded in your terminal for easy scanning - green for passing controls, red for failures.
-</Aside>
-
-![Plumber CLI output showing compliance results](./img/cli-output.png)
+ The CLI output is color-coded in your terminal for easy scanning - green for passing controls, red for failures.
 
 <Aside variant="tip">
   When using `--output`, results are saved as JSON for programmatic access and CI/CD integration.
 </Aside>
 
+![Plumber CLI output showing compliance results](./img/cli-output.png)
+
+
 ## Configuration
 
-Plumber uses a `.plumber.yaml` configuration file to customize checks. 
+Plumber uses a `.plumber.yaml` configuration file to customize checks.
+
+### Available Controls
+
+Plumber includes **8 compliance controls**. Each can be enabled/disabled and customized:
+
+| Control | Description |
+|---------|-------------|
+| **Container images must not use forbidden tags** | Flags `latest`, `dev`, and other mutable tags |
+| **Container images must come from authorized sources** | Ensures images come from trusted registries |
+| **Branch must be protected** | Verifies critical branches have proper protection |
+| **Pipeline must not include hardcoded jobs** | Detects jobs defined directly instead of from includes |
+| **Includes must be up to date** | Checks if included templates have newer versions |
+| **Includes must not use forbidden versions** | Prevents mutable version references like `main`, `HEAD` |
+| **Pipeline must include component** | Ensures required CI/CD components are included |
+| **Pipeline must include template** | Ensures required templates are present |
+
+### Example Configuration
 
 <Aside variant="tip">
-   See the [Configuration](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) section for full details.
+   See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for all options.
 </Aside>
 
 ```yaml
 version: "1.0"
 
 controls:
-  imageMutable:
+  containerImageMustNotUseForbiddenTags:
     enabled: true
-    mutableTags:
+    tags:
       - latest
       - dev
+      - main
 
-  imageUntrusted:
+  containerImageMustComeFromAuthorizedSources:
     enabled: true
     trustDockerHubOfficialImages: true
     trustedUrls:
-      - registry.gitlab.com/*
       - $CI_REGISTRY_IMAGE:*
+      - registry.gitlab.com/security-products/*
 
-  branchProtection:
+  branchMustBeProtected:
     enabled: true
     defaultMustBeProtected: true
     namePatterns:
       - main
       - release/*
+    allowForcePush: false
+    minMergeAccessLevel: 30   # Developer
+    minPushAccessLevel: 40    # Maintainer
+
+  pipelineMustNotIncludeHardcodedJobs:
+    enabled: true
+
+  includesMustBeUpToDate:
+    enabled: true
+
+  includesMustNotUseForbiddenVersions:
+    enabled: true
+    forbiddenVersions:
+      - latest
+      - "~latest"
+      - main
+      - master
+      - HEAD
+    defaultBranchIsForbiddenVersion: false
+
+  pipelineMustIncludeComponent:
+    enabled: false  # Disabled by default - enable and configure for your org
+    requiredGroups: []
+      # - ["components/secret-detection/secret-detection", "components/sast/sast"]
+
+  pipelineMustIncludeTemplate:
+    enabled: false  # Disabled by default - enable and configure for your org
+    requiredGroups: []
+      # - ["templates/go/go", "templates/trivy/trivy"]
 ```
 
 ## Troubleshooting
@@ -349,7 +409,7 @@ controls:
 | Issue | Solution |
 |-------|----------|
 | `GITLAB_TOKEN environment variable is required` | Set the `GITLAB_TOKEN` environment variable with a valid GitLab token |
-| `401 Unauthorized` | Check that your token has `read_api` + `read_repository` scopes |
+| `401 Unauthorized` | Token needs `read_api` + `read_repository` scopes, from a Maintainer or higher |
 | `403 Forbidden` on MR settings | Expected on non-Premium GitLab; continues without that data |
 | `404 Not Found` | Verify the project path and GitLab URL are correct |
 | Configuration file not found | Ensure the path to `.plumber.yaml` is correct (use absolute path in Docker) |

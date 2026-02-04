@@ -8,7 +8,15 @@ section: "api"
 ---
 import { Icon } from "astro-icon/components";
 
-The Plumber GitLab Component lets you add compliance scanning directly to your GitLab CI/CD pipelines with a single line of configuration.
+The Plumber GitLab Component lets you add compliance scanning directly to your GitLab CI/CD pipelines. It checks for security and compliance issues like:
+
+- Container images using mutable tags (`latest`, `dev`)
+- Container images from untrusted registries
+- Unprotected branches
+- Hardcoded jobs not from includes/components
+- Outdated includes/templates
+- Forbidden version patterns (e.g., `main`, `HEAD`)
+- Missing required components or templates
 
 <Button variant="outline" class="!border-base-900 dark:!border-base-100 hover:!border-primary-500/90 dark:hover:!border-primary-100/90" href="https://gitlab.com/getplumber/plumber"><Icon name="tabler/brand-gitlab" class="mr-2" />View on GitLab</Button>
 
@@ -23,6 +31,10 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 
    In GitLab, go to **User Settings → Access Tokens** ([or create one here](https://gitlab.com/-/user_settings/personal_access_tokens)) and create a Personal Access Token with `read_api` + `read_repository` scopes.
 
+   <Aside variant="caution">
+     The token must belong to a user with **Maintainer** role (or higher) on the project to access branch protection settings and other project configurations.
+   </Aside>
+
 2. **Add the token to your project**
 
    Go to your project's **Settings → CI/CD → Variables** and add the token as `GITLAB_TOKEN` (masked recommended).
@@ -33,8 +45,10 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 
    ```yaml
    include:
-     - component: gitlab.com/getplumber/plumber/plumber@~latest
+     - component: gitlab.com/getplumber/plumber/plumber@v0.1.21
    ```
+
+   Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
 
 4. **Run your pipeline**
 
@@ -73,11 +87,13 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
 
        In the project you want to scan, go to **User Settings → Access Tokens** and create a Personal Access Token with `read_api` + `read_repository` scopes. Then go to the project's **Settings → CI/CD → Variables** and add the token as `GITLAB_TOKEN` (masked recommended).
 
+       The token must belong to a user with **Maintainer** role (or higher) on the project.
+
     5. **Use the component in your pipelines**
 
        ```yaml
        include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@1.0.0
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v1.0.0
        ```
 
        The format is `<your-gitlab-host>/<project-path>/plumber@<tag>`. Replace with your actual values.
@@ -93,16 +109,21 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
 
 ## Compliance Controls
 
-Plumber scans your GitLab CI/CD configuration and runs the following controls:
+Plumber includes **8 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
 
 | Control | Description |
 |---------|-------------|
-| **Authorized image tags** | Flags `latest`, `dev`, and other non-reproducible tags for container images used in CI/CD pipelines |
-| **Authorized image sources** | Ensures container images used in your CI/CD pipelines come from approved sources |
-| **Branch protection** | Verifies that repository branches are properly protected |
+| **Container images must not use forbidden tags** | Flags `latest`, `dev`, and other mutable tags |
+| **Container images must come from authorized sources** | Ensures images come from trusted registries |
+| **Branch must be protected** | Verifies critical branches have proper protection |
+| **Pipeline must not include hardcoded jobs** | Detects jobs defined directly instead of from includes |
+| **Includes must be up to date** | Checks if included templates have newer versions |
+| **Includes must not use forbidden versions** | Prevents mutable version references like `main`, `HEAD` |
+| **Pipeline must include component** | Ensures required CI/CD components are included |
+| **Pipeline must include template** | Ensures required templates are present |
 
-<Aside variant="info">
-  More controls are coming soon. Check the [GitHub releases](https://github.com/getplumber/plumber/releases) for updates.
+<Aside variant="tip">
+  See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for all control options.
 </Aside>
 
 ## Customize
@@ -111,7 +132,7 @@ Override any input to fit your needs:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@~latest
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.21
     inputs:
       # Target (defaults to current project)
       server_url: https://gitlab.example.com # Self-hosted GitLab
@@ -168,42 +189,17 @@ The component automatically detects your configuration using this priority:
 plumber config generate
 ```
 
-This generates a default config file that you can customize.
+This generates a [default config](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) file that you can customize.
 
-**Option B:** Create manually based on the [default config](https://github.com/getplumber/plumber/blob/main/.plumber.yaml):
-
-```yaml
-version: "1.0"
-
-controls:
-  imageMutable:
-    enabled: true
-    mutableTags:
-      - latest
-      - dev
-
-  imageUntrusted:
-    enabled: true
-    trustedUrls:
-      - registry.gitlab.com/*
-      - $CI_REGISTRY_IMAGE:*
-
-  branchProtection:
-    enabled: true
-    namePatterns:
-      - main
-      - release/*
-```
-
-<Aside variant="tip">
-   See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for all available options.
-</Aside>
+**Option B:** Create manually based on the [default config](https://github.com/getplumber/plumber/blob/main/.plumber.yaml).
 
 ## Example Output
 
 <Aside variant="tip">
-  The output is color-coded in your CI/CD job logs for easy scanning - green for passing controls, red for failures.
+ The component automatically generates and uploads a job artifact in JSON format.
 </Aside>
+
+The output is color-coded in your CI/CD job logs for easy scanning - green for passing controls, red for failures.
 
 ![Plumber CLI output showing compliance results](./img/cli-output.png)
 
@@ -212,7 +208,7 @@ controls:
 | Issue | Solution |
 |-------|----------|
 | `GITLAB_TOKEN environment variable is required` | Add `GITLAB_TOKEN` in **Settings → CI/CD → Variables** |
-| `401 Unauthorized` | Check that your token has `read_api` + `read_repository` scopes |
+| `401 Unauthorized` | Token needs `read_api` + `read_repository` scopes, from a Maintainer or higher |
 | `403 Forbidden` on MR settings | Expected on non-Premium GitLab; continues without that data |
 | Component not found | For self-hosted GitLab, you must fork the component to your instance |
 
