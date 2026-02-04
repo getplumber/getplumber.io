@@ -127,7 +127,7 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
 1. **Generate a config file**
 
    ```bash
-   plumber generate config
+   plumber config generate
    ```
 
    This creates `.plumber.yaml` with default compliance rules. You can customize it later.
@@ -192,12 +192,12 @@ plumber analyze [flags]
 | `0` | Passed (compliance ≥ threshold) |
 | `1` | Failed (compliance < threshold or error) |
 
-### `plumber generate config`
+### `plumber config generate`
 
 Generate a default `.plumber.yaml` configuration file.
 
 ```bash
-plumber generate config [flags]
+plumber config generate [flags]
 ```
 
 | Flag | Default | Description |
@@ -209,13 +209,13 @@ plumber generate config [flags]
 
 ```bash
 # Generate default config
-plumber generate config
+plumber config generate
 
 # Custom filename
-plumber generate config --output my-plumber.yaml
+plumber config generate --output my-plumber.yaml
 
 # Overwrite existing file
-plumber generate config --force
+plumber config generate --force
 ```
 
 ## Usage Examples
