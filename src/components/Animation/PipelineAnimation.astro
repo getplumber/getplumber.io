@@ -7,7 +7,7 @@ import { Icon } from "astro-icon/components";
   data-pipeline-animation-root
 >
   <div
-    class="from-primary-400 to-base-900/80 after:bg-base-100/30 dark:from-primary-500 dark:to-base-600/50 dark:after:bg-base-800/50 relative overflow-clip bg-gradient-to-b to-40% p-1 after:absolute after:inset-[1px] rounded-2xl after:rounded-[calc(1rem-1px)] md:p-2"
+  class="from-primary-400 to-base-900/80 after:bg-base-100/30 dark:from-primary-500 dark:to-base-600/50 dark:after:bg-base-800/50 relative overflow-clip bg-gradient-to-b to-40% p-1 after:absolute after:inset-[1px] rounded-2xl after:rounded-[calc(1rem-1px)] md:p-2"
   >
     <div
       class="dark border-base-600/60 relative z-10 w-full overflow-clip rounded-xl border bg-[var(--astro-code-background)] md:rounded-lg"
@@ -146,16 +146,20 @@ import { Icon } from "astro-icon/components";
           <span class="text-base-400 ml-2 text-xs">Compliance Results</span>
         </div>
 
-        <!-- Mobile version: simplified text -->
-        <div class="h-[calc(100%-4rem)] overflow-auto px-1 md:hidden">
+        <!-- Mobile version: simplified text (scrollable, pointer-events allowed) -->
+        <div
+          class="results-stage-scroll h-[calc(100%-4rem)] min-h-0 overflow-auto px-1 md:hidden"
+        >
           <div id="cli-output-mobile" class="text-base-300 space-y-3 text-xs"></div>
         </div>
 
-        <!-- Desktop version: ASCII tables -->
-        <div class="hidden h-[calc(100%-4rem)] grow overflow-auto px-1 md:flex">
+        <!-- Desktop version: ASCII tables (scrollable, pointer-events allowed) -->
+        <div
+          class="results-stage-scroll hidden h-[calc(100%-4rem)] min-h-0 overflow-auto px-1 md:flex"
+        >
           <pre
             class="text-base-300 font-mono text-sm"
-            style="tab-size: 2;"><code id="cli-output" class="block whitespace-pre" /></pre>
+            style="tab-size: 2;"><code id="cli-output" class="block whitespace-pre-wrap break-all" /></pre>
         </div>
       </div>
     </div>
@@ -206,7 +210,7 @@ import { Icon } from "astro-icon/components";
     document.addEventListener("astro:before-swap", abort, { once: true });
     window.addEventListener("pagehide", abort, { once: true });
 
-    const codeToType = "include:\n  - component: gitlab.com/getplumber/plumber/plumber@~latest";
+    const codeToType = "include:\n  - component: gitlab.com/getplumber/plumber/plumber@v0.1.21";
     let charIndex = 0;
 
     // Create cursor element template
@@ -307,67 +311,22 @@ import { Icon } from "astro-icon/components";
       }
     }
 
-    // Compliance data
-    const complianceData = {
-      mutableImageTags: {
-        percentage: 0,
-        issues: 10,
-        details: {
-          totalImages: 10,
-          usingMutableTags: 10,
-          found: [
-            { job: "build", image: "docker.io/library/node:latest" },
-            { job: "test", image: "docker.io/library/python:latest" },
-            { job: "deploy", image: "docker.io/library/nginx:latest" },
-            { job: "lint", image: "docker.io/library/golang:latest" },
-            { job: "scan", image: "docker.io/library/ruby:latest" },
-            { job: "compile", image: "docker.io/library/java:latest" },
-            { job: "package", image: "docker.io/library/php:latest" },
-            { job: "analyze", image: "docker.io/library/rust:latest" },
-            { job: "validate", image: "docker.io/library/node:latest" },
-            { job: "verify", image: "docker.io/library/python:latest" },
-          ],
-        },
-      },
-      untrustedImageSources: {
-        percentage: 40,
-        issues: 6,
-        details: {
-          totalImages: 10,
-          trusted: 4,
-          untrusted: 6,
-          found: [
-            { job: "sls_scan", image: "docker.io/shiftleft/sast-scan:v1.15.1" },
-            { job: "gitleaks", image: "docker.io/zricethezav/gitleaks:v8.15.0" },
-            { job: "golint", image: "docker.io/docker/golangci-lint:2.5.0-go1.25.3" },
-            { job: "tag-production-image", image: "gcr.io/go-containerregistry/crane:debug" },
-            { job: "prometheus", image: "quay.io/prometheus/prometheus:latest" },
-            { job: "deploy", image: "registry.gitlab.com/example/image:tag" },
-          ],
-        },
-      },
-      branchProtection: {
-        percentage: 100,
-        issues: 0,
-        details: {
-          totalBranches: 8,
-          branchesToProtect: 1,
-          protectedBranches: 1,
-          unprotected: 0,
-          nonCompliant: 0,
-          found: [],
-        },
-      },
-    };
+    // Compliance data: 8 controls (6 required, 2 skipped). Total = 50.0%
+    const complianceControls = [
+      { name: "Container images must not use forbidden tags", percentage: 100, issues: 0, skipped: false },
+      { name: "Container images must come from authorized sources", percentage: 0, issues: 1, skipped: false },
+      { name: "Branch must be protected", percentage: 100, issues: 0, skipped: false },
+      { name: "Pipeline must not include hardcoded jobs", percentage: 100, issues: 0, skipped: false },
+      { name: "Includes must be up to date", percentage: 0, issues: 2, skipped: false },
+      { name: "Includes must not use forbidden versions", percentage: 0, issues: 1, skipped: false },
+      { name: "Pipeline must include component", percentage: -1, issues: "-", skipped: true },
+      { name: "Pipeline must include template", percentage: -1, issues: "-", skipped: true },
+    ];
 
-    // Calculate total compliance
     function calculateTotalCompliance() {
-      const total =
-        (complianceData.mutableImageTags.percentage +
-          complianceData.untrustedImageSources.percentage +
-          complianceData.branchProtection.percentage) /
-        3;
-      return Math.round(total * 10) / 10; // Round to 1 decimal place
+      const required = complianceControls.filter((c) => !c.skipped);
+      const sum = required.reduce((acc, c) => acc + c.percentage, 0);
+      return Math.round((sum / required.length) * 10) / 10; // 50.0%
     }
 
     // Get color class for compliance percentage
@@ -395,248 +354,247 @@ import { Icon } from "astro-icon/components";
       return percentage === 100 ? "text-green-400" : "text-red-400";
     }
 
-    // Generate CLI output
+    // Generate CLI output (exact content and ASCII table spacing from spec)
     function generateCliOutput() {
       const totalCompliance = calculateTotalCompliance();
       const totalStatusColor = totalCompliance === 100 ? "text-green-400" : "text-red-400";
       const totalStatusSvg = getStatusIconSvg(totalCompliance);
       const statusText = totalCompliance === 100 ? "PASSED" : "FAILED";
       const statusColor = totalCompliance === 100 ? "text-green-400" : "text-red-400";
+      const controlColLen = 52;
 
       let output = "";
+      output += "Using configuration: .plumber.yaml\n";
+      output += "Analyzing project: backend/go/goservice on https://gitlab.r2devops.tech\n\n";
+      output += "Project: backend/go/goservice\n\n";
 
-      // Mutable Image Tags
-      const mutColor = getCliComplianceTextColor(complianceData.mutableImageTags.percentage);
       output += "──────────────────────────────────────────────────\n";
-      output += `<span class="${mutColor}">Mutable Image Tags (${complianceData.mutableImageTags.percentage.toFixed(1)}% compliant)</span>\n`;
+      output += `<span class="${getCliComplianceTextColor(100)}">Container images must not use forbidden tags (100.0% compliant)</span>\n`;
       output += "──────────────────────────────────────────────────\n";
-      output += "  Total Images: " + complianceData.mutableImageTags.details.totalImages + "\n";
-      output +=
-        "  Using Mutable Tags: " + complianceData.mutableImageTags.details.usingMutableTags + "\n";
-      if (complianceData.mutableImageTags.details.found.length > 0) {
-        output += "\n  Mutable Tags Found:\n";
-        complianceData.mutableImageTags.details.found.forEach((item) => {
-          output += `    • Job '${item.job}' uses mutable tag: ${item.image}\n`;
-        });
-      }
-      output += "\n";
+      output += "  Total Images: 12\n";
+      output += "  Using Forbidden Tags: 0\n\n";
 
-      // Untrusted Image Sources
-      const untrustedColor = getCliComplianceTextColor(
-        complianceData.untrustedImageSources.percentage,
-      );
       output += "──────────────────────────────────────────────────\n";
-      output += `<span class="${untrustedColor}">Untrusted Image Sources (${complianceData.untrustedImageSources.percentage.toFixed(1)}% compliant)</span>\n`;
+      output += `<span class="${getCliComplianceTextColor(0)}">Container images must come from authorized sources (0.0% compliant)</span>\n`;
       output += "──────────────────────────────────────────────────\n";
-      output +=
-        "  Total Images: " + complianceData.untrustedImageSources.details.totalImages + "\n";
-      output += "  Trusted: " + complianceData.untrustedImageSources.details.trusted + "\n";
-      output += "  Untrusted: " + complianceData.untrustedImageSources.details.untrusted + "\n";
-      if (complianceData.untrustedImageSources.details.found.length > 0) {
-        output += "\n  Untrusted Images Found:\n";
-        complianceData.untrustedImageSources.details.found.forEach((item) => {
-          output += `    • Job '${item.job}' uses untrusted image: ${item.image}\n`;
-        });
-      }
-      output += "\n";
+      output += "  Total Images: 12\n";
+      output += "  Authorized: 11\n";
+      output += "  Unauthorized: 1\n\n";
+      output += "  Unauthorized Images Found:\n";
+      output += "    • Job 'dockerfile_lint' uses unauthorized image: registry.gitlab.com/pipeline-components/hadolint:0.26.1\n\n";
 
-      // Branch Protection
-      const branchColor = getCliComplianceTextColor(complianceData.branchProtection.percentage);
       output += "──────────────────────────────────────────────────\n";
-      output += `<span class="${branchColor}">Branch Protection (${complianceData.branchProtection.percentage.toFixed(1)}% compliant)</span>\n`;
+      output += `<span class="${getCliComplianceTextColor(100)}">Branch must be protected (100.0% compliant)</span>\n`;
       output += "──────────────────────────────────────────────────\n";
-      output += "  Total Branches: " + complianceData.branchProtection.details.totalBranches + "\n";
-      output +=
-        "  Branches to Protect: " +
-        complianceData.branchProtection.details.branchesToProtect +
-        "\n";
-      output +=
-        "  Protected Branches: " + complianceData.branchProtection.details.protectedBranches + "\n";
-      output += "  Unprotected: " + complianceData.branchProtection.details.unprotected + "\n";
-      output += "  Non-Compliant: " + complianceData.branchProtection.details.nonCompliant + "\n";
-      output += "\n";
+      output += "  Total Branches: 15\n";
+      output += "  Branches to Protect: 1\n";
+      output += "  Protected Branches: 1\n";
+      output += "  Unprotected: 0\n";
+      output += "  Non-Compliant: 0\n\n";
 
-      // Summary
+      output += "──────────────────────────────────────────────────\n";
+      output += `<span class="${getCliComplianceTextColor(100)}">Pipeline must not include hardcoded jobs (100.0% compliant)</span>\n`;
+      output += "──────────────────────────────────────────────────\n";
+      output += "  Total Jobs: 13\n";
+      output += "  Hardcoded Jobs: 0\n\n";
+
+      output += "──────────────────────────────────────────────────\n";
+      output += `<span class="${getCliComplianceTextColor(0)}">Includes must be up to date (0.0% compliant)</span>\n`;
+      output += "──────────────────────────────────────────────────\n";
+      output += "  Total Includes: 5\n";
+      output += "  Outdated: 2\n\n";
+      output += "  Outdated Includes Found:\n";
+      output += "    • templates/go/template.yml uses version '0.1.0' (latest: 0.1.1)\n";
+      output += "    • templates/iso27001/template.yml uses version '0.1.0' (latest: 0.1.1)\n\n";
+
+      output += "──────────────────────────────────────────────────\n";
+      output += `<span class="${getCliComplianceTextColor(0)}">Includes must not use forbidden versions (0.0% compliant)</span>\n`;
+      output += "──────────────────────────────────────────────────\n";
+      output += "  Total Includes: 5\n";
+      output += "  Using Authorized Versions: 4\n";
+      output += "  Using Forbidden Versions: 1\n\n";
+      output += "  Forbidden Versions Found:\n";
+      output += "    • gitlab.r2devops.tech/bigtech-150/templates/components/my-simple-component uses forbidden version 'main'\n\n";
+
+      output += "──────────────────────────────────────────────────\n";
+      output += "Pipeline must include component (skipped)\n";
+      output += "──────────────────────────────────────────────────\n";
+      output += "  Status: SKIPPED (disabled in configuration)\n\n";
+
+      output += "──────────────────────────────────────────────────\n";
+      output += "Pipeline must include template (skipped)\n";
+      output += "──────────────────────────────────────────────────\n";
+      output += "  Status: SKIPPED (disabled in configuration)\n\n";
+
       output += "────────────────────\n";
       output += "Summary\n";
       output += "────────────────────\n\n";
       output += `  Status: <span class="${statusColor}">${statusText} ${totalStatusSvg}</span>\n\n`;
 
-      // Issues table - fixed alignment
       output += "  Issues\n";
-      output += "  ╔══════════════════════════════╤══════════╗\n";
-      output += "  ║ Control                      │   Issues ║\n";
-      output += "  ╟──────────────────────────────┼──────────╢\n";
-      const issues1 = String(complianceData.mutableImageTags.issues).padStart(6);
-      const issues2 = String(complianceData.untrustedImageSources.issues).padStart(6);
-      const issues3 = String(complianceData.branchProtection.issues).padStart(6);
-      output += `  ║ Mutable Image Tags           │   ${issues1} ║\n`;
-      output += `  ║ Untrusted Image Sources      │   ${issues2} ║\n`;
-      output += `  ║ Branch Protection            │   ${issues3} ║\n`;
-      output += "  ╚══════════════════════════════╧══════════╝\n\n";
+      output += "  ╔═══════════════════════════════════════════════════════╤══════════╗\n";
+      output += "  ║ Control                                               │   Issues ║\n";
+      output += "  ╟───────────────────────────────────────────────────────┼──────────╢\n";
+      complianceControls.forEach((c) => {
+        const namePadded = c.name.padEnd(controlColLen);
+        const issuesStr = typeof c.issues === "number" ? String(c.issues).padStart(9) : "        -";
+        output += `  ║ ${namePadded}  │${issuesStr} ║\n`;
+      });
+      output += "  ╚═══════════════════════════════════════════════════════╧══════════╝\n\n";
 
-      // Compliance table - exact alignment with fixed character positions
-      // Border lines: exactly 50 chars = "  " (2) + 48 border chars
       output += "  Compliance\n";
-      output += "  ╔══════════════════════════════╤════════════╤══════════╗\n";
-      output += "  ║ Control                      │ Compliance │   Status ║\n";
-      output += "  ╟──────────────────────────────┼────────────┼──────────╢\n";
+      output += "  ╔══════════════════════════════════════════════════════╤════════════╤══════════╗\n";
+      output += "  ║ Control                                              │ Compliance │   Status ║\n";
+      output += "  ╟──────────────────────────────────────────────────────┼────────────┼──────────╢\n";
+      complianceControls.forEach((c) => {
+        const namePadded = c.name.padEnd(controlColLen);
+        if (c.skipped) {
+          output += `  ║ ${namePadded} │          - │        - ║\n`;
+        } else {
+          const pctColor = getCliComplianceTextColor(c.percentage);
+          const pctStr = (c.percentage.toFixed(1) + "%").padStart(6);
+          const statusColor = getStatusColor(c.percentage);
+          const statusSvg = getStatusIconSvg(c.percentage);
+          output += `  ║ ${namePadded} │     <span class="${pctColor}">${pctStr}</span> │       <span class="${statusColor}">${statusSvg}</span> ║\n`;
+        }
+      });
+      output += "  ╟──────────────────────────────────────────────────────┼────────────┼──────────╢\n";
+      const totalPercentFormatted = (totalCompliance.toFixed(1) + "%").padStart(6);
+      output += `  ║ Total (required: 100%)                               │     <span class="${totalStatusColor}">${totalPercentFormatted}</span> │       <span class="${totalStatusColor}">${totalStatusSvg}</span> ║\n`;
+      output += "  ╚══════════════════════════════════════════════════════╧════════════╧══════════╝\n\n";
 
-      // Each data row: "  ║ " (4) + Control (27) + " │ " (3) + Compliance (12) + " │ " (3) + Status (8) + " ║" (2)
-      // Use inline SVG icons for consistent width
-      const mutStatusColor = getStatusColor(complianceData.mutableImageTags.percentage);
-      const mutPercent = complianceData.mutableImageTags.percentage.toFixed(1);
-      const mutPercentFormatted = (mutPercent + "%").padStart(6);
-      const mutStatusSvg = getStatusIconSvg(complianceData.mutableImageTags.percentage);
-      output += `  ║ Mutable Image Tags           │     <span class="${mutColor}">${mutPercentFormatted}</span> │       <span class="${mutStatusColor}">${mutStatusSvg}</span> ║\n`;
-
-      const untrustedStatusColor = getStatusColor(complianceData.untrustedImageSources.percentage);
-      const untrustedPercent = complianceData.untrustedImageSources.percentage.toFixed(1);
-      const untrustedPercentFormatted = (untrustedPercent + "%").padStart(6);
-      const untrustedStatusSvg = getStatusIconSvg(complianceData.untrustedImageSources.percentage);
-      output += `  ║ Untrusted Image Sources      │     <span class="${untrustedColor}">${untrustedPercentFormatted}</span> │       <span class="${untrustedStatusColor}">${untrustedStatusSvg}</span> ║\n`;
-
-      const branchStatusColor = getStatusColor(complianceData.branchProtection.percentage);
-      const branchPercent = complianceData.branchProtection.percentage.toFixed(1);
-      const branchPercentFormatted = (branchPercent + "%").padStart(6);
-      const branchStatusSvg = getStatusIconSvg(complianceData.branchProtection.percentage);
-      output += `  ║ Branch Protection            │     <span class="${branchColor}">${branchPercentFormatted}</span> │       <span class="${branchStatusColor}">${branchStatusSvg}</span> ║\n`;
-
-      output += "  ╟──────────────────────────────┼────────────┼──────────╢\n";
-      const totalPercent = totalCompliance.toFixed(1);
-      const totalPercentFormatted = (totalPercent + "%").padStart(6);
-      output += `  ║ Total (required: 100%)       │     <span class="${totalStatusColor}">${totalPercentFormatted}</span> │       <span class="${totalStatusColor}">${totalStatusSvg}</span> ║\n`;
-      output += "  ╚══════════════════════════════╧════════════╧══════════╝\n";
 
       return output;
     }
 
-    // Generate simplified mobile output
-    function generateMobileOutput() {
+    // Generate mobile output as an array of "lines" (one fragment per row) for line-by-line typing
+    function getMobileOutputLines(): string[] {
       const totalCompliance = calculateTotalCompliance();
       const statusText = totalCompliance === 100 ? "PASSED" : "FAILED";
       const statusColor = totalCompliance === 100 ? "text-green-400" : "text-red-400";
       const statusSvg = getStatusIconSvg(totalCompliance);
-
-      let output = '<div class="space-y-4">';
-
-      // Status
-      output += `<div class="pb-2 border-b border-base-600/30">`;
-      output += `<div class="flex items-center gap-2">`;
-      output += `<span class="text-base-400">Status:</span>`;
-      output += `<span class="${statusColor} font-semibold">${statusText} ${statusSvg}</span>`;
-      output += `</div>`;
-      output += `</div>`;
-
-      // Compliance Summary
-      output += `<div>`;
-      output += `<h3 class="text-base-400 font-semibold mb-2">Compliance</h3>`;
-      output += `<div class="space-y-2">`;
-
-      // Mutable Image Tags
-      const mutColor = getCliComplianceTextColor(complianceData.mutableImageTags.percentage);
-      const mutStatusColor = getStatusColor(complianceData.mutableImageTags.percentage);
-      const mutStatusSvg = getStatusIconSvg(complianceData.mutableImageTags.percentage);
-      output += `<div class="flex items-center justify-between gap-2">`;
-      output += `<span class="text-base-300 text-xs">Mutable Image Tags</span>`;
-      output += `<div class="flex items-center gap-2">`;
-      output += `<span class="${mutColor} text-xs">${complianceData.mutableImageTags.percentage.toFixed(1)}%</span>`;
-      output += `<span class="${mutStatusColor}">${mutStatusSvg}</span>`;
-      output += `</div>`;
-      output += `</div>`;
-
-      // Untrusted Image Sources
-      const untrustedColor = getCliComplianceTextColor(
-        complianceData.untrustedImageSources.percentage,
-      );
-      const untrustedStatusColor = getStatusColor(complianceData.untrustedImageSources.percentage);
-      const untrustedStatusSvg = getStatusIconSvg(complianceData.untrustedImageSources.percentage);
-      output += `<div class="flex items-center justify-between gap-2">`;
-      output += `<span class="text-base-300 text-xs">Untrusted Image Sources</span>`;
-      output += `<div class="flex items-center gap-2">`;
-      output += `<span class="${untrustedColor} text-xs">${complianceData.untrustedImageSources.percentage.toFixed(1)}%</span>`;
-      output += `<span class="${untrustedStatusColor}">${untrustedStatusSvg}</span>`;
-      output += `</div>`;
-      output += `</div>`;
-
-      // Branch Protection
-      const branchColor = getCliComplianceTextColor(complianceData.branchProtection.percentage);
-      const branchStatusColor = getStatusColor(complianceData.branchProtection.percentage);
-      const branchStatusSvg = getStatusIconSvg(complianceData.branchProtection.percentage);
-      output += `<div class="flex items-center justify-between gap-2">`;
-      output += `<span class="text-base-300 text-xs">Branch Protection</span>`;
-      output += `<div class="flex items-center gap-2">`;
-      output += `<span class="${branchColor} text-xs">${complianceData.branchProtection.percentage.toFixed(1)}%</span>`;
-      output += `<span class="${branchStatusColor}">${branchStatusSvg}</span>`;
-      output += `</div>`;
-      output += `</div>`;
-
-      // Total
       const totalStatusColor = totalCompliance === 100 ? "text-green-400" : "text-red-400";
       const totalStatusSvg = getStatusIconSvg(totalCompliance);
-      output += `<div class="flex items-center justify-between gap-2 pt-2 border-t border-base-600/30">`;
-      output += `<span class="text-base-300 text-xs font-semibold">Total (required: 100%)</span>`;
-      output += `<div class="flex items-center gap-2">`;
-      output += `<span class="${totalStatusColor} text-xs font-semibold">${totalCompliance.toFixed(1)}%</span>`;
-      output += `<span class="${totalStatusColor}">${totalStatusSvg}</span>`;
-      output += `</div>`;
-      output += `</div>`;
 
-      output += `</div>`;
-      output += `</div>`;
+      const lines: string[] = [];
 
-      // Issues Summary
-      output += `<div>`;
-      output += `<h3 class="text-base-400 font-semibold mb-2">Issues</h3>`;
-      output += `<div class="space-y-1">`;
-      output += `<div class="flex justify-between"><span class="text-base-300 text-xs">Mutable Image Tags:</span><span class="text-base-300 text-xs">${complianceData.mutableImageTags.issues}</span></div>`;
-      output += `<div class="flex justify-between"><span class="text-base-300 text-xs">Untrusted Image Sources:</span><span class="text-base-300 text-xs">${complianceData.untrustedImageSources.issues}</span></div>`;
-      output += `<div class="flex justify-between"><span class="text-base-300 text-xs">Branch Protection:</span><span class="text-base-300 text-xs">${complianceData.branchProtection.issues}</span></div>`;
-      output += `</div>`;
-      output += `</div>`;
+      // Line 0: wrapper + status block
+      lines.push(
+        '<div class="space-y-4">' +
+          `<div class="pb-2 border-b border-base-600/30">` +
+          `<div class="flex items-center gap-2">` +
+          `<span class="text-base-400">Status:</span>` +
+          `<span class="${statusColor} font-semibold">${statusText} ${statusSvg}</span>` +
+          `</div></div>`,
+      );
 
-      output += "</div>";
-      return output;
+      // Line 1: Issues section header
+      lines.push(
+        `<div><h3 class="text-base-400 font-semibold mb-2">Issues</h3><div class="space-y-1">`,
+      );
+
+      // Lines 2–9: one Issues row each
+      complianceControls.forEach((c) => {
+        const issuesStr = c.skipped ? "-" : String(c.issues);
+        lines.push(
+          `<div class="flex justify-between items-baseline gap-2">` +
+            `<span class="text-base-300 text-xs min-w-0">${c.name}</span>` +
+            `<span class="text-base-300 text-xs shrink-0 w-6 text-right tabular-nums">${issuesStr}</span>` +
+            `</div>`,
+        );
+      });
+
+      // Close Issues, open Compliance header
+      lines.push(`</div></div>`);
+      lines.push(
+        `<div><h3 class="text-base-400 font-semibold mb-2">Compliance</h3><div class="space-y-2">`,
+      );
+
+      // One Compliance row each
+      complianceControls.forEach((c) => {
+        let row = `<div class="flex items-center justify-between gap-2">`;
+        row += `<span class="text-base-300 text-xs">${c.name}</span>`;
+        row += `<div class="flex items-center gap-2">`;
+        if (c.skipped) {
+          row += `<span class="text-base-500 text-xs">-</span>`;
+        } else {
+          const pctColor = getCliComplianceTextColor(c.percentage);
+          const statusColor = getStatusColor(c.percentage);
+          const statusSvg = getStatusIconSvg(c.percentage);
+          row += `<span class="${pctColor} text-xs">${c.percentage.toFixed(1)}%</span>`;
+          row += `<span class="${statusColor}">${statusSvg}</span>`;
+        }
+        row += `</div></div>`;
+        lines.push(row);
+      });
+
+      // Total row + close all
+      lines.push(
+        `<div class="flex items-center justify-between gap-2 pt-2 border-t border-base-600/30">` +
+          `<span class="text-base-300 text-xs font-semibold">Total (required: 100%)</span>` +
+          `<div class="flex items-center gap-2">` +
+          `<span class="${totalStatusColor} text-xs font-semibold">${totalCompliance.toFixed(1)}%</span>` +
+          `<span class="${totalStatusColor}">${totalStatusSvg}</span>` +
+          `</div></div></div></div></div>`,
+      );
+
+      return lines;
     }
 
-    // Function to type CLI output line by line with scrolling (desktop version)
+    function generateMobileOutput(): string {
+      return getMobileOutputLines().join("");
+    }
+
+    // Function to type CLI output line by line (desktop + mobile both line-by-line)
     function typeCliOutput() {
       const cliOutput = root.querySelector<HTMLElement>("#cli-output");
       const cliOutputMobile = root.querySelector<HTMLElement>("#cli-output-mobile");
-
-      // Populate mobile version immediately
-      if (cliOutputMobile) {
-        cliOutputMobile.innerHTML = generateMobileOutput();
-      }
-
-      // Type desktop version line by line
-      if (!cliOutput) return;
+      const mobileScrollContainer = cliOutputMobile?.parentElement;
 
       const fullOutput = generateCliOutput();
-      const lines = fullOutput.split("\n");
-      let currentLine = 0;
-      let currentContent = "";
+      const desktopLines = fullOutput.split("\n");
+      const mobileLines = getMobileOutputLines();
 
-      function typeNextLine() {
-        if (!cliOutput) return;
+      let desktopContent = "";
+      let desktopIndex = 0;
+      let mobileContent = "";
+      let mobileIndex = 0;
 
-        if (currentLine < lines.length) {
-          currentContent += lines[currentLine] + "\n";
-          cliOutput.innerHTML = currentContent;
-
-          // Auto-scroll to bottom
-          const preElement = cliOutput.parentElement;
-          const scrollContainer = preElement?.parentElement;
-          if (scrollContainer) {
-            scrollContainer.scrollTop = scrollContainer.scrollHeight;
-          }
-
-          currentLine++;
-          schedule(typeNextLine, 50); // Adjust speed here (50ms per line)
+      function scrollDesktopToBottom() {
+        const preElement = cliOutput?.parentElement;
+        const scrollContainer = preElement?.parentElement;
+        if (scrollContainer) {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
         }
       }
 
-      typeNextLine();
+      function updateMobileAndScroll() {
+        if (cliOutputMobile) {
+          cliOutputMobile.innerHTML = mobileContent;
+          if (mobileScrollContainer) {
+            mobileScrollContainer.scrollTop = mobileScrollContainer.scrollHeight;
+          }
+        }
+      }
+
+      function tick() {
+        if (desktopIndex < desktopLines.length) {
+          desktopContent += desktopLines[desktopIndex] + "\n";
+          if (cliOutput) cliOutput.innerHTML = desktopContent;
+          scrollDesktopToBottom();
+          desktopIndex++;
+        }
+        if (mobileIndex < mobileLines.length) {
+          mobileContent += mobileLines[mobileIndex];
+          updateMobileAndScroll();
+          mobileIndex++;
+        }
+        if (desktopIndex < desktopLines.length || mobileIndex < mobileLines.length) {
+          schedule(tick, 68); // Compliance results typing speed
+        }
+      }
+
+      tick();
     }
 
     // Handle warning icon click
@@ -724,6 +682,32 @@ import { Icon } from "astro-icon/components";
   .pipeline-animation-container #warning-icon {
     pointer-events: auto;
     cursor: pointer;
+  }
+
+  /* Allow scrolling inside Compliance Results (container has pointer-events: none) */
+  .pipeline-animation-container .results-stage-scroll {
+    pointer-events: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-base-500) transparent;
+  }
+
+  /* Tinier custom scrollbar (WebKit: Chrome, Safari, Edge) */
+  .pipeline-animation-container .results-stage-scroll::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .pipeline-animation-container .results-stage-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .pipeline-animation-container .results-stage-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-base-500);
+    border-radius: 9999px;
+  }
+
+  .pipeline-animation-container .results-stage-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--color-base-400);
   }
 
   .code-stage code {
