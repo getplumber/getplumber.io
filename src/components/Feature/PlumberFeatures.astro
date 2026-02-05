@@ -15,7 +15,7 @@ const featureData: FeatureData[] = [
   {
     icon: "tabler/layout-grid",
     title: "Pipeline composition",
-    text: "Detects jobs defined directly in the pipeline instead of from includes or components, and ensures required components and templates are present. Prevents mutable version refs for includes.",
+    text: "", // Rendered via description slot with inline code
   },
   {
     icon: "tabler/shield-check",
@@ -54,14 +54,27 @@ const featureData: FeatureData[] = [
       </p>
     </div>
     <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <FeatureCard
+        title={featureData[0].title}
+        icon={featureData[0].icon}
+        data-mos="fade-up"
+        data-mos-delay="0.3"
+        data-mos-anchor="#plumber-features"
+      >
+        <span slot="description">
+          Detects hardcoded jobs in the{" "}
+          <code class="rounded bg-base-300/80 px-1.5 py-0.5 font-mono text-sm dark:bg-base-600/80">.gitlab-ci.yml</code>{" "}
+          and verifies that all required template and component modules are included, up to date and do not follow unauthorized patterns (latest, main, etc.)
+        </span>
+      </FeatureCard>
       {
-        featureData.map((feature, idx) => (
+        featureData.slice(1).map((feature, idx) => (
           <FeatureCard
             title={feature.title}
             text={feature.text}
             icon={feature.icon}
             data-mos="fade-up"
-            data-mos-delay={`${idx * 0.25 + 0.3}`}
+            data-mos-delay={`${(idx + 1) * 0.25 + 0.3}`}
             data-mos-anchor="#plumber-features"
           />
         ))
