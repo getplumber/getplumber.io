@@ -21,15 +21,16 @@ const authorsData = await getEntries(authors);
 
 <article class:list={["", className]} {...rest} data-pagefind-ignore>
   <div
-    class="border-base-300 dark:border-base-600/60 relative shrink-0 justify-center overflow-hidden rounded-md border sm:justify-normal"
+    class="border-base-300 dark:border-base-600/60 relative aspect-video shrink-0 justify-center overflow-hidden rounded-md border sm:justify-normal"
   >
-    <a href={`/blog/${post.id}/`}>
+    <a href={`/blog/${post.id}/`} class="block size-full">
       <Image
         src={heroImage}
         alt={`${title} blog post`}
-        height={700}
+        width={640}
+        height={360}
         quality="high"
-        class="h-auto max-h-96 w-full object-cover transition-all duration-500 hover:scale-[1.02]"
+        class="size-full object-cover transition-all duration-500 hover:scale-[1.02]"
       />
     </a>
   </div>

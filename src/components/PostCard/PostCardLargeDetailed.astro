@@ -21,15 +21,16 @@ const authorsData = await getEntries(authors);
 
 <article class:list={["grid md:grid-cols-3 md:gap-4", className]} {...rest} data-pagefind-ignore>
   <div
-    class="border-base-300 dark:border-base-600/60 relative shrink-0 justify-center overflow-hidden rounded-md border sm:justify-normal md:col-span-2"
+    class="border-base-300 dark:border-base-600/60 relative aspect-video shrink-0 justify-center overflow-hidden rounded-md border sm:justify-normal md:col-span-2"
   >
-    <a href={`/blog/${post.id}/`}>
+    <a href={`/blog/${post.id}/`} class="block size-full">
       <Image
         src={heroImage}
         alt={`${title} blog post`}
-        height={700}
+        width={960}
+        height={540}
         quality="high"
-        class="h-auto max-h-96 w-full object-cover transition-all duration-500 hover:scale-[1.02]"
+        class="size-full object-cover transition-all duration-500 hover:scale-[1.02]"
       />
     </a>
   </div>
