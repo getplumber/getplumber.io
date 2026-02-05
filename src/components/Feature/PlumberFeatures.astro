@@ -1,7 +1,6 @@
 ---
 /**
- * * Feature cards showcasing Plumber capabilities
- * Based on Feature2.astro but customized for Plumber
+ * * Feature cards: three categories of what Plumber brings (aligned with CLI controls).
  */
 import Button from "@components/Button/Button.astro";
 import FeatureCard from "@components/FeatureCard/FeatureCardLarge.astro";
@@ -14,19 +13,19 @@ interface FeatureData {
 
 const featureData: FeatureData[] = [
   {
-    icon: "tabler/star",
-    title: "Mutable Image Tags",
-    text: `Flags 'latest', 'dev', and other non-reproducible tags to ensure your pipelines use versioned images.`,
+    icon: "tabler/layout-grid",
+    title: "Pipeline composition",
+    text: "Detects jobs defined directly in the pipeline instead of from includes or components, and ensures required components and templates are present. Prevents mutable version refs for includes.",
   },
   {
     icon: "tabler/shield-check",
-    title: "Untrusted Image Registries",
-    text: `Ensures images come from approved sources. Configure trusted registries and block unauthorized sources.`,
+    title: "CI/CD container images",
+    text: "Detects container images using mutable tags that can change unexpectedly. Ensures images come from trusted registries only.",
   },
   {
-    icon: "tabler/lock-square",
-    title: "Branch Protection Compliance",
-    text: `Verifies critical branches are properly protected according to your organization's security policies.`,
+    icon: "tabler/lock",
+    title: "Access and authorization",
+    text: "Verifies that critical branches have proper protection settings.",
   },
 ];
 ---
