@@ -1,5 +1,25 @@
 ---
-import { docsRoute } from "@/docs/js/docsUtils";
+import "@/styles/global.css";
 
-return Astro.redirect(`/${docsRoute}/getting-started`, 301);
+import { docsRoute } from "@/docs/js/docsUtils";
+import { getTranslatedData } from "@/docs/js/translationUtils";
+import BaseHead from "@/docs/layouts/BaseHead.astro";
+
+const siteData = getTranslatedData("siteData", "en");
+const redirectUrl = `/${docsRoute}/getting-started`;
 ---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead
+      title={siteData.title}
+      description={siteData.description}
+    />
+    <meta http-equiv="refresh" content={`0;url=${redirectUrl}`} />
+    <link rel="canonical" href={new URL(redirectUrl, Astro.site).toString()} />
+  </head>
+  <body>
+    <p class="text-center text-2xl font-bold mt-24">Redirecting to <a href={redirectUrl}>documentation</a>...</p>
+  </body>
+</html>
