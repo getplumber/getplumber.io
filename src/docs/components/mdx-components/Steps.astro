@@ -28,16 +28,16 @@ const { class: className } = Astro.props;
     counter-reset: step;
   }
 
-  .docs-steps ol {
+  .docs-steps > ol {
     @apply my-0 ml-0 list-none space-y-(--step-gap);
   }
 
-  .docs-steps li {
+  .docs-steps > ol > li {
     @apply relative pl-(--step-padding);
   }
 
   /* Connecting line */
-  .docs-steps li:not(:last-child)::after {
+  .docs-steps > ol > li:not(:last-child)::after {
     @apply bg-border absolute w-px;
     content: "";
     left: calc(var(--step-size) / 2);
@@ -46,7 +46,7 @@ const { class: className } = Astro.props;
   }
 
   /* Step numbers */
-  .docs-steps li::before {
+  .docs-steps > ol > li::before {
     @apply bg-muted border-border absolute left-0 flex items-center justify-center rounded-full border font-mono font-medium;
     content: counter(step);
     counter-increment: step;
@@ -56,7 +56,7 @@ const { class: className } = Astro.props;
   }
 
   /* Style headings within steps */
-  .docs-steps li :is(h3, h4) {
+  .docs-steps > ol > li :is(h3, h4) {
     @apply font-heading mt-0 mb-2 text-base font-semibold md:text-lg;
     /* Reset default heading margins since we're in a list item */
     margin-top: 0;
@@ -65,12 +65,12 @@ const { class: className } = Astro.props;
   }
 
   /* Adjust step number position when heading is present */
-  .docs-steps li:has(:is(h3, h4))::before {
+  .docs-steps > ol > li:has(:is(h3, h4))::before {
     top: calc(-1 * var(--step-offset));
   }
 
   /* Ensure proper spacing after headings in steps */
-  .docs-steps li :is(h3, h4) + * {
+  .docs-steps > ol > li :is(h3, h4) + * {
     @apply mt-2;
   }
 </style>

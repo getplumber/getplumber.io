@@ -63,7 +63,8 @@ computer**. This is not suitable for production
 
    Edit the `.env` file:
 
-   - Copy/paste the `Application ID` and the `Secret` from
+   <Steps>
+   1. Copy/paste the `Application ID` and the `Secret` from
      the GitLab application you just created
 
       ```bash title=".env"
@@ -71,24 +72,24 @@ computer**. This is not suitable for production
       GITLAB_OAUTH2_CLIENT_SECRET="<application-secret>"
       ```
 
-   - Replace `<your-gitlab-url>` by domain of your GitLab server
+   2. Replace `<your-gitlab-url>` by domain of your GitLab server
 
       ```bash title=".env"
       JOBS_GITLAB_URL="https://<your-gitlab-url>"
       ```
 
-   - **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
+   3. **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
       ```bash title=".env"
       ORGANIZATION="<group-path>"
       ```
 
-   - **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
+   4. **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
       ```bash title=".env"
       ORGANIZATION=""
       ```
-
    Run the following commands to generate random secrets for all components:
 
+   </Steps>
    ```bash
    sed -i."" "s/REPLACE_ME_BY_SECRET_KEY/$(openssl rand -hex 32)/g" .env
    sed -i."" "s/REPLACE_ME_BY_JOBS_DB_PASSWORD/$(openssl rand -hex 16)/g" .env

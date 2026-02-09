@@ -73,16 +73,18 @@ This page describes how to set up a self-managed instance of Plumber using
 2. ### 📋 Configure Organization
 
    **In your `.env` file:**
+   <Steps>
 
-   - **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
+   1. **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
       ```bash title=".env"
       ORGANIZATION="<group-path>"
       ```
 
-   - **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
+   2. **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
       ```bash title=".env"
       ORGANIZATION=""
       ```
+   </Steps>
 
 3. ### 📄 Configure Domain name
 
@@ -117,7 +119,11 @@ This page describes how to set up a self-managed instance of Plumber using
    group. Open the chosen group in GitLab interface and navigate through
    `Settings > Applications`:
 
+   <div style="max-width: 300px;">
+
    ![Profile_Menu](./img/profile_menu_gitlab.png)
+
+   </div>
 
    Then, create an application with the following information :
 
