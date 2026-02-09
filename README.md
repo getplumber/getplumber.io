@@ -201,7 +201,7 @@ The website features:
 │   │   │   └── [...slug].astro   # Docs pages
 │   │   ├── categories/    # Category pages
 │   │   ├── contact.astro
-│   │   ├── [...page].astro # Other pages (elements, privacy-policy, terms-of-use)
+│   │   ├── [...page].astro # Other pages (privacy-policy, terms-of-use)
 │   │   ├── 404.astro
 │   │   └── rss.xml.ts     # RSS feed
 │   ├── styles/            # Global styles

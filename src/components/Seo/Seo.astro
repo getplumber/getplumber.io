@@ -30,7 +30,10 @@ interface BlogProps extends BaseProps {
 }
 
 // Explicitly default to indexable for blog, platform, docs (noindex only for 404 etc.)
-const { type, title, description, image, noindex = false } = Astro.props as GenProps | BlogProps;
+const { type, title: rawTitle, description, image, noindex = false } = Astro.props as GenProps | BlogProps;
+
+// Append brand suffix unless the title already contains "Plumber"
+const title = rawTitle.includes("Plumber") ? rawTitle : `${rawTitle} | Plumber`;
 
 let optimizedImage;
 let jsonLD;

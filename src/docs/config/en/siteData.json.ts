@@ -1,8 +1,8 @@
 import type { DocsSiteData } from "../types/configDataTypes";
 
 const docsSiteData: DocsSiteData = {
-  title: "Plumber Documentation",
-  description: "Documentation for Plumber - OpenSource compliance CLI & Platform for GitLab CI/CD.",
+  title: "Plumber Documentation - OpenSource compliance CLI & Platform for GitLab CI/CD",
+  description: "Complete guides to install and use Plumber CLI and Platform.",
   navSocials: [
     {
       social: "X formerly known as Twitter",

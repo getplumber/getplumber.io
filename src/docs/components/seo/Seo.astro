@@ -19,7 +19,10 @@ interface Props {
   noindex?: boolean;
 }
 
-const { title, description, image, noindex = false } = Astro.props;
+const { title: rawTitle, description, image, noindex = false } = Astro.props;
+
+// Append brand suffix unless the title already contains "Plumber"
+const title = rawTitle.includes("Plumber") ? rawTitle : `${rawTitle} | Plumber Docs`;
 
 let optimizedImage;
 const jsonLD = jsonLDGenerator({ type: "general" });
