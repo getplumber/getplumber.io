@@ -100,6 +100,15 @@ import interVariable from "@fontsource-variable/inter/files/inter-latin-wght-nor
 <!-- no fallback as I saw issues with firefox fallback -->
 {siteSettings.useViewTransitions && <ClientRouter fallback="none" />}
 
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-C4YQXJQC8F"></script>
+<script is:inline>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(...args){dataLayer.push(args);}
+  gtag('js', new Date());
+  gtag('config', 'G-C4YQXJQC8F');
+</script>
+
 <!-- Plausible Analytics (cookieless; proxy per https://plausible.io/docs/proxy/guides/vercel) -->
 <script async src="/js/script.js"></script>
 <script is:inline>
