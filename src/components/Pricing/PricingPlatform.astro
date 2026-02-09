@@ -285,11 +285,7 @@ const pricingData: pricingTable = {
                     <div class="mt-auto">
                       <Button
                         variant={plan.featured === true ? "primary" : "outline"}
-                        href={
-                          plan.name === "Free"
-                            ? "/docs/getting-started"
-                            : "/contact"
-                        }
+                        href={plan.name === "Free" ? "/docs/getting-started" : "/contact"}
                         class="mt-6"
                       >
                         {plan.name === "Free" ? "Get Started" : "Contact us"}

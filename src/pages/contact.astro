@@ -2,8 +2,7 @@
 import Button from "@components/Button/Button.astro";
 import BaseLayout from "@layouts/BaseLayout.astro";
 
-const CALENDLY_URL =
-  "https://calendly.com/aurelien-plumber/cicd-compliance";
+const CALENDLY_URL = "https://calendly.com/aurelien-plumber/cicd-compliance";
 const CONTACT_EMAIL = "hello@getplumber.io";
 ---
 
@@ -28,33 +27,49 @@ const CONTACT_EMAIL = "hello@getplumber.io";
         data-mos-anchor="body"
       >
         <div
-          class="group relative flex flex-col rounded-xl border border-base-300 bg-base-50 p-8 transition hover:border-primary-500 hover:shadow-lg dark:border-base-600 dark:bg-base-800/50 dark:hover:border-primary-400"
+          class="group border-base-300 bg-base-50 hover:border-primary-500 dark:border-base-600 dark:bg-base-800/50 dark:hover:border-primary-400 relative flex flex-col rounded-xl border p-8 transition hover:shadow-lg"
         >
           <button
             type="button"
-            class="copy-email absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-lg text-base-500 transition hover:bg-base-200 hover:text-base-700 dark:text-base-400 dark:hover:bg-base-700 dark:hover:text-base-200"
+            class="copy-email text-base-500 hover:bg-base-200 hover:text-base-700 dark:text-base-400 dark:hover:bg-base-700 dark:hover:text-base-200 absolute top-4 right-4 inline-flex h-9 w-9 items-center justify-center rounded-lg transition"
             data-email={CONTACT_EMAIL}
             aria-label="Copy email address"
             title="Copy email"
           >
-            <svg class="copy-icon h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg
+              class="copy-icon h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
+              ></path>
             </svg>
-            <svg class="check-icon hidden h-5 w-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            <svg
+              class="check-icon hidden h-5 w-5 text-green-600 dark:text-green-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"></path>
             </svg>
           </button>
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            class="flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg -m-2 p-2"
+            class="focus-visible:ring-primary-500 -m-2 flex flex-col rounded-lg p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             <span
-              class="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100 text-primary-600 dark:bg-primary-700/40 dark:text-primary-300"
+              class="bg-primary-100 text-primary-600 dark:bg-primary-700/40 dark:text-primary-300 inline-flex h-12 w-12 items-center justify-center rounded-lg"
               aria-hidden="true"
             >
               <svg
@@ -69,22 +84,25 @@ const CONTACT_EMAIL = "hello@getplumber.io";
                   stroke-linejoin="round"
                   stroke-width="2"
                   d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
+                ></path>
               </svg>
             </span>
-            <h2 class="mt-4 text-xl font-semibold text-base-900 dark:text-base-100">
-              Email us
-            </h2>
-            <p class="mt-2 text-base-600 dark:text-base-400">
+            <h2 class="text-base-900 dark:text-base-100 mt-4 text-xl font-semibold">Email us</h2>
+            <p class="text-base-600 dark:text-base-400 mt-2">
               Send a message to{" "}
-              <span class="font-medium text-primary-600 dark:text-primary-400">{CONTACT_EMAIL}</span>
+              <span class="text-primary-600 dark:text-primary-400 font-medium">{CONTACT_EMAIL}</span
+              >
             </p>
             <span
-              class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary-600 transition group-hover:gap-2 dark:text-primary-400"
+              class="text-primary-600 dark:text-primary-400 mt-4 inline-flex items-center gap-1 text-sm font-medium transition group-hover:gap-2"
             >
               Open mail client
               <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"></path>
               </svg>
             </span>
           </a>
@@ -92,10 +110,10 @@ const CONTACT_EMAIL = "hello@getplumber.io";
 
         <a
           href="#calendly-embed"
-          class="group flex flex-col rounded-xl border border-base-300 bg-base-50 p-8 transition hover:border-primary-500 hover:shadow-lg dark:border-base-600 dark:bg-base-800/50 dark:hover:border-primary-400"
+          class="group border-base-300 bg-base-50 hover:border-primary-500 dark:border-base-600 dark:bg-base-800/50 dark:hover:border-primary-400 flex flex-col rounded-xl border p-8 transition hover:shadow-lg"
         >
           <span
-            class="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100 text-primary-600 dark:bg-primary-700/40 dark:text-primary-300"
+            class="bg-primary-100 text-primary-600 dark:bg-primary-700/40 dark:text-primary-300 inline-flex h-12 w-12 items-center justify-center rounded-lg"
             aria-hidden="true"
           >
             <svg
@@ -110,21 +128,25 @@ const CONTACT_EMAIL = "hello@getplumber.io";
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+              ></path>
             </svg>
           </span>
-          <h2 class="mt-4 text-xl font-semibold text-base-900 dark:text-base-100">
+          <h2 class="text-base-900 dark:text-base-100 mt-4 text-xl font-semibold">
             Book a meeting
           </h2>
-          <p class="mt-2 text-base-600 dark:text-base-400">
+          <p class="text-base-600 dark:text-base-400 mt-2">
             Schedule a call to discuss compliance for your CI/CD pipelines.
           </p>
           <span
-            class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary-600 transition group-hover:gap-2 dark:text-primary-400"
+            class="text-primary-600 dark:text-primary-400 mt-4 inline-flex items-center gap-1 text-sm font-medium transition group-hover:gap-2"
           >
             Choose a time below
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"></path>
             </svg>
           </span>
         </a>
@@ -139,15 +161,16 @@ const CONTACT_EMAIL = "hello@getplumber.io";
         data-mos-delay="0.1"
       >
         <h2 class="sr-only">Book a meeting</h2>
-        <div class="overflow-hidden rounded-xl border border-base-300 bg-base-50 dark:border-base-600 dark:bg-base-200/30">
+        <div
+          class="border-base-300 bg-base-50 dark:border-base-600 dark:bg-base-200/30 overflow-hidden rounded-xl border"
+        >
           <iframe
             title="Schedule a meeting with Plumber"
             src={`${CALENDLY_URL}?hide_landing_page_details=1`}
             width="100%"
             height="700"
             class="min-h-[700px] border-0"
-            loading="lazy"
-          />
+            loading="lazy"></iframe>
         </div>
       </section>
     </div>

@@ -30,7 +30,7 @@ const featureData: FeatureData[] = [
 ];
 ---
 
-<section id="plumber-features" class="mb-12 md:mb-24 mt-16 md:mt-28">
+<section id="plumber-features" class="mt-16 mb-12 md:mt-28 md:mb-24">
   <div class="site-container">
     <div class="mb-12 text-center">
       <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#plumber-features">
@@ -63,21 +63,26 @@ const featureData: FeatureData[] = [
       >
         <span slot="description">
           Detects hardcoded jobs in the{" "}
-          <code class="rounded bg-base-300/80 px-1.5 py-0.5 font-mono text-sm dark:bg-base-600/80">.gitlab-ci.yml</code>{" "}
-          and verifies that all required template and component modules are included, up to date and do not follow unauthorized patterns (latest, main, etc.)
+          <code class="bg-base-300/80 dark:bg-base-600/80 rounded px-1.5 py-0.5 font-mono text-sm"
+            >.gitlab-ci.yml</code
+          >{" "}
+          and verifies that all required template and component modules are included, up to date and do
+          not follow unauthorized patterns (latest, main, etc.)
         </span>
       </FeatureCard>
       {
-        featureData.slice(1).map((feature, idx) => (
-          <FeatureCard
-            title={feature.title}
-            text={feature.text}
-            icon={feature.icon}
-            data-mos="fade-up"
-            data-mos-delay={`${(idx + 1) * 0.25 + 0.3}`}
-            data-mos-anchor="#plumber-features"
-          />
-        ))
+        featureData
+          .slice(1)
+          .map((feature, idx) => (
+            <FeatureCard
+              title={feature.title}
+              text={feature.text}
+              icon={feature.icon}
+              data-mos="fade-up"
+              data-mos-delay={`${(idx + 1) * 0.25 + 0.3}`}
+              data-mos-anchor="#plumber-features"
+            />
+          ))
       }
     </div>
     <div

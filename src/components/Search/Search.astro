@@ -55,14 +55,14 @@ const { class: classList, ...rest } = Astro.props as Props;
         showImages: false,
         showSubResults: true,
         baseUrl: "/",
-        processResult: function(result) {
+        processResult: function (result) {
           // Remove "/client/" prefix from URLs if present
           if (result.url && result.url.startsWith("/client/")) {
             result.url = result.url.replace(/^\/client/, "");
           }
           // Also process nested results
           if (result.results && Array.isArray(result.results)) {
-            result.results = result.results.map(nested => {
+            result.results = result.results.map((nested) => {
               if (nested.url && nested.url.startsWith("/client/")) {
                 nested.url = nested.url.replace(/^\/client/, "");
               }
@@ -79,25 +79,29 @@ const { class: classList, ...rest } = Astro.props as Props;
         if (!searchElement) return;
 
         // Use event delegation to catch all clicks on result links
-        searchElement.addEventListener("click", (e) => {
-          const target = e.target as HTMLElement | null;
-          if (!target) return;
-          const link = target.closest("a.pagefind-ui__result-link") as HTMLAnchorElement | null;
-          if (link && link.href) {
-            // Check if URL contains "/client/" and fix it
-            try {
-              const url = new URL(link.href);
-              if (url.pathname.startsWith("/client/")) {
-                e.preventDefault();
-                const fixedPath = url.pathname.replace(/^\/client/, "");
-                const newUrl = url.origin + fixedPath + url.search + url.hash;
-                window.location.href = newUrl;
+        searchElement.addEventListener(
+          "click",
+          (e) => {
+            const target = e.target as HTMLElement | null;
+            if (!target) return;
+            const link = target.closest("a.pagefind-ui__result-link") as HTMLAnchorElement | null;
+            if (link && link.href) {
+              // Check if URL contains "/client/" and fix it
+              try {
+                const url = new URL(link.href);
+                if (url.pathname.startsWith("/client/")) {
+                  e.preventDefault();
+                  const fixedPath = url.pathname.replace(/^\/client/, "");
+                  const newUrl = url.origin + fixedPath + url.search + url.hash;
+                  window.location.href = newUrl;
+                }
+              } catch (err) {
+                // Invalid URL, ignore
               }
-            } catch (err) {
-              // Invalid URL, ignore
             }
-          }
-        }, true);
+          },
+          true,
+        );
       };
 
       // Fix links after Pagefind renders results

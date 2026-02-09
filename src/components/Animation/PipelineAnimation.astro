@@ -2,12 +2,9 @@
 import { Icon } from "astro-icon/components";
 ---
 
-<div
-  class="pipeline-animation-container relative w-full lg:w-[800px]"
-  data-pipeline-animation-root
->
+<div class="pipeline-animation-container relative w-full lg:w-[800px]" data-pipeline-animation-root>
   <div
-  class="from-primary-400 to-base-900/80 after:bg-base-100/30 dark:from-primary-500 dark:to-base-600/50 dark:after:bg-base-800/50 relative overflow-clip bg-gradient-to-b to-40% p-1 after:absolute after:inset-[1px] rounded-2xl after:rounded-[calc(1rem-1px)] md:p-2"
+    class="from-primary-400 to-base-900/80 after:bg-base-100/30 dark:from-primary-500 dark:to-base-600/50 dark:after:bg-base-800/50 relative overflow-clip rounded-2xl bg-gradient-to-b to-40% p-1 after:absolute after:inset-[1px] after:rounded-[calc(1rem-1px)] md:p-2"
   >
     <div
       class="dark border-base-600/60 relative z-10 w-full overflow-clip rounded-xl border bg-[var(--astro-code-background)] md:rounded-lg"
@@ -26,8 +23,7 @@ import { Icon } from "astro-icon/components";
           <span class="text-base-400 ml-2 text-xs">.gitlab-ci.yml</span>
         </div>
         <pre
-          class="text-base-300 min-w-0 overflow-hidden font-mono text-sm"
-        ><code id="typing-code" class="block whitespace-pre-wrap break-all" /></pre>
+          class="text-base-300 min-w-0 overflow-hidden font-mono text-sm"><code id="typing-code" class="block whitespace-pre-wrap break-all" /></pre>
       </div>
 
       <!-- Pipeline Running Stage -->
@@ -61,7 +57,7 @@ import { Icon } from "astro-icon/components";
             id="test-stage"
             class="pipeline-job bg-base-800/30 border-base-600/30 flex items-center gap-3 rounded-lg border p-3 opacity-50"
           >
-            <div class="size-5 rounded-full border-2 border-base-500/50"></div>
+            <div class="border-base-500/50 size-5 rounded-full border-2"></div>
             <span class="text-base-300 text-sm">test</span>
             <span class="text-base-500 ml-auto text-xs">Pending</span>
           </div>
@@ -69,7 +65,7 @@ import { Icon } from "astro-icon/components";
             id="build-stage"
             class="pipeline-job bg-base-800/30 border-base-600/30 flex items-center gap-3 rounded-lg border p-3 opacity-50"
           >
-            <div class="size-5 rounded-full border-2 border-base-500/50"></div>
+            <div class="border-base-500/50 size-5 rounded-full border-2"></div>
             <span class="text-base-300 text-sm">build</span>
             <span class="text-base-500 ml-auto text-xs">Pending</span>
           </div>
@@ -77,7 +73,7 @@ import { Icon } from "astro-icon/components";
             id="deploy-stage"
             class="pipeline-job bg-base-800/30 border-base-600/30 flex items-center gap-3 rounded-lg border p-3 opacity-50"
           >
-            <div class="size-5 rounded-full border-2 border-base-500/50"></div>
+            <div class="border-base-500/50 size-5 rounded-full border-2"></div>
             <span class="text-base-300 text-sm">deploy</span>
             <span class="text-base-500 ml-auto text-xs">Pending</span>
           </div>
@@ -147,9 +143,7 @@ import { Icon } from "astro-icon/components";
         </div>
 
         <!-- Mobile version: simplified text (scrollable, pointer-events allowed) -->
-        <div
-          class="results-stage-scroll h-[calc(100%-4rem)] min-h-0 overflow-auto px-1 md:hidden"
-        >
+        <div class="results-stage-scroll h-[calc(100%-4rem)] min-h-0 overflow-auto px-1 md:hidden">
           <div id="cli-output-mobile" class="text-base-300 space-y-3 text-xs"></div>
         </div>
 
@@ -184,7 +178,8 @@ import { Icon } from "astro-icon/components";
     const typingCode = root.querySelector<HTMLElement>("#typing-code");
     const warningIcon = root.querySelector<HTMLElement>("#warning-icon");
 
-    if (!codeStage || !pipelineStage || !pipelineCompleteStage || !resultsStage || !typingCode) return;
+    if (!codeStage || !pipelineStage || !pipelineCompleteStage || !resultsStage || !typingCode)
+      return;
 
     // Keep timeout typing loose here because this script runs in the browser,
     // but the project TS types include Node timers in some contexts.
@@ -275,7 +270,7 @@ import { Icon } from "astro-icon/components";
               failedIcon.className = "text-red-400 size-5 flex items-center justify-center";
               failedIcon.innerHTML =
                 '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>';
-              
+
               // Replace spinner with failed icon
               preStage.replaceChild(failedIcon, preSpinner);
 
@@ -313,12 +308,32 @@ import { Icon } from "astro-icon/components";
 
     // Compliance data: 8 controls (6 required, 2 skipped). Total = 50.0%
     const complianceControls = [
-      { name: "Container images must not use forbidden tags", percentage: 100, issues: 0, skipped: false },
-      { name: "Container images must come from authorized sources", percentage: 0, issues: 1, skipped: false },
+      {
+        name: "Container images must not use forbidden tags",
+        percentage: 100,
+        issues: 0,
+        skipped: false,
+      },
+      {
+        name: "Container images must come from authorized sources",
+        percentage: 0,
+        issues: 1,
+        skipped: false,
+      },
       { name: "Branch must be protected", percentage: 100, issues: 0, skipped: false },
-      { name: "Pipeline must not include hardcoded jobs", percentage: 100, issues: 0, skipped: false },
+      {
+        name: "Pipeline must not include hardcoded jobs",
+        percentage: 100,
+        issues: 0,
+        skipped: false,
+      },
       { name: "Includes must be up to date", percentage: 0, issues: 2, skipped: false },
-      { name: "Includes must not use forbidden versions", percentage: 0, issues: 1, skipped: false },
+      {
+        name: "Includes must not use forbidden versions",
+        percentage: 0,
+        issues: 1,
+        skipped: false,
+      },
       { name: "Pipeline must include component", percentage: -1, issues: "-", skipped: true },
       { name: "Pipeline must include template", percentage: -1, issues: "-", skipped: true },
     ];
@@ -381,7 +396,8 @@ import { Icon } from "astro-icon/components";
       output += "  Authorized: 11\n";
       output += "  Unauthorized: 1\n\n";
       output += "  Unauthorized Images Found:\n";
-      output += "    • Job 'dockerfile_lint' uses unauthorized image: registry.gitlab.com/pipeline-components/hadolint:0.26.1\n\n";
+      output +=
+        "    • Job 'dockerfile_lint' uses unauthorized image: registry.gitlab.com/pipeline-components/hadolint:0.26.1\n\n";
 
       output += "──────────────────────────────────────────────────\n";
       output += `<span class="${getCliComplianceTextColor(100)}">Branch must be protected (100.0% compliant)</span>\n`;
@@ -414,7 +430,8 @@ import { Icon } from "astro-icon/components";
       output += "  Using Authorized Versions: 4\n";
       output += "  Using Forbidden Versions: 1\n\n";
       output += "  Forbidden Versions Found:\n";
-      output += "    • gitlab.r2devops.tech/bigtech-150/templates/components/my-simple-component uses forbidden version 'main'\n\n";
+      output +=
+        "    • gitlab.r2devops.tech/bigtech-150/templates/components/my-simple-component uses forbidden version 'main'\n\n";
 
       output += "──────────────────────────────────────────────────\n";
       output += "Pipeline must include component (skipped)\n";
@@ -443,9 +460,12 @@ import { Icon } from "astro-icon/components";
       output += "  ╚═══════════════════════════════════════════════════════╧══════════╝\n\n";
 
       output += "  Compliance\n";
-      output += "  ╔══════════════════════════════════════════════════════╤════════════╤══════════╗\n";
-      output += "  ║ Control                                              │ Compliance │   Status ║\n";
-      output += "  ╟──────────────────────────────────────────────────────┼────────────┼──────────╢\n";
+      output +=
+        "  ╔══════════════════════════════════════════════════════╤════════════╤══════════╗\n";
+      output +=
+        "  ║ Control                                              │ Compliance │   Status ║\n";
+      output +=
+        "  ╟──────────────────────────────────────────────────────┼────────────┼──────────╢\n";
       complianceControls.forEach((c) => {
         const namePadded = c.name.padEnd(controlColLen);
         if (c.skipped) {
@@ -458,11 +478,12 @@ import { Icon } from "astro-icon/components";
           output += `  ║ ${namePadded} │     <span class="${pctColor}">${pctStr}</span> │       <span class="${statusColor}">${statusSvg}</span> ║\n`;
         }
       });
-      output += "  ╟──────────────────────────────────────────────────────┼────────────┼──────────╢\n";
+      output +=
+        "  ╟──────────────────────────────────────────────────────┼────────────┼──────────╢\n";
       const totalPercentFormatted = (totalCompliance.toFixed(1) + "%").padStart(6);
       output += `  ║ Total (required: 100%)                               │     <span class="${totalStatusColor}">${totalPercentFormatted}</span> │       <span class="${totalStatusColor}">${totalStatusSvg}</span> ║\n`;
-      output += "  ╚══════════════════════════════════════════════════════╧════════════╧══════════╝\n\n";
-
+      output +=
+        "  ╚══════════════════════════════════════════════════════╧════════════╧══════════╝\n\n";
 
       return output;
     }
@@ -637,27 +658,24 @@ import { Icon } from "astro-icon/components";
     window.addEventListener("resize", () => {
       if (resizeTimeout) window.clearTimeout(resizeTimeout);
       resizeTimeout = window.setTimeout(() => {
-        document
-          .querySelectorAll<HTMLElement>("[data-pipeline-animation-root]")
-          .forEach((root) => {
-            const resultsStage = root.querySelector<HTMLElement>("#results-stage");
-            if (resultsStage && !resultsStage.classList.contains("hidden")) {
-              // Scroll desktop version to bottom
-              const cliOutput = root.querySelector<HTMLElement>("#cli-output");
-              if (cliOutput) {
-                const preElement = cliOutput.parentElement;
-                const scrollContainer = preElement?.parentElement;
-                if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
-              }
-
-              // Scroll mobile version to bottom
-              const cliOutputMobile = root.querySelector<HTMLElement>("#cli-output-mobile");
-              if (cliOutputMobile && cliOutputMobile.parentElement) {
-                cliOutputMobile.parentElement.scrollTop =
-                  cliOutputMobile.parentElement.scrollHeight;
-              }
+        document.querySelectorAll<HTMLElement>("[data-pipeline-animation-root]").forEach((root) => {
+          const resultsStage = root.querySelector<HTMLElement>("#results-stage");
+          if (resultsStage && !resultsStage.classList.contains("hidden")) {
+            // Scroll desktop version to bottom
+            const cliOutput = root.querySelector<HTMLElement>("#cli-output");
+            if (cliOutput) {
+              const preElement = cliOutput.parentElement;
+              const scrollContainer = preElement?.parentElement;
+              if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
             }
-          });
+
+            // Scroll mobile version to bottom
+            const cliOutputMobile = root.querySelector<HTMLElement>("#cli-output-mobile");
+            if (cliOutputMobile && cliOutputMobile.parentElement) {
+              cliOutputMobile.parentElement.scrollTop = cliOutputMobile.parentElement.scrollHeight;
+            }
+          }
+        });
       }, 100); // Debounce resize events
     });
   }

@@ -55,21 +55,21 @@ if (cols >= 5) {
     aria-labelledby={`${slugify(navItem.text)}-mega-menu`}
     data-state="closed"
     class:list={[
-      "mega-menu__dropdown-content absolute left-0 top-full z-10 transition-all",
+      "mega-menu__dropdown-content absolute top-full left-0 z-10 transition-all",
       "slide-in-from-top-2 fade-in-0 animate-in hidden will-change-transform",
       "data-[state=closed]:fade-out-0 data-[state=closed]:animate-out",
     ]}
   >
     <ul
       class:list={[
-        "border-base-500/40 bg-base-200/95 dark:border-base-500/50 dark:bg-base-900/95 mt-2 grid w-max min-w-[150px] max-w-md gap-3 rounded-lg border border-solid py-3 shadow-xl backdrop-blur-sm lg:max-w-sm",
+        "border-base-500/40 bg-base-200/95 dark:border-base-500/50 dark:bg-base-900/95 mt-2 grid w-max max-w-md min-w-[150px] gap-3 rounded-lg border border-solid py-3 shadow-xl backdrop-blur-sm lg:max-w-sm",
         gridClass,
       ]}
     >
       {
         navItem.megaMenuColumns.map((col) => (
           <div>
-            <p class="border-base-500/40 dark:border-base-500/50 mx-4 mb-1 border-b py-1 text-base font-semibold text-foreground">
+            <p class="border-base-500/40 dark:border-base-500/50 text-foreground mx-4 mb-1 border-b py-1 text-base font-semibold">
               {col.title}
             </p>
             {col.items.map((navItem) => (

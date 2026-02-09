@@ -103,7 +103,15 @@ import interVariable from "@fontsource-variable/inter/files/inter-latin-wght-nor
 <!-- Plausible Analytics (cookieless; proxy per https://plausible.io/docs/proxy/guides/vercel) -->
 <script async src="/js/script.js"></script>
 <script is:inline>
-  window.plausible = window.plausible || function (...args) { (plausible.q = plausible.q || []).push(args); };
-  plausible.init = plausible.init || function (i) { plausible.o = i || {}; };
+  window.plausible =
+    window.plausible ||
+    function (...args) {
+      (plausible.q = plausible.q || []).push(args);
+    };
+  plausible.init =
+    plausible.init ||
+    function (i) {
+      plausible.o = i || {};
+    };
   plausible.init({ endpoint: "/api/event" });
 </script>

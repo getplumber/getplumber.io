@@ -15,14 +15,14 @@ export const testimonialData: TestimonialItem[] = [
   //   title: "Frontend Engineer",
   //   testimonial: `The Blogsmith Pro theme is ridiculously well put together and documented.
   //     I learned a ton about Astro engineering by studying it, and I've already used some of the components
-  //     for my web design clients. 
+  //     for my web design clients.
   //     `,
   // },
   // {
   //   avatar: Damiano,
   //   name: "Damiano L",
   //   title: "C++ Developer",
-  //   testimonial: `Cosmic Themes provides some of the best Astro themes out there. They are well designed, easy to customize and, 
+  //   testimonial: `Cosmic Themes provides some of the best Astro themes out there. They are well designed, easy to customize and,
   //     most importantly, the team is very responsive concerning support and feature requests.
   //     `,
   // },
@@ -38,8 +38,8 @@ export const testimonialData: TestimonialItem[] = [
   //   avatar: TravisB,
   //   name: "Travis B",
   //   title: "Developer",
-  //   testimonial: `Cosmic themes are for webdevs and marketers who don't want to waste time reinventing the wheel. 
-  //   Their themes have great examples of some of the creative things you can accomplish with Astro. 
+  //   testimonial: `Cosmic themes are for webdevs and marketers who don't want to waste time reinventing the wheel.
+  //   Their themes have great examples of some of the creative things you can accomplish with Astro.
   //     `,
   // },
   // {

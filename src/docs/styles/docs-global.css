@@ -53,7 +53,9 @@
     /* Shiki syntax highlighting variables for light theme - GitHub Light (Enhanced darkness for better contrast) */
     --astro-code-color-text: #0d1117;
     --astro-code-color-background: #1f2428;
-    --astro-code-background: var(--astro-code-color-background); /* Alias for backward compatibility */
+    --astro-code-background: var(
+      --astro-code-color-background
+    ); /* Alias for backward compatibility */
     --astro-code-token-constant: #0349a1;
     --astro-code-token-string: #082555;
     --astro-code-token-comment: #4a545e;
@@ -104,7 +106,9 @@
     /* Shiki syntax highlighting variables for dark theme - GitHub Dark (Enhanced brightness for better contrast) */
     --astro-code-color-text: #f0f6fc;
     --astro-code-color-background: #0d1117;
-    --astro-code-background: var(--astro-code-color-background); /* Alias for backward compatibility */
+    --astro-code-background: var(
+      --astro-code-color-background
+    ); /* Alias for backward compatibility */
     --astro-code-token-constant: #91d7ff;
     --astro-code-token-string: #c9e7ff;
     --astro-code-token-comment: #a0aab5;

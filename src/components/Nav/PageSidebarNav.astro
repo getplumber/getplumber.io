@@ -22,7 +22,7 @@ const { sections } = Astro.props;
 
 <aside
   id="page-sidebar-nav"
-  class="fixed right-4 top-1/2 z-40 -translate-y-1/2 transition-all duration-300 md:right-6 lg:right-8"
+  class="fixed top-1/2 right-4 z-40 -translate-y-1/2 transition-all duration-300 md:right-6 lg:right-8"
   aria-label="Page navigation"
 >
   <nav
@@ -93,7 +93,7 @@ const { sections } = Astro.props;
     // Show/hide sidebar based on scroll position and hero visibility
     function updateSidebarVisibility() {
       const scrollY = window.scrollY;
-      
+
       if (!heroSection) {
         // If no hero section found, show sidebar immediately
         sidebar?.classList.remove("translate-x-full", "opacity-0");
@@ -105,8 +105,8 @@ const { sections } = Astro.props;
       const heroRect = heroSection.getBoundingClientRect();
       const heroTop = heroSection.offsetTop;
       const heroHeight = heroSection.offsetHeight;
-      const heroHalfPoint = heroTop + (heroHeight * 0.5);
-      
+      const heroHalfPoint = heroTop + heroHeight * 0.5;
+
       // Show sidebar only after scrolling past 50% of hero
       if (scrollY > heroHalfPoint) {
         sidebar?.classList.remove("translate-x-full", "opacity-0");
@@ -164,7 +164,7 @@ const { sections } = Astro.props;
           sectionLinks.forEach((link) => link.removeAttribute("data-active"));
 
           const activeLink = document.querySelector(
-            `.sidebar-nav-link[data-section-id="${entry.target.id}"]`
+            `.sidebar-nav-link[data-section-id="${entry.target.id}"]`,
           );
           if (activeLink) {
             activeLink.setAttribute("data-active", "true");
@@ -208,7 +208,9 @@ const { sections } = Astro.props;
   #page-sidebar-nav {
     opacity: 0;
     transform: translateX(100%);
-    transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+    transition:
+      opacity 300ms ease-in-out,
+      transform 300ms ease-in-out;
   }
 
   /* Smooth transition when showing/hiding */

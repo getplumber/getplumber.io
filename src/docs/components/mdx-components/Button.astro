@@ -27,10 +27,7 @@ const { variant = "secondary", size = "md", class: className, ...rest } = Astro.
 const Tag = Astro.props.href ? "a" : "button";
 
 const useButtonsCss =
-  variant === "primary" ||
-  variant === "secondary" ||
-  variant === "outline" ||
-  variant === "ghost";
+  variant === "primary" || variant === "secondary" || variant === "outline" || variant === "ghost";
 ---
 
 <Tag

@@ -6,30 +6,30 @@
 
 ### Summary of this README
 
-| Section |
-|--------|
-| [Summary](#-summary) |
-| [Quick Start](#-quick-start) |
-| [Architecture & Technology Stack](#️-architecture--technology-stack) |
-| [Project Structure](#-project-structure) |
-| [Creating Content](#️-creating-content) |
-| [Adding a new release blog post](#6-adding-a-new-release-blog-post) |
-| [Creating Documentation Articles](#-creating-documentation-articles) |
-| [Creating Custom Pages](#-creating-custom-pages) |
-| [Component Patterns](#-component-patterns) |
-| [Styling & Theming](#-styling--theming) |
-| [Search Configuration](#-search-configuration) |
-| [Internationalization (i18n)](#-internationalization-i18n) |
+| Section                                                                  |
+| ------------------------------------------------------------------------ |
+| [Summary](#-summary)                                                     |
+| [Quick Start](#-quick-start)                                             |
+| [Architecture & Technology Stack](#️-architecture--technology-stack)      |
+| [Project Structure](#-project-structure)                                 |
+| [Creating Content](#️-creating-content)                                   |
+| [Adding a new release blog post](#6-adding-a-new-release-blog-post)      |
+| [Creating Documentation Articles](#-creating-documentation-articles)     |
+| [Creating Custom Pages](#-creating-custom-pages)                         |
+| [Component Patterns](#-component-patterns)                               |
+| [Styling & Theming](#-styling--theming)                                  |
+| [Search Configuration](#-search-configuration)                           |
+| [Internationalization (i18n)](#-internationalization-i18n)               |
 | [Content Management (Keystatic CMS)](#-content-management-keystatic-cms) |
-| [Deployment](#-deployment) |
-| [Development Tips](#️-development-tips) |
-| [Content Collections API](#-content-collections-api) |
-| [Configuration Files](#-configuration-files) |
-| [Testing Locally](#-testing-locally) |
-| [Additional Resources](#-additional-resources) |
-| [Contributing](#-contributing) |
-| [License](#-license) |
-| [Support](#-support) |
+| [Deployment](#-deployment)                                               |
+| [Development Tips](#️-development-tips)                                   |
+| [Content Collections API](#-content-collections-api)                     |
+| [Configuration Files](#-configuration-files)                             |
+| [Testing Locally](#-testing-locally)                                     |
+| [Additional Resources](#-additional-resources)                           |
+| [Contributing](#-contributing)                                           |
+| [License](#-license)                                                     |
+| [Support](#-support)                                                     |
 
 ---
 
@@ -44,6 +44,7 @@ This is a comprehensive documentation and website for **Plumber** - a tool for a
 - Avoid supply chain attacks
 
 The website features:
+
 - 📝 **Blog** - Release notes, tutorials, and articles about CI/CD security
 - 📚 **Documentation** - Comprehensive guides for installation, usage, and reference
 - 🎨 **Marketing Pages** - Product landing pages and feature showcases
@@ -62,11 +63,13 @@ The website features:
 ### Installation & Setup
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Run initial build:**
+
    ```bash
    npm run build
    ```
@@ -76,9 +79,11 @@ The website features:
    - macOS/Linux: `npm run osxsearch`
 
 4. **Configure i18n:**
+
    ```bash
    npm run config-i18n
    ```
+
    Follow the prompts to set up your language configuration.
 
 5. **Start development server:**
@@ -89,17 +94,17 @@ The website features:
 
 ### Available Commands
 
-| Command | Action |
-|---------|--------|
-| `npm run dev` | Start local dev server at `localhost:4321` |
-| `npm run build` | Build production site to `./dist/` with search indexing |
-| `npm run preview` | Preview production build (not supported with Vercel adapter) |
-| `npm run format` | Format code with ESLint and Prettier |
-| `npm run lint` | Run ESLint |
-| `npm run config-i18n` | Configure internationalization |
-| `npm run remove-keystatic` | Remove Keystatic CMS if not needed |
-| `npm run seo-audit` | Run SEO audit on the site |
-| `npm run generate-favicon-ico` | Generate favicon.ico from favicon.svg |
+| Command                        | Action                                                       |
+| ------------------------------ | ------------------------------------------------------------ |
+| `npm run dev`                  | Start local dev server at `localhost:4321`                   |
+| `npm run build`                | Build production site to `./dist/` with search indexing      |
+| `npm run preview`              | Preview production build (not supported with Vercel adapter) |
+| `npm run format`               | Format code with ESLint and Prettier                         |
+| `npm run lint`                 | Run ESLint                                                   |
+| `npm run config-i18n`          | Configure internationalization                               |
+| `npm run remove-keystatic`     | Remove Keystatic CMS if not needed                           |
+| `npm run seo-audit`            | Run SEO audit on the site                                    |
+| `npm run generate-favicon-ico` | Generate favicon.ico from favicon.svg                        |
 
 ---
 
@@ -153,7 +158,7 @@ The website features:
 │   │   ├── Feature/       # Feature sections
 │   │   ├── Cta/           # Call-to-action components
 │   │   ├── Nav/           # Navigation
-│   │   ├── Footer/        
+│   │   ├── Footer/
 │   │   └── ...
 │   ├── config/            # Site configuration
 │   │   ├── en/            # Locale-specific (siteData, navData, faqData, etc.)
@@ -161,7 +166,7 @@ The website features:
 │   │   └── translationData.json.ts
 │   ├── data/              # Content collections data
 │   │   ├── blog/          # Blog posts (by language)
-│   │   │   └── en/        
+│   │   │   └── en/
 │   │   ├── authors/       # Author profiles
 │   │   ├── otherPages/    # Additional pages (privacy, terms)
 │   │   └── codeToggles/   # Code example toggles
@@ -169,13 +174,13 @@ The website features:
 │   │   ├── components/    # Docs-specific components
 │   │   │   └── mdx-components/  # MDX components (Aside, Badge, Tabs, etc.)
 │   │   ├── config/        # Docs configuration
-│   │   ├── data/          
+│   │   ├── data/
 │   │   │   └── docs/      # Documentation content (by language)
 │   │   │       └── en/
 │   │   ├── layouts/       # Docs layouts
 │   │   └── styles/        # Docs-specific styles
 │   ├── icons/             # SVG icons
-│   │   ├── logos/         
+│   │   ├── logos/
 │   │   └── tabler/        # Tabler icons
 │   ├── js/                # Utility functions
 │   │   ├── localeUtils.ts
@@ -247,12 +252,12 @@ authors:
   - main-author
   - second-author
 pubDate: 2024-01-15
-updatedDate: 2024-01-20  # Optional
+updatedDate: 2024-01-20 # Optional
 heroImage: ./heroImage.png
 categories:
   - ci-cd
   - security
-mappingKey: my-article  # Optional: for i18n matching
+mappingKey: my-article # Optional: for i18n matching
 ---
 
 Your article content starts here...
@@ -266,17 +271,17 @@ Write in Markdown/MDX format.
 
 #### 3. Frontmatter Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `title` | string | ✅ | Article title |
-| `description` | string | ✅ | SEO description & preview text |
-| `draft` | boolean | ❌ | Set to `true` to exclude from build |
-| `authors` | array | ✅ | Array of author IDs (references `src/data/authors/`) |
-| `pubDate` | date | ✅ | Publication date (YYYY-MM-DD) |
-| `updatedDate` | date | ❌ | Last update date |
-| `heroImage` | image | ✅ | Path to hero image |
-| `categories` | array | ❌ | Array of category strings |
-| `mappingKey` | string | ❌ | For linking translations |
+| Field         | Type    | Required | Description                                          |
+| ------------- | ------- | -------- | ---------------------------------------------------- |
+| `title`       | string  | ✅       | Article title                                        |
+| `description` | string  | ✅       | SEO description & preview text                       |
+| `draft`       | boolean | ❌       | Set to `true` to exclude from build                  |
+| `authors`     | array   | ✅       | Array of author IDs (references `src/data/authors/`) |
+| `pubDate`     | date    | ✅       | Publication date (YYYY-MM-DD)                        |
+| `updatedDate` | date    | ❌       | Last update date                                     |
+| `heroImage`   | image   | ✅       | Path to hero image                                   |
+| `categories`  | array   | ❌       | Array of category strings                            |
+| `mappingKey`  | string  | ❌       | For linking translations                             |
 
 #### 4. Adding Images
 
@@ -287,6 +292,7 @@ Write in Markdown/MDX format.
 #### 5. Using Components in Blog Posts
 
 Auto-imported components (no import needed):
+
 - `<Admonition>` - Info boxes
 
 For other components, import them:
@@ -295,7 +301,8 @@ For other components, import them:
 ---
 title: My Article
 ---
-import CustomComponent from '@components/CustomComponent.astro';
+
+import CustomComponent from "@components/CustomComponent.astro";
 
 <CustomComponent prop="value" />
 ```
@@ -331,11 +338,12 @@ categories:
 ---
 ```
 
-**Note:** Posts in **`archive/`** are *archived*: they only appear on [/blog/archive](/blog/archive), not on the main blog list. Use **`releases/`** for new release announcements and keep **`archive/`** for old/historical release notes (e.g. legacy R2Devops releases).
+**Note:** Posts in **`archive/`** are _archived_: they only appear on [/blog/archive](/blog/archive), not on the main blog list. Use **`releases/`** for new release announcements and keep **`archive/`** for old/historical release notes (e.g. legacy R2Devops releases).
 
 #### 7. Examples
 
 See existing blog posts in `src/data/blog/en/` for reference:
+
 - `archive/2.17/index.mdx` - Archived release notes (R2Devops)
 - `releases/` - Add new Plumber release posts here
 - `tj-actions-compromised/index.mdx` - Article example
@@ -374,11 +382,13 @@ Documentation articles use MDX and are stored in `src/docs/data/docs/[locale]/`.
 #### 1. File Structure
 
 **Option A: Single file**
+
 ```
 src/docs/data/docs/en/getting-started.mdx
 ```
 
 **Option B: Folder with index (recommended for images)**
+
 ```
 src/docs/data/docs/en/installation/
 ├── index.mdx
@@ -387,6 +397,7 @@ src/docs/data/docs/en/installation/
 ```
 
 **Option C: Nested sections**
+
 ```
 src/docs/data/docs/en/installation/
 ├── index.mdx
@@ -403,16 +414,16 @@ src/docs/data/docs/en/installation/
 title: Getting Started with Plumber
 description: Learn how to install and use Plumber CLI
 sidebar:
-  label: Quick Start        # Label in sidebar (defaults to title)
-  order: 1                  # Order in sidebar
+  label: Quick Start # Label in sidebar (defaults to title)
+  order: 1 # Order in sidebar
   badge:
     text: New
-    variant: tip            # note, tip, caution, danger, info
+    variant: tip # note, tip, caution, danger, info
 tableOfContents:
   minHeadingLevel: 2
   maxHeadingLevel: 3
-pagefind: true              # Include in search (default: true)
-draft: false                # Exclude from build if true
+pagefind: true # Include in search (default: true)
+draft: false # Exclude from build if true
 mappingKey: getting-started # For i18n
 ---
 
@@ -423,17 +434,17 @@ Write your docs here in Markdown/MDX.
 
 #### 3. Frontmatter Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `title` | string | ✅ | Page title |
-| `description` | string | ❌ | SEO description |
-| `sidebar.label` | string | ❌ | Sidebar text (defaults to title) |
-| `sidebar.order` | number | ❌ | Sidebar position |
-| `sidebar.badge` | object | ❌ | Badge with text & variant |
-| `tableOfContents` | object | ❌ | TOC configuration |
-| `pagefind` | boolean | ❌ | Include in search (default: true) |
-| `draft` | boolean | ❌ | Exclude from build |
-| `mappingKey` | string | ❌ | For i18n matching |
+| Field             | Type    | Required | Description                       |
+| ----------------- | ------- | -------- | --------------------------------- |
+| `title`           | string  | ✅       | Page title                        |
+| `description`     | string  | ❌       | SEO description                   |
+| `sidebar.label`   | string  | ❌       | Sidebar text (defaults to title)  |
+| `sidebar.order`   | number  | ❌       | Sidebar position                  |
+| `sidebar.badge`   | object  | ❌       | Badge with text & variant         |
+| `tableOfContents` | object  | ❌       | TOC configuration                 |
+| `pagefind`        | boolean | ❌       | Include in search (default: true) |
+| `draft`           | boolean | ❌       | Exclude from build                |
+| `mappingKey`      | string  | ❌       | For i18n matching                 |
 
 #### 4. Using MDX Components in Docs
 
@@ -442,21 +453,13 @@ The following components are auto-imported in all documentation files:
 ##### Aside / Admonition
 
 ```mdx
-<Aside variant="note">
-  This is a note callout.
-</Aside>
+<Aside variant="note">This is a note callout.</Aside>
 
-<Aside variant="tip">
-  This is a helpful tip!
-</Aside>
+<Aside variant="tip">This is a helpful tip!</Aside>
 
-<Aside variant="caution">
-  Be careful with this.
-</Aside>
+<Aside variant="caution">Be careful with this.</Aside>
 
-<Aside variant="danger">
-  This is dangerous!
-</Aside>
+<Aside variant="danger">This is dangerous!</Aside>
 ```
 
 **Variants**: `note`, `tip`, `caution`, `danger`, `info`
@@ -477,18 +480,18 @@ The following components are auto-imported in all documentation files:
 
 ##### Steps
 
-```mdx
+````mdx
 <Steps>
 1. First, install the dependencies
    ```bash
    npm install
-   ```
+````
 
 2. Then configure your settings
-   
 3. Finally, run the build
-</Steps>
-```
+   </Steps>
+
+````
 
 ##### Tabs
 
@@ -498,29 +501,31 @@ The following components are auto-imported in all documentation files:
     <TabsTrigger value="npm">npm</TabsTrigger>
     <TabsTrigger value="pnpm">pnpm</TabsTrigger>
   </TabsList>
-  
+
   <TabsContent value="npm">
     ```bash
     npm install plumber-cli
     ```
   </TabsContent>
-  
+
   <TabsContent value="pnpm">
     ```bash
     pnpm add plumber-cli
     ```
   </TabsContent>
 </Tabs>
-```
+````
 
 #### 5. Documentation Navigation
 
 The sidebar is auto-generated from:
+
 1. The folder structure in `src/docs/data/docs/[locale]/`
 2. The `sidebar.order` values in frontmatter
 3. The `sidebar.label` values (or falls back to `title`)
 
 **Tips:**
+
 - Use `sidebar.order` to control positioning
 - Folders become collapsible sections
 - `index.mdx` files become the section's main page
@@ -528,6 +533,7 @@ The sidebar is auto-generated from:
 #### 6. Examples
 
 See existing docs for reference:
+
 - `src/docs/data/docs/en/getting-started/index.mdx` - Overview
 - `src/docs/data/docs/en/installation/` - Multiple pages (docker-compose, kubernetes, podman, etc.)
 - `src/docs/data/docs/en/components/` - MDX components (Aside, Badge, Button, Steps, Tabs)
@@ -544,16 +550,13 @@ Create a new `.astro` file in `src/pages/`:
 ```astro
 ---
 // src/pages/about.astro
-import BaseLayout from '@layouts/BaseLayout.astro';
-import Hero1 from '@components/Hero/Hero1.astro';
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Hero1 from "@components/Hero/Hero1.astro";
 ---
 
-<BaseLayout 
-  title="About Us" 
-  description="Learn about our mission"
->
+<BaseLayout title="About Us" description="Learn about our mission">
   <Hero1 />
-  
+
   <section class="container mx-auto px-4 py-16">
     <h2>Our Story</h2>
     <p>Content here...</p>
@@ -571,10 +574,7 @@ Use `[param].astro` for dynamic routes:
 ---
 // src/pages/product/[id].astro
 export async function getStaticPaths() {
-  return [
-    { params: { id: 'plumber' } },
-    { params: { id: 'platform' } },
-  ];
+  return [{ params: { id: "plumber" } }, { params: { id: "platform" } }];
 }
 
 const { id } = Astro.params;
@@ -595,10 +595,10 @@ The project includes many pre-built components:
 
 ```astro
 ---
-import Hero1 from '@components/Hero/Hero1.astro';
-import Feature1 from '@components/Feature/Feature1.astro';
-import Cta1 from '@components/Cta/Cta1.astro';
-import Pricing1 from '@components/Pricing/Pricing1.astro';
+import Hero1 from "@components/Hero/Hero1.astro";
+import Feature1 from "@components/Feature/Feature1.astro";
+import Cta1 from "@components/Cta/Cta1.astro";
+import Pricing1 from "@components/Pricing/Pricing1.astro";
 ---
 
 <Hero1 />
@@ -649,7 +649,7 @@ const { title, description } = Astro.props;
 
 ```astro
 ---
-import MyComponent from '@components/MyComponent/MyComponent.astro';
+import MyComponent from "@components/MyComponent/MyComponent.astro";
 ---
 
 <MyComponent title="Hello" description="World">
@@ -675,6 +675,7 @@ Tailwind 4 is configured via CSS variables in `src/styles/tailwind-theme.css`:
 ### Global Styles
 
 Located in `src/styles/`:
+
 - `global.css` - Base styles, CSS variables
 - `buttons.css` - Button variants
 - `markdown-content.css` - Markdown rendering styles
@@ -691,11 +692,13 @@ Dark mode is implemented via CSS classes. Toggle component: `ThemeToggle.astro`
 Search is powered by Pagefind, built during the production build.
 
 **Configuration:**
+
 - Automatically indexes all pages
 - Control indexing with `data-pagefind-ignore` attribute
 - Control in docs with `pagefind: false` in frontmatter
 
 **Building search index:**
+
 ```bash
 npm run build  # Runs pagefind and copies index into Vercel output for deployed search
 ```
@@ -712,6 +715,7 @@ npm run build  # Runs pagefind and copies index into Vercel output for deployed 
 ### Adding a New Language
 
 1. Run the i18n configuration wizard:
+
    ```bash
    npm run config-i18n
    ```
@@ -727,6 +731,7 @@ npm run build  # Runs pagefind and copies index into Vercel output for deployed 
 ### Manual Translation
 
 After adding a locale, translate content by:
+
 1. Copying content from `src/data/blog/en/` to `src/data/blog/[locale]/`
 2. Copying docs from `src/docs/data/docs/en/` to `src/docs/data/docs/[locale]/`
 3. Updating `src/config/translationData.json.ts`
@@ -743,6 +748,7 @@ After adding a locale, translate content by:
 ### Configuration
 
 Keystatic is configured in `keystatic.config.tsx`. Current collections:
+
 - `blogEN` - Blog posts (English)
 - `authors` - Author profiles
 - `otherPagesEN` - Additional pages
@@ -785,6 +791,7 @@ To deploy on other platforms:
 ### Environment Variables
 
 For Keystatic Cloud in production:
+
 - Set up a project at [keystatic.cloud](https://keystatic.cloud)
 - Configure OAuth if needed
 
@@ -795,6 +802,7 @@ For Keystatic Cloud in production:
 ### Hot Module Replacement (HMR)
 
 Astro provides fast HMR for:
+
 - Astro components
 - MDX files
 - Styles
@@ -827,20 +835,18 @@ Install the [CodeTour extension](https://marketplace.visualstudio.com/items?item
 
 ```astro
 ---
-import { getCollection } from 'astro:content';
+import { getCollection } from "astro:content";
 
 // Get all blog posts
-const allPosts = await getCollection('blog');
+const allPosts = await getCollection("blog");
 
 // Filter published posts
-const publishedPosts = await getCollection('blog', ({ data }) => {
+const publishedPosts = await getCollection("blog", ({ data }) => {
   return !data.draft;
 });
 
 // Get by category
-const securityPosts = allPosts.filter(post => 
-  post.data.categories?.includes('security')
-);
+const securityPosts = allPosts.filter((post) => post.data.categories?.includes("security"));
 ---
 ```
 
@@ -848,9 +854,9 @@ const securityPosts = allPosts.filter(post =>
 
 ```astro
 ---
-import { getCollection } from 'astro:content';
+import { getCollection } from "astro:content";
 
-const docs = await getCollection('docs');
+const docs = await getCollection("docs");
 ---
 ```
 
@@ -858,9 +864,9 @@ const docs = await getCollection('docs');
 
 ```astro
 ---
-import { getEntry } from 'astro:content';
+import { getEntry } from "astro:content";
 
-const post = await getEntry('blog', 'my-article-name');
+const post = await getEntry("blog", "my-article-name");
 const { Content } = await post.render();
 ---
 
@@ -877,6 +883,7 @@ const { Content } = await post.render();
 ### `astro.config.mjs`
 
 Main Astro configuration:
+
 - Site URL, image service
 - Integrations (MDX, React, Sitemap, Keystatic, Compress, etc.)
 - Markdown settings (Shiki syntax highlighting)
@@ -886,6 +893,7 @@ Main Astro configuration:
 ### `content.config.ts`
 
 Content collections schema:
+
 - Defines validation for frontmatter (blog, authors, docs, otherPages)
 - Configures content loaders
 - Sets up relationships (e.g. blog posts → authors)
@@ -893,6 +901,7 @@ Content collections schema:
 ### `package.json`
 
 Dependencies and scripts. Key packages:
+
 - Astro 5.x
 - Tailwind CSS 4.x
 - React 19.x
@@ -903,6 +912,7 @@ Dependencies and scripts. Key packages:
 ### `tsconfig.json`
 
 TypeScript configuration with path aliases:
+
 - `@components/*` → `src/components/*`
 - `@layouts/*` → `src/layouts/*`
 - `@js/*` → `src/js/*`
@@ -984,4 +994,4 @@ See license details at the main Plumber project repository.
 
 **Built with ❤️ by the Plumber team**
 
-*Securing CI/CD pipelines, one commit at a time.*
+_Securing CI/CD pipelines, one commit at a time._

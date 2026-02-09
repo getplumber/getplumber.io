@@ -16,7 +16,8 @@ const currLocale = getLocaleFromUrl(Astro.url);
   >
     <div class="docs-markdown-content text-center">
       <p class="text-sm lg:text-base">
-        We use anonymous analytics to understand how the site is used. You can accept or refuse. See our
+        We use anonymous analytics to understand how the site is used. You can accept or refuse. See
+        our
         <a href={"/privacy-policy"} aria-label="Privacy Policy" class="">Privacy Policy</a>
         for details.
       </p>
@@ -46,7 +47,8 @@ const currLocale = getLocaleFromUrl(Astro.url);
     function setConsentCookie(value, maxAgeDays) {
       const d = new Date();
       d.setTime(d.getTime() + maxAgeDays * 24 * 60 * 60 * 1000);
-      document.cookie = "cookie-consent=" + value + "; path=/; expires=" + d.toUTCString() + "; SameSite=Lax";
+      document.cookie =
+        "cookie-consent=" + value + "; path=/; expires=" + d.toUTCString() + "; SameSite=Lax";
     }
 
     const cookieConsent = getCookieConsent();

@@ -14,8 +14,6 @@ const currLocale = getLocaleFromUrl(Astro.url);
 
 {
   category && (
-    <span class:list={["main-text-gradient font-medium", classList]}>
-      {humanize(category)}
-    </span>
+    <span class:list={["main-text-gradient font-medium", classList]}>{humanize(category)}</span>
   )
 }
