@@ -1,9 +1,13 @@
-import { file, glob } from "astro/loaders";
+import { glob } from "astro/loaders";
 import { defineCollection, reference, z } from "astro:content";
 
 // Type-check frontmatter using a schema
 const blogCollection = defineCollection({
-  loader: glob({ pattern: "**/[^_]*{md,mdx}", base: "./src/data/blog" }),
+  loader: glob({
+    pattern: "**/[^_]*{md,mdx}",
+    base: "./src/data/blog",
+    retainBody: false,
+  }),
   schema: ({ image }) =>
     z.object({
       title: z.string(),
@@ -30,7 +34,11 @@ const blogCollection = defineCollection({
 
 // authors
 const authorsCollection = defineCollection({
-  loader: glob({ pattern: "**/[^_]*{md,mdx}", base: "./src/data/authors" }),
+  loader: glob({
+    pattern: "**/[^_]*{md,mdx}",
+    base: "./src/data/authors",
+    retainBody: false,
+  }),
   schema: ({ image }) =>
     z.object({
       name: z.string(),
@@ -43,7 +51,11 @@ const authorsCollection = defineCollection({
 
 // other pages
 const pagesCollection = defineCollection({
-  loader: glob({ pattern: "**/[^_]*{md,mdx}", base: "./src/data/otherPages" }),
+  loader: glob({
+    pattern: "**/[^_]*{md,mdx}",
+    base: "./src/data/otherPages",
+    retainBody: false,
+  }),
   schema: () =>
     z.object({
       title: z.string(),
@@ -56,7 +68,11 @@ const pagesCollection = defineCollection({
 
 // each code toggle section is it's own content file
 const codeToggleCollection = defineCollection({
-  loader: glob({ pattern: "**/[^_]*{md,mdx}", base: "./src/data/codeToggles" }),
+  loader: glob({
+    pattern: "**/[^_]*{md,mdx}",
+    base: "./src/data/codeToggles",
+    retainBody: false,
+  }),
   schema: () =>
     z.object({
       language: z.string(),
@@ -67,7 +83,11 @@ const codeToggleCollection = defineCollection({
 });
 
 const docsCollection = defineCollection({
-  loader: glob({ pattern: "**/[^_]*{md,mdx}", base: "./src/docs/data/docs" }),
+  loader: glob({
+    pattern: "**/[^_]*{md,mdx}",
+    base: "./src/docs/data/docs",
+    retainBody: false,
+  }),
   schema: () =>
     z.object({
       title: z.string(),

@@ -13,6 +13,9 @@ import icon from "astro-icon";
 // https://astro.build/config
 export default defineConfig({
   site: "https://getplumber.io",
+  devToolbar: {
+    placement: "bottom-left",
+  },
   image: {
     service: sharpImageService({
       limitInputPixels: false, // Allow processing of large images like GIFs
