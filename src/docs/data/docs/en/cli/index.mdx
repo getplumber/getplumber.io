@@ -423,14 +423,28 @@ controls:
 
   pipelineMustIncludeComponent:
     enabled: false  # Disabled by default - enable and configure for your org
-    requiredGroups: []
-      # - ["components/secret-detection/secret-detection", "components/sast/sast"]
+    # Expression syntax (use one, not both):
+    # required: components/sast/sast AND components/secret-detection/secret-detection
+    # Array syntax (OR of ANDs):
+    # requiredGroups:
+    #   - ["components/sast/sast", "components/secret-detection/secret-detection"]
+    #   - ["your-org/full-security/full-security"]
 
   pipelineMustIncludeTemplate:
     enabled: false  # Disabled by default - enable and configure for your org
-    requiredGroups: []
-      # - ["templates/go/go", "templates/trivy/trivy"]
+    # Expression syntax (use one, not both):
+    # required: templates/go/go AND templates/trivy/trivy
+    # Array syntax (OR of ANDs):
+    # requiredGroups:
+    #   - ["templates/go/go", "templates/trivy/trivy"]
+    #   - ["templates/full-go-pipeline"]
 ```
+
+<Aside variant="info">
+  Controls 7 and 8 support two syntax options for defining requirements (use one, not both):
+  - **Expression syntax** (`required`): A natural boolean expression using `AND`, `OR`, and parentheses. `AND` binds tighter than `OR`.
+  - **Array syntax** (`requiredGroups`): A list of groups using "OR of ANDs" logic — outer array = OR, inner array = AND.
+</Aside>
 
 ## Troubleshooting
 

@@ -1,0 +1,136 @@
+---
+title: "Your GitLab Pipelines Are Probably Non-Compliant. Here's How to Fix That in 5 Minutes."
+description: "A hands-on walkthrough of using Plumber to scan your GitLab CI/CD pipelines for compliance issues from install to continuous monitoring in under 5 minutes."
+draft: false
+authors:
+  - plumber
+pubDate: 2026-02-10
+categories:
+  - "CI/CD"
+  - "Security"
+  - "GitLab"
+  - "DevOps"
+  - "Compliance"
+  - "Open Source"
+heroImage: ./heroImage.svg
+---
+
+# Your GitLab Pipelines Are Probably Non-Compliant. Here's How to Fix That in 5 Minutes.
+
+*This post is a companion to our full article on Medium: [Read the complete walkthrough on Medium](https://medium.com/@moukarzeljoseph/your-gitlab-pipelines-are-probably-non-compliant-heres-how-to-fix-that-in-5-minutes-5009614a1fb1).*
+
+## The Hidden Risk in Your CI/CD Pipelines
+
+Every day, thousands of developers push code through CI/CD pipelines without a second thought. But most of these pipelines are ticking time bombs for compliance and security.
+
+Consider what might be lurking in your `.gitlab-ci.yml` and repo settings right now:
+
+- **Missing required security components**: no secret detection, no SAST, no compliance checks
+- **Outdated includes/templates**: missing critical security patches
+- **Hardcoded jobs**: instead of reusable components, making auditing impossible
+- **Unprotected branches**: allowing anyone to push directly to `main` without review
+- **Images from untrusted registries**: opening the door to supply chain attacks
+- **Mutable tags** like `latest` or `dev`: meaning your builds aren't reproducible
+
+When the auditors come knocking, when a security incident occurs, when you need to prove exactly what ran and when, will you have answers?
+
+## Plumber: A Linter for Your CI/CD Security Posture
+
+[Plumber](https://github.com/getplumber/plumber) is an open-source CLI and GitLab CI component that automatically scans your pipelines and repository settings for compliance violations.
+
+In under 5 minutes, Plumber will:
+
+- Give you a **compliance score** you can track over time
+- Report exactly what's compliant and what's not
+- Detect outdated or forbidden version patterns in includes
+- Verify your container images come from trusted registries
+- Check your repository branch protection settings
+- Ensure you're using approved components and templates
+
+## Hands-On: From Zero to Compliant
+
+Here's the quick version. For the full step-by-step walkthrough with screenshots and real scan results, check out [the Medium article](https://medium.com/@moukarzeljoseph/your-gitlab-pipelines-are-probably-non-compliant-heres-how-to-fix-that-in-5-minutes-5009614a1fb1).
+
+### Step 1: Install Plumber
+
+```bash
+brew tap getplumber/plumber
+brew install plumber
+```
+
+See our [installation docs](/docs/cli/#installation) for other methods (Mise, binary download, Docker, source).
+
+### Step 2: Create a GitLab Access Token
+
+Create a Personal Access Token with `read_api` + `read_repository` scopes. The token must belong to a user with **Maintainer** role or higher on the project.
+
+```bash
+export GITLAB_TOKEN=glpat-xxxxxxxxxxxxxxxxxxxx
+```
+
+### Step 3: Generate a Configuration File
+
+```bash
+plumber config generate
+```
+
+This creates `.plumber.yaml`: your compliance contract defining 8 controls:
+
+1. Container images must not use forbidden tags
+2. Container images must come from authorized sources
+3. Branch must be protected
+4. Pipeline must not include hardcoded jobs
+5. Includes must be up to date
+6. Includes must not use forbidden versions
+7. Pipeline must include component
+8. Pipeline must include template
+
+### Step 4: Run Your First Scan
+
+If you're inside a git repo with a GitLab remote set to `origin`, Plumber auto-detects everything:
+
+```bash
+plumber analyze
+```
+
+Or specify explicitly:
+
+```bash
+plumber analyze --gitlab-url https://gitlab.com --project your-group/your-project
+```
+
+### Step 5: Interpret the Results
+
+Each control shows a pass or fail status, and the overall compliance score (0-100%) gives you a single metric to track. In our [Medium walkthrough](https://medium.com/@moukarzeljoseph/your-gitlab-pipelines-are-probably-non-compliant-heres-how-to-fix-that-in-5-minutes-5009614a1fb1), we scan a non-compliant project and walk through fixing each issue — going from 12.5% to 37.5% compliance in minutes just by tweaking the config.
+
+### Step 6: Embed in Your GitLab Pipeline
+
+The real power comes from continuous compliance monitoring. Add Plumber to your `.gitlab-ci.yml` with just two lines:
+
+```yaml
+include:
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.21
+```
+
+Plumber will now run automatically on every push to default branch, every tag, and every merge request. See our [GitLab Component docs](/docs/cli/gitlab-component/) for full setup instructions.
+
+## Track Compliance Over Time
+
+With Plumber running on every pipeline, you get:
+
+- **Quality gates**: Block merges that drop your compliance score
+- **Audit trail**: Every pipeline run produces a JSON report (`plumber-report.json`)
+- **Regression detection**: New non-compliant images or configs get caught immediately
+
+The JSON artifact is machine-readable: feed it into your SIEM, compliance dashboard, or parse it with `jq`. When auditors ask "what was the compliance state on March 15th?", you have the answer.
+
+## Get Started
+
+- [GitHub Repository](https://github.com/getplumber/plumber): CLI and source code
+- [GitLab CI Component](https://gitlab.com/getplumber/plumber): Drop-in pipeline integration
+- [Full Documentation](/docs/cli/): Installation, configuration, and reference
+- [Discord Community](/discord): Get help, share feedback
+
+---
+
+*For the complete hands-on walkthrough with screenshots and real-world examples, read the full article on [Medium](https://medium.com/@moukarzeljoseph/your-gitlab-pipelines-are-probably-non-compliant-heres-how-to-fix-that-in-5-minutes-5009614a1fb1).*
