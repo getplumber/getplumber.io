@@ -38,6 +38,7 @@ const navConfig: navItem[] = [
   {
     text: "Discord",
     link: "/discord",
+    newTab: true,
   },
 ];
 
