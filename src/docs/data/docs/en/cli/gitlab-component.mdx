@@ -45,7 +45,7 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 
    ```yaml
    include:
-     - component: gitlab.com/getplumber/plumber/plumber@v0.1.21
+     - component: gitlab.com/getplumber/plumber/plumber@v0.1.22
    ```
 
    Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
@@ -132,7 +132,7 @@ Override any input to fit your needs:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.21
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.22
     inputs:
       # Target (defaults to current project)
       server_url: https://gitlab.example.com # Self-hosted GitLab
@@ -145,6 +145,8 @@ include:
 
       # Output
       output_file: plumber-report.json # Export JSON report
+      pbom_file: plumber-pbom.json # PBOM artifact
+      pbom_cyclonedx_file: plumber-cyclonedx-sbom.json # CycloneDX SBOM (auto-uploaded as GitLab report)
       print_output: true # Print to stdout
 
       # Job behavior
@@ -165,6 +167,8 @@ include:
 | `threshold` | `100` | Minimum compliance % to pass |
 | `config_file` | *(auto-detect)* | Path to config file (relative to repo root). Auto-detects `.plumber.yaml` in repo, falls back to default |
 | `output_file` | `plumber-report.json` | Path to write JSON results |
+| `pbom_file` | `plumber-pbom.json` | Path to write PBOM (Pipeline Bill of Materials) output |
+| `pbom_cyclonedx_file` | `plumber-cyclonedx-sbom.json` | Path to write CycloneDX SBOM (auto-uploaded as GitLab report) |
 | `print_output` | `true` | Print text output to stdout |
 | `stage` | `.pre` | Pipeline stage for the job |
 | `image` | `getplumber/plumber:0.1` | Docker image to use |
@@ -196,10 +200,10 @@ This generates a [default config](https://github.com/getplumber/plumber/blob/mai
 ## Example Output
 
 <Aside variant="tip">
- The component automatically generates and uploads a job artifact in JSON format.
+  The component automatically generates and uploads a JSON compliance report as a job artifact. It can also produce a **PBOM** (Pipeline Bill of Materials) and a **CycloneDX SBOM** — the CycloneDX file is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx) for use with security tools. Configure via the `pbom_file` and `pbom_cyclonedx_file` inputs.
 </Aside>
 
-The output is color-coded in your CI/CD job logs for easy scanning - green for passing controls, red for failures.
+The output is color-coded in your CI/CD job logs for easy scanning — green for passing controls, red for failures.
 
 ![Plumber CLI output showing compliance results](./img/cli-output.png)
 
