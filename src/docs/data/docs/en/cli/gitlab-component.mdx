@@ -113,7 +113,7 @@ Plumber includes **8 compliance controls**. Each can be enabled/disabled and cus
 
 | Control | Description |
 |---------|-------------|
-| **Container images must not use forbidden tags** | Flags `latest`, `dev`, and other mutable tags |
+| **Container images must not use forbidden tags** | Flags `latest`, `dev`, and other mutable tags. Can enforce digest pinning for all images |
 | **Container images must come from authorized sources** | Ensures images come from trusted registries |
 | **Branch must be protected** | Verifies critical branches have proper protection |
 | **Pipeline must not include hardcoded jobs** | Detects jobs defined directly instead of from includes |
