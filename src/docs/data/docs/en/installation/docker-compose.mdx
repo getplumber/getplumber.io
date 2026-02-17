@@ -27,255 +27,199 @@ This page describes how to set up a self-managed instance of Plumber using
          to set up Plumber domain
    - Installed software
       - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-      - [Docker](https://docs.docker.com/engine/install/)
-      - Note: both compose plugin (`docker compose`) and `docker-compose` CLI are
-         working. The first one is installed by default with `Docker`
+      - [Docker](https://docs.docker.com/engine/install/) **>= 20.10**
 
-## 🔐 Choose your certificate method
+## 🚀 Installation
 
-<Tabs defaultValue="auto" syncKey="cert-method">
+### 1. Configure your DNS
+
+Create a DNS `A` record pointing your chosen domain to your server's public IP address:
+
+- **Name**: `<your_plumber_domain>` (e.g. `plumber.mydomain.com`)
+- **Type**: `A`
+- **Content**: `<your-server-public-ip>`
+
+### 2. Setup Plumber
+
+<Tabs defaultValue="quick" syncKey="install-method">
   <TabsList>
-    <TabsTrigger value="auto">Auto (Let's Encrypt)</TabsTrigger>
-    <TabsTrigger value="custom">Custom certificates</TabsTrigger>
+    <TabsTrigger value="quick" class="text-base font-bold py-2.5 px-5">⚡ Quick install (recommended)</TabsTrigger>
+    <TabsTrigger value="manual" class="text-base font-bold py-2.5 px-5">🔧 Manual install</TabsTrigger>
   </TabsList>
-  <TabsContent value="auto">
-    **Recommended for most users.** Certificates are automatically generated and renewed using Let's Encrypt.
+  <TabsContent value="quick">
 
-    Requirements:
-    - Server must be reachable from the internet on ports 80 and 443
+Run the interactive installer on your server:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/getplumber/platform/main/install.sh | bash
+```
+
+Choose **"Production"** when prompted. The installer will guide you through:
+
+1. **Domain name** configuration
+2. **GitLab OIDC** application setup
+3. **TLS certificate** method selection
+4. **Database**: internal PostgreSQL or your own external database
+5. **Secrets**: automatically generated
+
+At the end, the installer will start Plumber for you.
+
+<Aside variant="info">
+You can also clone the repository first and run the installer locally:
+
+```bash
+git clone https://github.com/getplumber/platform.git plumber-platform
+cd plumber-platform
+./install.sh
+```
+</Aside>
+
   </TabsContent>
-  <TabsContent value="custom">
-    **For air-gapped environments or custom PKI.** You provide your own SSL certificates.
+  <TabsContent value="manual">
 
-    Use this if:
-    - Your server is not reachable from the internet
-    - You need to use certificates from your own Certificate Authority
+#### Step 1: Setup your environment
+
+Clone the repository on your server
+
+```sh
+git clone https://github.com/getplumber/platform.git plumber-platform
+cd plumber-platform
+```
+
+Create your configuration file
+
+```sh
+cp .env.example .env
+cat versions.env >> .env
+```
+
+#### Step 2: Configure Organization
+
+**In your `.env` file:**
+
+- **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
+
+   ```bash title=".env"
+   ORGANIZATION="<group-path>"
+   ```
+
+- **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
+
+   ```bash title=".env"
+   ORGANIZATION=""
+   ```
+
+#### Step 3: Configure Domain name and GitLab URL
+
+Edit the `.env` file by updating value of `DOMAIN_NAME` and `JOBS_GITLAB_URL` variables
+
+```bash title=".env"
+DOMAIN_NAME="<your_plumber_domain>"
+JOBS_GITLAB_URL="https://<url_of_your_gitlab_instance>"
+```
+
+```bash title="Example"
+DOMAIN_NAME="plumber.mydomain.com"
+JOBS_GITLAB_URL="https://gitlab.mydomain.com"
+```
+
+#### Step 4: Configure GitLab OIDC
+
+Plumber uses GitLab as an OAuth2 provider to authenticate users.
+
+**Create an application** on your GitLab instance. Open any group and navigate to `Settings > Applications`.
+
+Create an application with the following information:
+
+1. Name: `Plumber`
+2. Redirect URI: `https://<your_plumber_domain>/api/auth/gitlab/callback`
+3. Confidential: `true` (keep the box checked)
+4. Scopes: `api`
+
+Click `Save Application`, then copy the `Application ID` and `Secret` into your `.env` file:
+
+```bash title=".env"
+GITLAB_OAUTH2_CLIENT_ID="<application-id>"
+GITLAB_OAUTH2_CLIENT_SECRET="<application-secret>"
+```
+
+#### Step 5: Generate secrets
+
+Generate random secrets and set them in your `.env` file:
+
+```bash
+sed -i."" "s/^SECRET_KEY=.*/SECRET_KEY=\"$(openssl rand -hex 32)\"/" .env
+sed -i."" "s/^JOBS_DB_PASSWORD=.*/JOBS_DB_PASSWORD=\"$(openssl rand -hex 16)\"/" .env
+sed -i."" "s/^JOBS_REDIS_PASSWORD=.*/JOBS_REDIS_PASSWORD=\"$(openssl rand -hex 16)\"/" .env
+```
+
+#### Step 6: Configure deployment profile
+
+**Option A — Let's Encrypt (automatic certificates):**
+
+```bash title=".env"
+COMPOSE_PROFILES="letsencrypt,internal-db"
+CERT_RESOLVER="le"
+```
+
+No further action needed! Certificates will be automatically generated at first launch.
+
+**Option B — Custom certificates:**
+
+```bash title=".env"
+COMPOSE_PROFILES="custom-certs,internal-db"
+CERT_RESOLVER=""
+```
+
+Copy your certificate files:
+
+```bash
+cp /path/to/your/fullchain.pem .docker/traefik/certs/plumber_fullchain.pem
+cp /path/to/your/privkey.pem .docker/traefik/certs/plumber_privkey.pem
+```
+
+> If you are using an external PostgreSQL database, remove `,internal-db` from `COMPOSE_PROFILES` and configure your database connection by uncommenting and updating the following variables in your `.env` file:
+>
+> ```bash title=".env"
+> JOBS_DB_HOST="your-db-host"
+> JOBS_DB_PORT="5432"
+> JOBS_DB_USER="your-db-user"
+> JOBS_DB_NAME="plumber"
+> JOBS_DB_SSLMODE="disable"       # Options: disable, require, verify-ca
+> JOBS_DB_TIMEZONE="Europe/Paris"
+> ```
+
+#### Step 7: (Optional) Add your custom CA
+
+If your GitLab instance (or Plumber with custom certificates) uses a TLS certificate signed by your own Certificate Authority (CA), add the CA certificate file (`.pem` or `.crt`) in `.docker/ca-certificates/`:
+
+```bash
+cp /path/to/your/ca.pem .docker/ca-certificates/ca.pem
+```
+
+#### Step 8: Launch the application
+
+```bash
+docker compose up -d
+```
+
   </TabsContent>
 </Tabs>
 
-## 🛠️ Installation
-
-<Steps>
-
-1. ### 📥 Setup your environment
-
-   Clone the repository on your server
-   ```sh
-   git clone https://github.com/getplumber/platform.git plumber-platform
-   cd plumber-platform
-   ```
-
-   Create your configuration file
-   ```sh
-   cp .env.example .env
-   ```
-
-2. ### 📋 Configure Organization
-
-   **In your `.env` file:**
-   <Steps>
-
-   1. **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
-      ```bash title=".env"
-      ORGANIZATION="<group-path>"
-      ```
-
-   2. **If you want to connect Plumber to the whole GitLab instance**: let the `ORGANIZATION` variable empty (to run the onboarding, you must be a **GitLab instance Admin**)
-      ```bash title=".env"
-      ORGANIZATION=""
-      ```
-   </Steps>
-
-3. ### 📄 Configure Domain name
-
-   Edit the `.env` file by updating value of `DOMAIN_NAME` and `JOBS_GITLAB_URL` variables
-
-   ```bash title=".env"
-   DOMAIN_NAME="<your_plumber_domain>"
-   JOBS_GITLAB_URL="https://<url_of_your_gitlab_instance>"
-   ```
-
-   ```bash title="Example"
-   DOMAIN_NAME="plumber.mydomain.com"
-   JOBS_GITLAB_URL="https://gitlab.mydomain.com"
-   ```
-
-   Create DNS record
-
-   <Steps>
-   1. Name: `<your_plumber_domain>`
-   2. Type: `A`
-   3. Content: `<your-server-public-ip>`
-   </Steps>
-
-4. ### 🦊 Configure GitLab OIDC
-
-   Plumber uses GitLab as an OAuth2 provider to authenticate users. Let's see how
-   to connect it to your GitLab instance.
-
-   **Create an application**
-
-   Choose a group on your GitLab instance to create an application. It can be any
-   group. Open the chosen group in GitLab interface and navigate through
-   `Settings > Applications`:
-
-   <div style="max-width: 300px;">
-
-   ![Profile_Menu](./img/profile_menu_gitlab.png)
-
-   </div>
-
-   Then, create an application with the following information :
-
-   <Steps>
-   1. Name: `Plumber self-managed`
-   2. Redirect URI : `https://<your_plumber_domain>/api/auth/gitlab/callback`
-   3. Confidential: `true` (let the box checked)
-   4. Scopes: `api`
-   </Steps>
-
-   Click on `Save Application` and you should see the following screen:
-
-   ![Application](./img/application_created_gitlab.png)
-
-   **Update the configuration**
-
-   In `.env` file:
-
-   Copy/paste the `Application ID` and the `Secret` from the application you
-   just created
-   ```bash title=".env"
-   GITLAB_OAUTH2_CLIENT_ID="<application-id>"
-   GITLAB_OAUTH2_CLIENT_SECRET="<application-secret>"
-   ```
-
-5. ### 🔐 Generate secrets
-
-   Generate random secrets for all components:
-
-   ```bash
-   sed -i."" "s/REPLACE_ME_BY_SECRET_KEY/$(openssl rand -hex 32)/g" .env
-   sed -i."" "s/REPLACE_ME_BY_JOBS_DB_PASSWORD/$(openssl rand -hex 16)/g" .env
-   sed -i."" "s/REPLACE_ME_BY_JOBS_REDIS_PASSWORD/$(openssl rand -hex 16)/g" .env
-   ```
-
-6. ### 📄 Configure certificate
-
-   <Tabs defaultValue="auto" syncKey="cert-method">
-     <TabsList>
-       <TabsTrigger value="auto">Auto (Let's Encrypt)</TabsTrigger>
-       <TabsTrigger value="custom">Custom certificates</TabsTrigger>
-     </TabsList>
-     <TabsContent value="auto">
-       No action needed! Certificates will be automatically generated at first launch.
-     </TabsContent>
-     <TabsContent value="custom">
-       **Option A: Generate with certbot**
-
-       ```bash
-       certbot certonly --manual --preferred-challenges dns -d <your_plumber_domain>
-       # Add DNS entry to solve DNS challenge
-       ```
-
-       <Aside variant="info">
-       If you generated your certificates using certbot, they are located in `/etc/letsencrypt/live/`
-       </Aside>
-
-       **Option B: Use existing certificates**
-
-       Copy the fullchain and private key to the Traefik certs folder:
-
-       ```bash
-       cp /path/to/your/fullchain.pem .docker/traefik/certs/plumber_fullchain.pem
-       cp /path/to/your/privkey.pem .docker/traefik/certs/plumber_privkey.pem
-       ```
-     </TabsContent>
-   </Tabs>
-
-7. ### 📋 (Optional) Add your custom CA
-
-   If your GitLab instance (or Plumber with custom certificates) uses a TLS certificate signed with your own Certificate Authority (CA):
-
-   <Steps>
-   1. Add the CA certificate file in `.docker/ca-certificates`
-   </Steps>
-
-8. ### 🚀 Launch the application
-
-   <Tabs defaultValue="auto" syncKey="cert-method">
-     <TabsList>
-       <TabsTrigger value="auto">Auto (Let's Encrypt)</TabsTrigger>
-       <TabsTrigger value="custom">Custom certificates</TabsTrigger>
-     </TabsList>
-     <TabsContent value="auto">
-
-       ```bash
-       docker compose up -d
-       ```
-
-     </TabsContent>
-     <TabsContent value="custom">
-
-       ```bash
-       docker compose -f compose.custom_certs.yml up -d
-       ```
-
-     </TabsContent>
-   </Tabs>
-
-
-</Steps>
-
 ## ⏫ Update
 
-Follow these steps to update your self-managed instance to a new version:
+To update your self-managed instance to a new version, run the update script:
 
-<Steps>
+```bash
+./scripts/update.sh
+```
 
-1. Navigate to the location of your
-   [`platform`](https://github.com/getplumber/platform/) git repository
-
-2. Update it
-   ```sh
-   git pull
-   ```
-
-3. Open the `.env.example` file and copy the values of  `FRONTEND_IMAGE_TAG`
-   and `BACKEND_IMAGE_TAG` variables
-
-4. Edit the `.env` file by updating values of `FRONTEND_IMAGE_TAG` and
-   `BACKEND_IMAGE_TAG` variables with the values previously copied
-   ```sh title=".env"
-   FRONTEND_IMAGE_TAG="<new frontend version>"
-   BACKEND_IMAGE_TAG="<new backend version>"
-   ```
-
-5. Restart your containers
-
-   <Tabs defaultValue="auto" syncKey="cert-method">
-     <TabsList>
-       <TabsTrigger value="auto">Auto (Let's Encrypt)</TabsTrigger>
-       <TabsTrigger value="custom">Custom certificates</TabsTrigger>
-     </TabsList>
-     <TabsContent value="auto">
-
-       ```sh
-       docker compose up -d
-       ```
-
-     </TabsContent>
-     <TabsContent value="custom">
-
-       ```sh
-       docker compose -f compose.custom_certs.yml up -d
-       ```
-
-     </TabsContent>
-   </Tabs>
-
-6. You have successfully updated Plumber on your server 🎉
-
-</Steps>
+The script will:
+1. Stop the running containers
+2. Pull the latest changes from the git repository
+3. Load the new image versions
+4. Migrate your `.env` configuration if needed
+5. Start the containers with the new images
 
 ## 🔄 Backup and restore
 
@@ -299,7 +243,7 @@ To backup the system, go to your installation git repository and run the
 following command:
 
 ```bash
-./scripts/backup.sh 13
+./scripts/backup.sh 18
 ```
 
 The script will create a `backups` directory and create a backup archive inside
@@ -309,7 +253,7 @@ it prefixed with the date (`backup_plumber-$DATE`)
 You can use a cron job to perform regular backups.
 Here is a cron job that launch a backup every day at 2am:
 ```bash
-0 2 * * * /plumber-platform/scripts/backup.sh 13
+0 2 * * * /plumber-platform/scripts/backup.sh 18
 ```
 It can be added to your crontab with the command `crontab -e`. Check more
 information about cron jobs
@@ -334,12 +278,11 @@ To restore a backup from scratch on a new system, follow this process:
    ```
 
 4. If the IP address of your server changed from your previous installation,
-   update your DNS records. See [section
-   2](#-domain-name) of domain configuration
+   update your DNS records. See [Configure your DNS](#1-configure-your-dns)
 
 5. Launch the restore script
    ```bash
-   ./scripts/restore.sh 13 <path_to_your_backup_file>
+   ./scripts/restore.sh 18 <path_to_your_backup_file>
    ```
 
 </Steps>
