@@ -33,6 +33,8 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 
    <Aside variant="caution">
      The token must belong to a user with **Maintainer** role (or higher) on the project to access branch protection settings and other project configurations.
+
+     **Using `mr_comment` or `badge`?** The token needs the `api` scope (instead of `read_api`) to create/update merge request comments or project badges.
    </Aside>
 
 2. **Add the token to your project**
@@ -163,7 +165,7 @@ include:
 | `server_url` | `$CI_SERVER_URL` | GitLab instance URL |
 | `project_path` | `$CI_PROJECT_PATH` | Project to analyze |
 | `branch` | `$CI_COMMIT_REF_NAME` | Branch to analyze |
-| `gitlab_token` | `$GITLAB_TOKEN` | GitLab API token (requires `read_api` + `read_repository` scopes) |
+| `gitlab_token` | `$GITLAB_TOKEN` | GitLab API token (requires `read_api` + `read_repository` scopes, or `api` scope if `mr_comment` or `badge` is enabled) |
 | `threshold` | `100` | Minimum compliance % to pass |
 | `config_file` | *(auto-detect)* | Path to config file (relative to repo root). Auto-detects `.plumber.yaml` in repo, falls back to default |
 | `output_file` | `plumber-report.json` | Path to write JSON results |
@@ -174,6 +176,8 @@ include:
 | `image` | `getplumber/plumber:0.1` | Docker image to use |
 | `allow_failure` | `false` | Allow job to fail without blocking |
 | `verbose` | `false` | Enable debug output for troubleshooting |
+| `mr_comment` | `false` | Post/update a compliance comment on the merge request (requires `api` scope) |
+| `badge` | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 
 ## Configuration
 
@@ -207,6 +211,60 @@ The output is color-coded in your CI/CD job logs for easy scanning — green for
 
 ![Plumber CLI output showing compliance results](./img/cli-output.png)
 
+## GitLab Integration
+
+Plumber integrates directly with GitLab to provide visual compliance feedback where your team works.
+
+### Merge Request Comments
+
+Automatically post compliance summaries on merge requests to catch issues before they're merged.
+
+```yaml
+include:
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.26
+    inputs:
+      mr_comment: true  # Requires api scope on token
+```
+
+![Merge request comment showing compliance results](./img/merge-request-comments.png)
+
+**Features:**
+- Shows compliance badge with pass/fail status
+- Lists all controls with individual compliance percentages
+- Details specific issues found with job names and image references
+- Automatically updates on each pipeline run (no duplicate comments)
+
+<Aside variant="caution">
+  **Token requirement:** The `api` scope is required (not `read_api`) to create/update MR comments. This feature only works in merge request pipelines (`CI_MERGE_REQUEST_IID` must be set).
+</Aside>
+
+### Project Badges
+
+Display a live compliance badge on your project's overview page.
+
+```yaml
+include:
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.26
+    inputs:
+      badge: true  # Requires api scope on token
+```
+
+<div style={{maxWidth: '500px'}}>
+
+![Project badge showing Plumber compliance percentage](./img/badge-comment.png)
+
+</div>
+
+**Features:**
+- Shows current compliance percentage
+- **Green** when compliance meets threshold, **red** when below
+- Only updates on default branch pipelines (not on MRs or feature branches)
+- Badge appears in GitLab's "Project information" section
+
+<Aside variant="caution">
+  **Token requirement:** The `api` scope is required (not `read_api`) and Maintainer role to manage project badges.
+</Aside>
+
 ## Troubleshooting
 
 | Issue | Solution |
@@ -214,6 +272,10 @@ The output is color-coded in your CI/CD job logs for easy scanning — green for
 | `GITLAB_TOKEN environment variable is required` | Add `GITLAB_TOKEN` in **Settings → CI/CD → Variables** |
 | `401 Unauthorized` | Token needs `read_api` + `read_repository` scopes, from a Maintainer or higher |
 | `403 Forbidden` on MR settings | Expected on non-Premium GitLab; continues without that data |
+| `403 Forbidden` on MR comment | Token needs `api` scope (not `read_api`) when `mr_comment: true` |
+| `403 Forbidden` on badge | Token needs `api` scope (not `read_api`) when `badge: true` |
+| MR comment not posted | `mr_comment` only works in merge request pipelines (`CI_MERGE_REQUEST_IID` must be set) |
+| Badge not created/updated | Token needs `api` scope and Maintainer role (or higher) on the project |
 | Component not found | For self-hosted GitLab, you must fork the component to your instance |
 
 <Aside variant="info">
