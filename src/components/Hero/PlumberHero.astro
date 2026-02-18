@@ -1,9 +1,12 @@
 ---
 import PipelineAnimation from "@components/Animation/PipelineAnimation.astro";
 import Button from "@components/Button/Button.astro";
+import { getGitHubRepoInfo } from "@js/githubRepoUtils";
 import { getLocaleFromUrl } from "@js/localeUtils";
+import { Icon } from "astro-icon/components";
 
 const currLocale = getLocaleFromUrl(Astro.url);
+const githubInfo = await getGitHubRepoInfo();
 ---
 
 <section
@@ -35,14 +38,75 @@ const currLocale = getLocaleFromUrl(Astro.url);
 
   <!-- hero items -->
   <div class="site-container mx-auto max-w-6xl gap-8">
+        <!-- notification -->
+    <!-- <div
+      class="mb-4 flex w-full items-center justify-center"
+      data-mos="fade-up"
+      data-mos-anchor="#hero1"
+    >
+      <a
+        href={"/blog/tsconfig-paths-setup"}
+        class="border-primary-300 bg-base-100 text-base-800 ring-primary-500/20 hover:border-primary-400 dark:border-primary-300/20 dark:bg-base-800 dark:text-base-200 dark:hover:border-primary-400/60 flex items-center rounded-full border px-4 py-1 text-sm ring-2 transition"
+      >
+        <span class="flex items-center gap-2">
+          <Icon
+            name="tabler/wand"
+            class="text-primary-600 dark:text-primary-300 inline h-4 w-4"
+            aria-hidden="true"
+          />0.1.42 Released!</span
+        ></a
+      >
+    </div> -->
     <!-- Hero text -->
     <div class="mb-12 text-center">
+      <!-- GitHub repo stats badge (stars, latest version) -->
+      {(githubInfo.stars !== null || githubInfo.latestVersion !== null) && (
+        <div
+          class="bg-base-800/90 border-primary-500/30 ring-primary-500/15 mx-auto absolute md:top-24 top-16 left-0 right-0 w-max inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border px-4 py-2 text-sm ring-1 sm:gap-x-4"
+          data-mos="fade-up"
+          data-mos-delay="0.3"
+          data-mos-anchor="#plumber-hero"
+        >
+          <a
+            href="https://github.com/getplumber/plumber"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-base-300 hover:text-primary-400 inline-flex items-center gap-1.5 transition"
+          >
+            <Icon
+              name="tabler/brand-github"
+              class="h-4 w-4 shrink-0"
+              aria-hidden="true"
+            />
+            {githubInfo.stars !== null && (
+              <>
+                <Icon name="tabler/star-filled" class="h-4 w-4 text-amber-400" aria-hidden="true" />
+                <span>{githubInfo.stars.toLocaleString()} stars</span>
+              </>
+            )}
+          </a>
+          {githubInfo.stars !== null && githubInfo.latestVersion && (
+            <span class="bg-base-500/50 h-3.5 w-px shrink-0" aria-hidden="true" />
+          )}
+          {githubInfo.latestVersion && (
+            <a
+              href="https://github.com/getplumber/plumber/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-base-300 hover:text-primary-400 inline-flex items-center gap-1.5 transition"
+            >
+              <Icon name="tabler/tag" class="h-4 w-4" aria-hidden="true" />
+              <span>v{githubInfo.latestVersion}</span>
+            </a>
+          )}
+        </div>
+      )}
       <h1
         class="from-base-900 to-base-600/90 dark:from-base-100 dark:to-base-400/90 bg-gradient-to-r bg-clip-text pb-4 text-5xl font-medium text-transparent md:text-6xl"
         data-mos="fade-up"
         data-mos-anchor="#plumber-hero"
       >
-        OpenSource compliance CLI <br /> for <span
+        Open Source compliance CLI <br /> for <span
           class="text-primary-500 text-shadow-base-700 text-shadow-xs">GitLab CI/CD</span
         >
       </h1>
@@ -56,6 +120,7 @@ const currLocale = getLocaleFromUrl(Astro.url);
         (templates, components, version constraints), container images (mutable tags, trusted
         registries), and branch protection settings.
       </p>
+
 
       <!-- CTA Buttons -->
       <div
