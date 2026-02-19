@@ -126,11 +126,12 @@ export function getLocalizedRoute(
   }
 
   // Combine the route path with the fragment
-  // If there's a fragment, ensure there's exactly one slash before it
+  // Normalize to no trailing slash (except root)
+  const normalizedRoute = `/${routePath.replace(/\\/g, "/")}`;
   if (fragment) {
-    return `/${routePath.replace(/\\/g, "/")}/` + fragment;
+    return normalizedRoute + fragment;
   } else {
-    return `/${routePath.replace(/\\/g, "/")}/`;
+    return normalizedRoute;
   }
 }
 

@@ -23,7 +23,7 @@ const authorsData = await getEntries(authors);
   <div
     class="border-base-300 dark:border-base-600/60 relative aspect-video shrink-0 justify-center overflow-hidden rounded-md border sm:justify-normal md:col-span-2"
   >
-    <a href={`/blog/${post.id}/`} class="block size-full">
+    <a href={`/blog/${post.id}`} class="block size-full">
       <Image
         src={heroImage}
         alt={`${title} blog post`}
@@ -59,7 +59,7 @@ const authorsData = await getEntries(authors);
       </p>
     </div>
     <!-- title -->
-    <a href={`/blog/${post.id}/`} class="hover:text-primary-700 dark:hover:text-primary-400">
+    <a href={`/blog/${post.id}`} class="hover:text-primary-700 dark:hover:text-primary-400">
       <h2
         class="mt-1 line-clamp-2 text-lg font-medium transition-colors md:line-clamp-none md:text-2xl lg:text-3xl"
       >

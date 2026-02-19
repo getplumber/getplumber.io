@@ -13,10 +13,20 @@ interface Props extends HTMLAttributes<"button">, Omit<HTMLAttributes<"a">, "typ
   arrow?: "left" | "right" | "none";
 }
 
-const { variant = "primary", arrow = "none", class: className, ...rest } = Astro.props;
+const { variant = "primary", arrow = "none", class: className, href, ...rest } = Astro.props;
+
+// Normalize internal links to remove trailing slash (except root)
+let normalizedHref = href;
+if (href && typeof href === "string") {
+  const domain = import.meta.env.SITE;
+  const isExternal = !href.includes(domain) && !href.startsWith("/") && !href.startsWith("#");
+  if (!isExternal && href.startsWith("/") && href !== "/" && href.endsWith("/")) {
+    normalizedHref = href.slice(0, -1);
+  }
+}
 
 let Component = "button";
-if (Astro.props.href) {
+if (href) {
   Component = "a";
 }
 ---
@@ -38,6 +48,7 @@ if (Astro.props.href) {
       "button--ghost": variant === "ghost",
     },
   ]}
+  {...(href ? { href: normalizedHref } : {})}
   {...rest}
 >
   {

@@ -28,8 +28,8 @@ const { link, text, badge } = Astro.props;
 // get the current page locale to use in links to other pages
 const currLocale = getLocaleFromUrl(Astro.url);
 
-// internal link, so we need to add the locale to the link
-let actualLink = link;
+// internal link - normalize to remove trailing slash (except root)
+let actualLink = link === "/" ? "/" : link.replace(/\/$/, "");
 
 const currentPath = comparePathsWithTrailingSlash(Astro.url.pathname, actualLink);
 ---

@@ -34,8 +34,8 @@ if (!link.includes(domain) && !link.startsWith("/") && !link.startsWith("#")) {
   // it is an external link
   actualLink = link;
 } else {
-  // internal link, so we need to add the locale to the link
-  actualLink = link;
+  // internal link - normalize to remove trailing slash (except root)
+  actualLink = link === "/" ? "/" : link.replace(/\/$/, "");
 }
 
 const currentPath = comparePathsWithTrailingSlash(Astro.url.pathname, actualLink);

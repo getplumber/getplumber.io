@@ -25,6 +25,11 @@
       "source": "/categories/:path*",
       "destination": "/blog",
       "permanent": true
+    },
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "permanent": true
     }
   ]
 }

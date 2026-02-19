@@ -17,6 +17,12 @@ if (isExternal || isDiscordLink) {
   attr["target"] = "_blank";
   attr["rel"] = "noopener noreferrer";
 }
+
+// Normalize internal links to remove trailing slash (except root)
+let normalizedHref = href;
+if (!isExternal && href.startsWith("/") && href !== "/" && href.endsWith("/")) {
+  normalizedHref = href.slice(0, -1);
+}
 ---
 
-<a href={href} {...attr}><slot /></a>
+<a href={normalizedHref} {...attr}><slot /></a>

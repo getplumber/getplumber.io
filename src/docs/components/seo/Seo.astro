@@ -26,7 +26,17 @@ const title = rawTitle.includes("Plumber") ? rawTitle : `${rawTitle} | Plumber D
 
 let optimizedImage;
 const jsonLD = jsonLDGenerator({ type: "general" });
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+
+// Normalize canonical URL: remove trailing slash except for root
+function normalizeCanonicalPath(pathname: string): string {
+  // Keep root as "/"
+  if (pathname === "/") return "/";
+  // Remove trailing slash for all other paths
+  return pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+}
+
+const normalizedPathname = normalizeCanonicalPath(Astro.url.pathname);
+const canonicalUrl = new URL(normalizedPathname, Astro.site);
 
 if (image) {
   optimizedImage = await getImage({

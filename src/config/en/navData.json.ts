@@ -17,7 +17,7 @@ const navConfig: navItem[] = [
   },
   {
     text: "Platform",
-    link: "/platform/",
+    link: "/platform",
   },
   {
     text: "Resources",
@@ -31,7 +31,7 @@ const navConfig: navItem[] = [
       },
       {
         title: "Blog",
-        items: [{ text: "Blog", link: "/blog/", icon: "tabler/news" }],
+        items: [{ text: "Blog", link: "/blog", icon: "tabler/news" }],
       },
     ],
   },
