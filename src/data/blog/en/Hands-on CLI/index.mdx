@@ -109,10 +109,38 @@ The real power comes from continuous compliance monitoring. Add Plumber to your 
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.21
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.26
 ```
 
 Plumber will now run automatically on every push to default branch, every tag, and every merge request. See our [GitLab Component docs](/docs/cli/gitlab-component/) for full setup instructions.
+
+### Bonus: Visual Feedback in GitLab
+
+Want compliance results directly in your merge requests and project overview? Enable `mr_comment` and `badge` (⚠️Both features require `api` scope on your GitLab token instead of `read_api`)  
+<br></br>
+
+```yaml
+include:
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.26
+    inputs:
+      mr_comment: true  # Post compliance summary on MRs
+      badge: true       # Show compliance badge on project page
+```
+<br></br>
+
+**Merge request comments** show the full compliance breakdown with issues:
+
+![Merge request comment showing compliance results](./merge-request-comments.png)
+<br></br>
+
+**Project badges** give at-a-glance compliance status:
+
+ <div style="max-width: 300px;">
+
+![Project badge showing Plumber compliance percentage](./badge-comment.png)
+
+</div>
+
 
 ## Track Compliance Over Time
 
