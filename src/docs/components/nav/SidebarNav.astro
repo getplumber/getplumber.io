@@ -47,7 +47,7 @@ const filteredDocs = filterCollectionByLanguage(allDocs, currLocale);
 
 // Filter docs by their section - match docs to the current tab based on folder structure
 // If tabs are configured, find which sections belong to the current tab and filter docs accordingly
-let sectionFilteredDocs: typeof filteredDocs = [];
+let sectionFilteredDocs: typeof filteredDocs;
 
 if (sidebarTabs && sidebarTabs.length > 0) {
   // Get the current tab configuration

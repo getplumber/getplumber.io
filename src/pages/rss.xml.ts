@@ -88,11 +88,8 @@ const getAuthorEmail = (authorSlug: string) => {
 // --------------------------------------------------------
 // get image url from frontmatter
 const getImageUrl = (post: CollectionEntry<"blog">) => {
-  let imageUrl = "";
-  let imageUrlEnd = "";
-
-  // assumes post.data.heroImage is defined
-  imageUrlEnd = post.data.heroImage.src.toString();
+  const imageUrlEnd = post.data.heroImage.src.toString();
+  let imageUrl: string;
 
   // in dev mode, url is /@fs/full/path/to/project/public/assets/images/image-name.jpg
   if (imageUrlEnd.startsWith("/@fs")) {

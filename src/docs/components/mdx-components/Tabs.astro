@@ -132,7 +132,7 @@ const { defaultValue, syncKey, class: className, ...rest } = Astro.props;
 
     private handleKeyNavigation = (e: KeyboardEvent, trigger: HTMLElement): void => {
       const key = e.key;
-      let newIndex = this.currentTabIndex;
+      let newIndex: number;
 
       switch (key) {
         case "ArrowRight":

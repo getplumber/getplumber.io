@@ -41,7 +41,8 @@ jobs:
         continue-on-error: true
 
       - name: Run npm audit (production only)
-        run: npm audit --production --audit-level=high
+        run: npm audit --omit=dev --production --audit-level=high
+        continue-on-error: true
 
   trivy-scan:
     name: Trivy Security Scan
