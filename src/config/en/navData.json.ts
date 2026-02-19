@@ -12,7 +12,7 @@ import { type navItem } from "../types/configDataTypes";
 
 const navConfig: navItem[] = [
   {
-    text: "OpenSource CLI",
+    text: "Open Source CLI",
     link: "/",
   },
   {
@@ -26,7 +26,7 @@ const navConfig: navItem[] = [
         title: "Documentation",
         items: [
           { text: "Platform", link: "/docs/getting-started", icon: "tabler/file-text" },
-          { text: "OpenSource CLI", link: "/docs/cli", icon: "tabler/terminal-2" },
+          { text: "Open Source CLI", link: "/docs/cli", icon: "tabler/terminal-2" },
         ],
       },
     ],

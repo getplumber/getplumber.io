@@ -1,21 +1,21 @@
 ---
 /**
- * * Large image with feature text above it.
+ * Platform "How it works" section.
+ * Animation, then a two-column block: feature cards + dashboard illustration.
  */
-
-import dashboard from "@images/control-issues.svg";
-import { Image } from "astro:assets";
+import BeforeAfterPipeline from "@components/BeforeAfter/BeforeAfterPipeline.astro";
+import PlatformDashboardIllustration from "@components/Feature/PlatformDashboardIllustration.astro";
 import { Icon } from "astro-icon/components";
 
 const features: string[] = [
-  "Your CI/CD mapped and fully monitored",
-  "90% less manual effort to make CI/CD secured & compliant",
-  "Always audit-ready",
+  "Every project scanned, every pipeline mapped",
+  "90% less manual effort to secure and stay compliant",
+  "One-click fixes and AI-powered remediation",
+  "Always audit-ready with real-time dashboards",
 ];
 ---
 
 <section id="howitworks" class="relative overflow-hidden">
-  <!-- Text and image -->
   <div
     class="dark:bg-primary-500/30 bg-primary-300 absolute top-0 left-0 mx-auto aspect-square w-full max-w-7xl -translate-x-2/3 -translate-y-1/2 rounded-full blur-[100px]"
     aria-hidden="true"
@@ -27,66 +27,107 @@ const features: string[] = [
     aria-hidden="true"
   >
   </div>
-  <div class="bg-primary-950/50 dark:bg-primary-950/20 relative overflow-hidden py-16">
-    <!-- background glows -->
-
-    <!-- center content -->
+  <div class=" dark:bg-primary-950/20 relative  py-16">
     <div class="site-container mx-auto">
-      <p
-        class="from-primary-300 to-primary-500 dark:from-primary-400 dark:to-primary-200 inline bg-gradient-to-r bg-clip-text text-lg text-transparent"
-        data-mos="fade-up"
-        data-mos-anchor="#howitworks"
-      >
-        How it works
-      </p>
-      <h2
-        class="h2 text-base-100 dark:text-base-100 mt-8"
-        data-mos="fade-up"
-        data-mos-delay="0.1"
-        data-mos-anchor="#howitworks"
-      >
-        Plumber is an AI-powered platform that <span class="dark:text-primary-500 text-primary-300"
-          >maps</span
-        >, <span class="dark:text-primary-500">audits</span>, and <span
-          class="dark:text-primary-500 text-primary-300">remediates</span
+      <header class="mx-auto max-w-4xl text-center md:max-w-5xl">
+        <p
+          class="from-primary-300 to-primary-500 dark:from-primary-400 dark:to-primary-200 inline bg-gradient-to-r bg-clip-text text-lg text-transparent"
+          data-mos="fade-up"
+          data-mos-anchor="#howitworks"
         >
-        CI/CD compliance gaps — Continously
-      </h2>
-      <ul class="text-base-300 dark:text-base-300 mt-6 flex flex-col gap-4">
-        {
-          features.map((feature, idx) => (
-            <li
-              class="flex items-center"
-              data-mos="fade-up"
-              data-mos-delay={`${idx * 0.1 + 0.2}`}
-              data-mos-anchor="#howitworks"
-            >
-              <span class="inline">
-                <Icon
-                  name="tabler/check"
-                  class="text-primary-300 dark:text-primary-400 -mt-1 inline-block h-5 w-5"
-                  aria-hidden="true"
-                />
-                {feature}
-              </span>
-            </li>
-          ))
-        }
-      </ul>
+          How it works
+        </p>
+        <h2
+          class="h2 text-base-900 dark:text-base-100 mt-8"
+          data-mos="fade-up"
+          data-mos-delay="0.1"
+          data-mos-anchor="#howitworks"
+        >
+          Plumber is an AI-powered platform that <span class="dark:text-primary-500 text-primary-300"
+            >maps</span
+          >, <span class="dark:text-primary-500">audits</span>, and <span
+            class="dark:text-primary-500 text-primary-300">remediates</span
+          >
+          CI/CD compliance gaps. Continuously.
+        </h2>
+        <p
+          class="text-base-500 dark:text-base-400 mt-4 text-base description"
+          data-mos="fade-up"
+          data-mos-delay="0.15"
+          data-mos-anchor="#howitworks"
+        >
+          When you need to scale security and compliance across dozens (or hundreds) of projects, the
+          Platform gives your team full visibility of every pipeline in your organization.
+        </p>
+      </header>
+
+      <div class="mt-8 flex w-full justify-center">
+        <BeforeAfterPipeline variant="platform" />
+      </div>
+
       <div
-        class="mt-6 max-w-4xl"
+        class="mt-14 flex flex-col items-center gap-3 md:mt-20"
         data-mos="fade-up"
-        data-mos-delay="0.8"
+        data-mos-delay="0.05"
         data-mos-anchor="#howitworks"
       >
-        <Image
-          src={dashboard}
-          alt="logo"
-          loading="lazy"
-          width={1500}
-          class="relative z-10 rounded-2xl p-1 md:rounded-xl md:p-2"
+        <div
+          class="h-px w-full max-w-xs bg-gradient-to-r from-transparent via-primary-500/40 to-transparent dark:via-primary-400/35"
+          aria-hidden="true"
         />
+        <p
+          class="from-primary-300 to-primary-500 dark:from-primary-400 dark:to-primary-200 inline bg-gradient-to-r bg-clip-text text-base font-semibold text-transparent md:text-lg"
+        >
+          Benefits
+        </p>
+        <p
+          class="text-base-500 dark:text-base-400 max-w-xl px-4 text-center text-sm leading-relaxed md:text-base"
+        >
+          The highlights below sum up what day-to-day work looks like on the Platform.
+        </p>
+      </div>
+
+      <div
+        class="mt-10 grid grid-cols-1 items-start gap-10 md:mt-12 lg:grid-cols-2 lg:gap-12 xl:gap-14"
+        data-mos-anchor="#howitworks"
+      >
+        <div class="flex flex-col gap-4 lg:order-1">
+          {
+            features.map((feature, idx) => (
+              <div
+                class="hiw-feature-card rounded-xl border border-slate-600/45 bg-[#1e293b]/70 px-5 py-4 shadow-[inset_0_1px_0_0_rgba(34,197,94,0.08)] dark:border-slate-600/50 dark:bg-[#1e293b]/70 dark:shadow-[inset_0_1px_0_0_rgba(34,197,94,0.12)]"
+                data-mos="fade-up"
+                data-mos-delay={`${idx * 0.08 + 0.2}`}
+                data-mos-anchor="#howitworks"
+              >
+                <div class="flex gap-3">
+                  <Icon
+                    name="tabler/check"
+                    class="text-primary-200 dark:text-primary-400 mt-0.5 h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <p class="text-base-200 dark:text-base-200 text-pretty text-sm leading-relaxed sm:text-base">
+                    {feature}
+                  </p>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+
+        <div class="hiw-illus-wrap lg:order-2">
+          <PlatformDashboardIllustration />
+        </div>
       </div>
     </div>
   </div>
 </section>
+
+<style>
+  @media (min-width: 1024px) {
+    .hiw-illus-wrap {
+      position: sticky;
+      top: 5rem;
+    }
+  }
+</style>

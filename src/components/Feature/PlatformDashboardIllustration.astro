@@ -1,0 +1,449 @@
+---
+/**
+ * Illustration for the Platform "How it works" section.
+ * Shows a stylized dashboard: issues trend graph, stats, issue list with fix actions.
+ * Pure HTML+CSS, no external images.
+ */
+---
+
+<div class="plat-dash" data-mos="fade-up" data-mos-delay="0.4" data-mos-anchor="#howitworks">
+  <div class="pd-window">
+    <!-- Title bar -->
+    <div class="pd-bar">
+      <span class="pd-dots"><span /><span /><span /></span>
+      <span class="pd-title">Plumber Platform</span>
+    </div>
+
+    <div class="pd-content">
+      <!-- Top row: chart + compliance stats -->
+      <div class="pd-top">
+        <!-- Chart panel -->
+        <div class="pd-panel pd-chart-panel">
+          <div class="pd-panel-head">
+            <span class="pd-panel-title">Issues still open per day</span>
+            <span class="pd-date-range">Last 6 months</span>
+          </div>
+          <svg class="pd-chart-svg" viewBox="0 0 320 80" fill="none" preserveAspectRatio="none">
+            <!-- Grid lines -->
+            <line x1="0" y1="20" x2="320" y2="20" stroke="#334155" stroke-width="0.5" stroke-dasharray="4 4" />
+            <line x1="0" y1="40" x2="320" y2="40" stroke="#334155" stroke-width="0.5" stroke-dasharray="4 4" />
+            <line x1="0" y1="60" x2="320" y2="60" stroke="#334155" stroke-width="0.5" stroke-dasharray="4 4" />
+            <!-- Area fill -->
+            <linearGradient id="pd-area-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--color-primary-400)" stop-opacity="0.2" />
+              <stop offset="100%" stop-color="var(--color-primary-400)" stop-opacity="0" />
+            </linearGradient>
+            <polygon
+              points="0,14 40,16 80,20 120,26 160,34 200,42 240,50 280,56 320,60 320,80 0,80"
+              fill="url(#pd-area-fill)"
+            />
+            <polyline
+              points="0,14 40,16 80,20 120,26 160,34 200,42 240,50 280,56 320,60"
+              stroke="var(--color-primary-400)"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle cx="80" cy="20" r="3" fill="var(--color-primary-400)" />
+            <circle cx="160" cy="34" r="3" fill="var(--color-primary-400)" />
+            <circle cx="240" cy="50" r="3" fill="var(--color-primary-400)" />
+            <circle cx="312" cy="59" r="3" fill="var(--color-primary-400)" />
+          </svg>
+          <div class="pd-chart-labels">
+            <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+          </div>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="pd-stats-col">
+          <div class="pd-stat-card">
+            <span class="pd-stat-heading">ISO 27001</span>
+            <div class="pd-stat-row">
+              <div class="pd-stat-block">
+                <span class="pd-stat-label">PASSED</span>
+                <span class="pd-stat-number pd-c-green">11 <span class="pd-trend pd-c-green">&#9650;3</span></span>
+              </div>
+              <div class="pd-stat-block">
+                <span class="pd-stat-label">FAILED</span>
+                <span class="pd-stat-number pd-c-red">4</span>
+              </div>
+            </div>
+          </div>
+          <div class="pd-stat-card">
+            <span class="pd-stat-heading">OWASP</span>
+            <div class="pd-stat-row">
+              <div class="pd-stat-block">
+                <span class="pd-stat-label">DETECTED RISKS</span>
+                <span class="pd-stat-number pd-c-amber">6 <span class="pd-trend pd-c-green">&#9660;2</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom: Issue list -->
+      <div class="pd-panel pd-issues-panel">
+        <div class="pd-panel-head">
+          <span class="pd-panel-title">Control issues</span>
+          <span class="pd-issue-count">
+            <span class="pd-c-dim">ISSUES</span>
+            <span class="pd-c-amber pd-count-num">2</span>
+            <span class="pd-trend pd-c-green">&#9660;3</span>
+          </span>
+        </div>
+
+        <div class="pd-issue-list">
+          <div class="pd-issue-row pd-fixed">
+            <span class="pd-checkbox pd-checked" aria-hidden="true">&#10003;</span>
+            <span class="pd-issue-badge pd-badge-critical">Critical</span>
+            <span class="pd-issue-bar" />
+            <span class="pd-fixed-label">Fixed</span>
+          </div>
+          <div class="pd-issue-row pd-fixed">
+            <span class="pd-checkbox pd-checked" aria-hidden="true">&#10003;</span>
+            <span class="pd-issue-badge pd-badge-high">High</span>
+            <span class="pd-issue-bar" />
+            <span class="pd-fixed-label">Fixed</span>
+          </div>
+          <div class="pd-issue-row pd-fixed">
+            <span class="pd-checkbox pd-checked" aria-hidden="true">&#10003;</span>
+            <span class="pd-issue-badge pd-badge-medium">Medium</span>
+            <span class="pd-issue-bar" />
+            <span class="pd-fixed-label">Fixed</span>
+          </div>
+          <div class="pd-issue-row">
+            <span class="pd-checkbox" aria-hidden="true" />
+            <span class="pd-issue-badge pd-badge-medium">Medium</span>
+            <span class="pd-issue-bar" />
+            <span class="pd-fix-btn pd-fix-active">AI fix</span>
+          </div>
+          <div class="pd-issue-row">
+            <span class="pd-checkbox" aria-hidden="true" />
+            <span class="pd-issue-badge pd-badge-low">Low</span>
+            <span class="pd-issue-bar" />
+            <span class="pd-fix-btn pd-fix-active">AI fix</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .plat-dash {
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
+  }
+
+  .pd-window {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(34, 197, 94, 0.12);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35), 0 0 60px rgba(34, 197, 94, 0.06);
+  }
+
+  .pd-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: #0f172a;
+  }
+
+  .pd-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .pd-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: block;
+  }
+
+  .pd-dots span:nth-child(1) {
+    background: #ef4444;
+  }
+  .pd-dots span:nth-child(2) {
+    background: #eab308;
+  }
+  .pd-dots span:nth-child(3) {
+    background: #22c55e;
+  }
+
+  .pd-title {
+    color: #94a3b8;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .pd-content {
+    background: #1e293b;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .pd-top {
+    display: flex;
+    gap: 14px;
+  }
+
+  @media (max-width: 639px) {
+    .pd-top {
+      flex-direction: column;
+    }
+  }
+
+  .pd-panel {
+    background: #0f172a;
+    border-radius: 10px;
+    border: 1px solid #1e293b;
+    overflow: hidden;
+  }
+
+  .pd-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 6px;
+  }
+
+  .pd-panel-title {
+    color: #e2e8f0;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .pd-date-range {
+    color: #64748b;
+    font-size: 0.55rem;
+    font-weight: 500;
+    background: #1e293b;
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+
+  .pd-chart-panel {
+    flex: 2;
+    min-width: 0;
+  }
+
+  .pd-chart-svg {
+    width: 100%;
+    height: 72px;
+    display: block;
+    padding: 4px 12px 0;
+    box-sizing: border-box;
+  }
+
+  .pd-chart-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 16px 8px;
+    color: #475569;
+    font-size: 0.45rem;
+    font-weight: 500;
+  }
+
+  .pd-stats-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 160px;
+  }
+
+  .pd-stat-card {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 10px 12px;
+    flex: 1;
+  }
+
+  .pd-stat-heading {
+    color: #e2e8f0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .pd-stat-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .pd-stat-block {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .pd-stat-label {
+    color: #475569;
+    font-size: 0.42rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .pd-stat-number {
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .pd-trend {
+    font-size: 0.52rem;
+    font-weight: 700;
+  }
+
+  .pd-c-green {
+    color: #4ade80;
+  }
+
+  .pd-c-red {
+    color: #f87171;
+  }
+
+  .pd-c-amber {
+    color: #fbbf24;
+  }
+
+  .pd-c-dim {
+    color: #64748b;
+    font-size: 0.42rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .pd-count-num {
+    font-size: 0.8rem;
+    font-weight: 800;
+    margin-left: 4px;
+  }
+
+  .pd-issues-panel {
+    width: 100%;
+  }
+
+  .pd-issue-count {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+  }
+
+  .pd-issue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 0;
+  }
+
+  .pd-issue-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-bottom: 1px solid #1e293b;
+  }
+
+  .pd-issue-row:last-child {
+    border-bottom: none;
+  }
+
+  .pd-checkbox {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1.5px solid #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    color: transparent;
+    flex-shrink: 0;
+  }
+
+  .pd-checked {
+    background: var(--color-primary-500);
+    border-color: var(--color-primary-500);
+    color: #fff;
+  }
+
+  .pd-issue-badge {
+    font-size: 0.5rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .pd-badge-critical {
+    color: #f87171;
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+  }
+
+  .pd-badge-high {
+    color: #fb923c;
+    background: rgba(251, 146, 60, 0.1);
+    border: 1px solid rgba(251, 146, 60, 0.22);
+  }
+
+  .pd-badge-medium {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+
+  .pd-badge-low {
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.1);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+  }
+
+  .pd-issue-bar {
+    flex: 1;
+    height: 5px;
+    border-radius: 3px;
+    background: #334155;
+    min-width: 40px;
+  }
+
+  .pd-fixed-label {
+    font-size: 0.48rem;
+    font-weight: 600;
+    color: #4ade80;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .pd-fix-btn {
+    font-size: 0.48rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    color: #64748b;
+    background: #1e293b;
+    border: 1px solid #334155;
+    flex-shrink: 0;
+  }
+
+  .pd-fix-active {
+    color: #fff;
+    background: var(--color-primary-600);
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.2);
+  }
+</style>

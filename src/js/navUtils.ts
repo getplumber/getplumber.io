@@ -10,7 +10,7 @@ export async function generateDocsMenuItems(): Promise<navDropdownItem> {
     text: "Docs",
     dropdown: [
       {
-        text: "OpenSource CLI",
+        text: "Open Source CLI",
         link: "/docs/cli",
       },
       {

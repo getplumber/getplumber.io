@@ -19,6 +19,23 @@ import { getLocalizedRoute, getTranslatedData } from "@/docs/js/translationUtils
 
 import SidebarLink from "./SidebarLink.astro";
 
+/** Issues is documented as nested under Controls; keep indent even if frontmatter is missing or coerced wrong. */
+function isIndentedUsePlumberChild(section: string, docId: string): boolean {
+  if (section !== "use-plumber") return false;
+  const rest = docId.slice(section.length + 1);
+  const normalized = rest.replace(/\/index$/, "");
+  return normalized === "issues";
+}
+
+function resolveSidebarIndent(doc: {
+  id: string;
+  data: { sidebar?: { indent?: boolean | string } };
+}, section: string): boolean {
+  const raw = doc.data.sidebar?.indent;
+  if (raw === true || raw === "true") return true;
+  return isIndentedUsePlumberChild(section, doc.id);
+}
+
 interface Props {
   sectionId?: string;
 }
@@ -198,7 +215,7 @@ const docsBySection = sectionFilteredDocs.reduce(
       text: doc.data.sidebar?.label ? doc.data.sidebar.label : doc.data.title,
       link: `/${docsRoute}/${doc.id}`,
       order: doc.data.sidebar?.order,
-      indent: doc.data.sidebar?.indent,
+      indent: resolveSidebarIndent(doc, section),
       badge: doc.data.sidebar?.badge,
     });
     return acc;

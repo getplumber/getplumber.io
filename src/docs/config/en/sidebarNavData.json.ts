@@ -33,7 +33,7 @@ const sidebarNavData: DocsSidebarNavData = {
     },
     {
       id: "api",
-      title: "OpenSource CLI",
+      title: "Open Source CLI",
       description: "CLI documentation",
       icon: "tabler/terminal-2",
       // Ordered list of sidebar sections for the 'api' tab

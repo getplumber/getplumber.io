@@ -42,7 +42,12 @@ const currentPath =
   currentWithSlash === linkWithSlash || currentWithSlash.startsWith(linkWithSlash);
 ---
 
-<li class:list={[indent && "pl-4 border-l border-zinc-800"]}>
+<li
+  class:list={[
+    indent &&
+      "border-primary-500/45 ml-0.5 border-l-2 border-solid pl-3 dark:border-primary-400/50",
+  ]}
+>
   <a
     href={actualLink}
     class:list={[
@@ -54,7 +59,16 @@ const currentPath =
     ]}
   >
     <div class="flex items-center gap-2">
-      {indent && <span class="text-zinc-600 text-xs">↳</span>}
+      {
+        indent && (
+          <span
+            class="text-primary-600 dark:text-primary-400 shrink-0 text-sm leading-none font-medium tabular-nums"
+            aria-hidden="true"
+          >
+            ↳
+          </span>
+        )
+      }
       <span>{text}</span>
       {badge && <Badge text={badge.text} variant={badge.variant} />}
     </div>

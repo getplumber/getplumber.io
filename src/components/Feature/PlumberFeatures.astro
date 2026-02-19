@@ -2,7 +2,7 @@
 /**
  * * Feature cards: three categories of what Plumber brings (aligned with CLI controls).
  */
-import Button from "@components/Button/Button.astro";
+import BeforeAfterPipeline from "@components/BeforeAfter/BeforeAfterPipeline.astro";
 import FeatureCard from "@components/FeatureCard/FeatureCardLarge.astro";
 
 interface FeatureData {
@@ -45,7 +45,7 @@ const featureData: FeatureData[] = [
         Plumber scans your GitLab CI/CD configuration
       </h2>
       <p
-        class="description mx-auto mt-4 max-w-2xl"
+        class="text-base-500 dark:text-base-400 description mx-auto mt-4 max-w-2xl"
         data-mos="fade-up"
         data-mos-delay="0.2"
         data-mos-anchor="#plumber-features"
@@ -53,10 +53,30 @@ const featureData: FeatureData[] = [
         Analyze your pipelines for security and compliance issues with automated checks.
       </p>
     </div>
-    <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+    <div class="mb-8 md:mb-10">
+      <BeforeAfterPipeline variant="cli" />
+    </div>
+
+    <div
+      class="mb-8 flex flex-col items-center gap-3 md:mb-10"
+      data-mos="fade-up"
+      data-mos-delay="0.25"
+      data-mos-anchor="#plumber-features"
+    >
+      <div
+        class="h-px w-full max-w-xs bg-gradient-to-r from-transparent via-primary-500/40 to-transparent dark:via-primary-400/35"
+        aria-hidden="true"
+      />
+      <p class="text-base-600 dark:text-base-400 max-w-xl px-4 text-center text-sm leading-relaxed">
+        Each scan applies policy checks across your pipeline. Here is what Plumber controls.
+      </p>
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-4 md:gap-4">
       <FeatureCard
         title={featureData[0].title}
         icon={featureData[0].icon}
+        compact
         data-mos="fade-up"
         data-mos-delay="0.3"
         data-mos-anchor="#plumber-features"
@@ -78,20 +98,28 @@ const featureData: FeatureData[] = [
               title={feature.title}
               text={feature.text}
               icon={feature.icon}
+              compact
               data-mos="fade-up"
               data-mos-delay={`${(idx + 1) * 0.25 + 0.3}`}
               data-mos-anchor="#plumber-features"
             />
           ))
       }
-    </div>
-    <div
-      class="mt-12 flex justify-start"
-      data-mos="fade-up"
-      data-mos-delay="0.7"
-      data-mos-anchor="#plumber-cta"
-    >
-      <Button variant="outline" href="/docs/use-plumber/controls" arrow="right"> And more</Button>
+      <FeatureCard
+        title="See all controls"
+        icon="tabler/list-check"
+        compact
+        highlight
+        href="/docs/use-plumber/controls"
+        data-mos="fade-up"
+        data-mos-delay="1.05"
+        data-mos-anchor="#plumber-features"
+      >
+        <span slot="description">
+          Runners, caches, artifacts, and many other checks beyond these three. The documentation lists the
+          full catalog and how each control maps to issue codes.
+        </span>
+      </FeatureCard>
     </div>
   </div>
 </section>

@@ -1,0 +1,1792 @@
+---
+/**
+ * Animated 3-step "How it works" illustration.
+ * Step 1: CI/CD config with compliance issues
+ * Step 2: Plumber CLI/Platform scans & analyzes
+ * Step 3: Config is compliant, secure, audit-ready
+ *
+ * variant="cli"      → single file, CLI branding
+ * variant="platform" → stacked files, Platform branding
+ */
+import logo from "@images/site-logo.svg";
+import logoDark from "@images/site-logo-dark.svg";
+import { Image } from "astro:assets";
+
+interface Props {
+  variant: "cli" | "platform";
+}
+
+const { variant } = Astro.props;
+const isPlatform = variant === "platform";
+
+const labelColor = isPlatform
+  ? "text-base-900 dark:text-base-200"
+  : "text-base-900 dark:text-base-200";
+const subColor = isPlatform
+  ? "text-base-600"
+  : "text-base-600 dark:text-base-400";
+---
+
+<div class="hiw-anim mx-auto w-full" data-variant={variant}>
+  <div class="hiw-flow">
+    <!-- Desktop: horizontal segments between step numbers (timing matches .c1 / .c2 connectors) -->
+    <div class="hiw-num-rail" aria-hidden="true">
+      <span class="hiw-num-seg hiw-num-seg-12"></span>
+      <span class="hiw-num-seg hiw-num-seg-23"></span>
+    </div>
+
+    <!-- ─── Step 1: Config with issues ─── -->
+    <div class="hiw-step s-before">
+      <div class="s-num"><span>1</span></div>
+
+      <div class="s-mid">
+        <div class="s-visual">
+        <div class="cfg-card cfg-warn">
+          <div class="cfg-bar">
+            <span class="cfg-dots"><span /><span /><span /></span>
+            <span class="cfg-name">.gitlab-ci.yml</span>
+          </div>
+          <div class="cfg-body">
+            <div class="cl">
+              <span class="cn">1</span>
+              <code><b>include</b>:</code>
+            </div>
+            <div class="cl cl-comment">
+              <span class="cn">2</span>
+              <code class="indent">## Security scanning</code>
+            </div>
+            <div class="cl cl-bad pill-seq-1">
+              <span class="cn">3</span>
+              <code class="indent"
+                >- <b>component</b>:
+                <span class="yaml-str"
+                  >gitlab.com/components/secret-detection/secret-detection@~main</span
+                ></code
+              >
+              <span class="pill pill-w">mutable</span>
+            </div>
+            <div class="cl cl-bad pill-seq-2">
+              <span class="cn">4</span>
+              <code class="indent"
+                >- <b>component</b>:
+                <span class="yaml-str">gitlab.com/components/sast/sast@0.0.1</span></code
+              >
+              <span class="pill pill-w">outdated</span>
+            </div>
+            <div class="cl cl-bad pill-seq-3">
+              <span class="cn">5</span>
+              <code class="indent"
+                >- <b>component</b>:
+                <span class="yaml-str">random-gitlab.com/components/dast@1.3.4</span></code
+              >
+              <span class="pill pill-w">untrusted</span>
+            </div>
+            <div class="cl">
+              <span class="cn">6</span>
+              <code><b>install-deps</b>:</code>
+            </div>
+            <div class="cl cl-bad pill-seq-4">
+              <span class="cn">7</span>
+              <code class="indent"
+                ><b>image</b>: <span class="yaml-str">node:latest</span></code
+              >
+              <span class="pill pill-w">mutable</span>
+            </div>
+            <div class="cl">
+              <span class="cn">8</span>
+              <code class="indent"><b>variables</b>:</code>
+            </div>
+            <div class="cl cl-bad pill-seq-5">
+              <span class="cn">9</span>
+              <code class="indent2"
+                ><b>DAST_DISABLED</b>: <span class="yaml-str">&quot;false&quot;</span></code
+              >
+              <span class="pill pill-w">overridden</span>
+            </div>
+            <div class="cl">
+              <span class="cn">10</span>
+              <code class="indent"
+                ><b>allow_failure</b>: <span class="yaml-bool">true</span></code
+              >
+            </div>
+            <div class="cl">
+              <span class="cn">11</span>
+              <code class="indent"><b>rules</b>:</code>
+            </div>
+            <div class="cl cl-bad pill-seq-6">
+              <span class="cn">12</span>
+              <code class="indent2"
+                ><b>- when</b>: <span class="yaml-str">never</span></code
+              >
+              <span class="pill pill-w">weakened</span>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <div class="s-caption">
+        <p class:list={["s-label", labelColor]}>
+          {isPlatform ? "Your organization's pipelines" : "Your .gitlab-ci.yml"}
+        </p>
+        <p class:list={["s-sub", subColor]}>
+          {isPlatform ? "across all projects" : "with compliance issues"}
+        </p>
+      </div>
+    </div>
+
+    <!-- ─── Connector 1 ─── -->
+    <div class="hiw-conn c1">
+      <div class="conn-inner">
+        <div class="conn-track" aria-hidden="true" />
+        <div class="conn-glow" aria-hidden="true" />
+      </div>
+    </div>
+
+    <!-- ─── Step 2: Plumber ─── -->
+    <div class="hiw-step s-plumber">
+      <div class="s-num"><span>2</span></div>
+
+      <div class="s-mid">
+        <div class="s-visual">
+          <div class="plb-card">
+            <div class="scan-ring sr-1" aria-hidden="true" />
+            <div class="scan-ring sr-2" aria-hidden="true" />
+            <Image
+              src={logo}
+              alt=""
+              class="plb-logo"
+              aria-hidden="true"
+            />
+
+          </div>
+        </div>
+      </div>
+
+      <div class="s-caption">
+        <p class:list={["s-label", labelColor]}>
+          Plumber {isPlatform ? "Platform" : "CLI"}
+        </p>
+        <p class:list={["s-sub", subColor]}>
+          {isPlatform ? "scans every project" : "scans & analyzes"}
+        </p>
+      </div>
+    </div>
+
+    <!-- ─── Connector 2 ─── -->
+    <div class="hiw-conn c2">
+      <div class="conn-inner">
+        <div class="conn-track" aria-hidden="true" />
+        <div class="conn-glow" aria-hidden="true" />
+      </div>
+    </div>
+
+    <!-- ─── Step 3: Clean config / Dashboard ─── -->
+    <div class="hiw-step s-after">
+      <div class="s-num"><span>3</span></div>
+
+      <div class="s-mid">
+        <div class="s-visual">
+        {isPlatform ? (
+          <div class="dash-card cfg-ok">
+            <div class="cfg-bar">
+              <span class="cfg-dots"><span /><span /><span /></span>
+              <span class="cfg-name">Compliance Overview</span>
+            </div>
+            <div class="dash-body">
+              <div class="dash-chart pill-seq-1">
+                <div class="dash-chart-label">Issues over time</div>
+                <svg class="dash-sparkline" viewBox="0 0 200 48" fill="none" preserveAspectRatio="none">
+                  <polyline
+                    points="0,9 25,11 50,14 75,18 100,23 125,28 150,33 175,37 200,40"
+                    stroke="var(--color-primary-400)"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <linearGradient id="hiw-spark-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--color-primary-400)" stop-opacity="0.25" />
+                    <stop offset="100%" stop-color="var(--color-primary-400)" stop-opacity="0" />
+                  </linearGradient>
+                  <polygon
+                    points="0,9 25,11 50,14 75,18 100,23 125,28 150,33 175,37 200,40 200,48 0,48"
+                    fill="url(#hiw-spark-fill)"
+                  />
+                </svg>
+              </div>
+              <div class="dash-stats pill-seq-2">
+                <div class="dash-stat">
+                  <span class="dash-stat-val dash-blue">14</span>
+                  <span class="dash-stat-lbl">Detected</span>
+                </div>
+                <div class="dash-stat">
+                  <span class="dash-stat-val dash-amber">2</span>
+                  <span class="dash-stat-lbl">In progress</span>
+                </div>
+                <div class="dash-stat">
+                  <span class="dash-stat-val dash-green">5</span>
+                  <span class="dash-stat-lbl">Fixed</span>
+                </div>
+              </div>
+              <div class="dash-issues">
+                <div class="dash-row pill-seq-3">
+                  <span class="dash-fix-badge">Fixed</span>
+                  <span class="dash-bar" />
+                </div>
+                <div class="dash-row pill-seq-4">
+                  <span class="dash-fix-badge">Fixed</span>
+                  <span class="dash-bar" />
+                </div>
+                <div class="dash-row pill-seq-5">
+                  <span class="dash-sev-badge dash-sev-med">Medium</span>
+                  <span class="dash-bar" />
+                </div>
+                <div class="dash-row pill-seq-6">
+                  <span class="dash-sev-badge dash-sev-low">Low</span>
+                  <span class="dash-bar" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div class="cfg-card cfg-ok">
+              <div class="cfg-bar">
+                <span class="cfg-dots"><span /><span /><span /></span>
+                <span class="cfg-name">.gitlab-ci.yml</span>
+              </div>
+              <div class="cfg-body">
+                <div class="cl">
+                  <span class="cn">1</span>
+                  <code><b>include</b>:</code>
+                </div>
+                <div class="cl cl-comment">
+                  <span class="cn">2</span>
+                  <code class="indent">## Security scanning</code>
+                </div>
+                <div class="cl cl-good pill-seq-1">
+                  <span class="cn">3</span>
+                  <code class="indent"
+                    >- <b>component</b>:
+                    <span class="yaml-str"
+                      >gitlab.com/components/secret-detection/secret-detection@2.3.4</span
+                    ></code
+                  >
+                  <span class="pill pill-g">pinned</span>
+                </div>
+                <div class="cl cl-good pill-seq-2">
+                  <span class="cn">4</span>
+                  <code class="indent"
+                    >- <b>component</b>:
+                    <span class="yaml-str">gitlab.com/components/sast/sast@3.3.4</span></code
+                  >
+                  <span class="pill pill-g">updated</span>
+                </div>
+                <div class="cl cl-good pill-seq-3">
+                  <span class="cn">5</span>
+                  <code class="indent"
+                    >- <b>component</b>:
+                    <span class="yaml-str">gitlab.com/components/dast@1.3.4</span></code
+                  >
+                  <span class="pill pill-g">trusted</span>
+                </div>
+                <div class="cl">
+                  <span class="cn">6</span>
+                  <code><b>install-deps</b>:</code>
+                </div>
+                <div class="cl cl-good pill-seq-4">
+                  <span class="cn">7</span>
+                  <code class="indent"
+                    ><b>image</b>:
+                    <span class="yaml-str"
+                      >node:22@sha256:8f3e2a1b9c0d7e6f5a4b3c2d…</span
+                    ></code
+                  >
+                  <span class="pill pill-g">pinned</span>
+                </div>
+                <div class="cl cl-good pill-seq-5">
+                  <span class="cn">8</span>
+                  <code class="indent"
+                    ><b>allow_failure</b>: <span class="yaml-bool">false</span></code
+                  >
+                  <span class="pill pill-g">strict</span>
+                </div>
+                <div class="cl">
+                  <span class="cn">9</span>
+                  <code class="indent"><b>rules</b>:</code>
+                </div>
+                <div class="cl cl-good pill-seq-6">
+                  <span class="cn">10</span>
+                  <code class="indent2"
+                    ><b>- when</b>: <span class="yaml-str">always</span></code
+                  >
+                  <span class="pill pill-g">runs</span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+        </div>
+      </div>
+
+      <div class="s-caption">
+        <p class:list={["s-label", labelColor]}>
+          {isPlatform ? "Full visibility" : "Compliant & secure"}
+        </p>
+        <p class:list={["s-sub", subColor]}>
+          {isPlatform ? "track, fix & remediate" : "audit-ready pipeline"}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /*
+   * Stay within the site column: no min-width floor on flex children that sums above ~1100px.
+   * Clip horizontal bleed from connector tracks (negative insets) so the page does not scroll sideways.
+   */
+  .hiw-anim {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+    overflow-y: visible;
+    box-sizing: border-box;
+  }
+
+  @media (min-width: 768px) {
+    /*
+     * Inset so connector tracks (negative insets) are not clipped only on the leading edge;
+     * keeps left and right segments visually balanced inside overflow-x: clip.
+     */
+    .hiw-anim {
+      padding-inline: clamp(12px, 3vw, 48px);
+    }
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║              LAYOUT                      ║
+     ╚══════════════════════════════════════════╝ */
+  .hiw-flow {
+    --hiw-num-stack: 40px; /* .s-num 30px + 10px margin-bottom */
+    --hiw-caption-block: 5.75rem; /* caption band (taller cards when paths wrap) */
+    --hiw-card-inner-max: 312px;
+    /* Side columns match card width; platform adds stack bleed */
+    --hiw-side-col-w: var(--hiw-card-inner-max);
+    --hiw-stack-bleed: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    overflow: visible;
+  }
+
+  .hiw-anim[data-variant="platform"] .hiw-flow {
+    --hiw-side-col-w: calc(var(--hiw-card-inner-max) + var(--hiw-stack-bleed));
+  }
+
+  @media (min-width: 1024px) {
+    .hiw-flow {
+      /* Fits longest `- component: gitlab.com/...` on one line at 0.52rem mono */
+      --hiw-card-inner-max: 480px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .hiw-flow {
+      --hiw-card-inner-max: 520px;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .hiw-flow {
+      --hiw-card-inner-max: 600px;
+    }
+  }
+
+  /* CLI: slightly wider YAML panels than the shared defaults (home “How it works”) */
+  @media (min-width: 1024px) {
+    .hiw-anim[data-variant="cli"] .hiw-flow {
+      --hiw-card-inner-max: 520px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .hiw-anim[data-variant="cli"] .hiw-flow {
+      --hiw-card-inner-max: 560px;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .hiw-anim[data-variant="cli"] .hiw-flow {
+      --hiw-card-inner-max: 640px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .hiw-flow {
+      position: relative;
+      flex-direction: row;
+      align-items: stretch;
+      justify-content: center;
+      gap: 0;
+      width: 100%;
+      min-width: 0;
+      isolation: isolate;
+      /*
+       * One source of truth for connector geometry: c1/c2 mirror these for track + particle.
+       * Matches former clamp(-64px,-12vw,-24px) and clamp(-28px,-5vw,-12px) as positive magnitudes.
+       */
+      --hiw-ext-to-card: clamp(24px, 12vw, 64px);
+      --hiw-ext-to-plumber: clamp(12px, 5vw, 28px);
+    }
+  }
+
+  .hiw-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  @media (min-width: 768px) {
+    .hiw-step {
+      align-self: stretch;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Number → caption → illustration (mobile order unchanged via display:contents + order rules) */
+    .hiw-step .s-num {
+      order: 1;
+    }
+
+    .hiw-step .s-caption {
+      order: 2;
+    }
+
+    .hiw-step .s-mid {
+      order: 3;
+    }
+    .hiw-step.s-before,
+    .hiw-step.s-after {
+      flex: 0 1 var(--hiw-side-col-w);
+      width: min(100%, var(--hiw-side-col-w));
+      max-width: 100%;
+      min-width: 0;
+      align-items: stretch;
+    }
+    .hiw-step.s-plumber {
+      align-items: center;
+      flex: 0 0 auto;
+      flex-shrink: 0;
+      position: relative;
+      margin-inline: clamp(0.35rem, 1.5vw, 1rem);
+    }
+
+    /*
+     * CLI: side columns grow from --hiw-card-inner-max but may shrink (min-width: 0) so the row
+     * fits the site column. Cards use width: min(100%, var(--hiw-card-inner-max)).
+     */
+    .hiw-anim[data-variant="cli"] .hiw-step.s-before,
+    .hiw-anim[data-variant="cli"] .hiw-step.s-after {
+      flex: 1 1 var(--hiw-card-inner-max);
+      width: auto;
+      min-width: 0;
+      max-width: none;
+    }
+
+    .hiw-anim[data-variant="cli"] .s-before .s-visual {
+      display: flex;
+      width: 100%;
+      justify-content: flex-end;
+    }
+
+    .hiw-anim[data-variant="cli"] .s-after .s-visual {
+      display: flex;
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .hiw-anim[data-variant="cli"] .cfg-card {
+      width: min(100%, var(--hiw-card-inner-max));
+      max-width: 100%;
+      margin-inline: 0;
+    }
+  }
+
+  /* Mobile: one vertical story (caption → card → line → Plumber → line → card → caption) */
+  @media (max-width: 767px) {
+    .hiw-flow {
+      gap: 0.35rem;
+    }
+
+    .hiw-step {
+      display: contents;
+      opacity: 1;
+      transform: none;
+    }
+
+    .s-before .s-num,
+    .s-plumber .s-num,
+    .s-after .s-num {
+      display: none;
+    }
+
+    .s-before .s-caption {
+      order: 10;
+      padding-top: 0;
+      padding-bottom: 10px;
+    }
+
+    .s-before .s-mid {
+      order: 20;
+    }
+
+    .hiw-conn.c1 {
+      order: 30;
+    }
+
+    .s-plumber .s-mid {
+      order: 50;
+      padding-inline: clamp(0.35rem, 1.5vw, 1rem);
+    }
+
+    .s-plumber .s-caption {
+      order: 60;
+    }
+
+    .hiw-anim[data-variant="cli"] .s-plumber .s-caption {
+      display: none;
+    }
+
+    .hiw-conn.c2 {
+      order: 70;
+    }
+
+    .s-after .s-mid {
+      order: 80;
+    }
+
+    .s-after .s-caption {
+      order: 90;
+    }
+
+    .s-before .s-mid,
+    .s-plumber .s-mid,
+    .s-after .s-mid {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hiw-anim:not([data-animated]) .s-before .s-mid,
+    .hiw-anim:not([data-animated]) .s-before .s-caption,
+    .hiw-anim:not([data-animated]) .s-plumber .s-mid,
+    .hiw-anim:not([data-animated]) .s-plumber .s-caption,
+    .hiw-anim:not([data-animated]) .s-after .s-mid,
+    .hiw-anim:not([data-animated]) .s-after .s-caption {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  }
+
+  /* Middle band: vertically centers config cards with Plumber (desktop) */
+  .s-mid {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (min-width: 768px) {
+    .s-mid {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+  }
+
+  .s-caption {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    padding-top: 14px;
+    padding-inline: 4px;
+    text-wrap: balance;
+  }
+
+  @media (min-width: 768px) {
+    .s-caption {
+      padding-top: 0;
+      padding-bottom: 12px;
+      min-height: var(--hiw-caption-block);
+      justify-content: center;
+    }
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║           STEP NUMBER                    ║
+     ╚══════════════════════════════════════════╝ */
+  /* Full-width row so the badge centers on the same axis as the config card */
+  .s-num {
+    display: flex;
+    justify-content: center;
+    align-self: stretch;
+    width: 100%;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+
+  .s-num > span {
+    box-sizing: border-box;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--color-primary-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0);
+    box-shadow: 0 0 16px rgba(0, 135, 0, 0.25);
+  }
+
+  @media (min-width: 768px) {
+    .s-num {
+      position: relative;
+      z-index: 2;
+    }
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║     STEP NUMBER RAIL (desktop)           ║
+     ╚══════════════════════════════════════════╝ */
+  .hiw-num-rail {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .hiw-num-rail {
+      display: block;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 14px;
+      height: 2px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hiw-num-seg {
+      position: absolute;
+      top: 0;
+      height: 2px;
+      border-radius: 1px;
+      transform-origin: left center;
+      transform: scaleX(0);
+      background: linear-gradient(
+        to right,
+        var(--color-primary-600),
+        var(--color-primary-400)
+      );
+    }
+
+    /* Approximate centers for 1–2 and 2–3; circles (z-index 2) cover line ends */
+    .hiw-num-seg-12 {
+      left: 10%;
+      width: 40%;
+    }
+
+    .hiw-num-seg-23 {
+      left: 50%;
+      width: 40%;
+    }
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║              LABELS                      ║
+     ╚══════════════════════════════════════════╝ */
+  .s-label {
+    margin-top: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .s-sub {
+    font-size: 0.75rem;
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║         CONFIG CARD (EDITOR)             ║
+     ╚══════════════════════════════════════════╝ */
+  .s-visual {
+    position: relative;
+    z-index: 2;
+  }
+
+  .cfg-card {
+    position: relative;
+    z-index: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    width: min(100%, var(--hiw-card-inner-max, 312px));
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  @media (max-width: 767px) {
+    .cfg-card {
+      width: min(100%, 400px);
+    }
+  }
+
+  .cfg-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    background: #0f172a;
+  }
+
+  .cfg-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .cfg-dots span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: block;
+  }
+
+  .cfg-dots span:nth-child(1) {
+    background: #ef4444;
+  }
+  .cfg-dots span:nth-child(2) {
+    background: #eab308;
+  }
+  .cfg-dots span:nth-child(3) {
+    background: #22c55e;
+  }
+
+  .cfg-name {
+    font-size: 0.625rem;
+    color: #94a3b8;
+    font-family: var(--font-mono);
+    letter-spacing: 0.03em;
+  }
+
+  .cfg-body {
+    padding: 6px 0;
+    background: #1e293b;
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║            CODE LINES                    ║
+     ╚══════════════════════════════════════════╝ */
+  .cl {
+    box-sizing: border-box;
+    display: flex;
+    align-items: flex-start;
+    padding: 2px 8px;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    line-height: 1.65;
+    color: #cbd5e1;
+    white-space: normal;
+    overflow: visible;
+    /* Same left edge as highlighted rows; only color changes for bad/good */
+    border-left: 2px solid transparent;
+  }
+
+  .cl code {
+    font-family: inherit;
+    font-size: inherit;
+    overflow: visible;
+    flex: 1;
+    min-width: 0;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+  }
+
+  .cl .pill {
+    align-self: flex-start;
+    margin-top: 1px;
+  }
+
+  .cl code.indent {
+    padding-left: 1.1em;
+  }
+
+  .cl code.indent2 {
+    padding-left: 2em;
+  }
+
+  .cl-comment {
+    opacity: 0.92;
+  }
+
+  .cl-comment code {
+    color: #64748b;
+    font-weight: 400;
+  }
+
+  .cl b {
+    color: #f472b6;
+    font-weight: 500;
+  }
+
+  .yaml-str {
+    color: #fde047;
+    font-weight: 400;
+  }
+
+  .yaml-bool {
+    color: #c4b5fd;
+    font-weight: 500;
+  }
+
+  .cn {
+    color: #475569;
+    width: 1.35rem;
+    min-width: 1.35rem;
+    text-align: right;
+    flex-shrink: 0;
+    font-size: 0.45rem;
+    line-height: 1.65;
+    padding-top: 1px;
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cl-bad {
+    background: rgba(245, 158, 11, 0.045);
+    border-left-color: #f59e0b;
+  }
+
+  .cl-good {
+    background: rgba(34, 197, 94, 0.045);
+    border-left-color: #22c55e;
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║         ISSUE / SUCCESS PILLS            ║
+     ╚══════════════════════════════════════════╝ */
+  .pill {
+    font-size: 0.45rem;
+    padding: 0px 4px;
+    border-radius: 6px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    opacity: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .pill-w {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+
+  .pill-g {
+    background: rgba(34, 197, 94, 0.12);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║            CARD GLOW                     ║
+     ╚══════════════════════════════════════════╝ */
+  .cfg-warn {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .cfg-ok {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║     DASHBOARD CARD (PLATFORM STEP 3)     ║
+     ╚══════════════════════════════════════════╝ */
+  .dash-card {
+    position: relative;
+    z-index: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    width: min(100%, var(--hiw-card-inner-max, 312px));
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  /*
+   * Platform desktop: stack behind YAML (::before/::after, no extra DOM on mobile),
+   * YAML hugs right of column, dashboard hugs left, so connectors meet card edges.
+   */
+  @media (min-width: 768px) {
+    .hiw-anim[data-variant="platform"] .s-before .s-visual {
+      position: relative;
+      display: flex;
+      width: 100%;
+      justify-content: flex-end;
+    }
+
+    .hiw-anim[data-variant="platform"] .s-before .s-visual::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      border-radius: 12px;
+      inset: -13px 13px 13px -13px;
+      background: #1e293b;
+      border: 1px solid rgba(245, 158, 11, 0.15);
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    .hiw-anim[data-variant="platform"] .s-before .s-visual::after {
+      content: "";
+      position: absolute;
+      z-index: 1;
+      border-radius: 12px;
+      inset: -7px 7px 7px -7px;
+      background: #1e293b;
+      border: 1px solid rgba(245, 158, 11, 0.15);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    /*
+     * Dark page: default stack uses #1e293b at low opacity on near-black; barely visible.
+     * Use :global(.dark) so Astro does not scope .dark to [data-astro-cid] (html has no cid).
+     * Lighter slate planes + neutral cool-gray rims (no extra green/yellow; pills keep amber).
+     */
+    :global(.dark) .hiw-anim[data-variant="platform"] .s-before .s-visual::before {
+      background: #64748b;
+      border: 2px solid rgba(203, 213, 225, 0.28);
+      opacity: 1;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 12px 32px rgba(0, 0, 0, 0.65);
+    }
+
+    :global(.dark) .hiw-anim[data-variant="platform"] .s-before .s-visual::after {
+      background: #475569;
+      border: 2px solid rgba(148, 163, 184, 0.42);
+      opacity: 1;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 10px 26px rgba(0, 0, 0, 0.5);
+    }
+
+    .hiw-anim[data-variant="platform"] .s-before .cfg-card {
+      position: relative;
+      z-index: 2;
+      margin-inline: 0;
+    }
+
+    .hiw-anim[data-variant="platform"] .s-after .s-visual {
+      display: flex;
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .hiw-anim[data-variant="platform"] .s-after .dash-card {
+      width: 100%;
+      max-width: min(100%, var(--hiw-card-inner-max));
+      margin-inline: 0;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .dash-card {
+      width: min(100%, 400px);
+    }
+
+    /*
+     * Platform mobile: stretch row so YAML and Compliance share one full width (centered column
+     * was shrinking cards to different intrinsic widths). Hide Plumber captions so lines meet the square.
+     */
+    .hiw-anim[data-variant="platform"] .hiw-flow {
+      align-items: stretch;
+    }
+
+    .hiw-anim[data-variant="platform"] .s-before .s-mid,
+    .hiw-anim[data-variant="platform"] .s-after .s-mid {
+      width: 100%;
+      max-width: 100%;
+      align-self: stretch;
+    }
+
+    .hiw-anim[data-variant="platform"] .s-before .s-visual,
+    .hiw-anim[data-variant="platform"] .s-after .s-visual {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .hiw-anim[data-variant="platform"] .s-plumber .s-caption {
+      display: none;
+    }
+
+    .hiw-anim[data-variant="platform"] .s-before .cfg-card {
+      width: 100%;
+      max-width: 100%;
+      margin-inline: 0;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(245, 158, 11, 0.12);
+    }
+
+    .hiw-anim[data-variant="platform"] .dash-card {
+      width: 100%;
+      max-width: 100%;
+      margin-inline: 0;
+    }
+
+    .hiw-anim[data-variant="platform"] .dash-body {
+      font-size: 0.56rem;
+      padding: 12px 14px 14px;
+      gap: 12px;
+    }
+
+    .hiw-anim[data-variant="platform"] .dash-chart-label {
+      font-size: 0.5rem;
+    }
+
+    .hiw-anim[data-variant="platform"] .dash-stat-val {
+      font-size: 0.78rem;
+    }
+
+    .hiw-anim[data-variant="platform"] .dash-sparkline {
+      height: 42px;
+    }
+  }
+
+  .dash-body {
+    padding: 10px 12px 12px;
+    background: #1e293b;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 0.5rem;
+    color: #94a3b8;
+  }
+
+  .dash-chart {
+    opacity: 0;
+  }
+
+  .dash-chart-label {
+    font-size: 0.45rem;
+    color: #64748b;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+  }
+
+  .dash-sparkline {
+    width: 100%;
+    height: 36px;
+    display: block;
+  }
+
+  .dash-stats {
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+  }
+
+  .dash-stat {
+    flex: 1;
+    background: #0f172a;
+    border-radius: 6px;
+    padding: 5px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+
+  .dash-stat-val {
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .dash-stat-lbl {
+    font-size: 0.4rem;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+
+  .dash-green {
+    color: #4ade80;
+  }
+
+  .dash-amber {
+    color: #fbbf24;
+  }
+
+  .dash-blue {
+    color: #60a5fa;
+  }
+
+  .dash-issues {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .dash-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+  }
+
+  .dash-fix-badge {
+    font-size: 0.4rem;
+    font-weight: 600;
+    color: #4ade80;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: 4px;
+    padding: 1px 5px;
+    white-space: nowrap;
+  }
+
+  .dash-sev-badge {
+    font-size: 0.4rem;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 1px 5px;
+    white-space: nowrap;
+  }
+
+  .dash-sev-med {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+
+  .dash-sev-low {
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.12);
+    border: 1px solid rgba(96, 165, 250, 0.25);
+  }
+
+  .dash-bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: #334155;
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║           PLUMBER CARD                   ║
+     ╚══════════════════════════════════════════╝ */
+  .plb-card {
+    box-sizing: border-box;
+    width: 132px;
+    height: 132px;
+    padding: 18px;
+    border-radius: 24px;
+    border: 2px solid var(--color-primary-400);
+    /* Opaque base matches .cfg-body so connector lines under the column cannot show through */
+    background-color: #1e293b;
+    background-image: linear-gradient(
+      rgba(0, 135, 0, 0.14),
+      rgba(0, 135, 0, 0.14)
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 4px 24px rgba(0, 135, 0, 0.1);
+  }
+
+  :global(.dark) .plb-card {
+    background-image: linear-gradient(
+      rgba(0, 135, 0, 0.22),
+      rgba(0, 135, 0, 0.22)
+    );
+    box-shadow: 0 4px 30px rgba(0, 135, 0, 0.15);
+  }
+
+  :global(.plb-logo) {
+    height: 40px;
+    width: auto;
+    max-width: 100%;
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║           SCAN RINGS                     ║
+     ╚══════════════════════════════════════════╝ */
+  .scan-ring {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .sr-1 {
+    inset: -18px;
+    border: 2px dashed var(--color-primary-400);
+  }
+
+  .sr-2 {
+    inset: -34px;
+    border: 1px solid var(--color-primary-400);
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║           CONNECTORS                     ║
+     ╚══════════════════════════════════════════╝ */
+  .hiw-conn {
+    position: relative;
+    flex-shrink: 0;
+    z-index: 0;
+  }
+
+  .conn-inner {
+    position: relative;
+    width: 100%;
+  }
+
+  .conn-track {
+    border-radius: 1px;
+    background: linear-gradient(
+      to right,
+      var(--color-primary-600),
+      var(--color-primary-400)
+    );
+  }
+
+  .conn-glow {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-primary-400);
+    box-shadow: 0 0 14px 4px rgba(0, 135, 0, 0.4);
+    opacity: 0;
+  }
+
+  /* Desktop: line lives only in the connector column (no overlap onto cards or Plumber) */
+  @media (min-width: 768px) {
+    .hiw-conn {
+      flex: 1 1 0;
+      min-width: clamp(1.25rem, 3vw, 3rem);
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      /* Match column order: number, caption, then .s-mid (card band) */
+      padding-top: calc(var(--hiw-num-stack) + var(--hiw-caption-block));
+      padding-bottom: 0;
+      z-index: -1;
+    }
+
+    .conn-inner {
+      flex: 1 1 auto;
+      min-height: 0;
+      min-width: 0;
+      width: 100%;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .hiw-conn.c1 .conn-track {
+      position: absolute;
+      left: calc(0px - var(--hiw-ext-to-card));
+      right: calc(0px - var(--hiw-ext-to-plumber));
+      top: 50%;
+      margin-top: -1px;
+      height: 2px;
+      width: auto;
+      box-sizing: border-box;
+      transform-origin: left center;
+      transform: scaleX(0);
+    }
+
+    .hiw-conn.c2 .conn-track {
+      position: absolute;
+      left: calc(0px - var(--hiw-ext-to-plumber));
+      right: calc(0px - var(--hiw-ext-to-card));
+      top: 50%;
+      margin-top: -1px;
+      height: 2px;
+      width: auto;
+      box-sizing: border-box;
+      transform-origin: left center;
+      transform: scaleX(0);
+    }
+
+    /*
+     * Particle uses the same extents as .conn-track (-5px centers the 10px glow on the stroke).
+     */
+    .hiw-conn.c1 {
+      --hiw-part-h-start: calc(0px - var(--hiw-ext-to-card) - 5px);
+      --hiw-part-h-end: calc(100% + var(--hiw-ext-to-plumber) - 5px);
+    }
+
+    .hiw-conn.c2 {
+      --hiw-part-h-start: calc(0px - var(--hiw-ext-to-plumber) - 5px);
+      --hiw-part-h-end: calc(100% + var(--hiw-ext-to-card) - 5px);
+    }
+
+    .conn-glow {
+      top: 50%;
+      margin-top: -5px;
+      left: -5px;
+    }
+  }
+
+  /* Mobile: vertical connectors */
+  @media (max-width: 767px) {
+    .hiw-conn {
+      height: 56px;
+      display: flex;
+      justify-content: center;
+      margin-block: 2px;
+    }
+
+    .conn-inner {
+      height: 100%;
+      width: 2px;
+      position: relative;
+    }
+
+    .conn-track {
+      position: absolute;
+      left: 0;
+      top: -14px;
+      width: 2px;
+      height: calc(100% + 28px);
+      background: linear-gradient(
+        to bottom,
+        var(--color-primary-600),
+        var(--color-primary-400)
+      );
+      transform-origin: top center;
+      transform: scaleY(0);
+    }
+
+    .conn-glow {
+      left: 50%;
+      margin-left: -5px;
+      top: -5px;
+    }
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║           KEYFRAMES                      ║
+     ╚══════════════════════════════════════════╝ */
+  @keyframes hiw-appear {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes hiw-num-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0);
+    }
+    65% {
+      transform: scale(1.2);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes hiw-pill-in {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes hiw-draw-h {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes hiw-draw-v {
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes hiw-particle-h {
+    0% {
+      left: -5px;
+      opacity: 0;
+    }
+    12% {
+      opacity: 1;
+    }
+    88% {
+      opacity: 1;
+    }
+    100% {
+      left: calc(100% - 5px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes hiw-particle-h-ext {
+    0% {
+      left: var(--hiw-part-h-start, -5px);
+      opacity: 0;
+    }
+    12% {
+      opacity: 1;
+    }
+    88% {
+      opacity: 1;
+    }
+    100% {
+      left: var(--hiw-part-h-end, calc(100% - 5px));
+      opacity: 0;
+    }
+  }
+
+  @keyframes hiw-particle-v {
+    0% {
+      top: -5px;
+      opacity: 0;
+    }
+    12% {
+      opacity: 1;
+    }
+    88% {
+      opacity: 1;
+    }
+    100% {
+      top: calc(100% - 5px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes hiw-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes hiw-ring-in {
+    to {
+      opacity: 0.45;
+    }
+  }
+
+  @keyframes hiw-glow-warn {
+    0%,
+    100% {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25),
+        0 0 20px rgba(245, 158, 11, 0.06);
+    }
+    50% {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25),
+        0 0 40px rgba(245, 158, 11, 0.14);
+    }
+  }
+
+  @keyframes hiw-glow-ok {
+    0%,
+    100% {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25),
+        0 0 20px rgba(34, 197, 94, 0.06);
+    }
+    50% {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25),
+        0 0 40px rgba(34, 197, 94, 0.14);
+    }
+  }
+
+  @keyframes hiw-badge-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.6) translateY(4px);
+    }
+    60% {
+      transform: scale(1.12) translateY(-1px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║    ANIMATION TRIGGERS ([data-animated])  ║
+     ╚══════════════════════════════════════════╝ */
+
+  /* Step 1 — 0s */
+  .hiw-anim[data-animated] .s-before {
+    animation: hiw-appear 0.6s ease forwards;
+  }
+  .hiw-anim[data-animated] .s-before .s-num > span {
+    animation: hiw-num-pop 0.4s ease 0.15s forwards;
+  }
+  .hiw-anim[data-animated] .s-before .pill-seq-1 .pill {
+    animation: hiw-pill-in 0.3s ease 0.32s forwards;
+  }
+  .hiw-anim[data-animated] .s-before .pill-seq-2 .pill {
+    animation: hiw-pill-in 0.3s ease 0.42s forwards;
+  }
+  .hiw-anim[data-animated] .s-before .pill-seq-3 .pill {
+    animation: hiw-pill-in 0.3s ease 0.52s forwards;
+  }
+  .hiw-anim[data-animated] .s-before .pill-seq-4 .pill {
+    animation: hiw-pill-in 0.3s ease 0.62s forwards;
+  }
+  .hiw-anim[data-animated] .s-before .pill-seq-5 .pill {
+    animation: hiw-pill-in 0.3s ease 0.72s forwards;
+  }
+  .hiw-anim[data-animated] .s-before .pill-seq-6 .pill {
+    animation: hiw-pill-in 0.3s ease 0.82s forwards;
+  }
+  .hiw-anim[data-animated] .cfg-warn {
+    animation: hiw-glow-warn 3s ease-in-out 0.8s infinite;
+  }
+
+  /* Mobile: display:contents on .hiw-step; animate inner blocks instead of the wrapper */
+  @media (max-width: 767px) {
+    .hiw-anim[data-animated] .s-before {
+      animation: none;
+    }
+    .hiw-anim[data-animated] .s-before .s-mid,
+    .hiw-anim[data-animated] .s-before .s-caption {
+      animation: hiw-appear 0.6s ease forwards;
+    }
+
+    .hiw-anim[data-animated] .s-plumber {
+      animation: none;
+    }
+    .hiw-anim[data-animated] .s-plumber .s-mid {
+      animation: hiw-appear 0.6s ease 1.3s forwards;
+    }
+    .hiw-anim[data-animated][data-variant="platform"] .s-plumber .s-caption {
+      animation: hiw-appear 0.6s ease 1.3s forwards;
+    }
+
+    .hiw-anim[data-animated] .s-after {
+      animation: none;
+    }
+    .hiw-anim[data-animated] .s-after .s-mid,
+    .hiw-anim[data-animated] .s-after .s-caption {
+      animation: hiw-appear 0.6s ease 2.6s forwards;
+    }
+  }
+
+  /* Connector 1 — desktop */
+  @media (min-width: 768px) {
+    .hiw-anim[data-animated] .c1 .conn-track {
+      animation: hiw-draw-h 0.35s ease 0.85s forwards;
+    }
+    .hiw-anim[data-animated] .c1 .conn-glow {
+      animation: hiw-particle-h-ext 0.5s ease 0.95s forwards;
+    }
+    .hiw-anim[data-animated] .hiw-num-seg-12 {
+      animation: hiw-draw-h 0.35s ease 0.85s forwards;
+    }
+  }
+  /* Connector 1 — mobile */
+  @media (max-width: 767px) {
+    .hiw-anim[data-animated] .c1 .conn-track {
+      animation: hiw-draw-v 0.35s ease 0.85s forwards;
+    }
+    .hiw-anim[data-animated] .c1 .conn-glow {
+      animation: hiw-particle-v 0.5s ease 0.95s forwards;
+    }
+  }
+
+  /* Step 2 — ~1.3s */
+  .hiw-anim[data-animated] .s-plumber {
+    animation: hiw-appear 0.6s ease 1.3s forwards;
+  }
+  .hiw-anim[data-animated] .s-plumber .s-num > span {
+    animation: hiw-num-pop 0.4s ease 1.45s forwards;
+  }
+  .hiw-anim[data-animated] .sr-1 {
+    animation: hiw-ring-in 0.3s ease 1.7s forwards,
+      hiw-spin 3s linear 1.7s infinite;
+  }
+  .hiw-anim[data-animated] .sr-2 {
+    animation: hiw-ring-in 0.3s ease 1.9s forwards,
+      hiw-spin 5s linear 1.9s infinite reverse;
+  }
+
+  /* Connector 2 — desktop */
+  @media (min-width: 768px) {
+    .hiw-anim[data-animated] .c2 .conn-track {
+      animation: hiw-draw-h 0.35s ease 2.2s forwards;
+    }
+    .hiw-anim[data-animated] .c2 .conn-glow {
+      animation: hiw-particle-h-ext 0.5s ease 2.3s forwards;
+    }
+    .hiw-anim[data-animated] .hiw-num-seg-23 {
+      animation: hiw-draw-h 0.35s ease 2.2s forwards;
+    }
+  }
+  /* Connector 2 — mobile */
+  @media (max-width: 767px) {
+    .hiw-anim[data-animated] .c2 .conn-track {
+      animation: hiw-draw-v 0.35s ease 2.2s forwards;
+    }
+    .hiw-anim[data-animated] .c2 .conn-glow {
+      animation: hiw-particle-v 0.5s ease 2.3s forwards;
+    }
+  }
+
+  /* Step 3 — ~2.6s */
+  .hiw-anim[data-animated] .s-after {
+    animation: hiw-appear 0.6s ease 2.6s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .s-num > span {
+    animation: hiw-num-pop 0.4s ease 2.75s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .pill-seq-1 .pill {
+    animation: hiw-badge-pop 0.4s ease 2.92s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .pill-seq-2 .pill {
+    animation: hiw-badge-pop 0.4s ease 3.02s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .pill-seq-3 .pill {
+    animation: hiw-badge-pop 0.4s ease 3.12s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .pill-seq-4 .pill {
+    animation: hiw-badge-pop 0.4s ease 3.22s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .pill-seq-5 .pill {
+    animation: hiw-badge-pop 0.4s ease 3.32s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .pill-seq-6 .pill {
+    animation: hiw-badge-pop 0.4s ease 3.42s forwards;
+  }
+  .hiw-anim[data-animated] .cfg-ok {
+    animation: hiw-glow-ok 3s ease-in-out 3.3s infinite;
+  }
+
+  /* Platform dashboard: animate the containers themselves (no .pill child) */
+  .hiw-anim[data-animated] .s-after .dash-chart.pill-seq-1 {
+    animation: hiw-pill-in 0.4s ease 2.92s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .dash-stats.pill-seq-2 {
+    animation: hiw-pill-in 0.4s ease 3.02s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .dash-row.pill-seq-3 {
+    animation: hiw-pill-in 0.3s ease 3.12s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .dash-row.pill-seq-4 {
+    animation: hiw-pill-in 0.3s ease 3.22s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .dash-row.pill-seq-5 {
+    animation: hiw-pill-in 0.3s ease 3.32s forwards;
+  }
+  .hiw-anim[data-animated] .s-after .dash-row.pill-seq-6 {
+    animation: hiw-pill-in 0.3s ease 3.42s forwards;
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║         REDUCED MOTION                   ║
+     ╚══════════════════════════════════════════╝ */
+  @media (prefers-reduced-motion: reduce) {
+    .hiw-step {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    @media (max-width: 767px) {
+      .hiw-anim:not([data-animated]) .s-before .s-mid,
+      .hiw-anim:not([data-animated]) .s-before .s-caption,
+      .hiw-anim:not([data-animated]) .s-plumber .s-mid,
+      .hiw-anim:not([data-animated]) .s-plumber .s-caption,
+      .hiw-anim:not([data-animated]) .s-after .s-mid,
+      .hiw-anim:not([data-animated]) .s-after .s-caption {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
+    .s-num > span {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .pill {
+      opacity: 1 !important;
+    }
+    .dash-chart,
+    .dash-stats,
+    .dash-row {
+      opacity: 1 !important;
+    }
+    .conn-track {
+      transform: none !important;
+    }
+    .hiw-num-seg {
+      transform: scaleX(1) !important;
+    }
+    .scan-ring {
+      opacity: 0.35 !important;
+    }
+    .hiw-anim[data-animated] .sr-1,
+    .hiw-anim[data-animated] .sr-2 {
+      animation: none !important;
+      opacity: 0.35;
+    }
+    .cfg-warn,
+    .cfg-ok {
+      animation: none !important;
+    }
+  }
+</style>
+
+<script>
+  function initHiwAnimation() {
+    document.querySelectorAll<HTMLElement>(".hiw-anim").forEach((el) => {
+      if (el.hasAttribute("data-animated")) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              el.setAttribute("data-animated", "");
+              observer.unobserve(el);
+            }
+          }
+        },
+        { threshold: 0.25 },
+      );
+
+      observer.observe(el);
+    });
+  }
+
+  initHiwAnimation();
+  document.addEventListener("astro:after-swap", initHiwAnimation);
+</script>

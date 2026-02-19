@@ -3,8 +3,10 @@
  * * These are larger cards with icons, titles, and text
  * Recommend using 3 cards in a row
  *
+ * variant "howItWorks" pairs with BeforeAfterPipeline (editor-like panels, green accents).
+ *
  * ! If you can an error for an icon like "Error: Not Found: "calendar-check" in pack "tabler",
- * ! You can copy to actual SVG into src/icons and name it however and use similar to below
+ * ! you can copy the SVG into src/icons and name it as needed
  */
 
 import { Icon } from "astro-icon/components";
@@ -13,43 +15,153 @@ interface Props {
   icon: string;
   title: string;
   text?: string;
-  [key: string]: any; // Allow any additional props like data-mos attributes
+  /** Matches the CI diagram cards in PlumberFeatures */
+  variant?: "default" | "howItWorks";
+  /** Smaller padding, icons, and type (e.g. four cards in one row) */
+  compact?: boolean;
+  /** Stronger border and glow (e.g. CTA card linking to full docs) */
+  highlight?: boolean;
+  /** When set, the whole card is a link */
+  href?: string;
+  [key: string]: any;
 }
 
-const { icon, title, text, ...rest } = Astro.props as Props;
+const {
+  icon,
+  title,
+  text,
+  variant = "default",
+  compact = false,
+  highlight = false,
+  href,
+  ...rest
+} = Astro.props as Props;
+const isHiw = variant === "howItWorks";
+const Tag = href ? "a" : "div";
+const isActionCard = Boolean(href && highlight);
 ---
 
-<div
-  class="group border-base-400 hover:border-primary-300 dark:border-base-600/60 dark:bg-base-900 dark:hover:border-base-500 relative flex flex-col gap-2 overflow-hidden rounded-2xl border bg-transparent px-4 py-8 text-center transition duration-500"
+<Tag
+  {...(href ? { href } : {})}
+  class:list={[
+    "group relative flex flex-col overflow-hidden text-center transition duration-500",
+    href && "cursor-pointer no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 dark:focus-visible:ring-primary-400 dark:focus-visible:ring-offset-base-900",
+    isActionCard &&
+      "hover:border-primary-400 hover:shadow-[0_0_40px_-6px_rgba(34,197,94,0.5)] dark:hover:border-primary-300 dark:hover:bg-primary-500/[0.07] dark:hover:shadow-[0_0_44px_-4px_rgba(34,197,94,0.45)]",
+    compact ? "gap-1.5 px-3 py-5 sm:px-3.5 sm:py-6" : "gap-2 px-4 py-8",
+    highlight &&
+      "ring-2 ring-primary-500/45 shadow-[0_0_28px_-8px_rgba(34,197,94,0.45)] dark:ring-primary-400/55 dark:shadow-[0_0_32px_-6px_rgba(34,197,94,0.35)]",
+    isHiw
+      ? [
+          "rounded-xl border border-slate-400/90 bg-slate-50/70 hover:border-primary-400/45 dark:border-slate-600/45 dark:bg-[#1e293b]/60 dark:shadow-[inset_0_1px_0_0_rgba(34,197,94,0.12)] dark:hover:border-primary-500/40 dark:hover:shadow-[inset_0_1px_0_0_rgba(34,197,94,0.2)]",
+          highlight &&
+            "border-primary-400/70 dark:border-primary-500/50 dark:shadow-[inset_0_1px_0_0_rgba(34,197,94,0.22),0_0_28px_-8px_rgba(34,197,94,0.4)]",
+        ]
+      : [
+          "rounded-2xl border border-base-400 bg-transparent hover:border-primary-300 dark:border-base-600/60 dark:bg-base-900 dark:hover:border-base-500",
+          highlight &&
+            "border-primary-500/50 hover:border-primary-400 dark:border-primary-500/45 dark:hover:border-primary-400/80",
+        ],
+  ]}
   {...rest}
 >
-  <!-- behind icon glow -->
-  <div
-    class="bg-primary-400 dark:bg-primary-500 absolute inset-0 m-auto h-[15%] w-[15%] -translate-y-[70%] rounded-full blur-2xl dark:h-[26%] dark:w-[26%]"
-    aria-hidden="true"
-  >
-  </div>
-
-  <div class="relative flex justify-center">
+  <!-- Glow is scoped to the icon stack so it sits behind the icon, not the vertical card center -->
+  <div class="relative mx-auto flex w-fit flex-col items-center">
     <div
-      class="border-primary-300/10 bg-base-100/10 dark:bg-base-800/10 flex rounded-full border p-3"
+      class:list={[
+        "pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full",
+        isHiw
+          ? compact
+            ? "h-11 w-11 bg-primary-500/30 blur-lg dark:h-14 dark:w-14 dark:bg-primary-400/25 dark:blur-xl"
+            : "h-16 w-16 bg-primary-500/25 blur-xl dark:h-[4.5rem] dark:w-[4.5rem] dark:bg-primary-400/20 dark:blur-2xl"
+          : compact
+            ? highlight
+              ? "h-14 w-14 bg-primary-400/90 blur-xl dark:h-16 dark:w-16 dark:bg-primary-400/80 dark:blur-2xl"
+              : "h-12 w-12 bg-primary-400/75 blur-lg dark:h-14 dark:w-14 dark:bg-primary-500/85 dark:blur-xl"
+            : "h-[4.5rem] w-[4.5rem] bg-primary-400/85 blur-2xl dark:h-24 dark:w-24 dark:bg-primary-500/80 dark:blur-3xl",
+      ]}
+      aria-hidden="true"
     >
-      <div class="border-primary-300/30 bg-base-100/40 dark:bg-base-800/40 rounded-full border p-3">
+    </div>
+    <div class="relative z-[1] flex justify-center">
+      <div
+        class:list={[
+          "flex rounded-full border",
+          compact ? "p-2" : "p-3",
+          isHiw
+            ? "border-primary-400/15 bg-slate-200/30 dark:border-primary-500/20 dark:bg-black/25"
+            : "border-primary-300/10 bg-base-100/10 dark:border-primary-300/10 dark:bg-base-800/10",
+        ]}
+      >
         <div
-          class="border-primary-300/50 bg-base-100/70 dark:bg-base-800/70 rounded-full border p-3"
+          class:list={[
+            "rounded-full border",
+            compact ? "p-2" : "p-3",
+            isHiw
+              ? "border-primary-400/30 bg-slate-100/50 dark:border-primary-500/35 dark:bg-slate-900/40"
+              : "border-primary-300/30 bg-base-100/40 dark:border-primary-300/30 dark:bg-base-800/40",
+          ]}
         >
-          <Icon
-            name={icon}
-            class="text-primary-600 dark:text-primary-400 h-6 w-6 sm:h-7 sm:w-7"
-            aria-hidden="true"
-          />
+          <div
+            class:list={[
+              "rounded-full border",
+              compact ? "p-2" : "p-3",
+              isHiw
+                ? "border-primary-500/45 bg-white/80 dark:border-primary-400/50 dark:bg-[#0f172a]/90"
+                : "border-primary-300/50 bg-base-100/70 dark:border-primary-300/50 dark:bg-base-800/70",
+            ]}
+          >
+            <Icon
+              name={icon}
+              class:list={[
+                "text-primary-600 dark:text-primary-400",
+                compact ? "h-5 w-5 sm:h-5 sm:w-5" : "h-6 w-6 sm:h-7 sm:w-7",
+              ]}
+              aria-hidden="true"
+            />
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <h3 class="h3 text-base-900 dark:text-base-100 inline">{title}</h3>
-  <p class="text-base-700 dark:text-base-300 opacity-90 dark:opacity-80">
+  <h3
+    class:list={[
+      "text-base-900 dark:text-base-100 font-semibold tracking-tight",
+      isActionCard
+        ? "inline-flex items-center justify-center gap-1.5 transition-colors group-hover:text-primary-600 dark:group-hover:text-primary-400"
+        : "inline",
+      compact ? "text-base sm:text-[1.05rem]" : "h3",
+    ]}
+  >
+    {title}
+    {
+      isActionCard && (
+        <Icon
+          name="tabler/arrow-narrow-right"
+          class="text-primary-600 dark:text-primary-400 h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1"
+          aria-hidden="true"
+        />
+      )
+    }
+  </h3>
+  <p
+    class:list={[
+      compact ? "text-sm leading-snug" : "",
+      isHiw
+        ? "text-base-700 dark:text-slate-300/95 opacity-95 dark:opacity-90"
+        : "text-base-700 opacity-90 dark:text-base-300 dark:opacity-80",
+    ]}
+  >
     {Astro.slots.has("description") ? <slot name="description" /> : text}
   </p>
-</div>
+  {
+    isActionCard && (
+      <span
+        class="text-primary-600 dark:text-primary-400 mt-1 block text-xs font-medium underline-offset-2 group-hover:underline sm:text-sm"
+      >
+        Open the controls guide
+      </span>
+    )
+  }
+</Tag>
