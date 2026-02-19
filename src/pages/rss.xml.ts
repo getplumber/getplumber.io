@@ -26,13 +26,15 @@ export async function GET(context) {
     // Pull in your project "site" from the endpoint context
     // https://docs.astro.build/en/reference/api-reference/#contextsite
     site: context.site,
+    // Match trailingSlash: "never" so feed URLs match project config
+    trailingSlash: false,
     // media is needed for blog posts. recommended to add atom support
     xmlns: {
       media: "http://search.yahoo.com/mrss/",
       atom: "http://www.w3.org/2005/Atom",
     },
     // add atom:link to be compatible with atom
-    customData: `<atom:link href="${context.site}rss.xml" rel="self" type="application/rss+xml" />`,
+    customData: `<atom:link href="${new URL("rss.xml", context.site).toString()}" rel="self" type="application/rss+xml" />`,
     // items (each post)
     items: posts.map((post) => ({
       title: post.data.title,
