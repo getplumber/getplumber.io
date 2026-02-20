@@ -47,7 +47,7 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 
    ```yaml
    include:
-     - component: gitlab.com/getplumber/plumber/plumber@v0.1.26
+     - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
    ```
 
    Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
@@ -128,13 +128,35 @@ Plumber includes **8 compliance controls**. Each can be enabled/disabled and cus
   See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for all control options.
 </Aside>
 
+### Selective Control Execution
+
+Run or skip specific controls using their names from the table above. Useful for targeted CI checks or skipping controls that aren't relevant.
+
+```yaml
+# Run only image-related controls
+include:
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
+    inputs:
+      controls: containerImageMustNotUseForbiddenTags,containerImageMustComeFromAuthorizedSources
+```
+
+```yaml
+# Run everything except branch protection
+include:
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
+    inputs:
+      skip_controls: branchMustBeProtected
+```
+
+Controls not selected are reported as **skipped** in the output. The `controls` and `skip_controls` inputs are mutually exclusive.
+
 ## Customize
 
 Override any input to fit your needs:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.26
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
     inputs:
       # Target (defaults to current project)
       server_url: https://gitlab.example.com # Self-hosted GitLab
@@ -178,6 +200,8 @@ include:
 | `verbose` | `false` | Enable debug output for troubleshooting |
 | `mr_comment` | `false` | Post/update a compliance comment on the merge request (requires `api` scope) |
 | `badge` | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
+| `controls` | - | Run only listed controls (comma-separated). Cannot be used with `skip_controls` |
+| `skip_controls` | - | Skip listed controls (comma-separated). Cannot be used with `controls` |
 
 ## Configuration
 
@@ -221,7 +245,7 @@ Automatically post compliance summaries on merge requests to catch issues before
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.26
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
     inputs:
       mr_comment: true  # Requires api scope on token
 ```
@@ -244,7 +268,7 @@ Display a live compliance badge on your project's overview page.
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.26
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
     inputs:
       badge: true  # Requires api scope on token
 ```
