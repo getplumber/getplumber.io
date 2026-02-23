@@ -9,18 +9,20 @@ const localizedPaths = Object.fromEntries(
     locales.map(async (lang) => [lang, await getLocalizedPathname(lang, Astro.url)]),
   ),
 );
+// Use canonical domain (Astro.site) for hreflang, not request origin, for SEO consistency
+const canonicalOrigin = new URL(Astro.site).origin;
 ---
 
 {
   locales.length > 1 &&
     locales.map((lang) => (
       <>
-        <link rel="alternate" hreflang={lang} href={Astro.url.origin + localizedPaths[lang]} />
+        <link rel="alternate" hreflang={lang} href={canonicalOrigin + localizedPaths[lang]} />
         {lang === defaultLocale && (
           <link
             rel="alternate"
             hreflang="x-default"
-            href={Astro.url.origin + localizedPaths[defaultLocale]}
+            href={canonicalOrigin + localizedPaths[defaultLocale]}
           />
         )}
       </>
