@@ -24,20 +24,27 @@ Organizations today run hundreds or thousands of CI/CD pipelines. These pipeline
 
 ## What Does CI/CD Compliance Mean?
 
-**CI/CD compliance** means that your pipelines (the automation that builds, tests, and deploys your software) meet defined security, quality, and governance requirements. In practice, it answers three questions:
+**CI/CD compliance** means that your pipelines (the automation that builds, tests, and deploys your software) meet defined security, quality, and governance requirements. In practice, it answers four questions:
 
 <Steps class="my-6">
 
-1. ### Do your pipelines follow your rules?
-   (e.g. no hardcoded secrets, trusted images only, required security checks)
-2. ### Can you prove it?
-   (evidence for auditors, regulators, or internal governance)
-3. ### Is it sustainable?
-   (continuous verification, not a one-time snapshot)
+1. ### What requirements must we follow?
+   *(no hardcoded secrets, trusted images only, required security checks)*
+2. ### Are we actually following those requirements?
+   *(automated controls prevent bypassing required checks)*   
+3. ### Can we prove it?
+   *(evidence for auditors, regulators, or internal governance)*
+4. ### Is it sustainable over time?
+   *(continuous verification, not a one-time snapshot)*
 
 </Steps>
 
-Compliance is not about adding bureaucracy. It is about ensuring that the systems that deliver your software are secure, auditable, and aligned with your risk posture. When pipelines are compliant, you reduce the chance of supply chain attacks, data leaks, and regulatory penalties.
+CI/CD compliance is not paperwork. It’s not a one-time manual checklist either.
+It’s about ensuring that the systems delivering your software are secure, auditable, and aligned with your organization’s risk posture.
+
+When your CI/CD pipelines are compliant, you significantly reduce the risk of supply chain attacks, data leaks, misconfigurations, and regulatory penalties. 
+
+CI/CD Compliance becomes part of how software is delivered — not an afterthought.
 
 ## Why CI/CD Pipelines Need to Be Compliant Now
 
@@ -47,10 +54,31 @@ Three converging forces make CI/CD compliance urgent today.
 
 1. ### Pipelines are a prime attack target
    Attackers have shifted focus to the software supply chain. Compromising one pipeline can expose code, credentials, and production access across many projects. Incidents like **TJ-Actions** (23,000 repos, March 2025), **Shai-Hulud** (tens of thousands of repos, late 2025), and **SolarWinds** ($12M average impact per victim) show that pipelines are no longer a niche concern.
+   
+   The risk is not whether a supply chain attack will occur. It’s whether you will detect it, and how long it will take you to realize it.
 2. ### Regulators are asking
-   ISO 27001, NIS2, DORA, and CRA require organizations to secure their information systems. Auditors now ask: *How do you demonstrate that your pipelines are compliant? How do you detect drift or compromise? How do you prove your controls are effective over time?* CI/CD is part of that landscape.
-3. ### The blind spot is costly
-   Manual audits take roughly 1.5 hours per pipeline per month. For 100 pipelines, that can mean ~1.5 FTE (around €120,000/year). Non-compliance can cost 2–2.5% of revenue, plus delivery stoppage, reputation damage, and fines. The question is no longer *if* a supply chain attack will happen. It is whether you will notice when it does.
+   Regulators and auditors are no longer focusing only on the software you ship.
+   They are now examining the systems that build, test, and deploy it : **your software supply chain.**
+   Frameworks like ISO 27001, NIS2, DORA, and the Cyber Resilience Act (CRA) require organizations to secure their information systems. CI/CD pipelines are now part of that scope.
+
+   To protect your organization, regulators now expect clear answers to questions such as:
+
+   * How many CI/CD pipelines run every day?
+   * Are they all secure and compliant?
+   * Can you prove it?
+   * How do you detect drift or compromise?
+
+   CI/CD is no longer just an engineering topic. **It is a governance and risk issue.**
+   
+3. ### The hidden cost of this blind spot
+   Manual audits don’t scale. On average, they take around 1 hour per pipeline per month.
+   For 100 pipelines, that represents roughly the workload of more than one full-time employee — easily over €100,000 per year in staffing costs alone, depending on the country.
+
+   And in many organizations, even when monitoring exists, it often lives in silos, built ad hoc by individual teams, outside centralized governance. In other words: shadow IT.
+
+   That’s only the visible cost.
+
+   Non-compliance can represent 2–2.5% of annual revenue, not counting delivery stoppages, reputational damage, regulatory fines, or incident response expenses.
 
 </Steps>
 
@@ -60,39 +88,59 @@ The question is no longer *if* a supply chain attack will happen. It is whether 
 
 ## Why CI/CD Compliance Is a Blind Spot
 
-CI/CD pipelines automate integration, testing, packaging, and deployment. They are powerful automation tools, but they are also code. Like any code, they can be compromised, misconfigured, or neglected.
+CI/CD pipelines automate integration, testing, packaging, and deployment.
+They are powerful automation systems with extensive privileges — often able to access source code, secrets, infrastructure, and production environments.
 
-Three factors explain why pipelines often escape proper governance:
+But they are also code. And like any code, they can be compromised, misconfigured, or neglected.
+
+Three main reasons explain why pipelines often escape proper governance:
 
 <Steps class="my-6">
 
-1. ### Elementary measures are not enforced or verified
-   Basic security controls exist on paper but are rarely checked systematically.
-2. ### Nobody verifies that pipeline code meets requirements
-   Dev and DevOps teams own pipelines, but security and compliance teams rarely audit them.
-3. ### CI/CD is seen as a technical topic, not a security concern
-   Pipelines are not yet recognized as a full attack surface in many organizations.
+1. ### Controls exist on paper, but are not continuously verified
+   Security requirements may be defined, but they are rarely monitored systematically.
+   Pipelines evolve, configurations drift, and compliance becomes assumed rather than demonstrated.
+2. ### Pipeline code is rarely audited against formal requirements
+   Dev and DevOps teams build and maintain pipelines, but security and compliance teams often lack visibility.
+   As a result, no one consistently checks whether pipeline logic actually meets defined standards.
+3. ### CI/CD is seen as a technical topic, not as a high-privilege attack surface or a security concern
+   Pipelines automate builds and deployments, but they also hold powerful access to source code, secrets, and production environments.
+   Many organizations still underestimate their security impact.
 
 </Steps>
 
+<Aside variant="caution" title="Key takeaway">
+
+A CI/CD pipeline is one of the most privileged systems in your organization:
+
+1. It continuously reads your application code  
+2. It has access to your most sensitive secrets  
+3. It has the authority to write to production — automatically and at scale
+
+</Aside>
+
 ## A Four-Step Compliance Framework
 
-To ensure CI/CD compliance, organizations must:
+Ensuring CI/CD compliance typically follows four continuous steps:
+
 
 <Steps class="my-6">
 
 1. ### Define
-   requirements (security rules, quality, compliance)
+   requirements (security rules, quality, compliance and governance standards).
+   The [OWASP Top 10 CI/CD Security Risks](https://owasp.org/www-project-top-10-ci-cd-security-risks/) provide a useful reference to start.
+
 2. ### Verify
-   posture (analyze pipelines, detect violations)
-3. ### Correct
-   issues (remediate findings)
+   posture (analyze pipelines, detect violations, and identify configuration drift before it becomes risk)
+3. ### Remediate
+   issues (close gaps, and realign pipelines with defined requirements)
 4. ### Prove
-   compliance (audit-ready evidence, continuous monitoring)
+   compliance (audit-ready evidence, continuous monitoring to demonstrate compliance over time.)
 
 </Steps>
 
-Automation is essential. The guidelines below form a practical baseline based on analysis of hundreds of thousands of pipelines. For deeper technical mapping, the [OWASP Top 10 CI/CD Security Risks](https://owasp.org/www-project-top-10-ci-cd-security-risks/) provide a useful reference.
+
+
 
 ## Control Categories and Guidelines
 
