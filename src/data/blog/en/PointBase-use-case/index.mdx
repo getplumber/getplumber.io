@@ -1,5 +1,5 @@
 ---
-title: "Point Base Customer Story »"
+title: "Point Base « Customer Story »"
 description: "Point Base: Securing 1k+ Monthly Pipelines & Cutting CI/CD Overhead with Plumber"
 draft: false
 authors:
@@ -11,10 +11,21 @@ categories:
   - "Plumber"
 ---
 
-<div style="max-width: 300px;">
 
-![Project badge showing PointBase and Plumber logos](./pointbase-plumber.png)
+import pointbasePlumberDark from './pointbase-plumber-dark.png';
+import pointbasePlumberLight from './pointbase-plumber-light.png';
 
+<div style={{ maxWidth: "300px" }}>
+  <img
+    src={pointbasePlumberDark.src}
+    alt="Project badge showing PointBase and Plumber logos"
+    className="hidden dark:block w-full"
+  />
+  <img
+    src={pointbasePlumberLight.src}
+    alt="Project badge showing PointBase and Plumber logos"
+    className="block dark:hidden w-full"
+  />
 </div>
 
 
@@ -30,13 +41,23 @@ categories:
 
 ## Key Impact Metrics
 
-| 🚀 **100% CI/CD Coverage** | ⏱️ **95% Faster Reporting** | 🛡️ **Zero CI/CD Drift** |
-| :---: | :---: | :---: |
-| Every strategic pipeline is under continuous monitoring. | Compliance reporting dropped from days to minutes. | 100% detection of unauthorized pipeline changes. |
-
-
-<br/>
-
+<div className="not-content grid gap-4 sm:grid-cols-3 sm:gap-6 my-6">
+  <div className="border-base-300 dark:border-base-600 rounded-xl border bg-base-100 dark:bg-base-800/50 p-6 text-center">
+    <p className="text-2xl mb-2">🚀</p>
+    <p className="font-semibold text-foreground">100% CI/CD Coverage</p>
+    <p className="mt-2 text-sm text-foreground/80">Every strategic pipeline is under continuous monitoring.</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-xl border bg-base-100 dark:bg-base-800/50 p-6 text-center">
+    <p className="text-2xl mb-2">⏱️</p>
+    <p className="font-semibold text-foreground">95% Faster Reporting</p>
+    <p className="mt-2 text-sm text-foreground/80">Compliance reporting dropped from days to minutes.</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-xl border bg-base-100 dark:bg-base-800/50 p-6 text-center">
+    <p className="text-2xl mb-2">🛡️</p>
+    <p className="font-semibold text-foreground">Zero CI/CD Drift</p>
+    <p className="mt-2 text-sm text-foreground/80">100% detection of unauthorized pipeline changes.</p>
+  </div>
+</div>
 
 ## Executive Summary
 **[Point Base](https://www.pointbase.fr/)** is a premier French tech consultancy specializing in DevSecOps. They are the "hands-on" experts that organizations trust to build secure, automated infrastructures for high-stakes environments.
@@ -48,13 +69,14 @@ Point Base excels where standard solutions fall short, focusing on:
 - **Developer Experience**: Removing security friction to maintain velocity.
 
 
-<Aside variant="tip">
-
- « We are both a consulting firm and a software publisher. With Plumber, we empower our clients to achieve 'Security by Design' while enabling our developers to build compliant pipelines effortlessly. 
- It transforms compliance from a manual burden into an automated, auditable process.»
-
-**Nicolas P.** -- COO at Point Base
-</Aside>
+<blockquote className="not-content py-2 bg-primary-400/10 rounded-r border-primary-600 dark:border-primary-400 my-6 border-l-4 pl-6 py-2">
+  <p className="italic text-base-100">
+    « We are both a consulting firm and a software publisher. With Plumber, we empower our clients to achieve 'Security by Design' while enabling our developers to build compliant pipelines effortlessly. It transforms compliance from a manual burden into an automated, auditable process. »
+  </p>
+  <footer className="mt-4 not-italic text-sm font-medium text-foreground">
+    Nicolas P., COO at Point Base
+  </footer>
+</blockquote>
 
 
 
@@ -99,11 +121,9 @@ Point Base has replaced manual policing with **continuous, invisible governance*
 <br/>
 
 
-<Aside variant="tip">
+<Aside variant="tip" title="Reach CI/CD compliance without effort">
 
-**End the CI/CD compliance burden.**
-
-👉  [Try the Plumber immersive experience (No install, no email, just value)](https://getplumber.io/platform/)
+👉  [Try the Plumber immersive experience](https://getplumber.io/platform/)
 
 </Aside>
 
