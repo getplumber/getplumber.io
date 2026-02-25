@@ -42,11 +42,11 @@ This is useful for local testing, CI/CD integration, or automated compliance che
     **Install a specific version:**
 
     ```bash
-    brew install getplumber/plumber/plumber@0.1.44
+    brew install getplumber/plumber/plumber@0.1.47
     ```
 
     <Aside variant="info">
-      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.1.44/bin/plumber`) or run `brew link plumber@0.1.44` to add it to your PATH.
+      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.1.47/bin/plumber`) or run `brew link plumber@0.1.47` to add it to your PATH.
     </Aside>
   </TabsContent>
 
@@ -200,6 +200,7 @@ plumber analyze [flags]
 | `--badge` | No | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
 | `--skip-controls` | No | - | Skip listed controls (comma-separated). Cannot be used with `--controls` |
+| `--fail-warnings` | No | `false` | Treat configuration warnings (unknown keys) as errors (exit 1) |
 | `--verbose`, `-v` | No | `false` | Enable verbose/debug output |
 
 <Aside variant="info">
@@ -212,6 +213,21 @@ plumber analyze [flags]
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `GITLAB_TOKEN` | Yes | GitLab API token with `read_api` + `read_repository` scopes (from a Maintainer or higher). Use `api` scope instead if `--mr-comment` or `--badge` is enabled. |
+| `PLUMBER_NO_UPDATE_CHECK` | No | Set to any value (e.g., `1`) to disable the automatic version check. |
+
+### Automatic Version Check
+
+When running locally, Plumber checks GitHub for newer releases on every invocation and prints an upgrade notice if one is available. The check runs asynchronously and has a 3-second timeout, so it never slows down the analysis.
+
+The check is **automatically skipped** when:
+- Running in **CI environments** (`CI` or `GITLAB_CI` environment variables are set)
+- Using a **development build** (version is `dev`)
+
+To disable it manually:
+
+```bash
+export PLUMBER_NO_UPDATE_CHECK=1
+```
 
 ### Exit Codes
 
@@ -278,6 +294,43 @@ plumber config view --config custom-plumber.yaml
 
 # View without colors (for piping or scripts)
 plumber config view --no-color
+```
+
+### `plumber config validate`
+
+Validate a configuration file for correctness. Detects unknown control names and sub-keys with typo suggestions using fuzzy matching.
+
+```bash
+plumber config validate [flags]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--config`, `-c` | `.plumber.yaml` | Path to configuration file |
+| `--fail-warnings` | `false` | Treat configuration warnings as errors (exit 1) |
+
+Warnings are printed to stderr so they don't interfere with scripted output. Use `--fail-warnings` to exit with code 1 when warnings are found (useful in CI).
+
+**Examples:**
+
+```bash
+# Validate the default .plumber.yaml
+plumber config validate
+
+# Validate a specific config file
+plumber config validate --config custom-plumber.yaml
+
+# Fail on warnings (for CI pipelines)
+plumber config validate --fail-warnings
+```
+
+**Sample output with typos:**
+
+```
+Configuration validation warnings:
+  - Unknown control in .plumber.yaml: "containerImageMustNotUseForbiddenTag". Did you mean "containerImageMustNotUseForbiddenTags"?
+  - Unknown key "tag" in control "containerImageMustNotUseForbiddenTags". Did you mean "tags"?
+  - Unknown key "allowForcePushes" in control "branchMustBeProtected". Did you mean "allowForcePush"?
 ```
 
 ## Usage Examples
@@ -369,8 +422,8 @@ Plumber includes **8 compliance controls**. Each can be enabled/disabled and cus
 | **Pipeline must not include hardcoded jobs** | Detects jobs defined directly instead of from includes |
 | **Includes must be up to date** | Checks if included templates have newer versions |
 | **Includes must not use forbidden versions** | Prevents mutable version references like `main`, `HEAD` |
-| **Pipeline must include component** | Ensures required CI/CD components are included |
-| **Pipeline must include template** | Ensures required templates are present |
+| **Pipeline must include component** | Ensures required CI/CD components are included; detects overridden jobs |
+| **Pipeline must include template** | Ensures required templates are included; detects overridden jobs |
 
 ### Example Configuration
 
@@ -502,7 +555,7 @@ Or via the GitLab CI component:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
     inputs:
       mr_comment: true  # Requires api scope on token
 ```
@@ -531,7 +584,7 @@ Or via the GitLab CI component:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
     inputs:
       badge: true  # Requires api scope on token
 ```

@@ -47,7 +47,7 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 
    ```yaml
    include:
-     - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
+     - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
    ```
 
    Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
@@ -121,8 +121,8 @@ Plumber includes **8 compliance controls**. Each can be enabled/disabled and cus
 | **Pipeline must not include hardcoded jobs** | Detects jobs defined directly instead of from includes |
 | **Includes must be up to date** | Checks if included templates have newer versions |
 | **Includes must not use forbidden versions** | Prevents mutable version references like `main`, `HEAD` |
-| **Pipeline must include component** | Ensures required CI/CD components are included |
-| **Pipeline must include template** | Ensures required templates are present |
+| **Pipeline must include component** | Ensures required CI/CD components are included; detects overridden jobs |
+| **Pipeline must include template** | Ensures required templates are included; detects overridden jobs |
 
 <Aside variant="tip">
   See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for all control options.
@@ -135,7 +135,7 @@ Run or skip specific controls using their names from the table above. Useful for
 ```yaml
 # Run only image-related controls
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
     inputs:
       controls: containerImageMustNotUseForbiddenTags,containerImageMustComeFromAuthorizedSources
 ```
@@ -143,7 +143,7 @@ include:
 ```yaml
 # Run everything except branch protection
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
     inputs:
       skip_controls: branchMustBeProtected
 ```
@@ -156,7 +156,7 @@ Override any input to fit your needs:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
     inputs:
       # Target (defaults to current project)
       server_url: https://gitlab.example.com # Self-hosted GitLab
@@ -202,6 +202,7 @@ include:
 | `badge` | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 | `controls` | - | Run only listed controls (comma-separated). Cannot be used with `skip_controls` |
 | `skip_controls` | - | Skip listed controls (comma-separated). Cannot be used with `controls` |
+| `fail_warnings` | `false` | Treat configuration warnings (unknown keys) as errors (exit 1) |
 
 ## Configuration
 
@@ -245,7 +246,7 @@ Automatically post compliance summaries on merge requests to catch issues before
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
     inputs:
       mr_comment: true  # Requires api scope on token
 ```
@@ -268,7 +269,7 @@ Display a live compliance badge on your project's overview page.
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.27
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
     inputs:
       badge: true  # Requires api scope on token
 ```
