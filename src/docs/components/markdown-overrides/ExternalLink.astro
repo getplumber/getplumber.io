@@ -15,8 +15,7 @@ const { href }: Record<string, any> = Astro.props;
 const domain = import.meta.env.SITE; // pulls from astro.config.mjs
 let attr: { target?: string; rel?: string } = {};
 
-const isExternal =
-  !href.includes(domain) && !href.startsWith("/") && !href.startsWith("#");
+const isExternal = !href.includes(domain) && !href.startsWith("/") && !href.startsWith("#");
 const isDiscordLink = href === "/discord" || href.endsWith("/discord");
 
 if (isExternal || isDiscordLink) {

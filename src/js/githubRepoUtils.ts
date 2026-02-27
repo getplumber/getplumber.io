@@ -50,10 +50,9 @@ export async function getGitHubRepoInfo(): Promise<GitHubRepoInfo> {
     ]);
 
     if (repoRes.status === 403) {
-      log(
-        "GitHub API rate limit (403). Set GITHUB_TOKEN in your environment for higher limits.",
-        { remaining: repoRes.headers.get("x-ratelimit-remaining") }
-      );
+      log("GitHub API rate limit (403). Set GITHUB_TOKEN in your environment for higher limits.", {
+        remaining: repoRes.headers.get("x-ratelimit-remaining"),
+      });
     } else if (!repoRes.ok) {
       log("GitHub repo request failed", { status: repoRes.status, url: repoRes.url });
     } else {

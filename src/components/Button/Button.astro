@@ -48,7 +48,7 @@ if (href) {
       "button--ghost": variant === "ghost",
     },
   ]}
-  {...(href ? { href: normalizedHref } : {})}
+  {...href ? { href: normalizedHref } : {}}
   {...rest}
 >
   {

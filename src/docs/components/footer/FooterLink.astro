@@ -10,9 +10,10 @@ const { href, newTab = false, ...rest } = Astro.props as Props;
 // Normalize internal links to remove trailing slash (except root)
 const domain = import.meta.env.SITE;
 const isExternal = !href.includes(domain) && !href.startsWith("/") && !href.startsWith("#");
-const normalizedHref = isExternal || href === "/" || !href.startsWith("/") || !href.endsWith("/")
-  ? href
-  : href.slice(0, -1);
+const normalizedHref =
+  isExternal || href === "/" || !href.startsWith("/") || !href.endsWith("/")
+    ? href
+    : href.slice(0, -1);
 ---
 
 <a
