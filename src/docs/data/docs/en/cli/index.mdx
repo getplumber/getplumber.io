@@ -144,10 +144,10 @@ This is useful for local testing, CI/CD integration, or automated compliance che
 
 2. **Create and set your GitLab token**
 
-   In GitLab, go to **User Settings → Access Tokens** ([direct link](https://gitlab.com/-/user_settings/personal_access_tokens)) and create a Personal Access Token with `read_api` + `read_repository` scopes:
+   In GitLab, go to **User Settings → Access Tokens** ([direct link](https://gitlab.com/-/user_settings/personal_access_tokens)) and create a Personal Access Token with `read_api` + `read_repository` scopes. **Project Access Tokens** also work: create one inside your project under **Settings → Access Tokens** with the same scopes and at least **Maintainer** role.
 
    <Aside variant="caution">
-     The token must belong to a user with **Maintainer** role (or higher) on the project to access branch protection settings and other project configurations.
+     The token must belong to a user (or project bot) with **Maintainer** role (or higher) on the project to access branch protection settings and other project configurations.
    </Aside>
 
    ```bash

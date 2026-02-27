@@ -29,10 +29,10 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 <Steps>
 1. **Create a GitLab token**
 
-   In GitLab, go to **User Settings → Access Tokens** ([or create one here](https://gitlab.com/-/user_settings/personal_access_tokens)) and create a Personal Access Token with `read_api` + `read_repository` scopes.
+   In GitLab, go to **User Settings → Access Tokens** ([or create one here](https://gitlab.com/-/user_settings/personal_access_tokens)) and create a Personal Access Token with `read_api` + `read_repository` scopes. **Project Access Tokens** also work: create one inside your project under **Settings → Access Tokens** with the same scopes and at least **Maintainer** role.
 
    <Aside variant="caution">
-     The token must belong to a user with **Maintainer** role (or higher) on the project to access branch protection settings and other project configurations.
+     The token must belong to a user (or project bot) with **Maintainer** role (or higher) on the project to access branch protection settings and other project configurations.
 
      **Using `mr_comment` or `badge`?** The token needs the `api` scope (instead of `read_api`) to create/update merge request comments or project badges.
    </Aside>
@@ -46,11 +46,27 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
    Add this to your `.gitlab-ci.yml`:
 
    ```yaml
+   workflow:
+     rules:
+       - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+       - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS # prevents duplicate pipelines
+         when: never
+       - if: $CI_COMMIT_BRANCH
+       - if: $CI_COMMIT_TAG
+
    include:
      - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
+       # inputs:
+       #   stage: .pre | by default runs in .pre which only runs if there is at least another CI job in another stage
    ```
 
    Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
+
+   <Aside variant="info">
+     **Why `workflow:rules`?** 
+     
+     Without it, pushing to a branch with an open merge request creates **two pipelines** (a branch pipeline and an MR pipeline), splitting your jobs between them. The `workflow:rules` block ensures a single pipeline per push: MR pipeline when an MR exists, branch pipeline otherwise. This is the [recommended GitLab pattern](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines). If you already have `workflow:rules` in your `.gitlab-ci.yml`, keep yours and just add the `include`.
+   </Aside>
 
 4. **Run your pipeline**
 
@@ -63,17 +79,19 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 
 ## Self-Hosted GitLab
 
-If you're running a self-hosted GitLab instance, you'll need to host your own copy of the component since `gitlab.com` components can't be accessed from your instance.
+If you're running a self-hosted GitLab instance, you'll need to host your own copy of the component since `gitlab.com` components can't be accessed from your instance. There are two ways:
 
 <Tabs defaultValue="import">
   <TabsList>
-    <TabsTrigger value="import">Import Component (Recommended)</TabsTrigger>
-    <TabsTrigger value="manual">Custom Component</TabsTrigger>
+    <TabsTrigger value="import">Direct Import (Simplest)</TabsTrigger>
+    <TabsTrigger value="mirror">Fork + Mirror (Recommended)</TabsTrigger>
   </TabsList>
 
   <TabsContent value="import">
+    Import the upstream repository directly into your GitLab instance.
+
     <Steps>
-    1. **Import the repository to your GitLab instance**
+    1. **Import the repository**
 
        Go to **New Project → Import project → Repository by URL** and use this URL: `https://gitlab.com/getplumber/plumber.git`. Choose a group and project name (e.g., `infrastructure/plumber`).
 
@@ -81,31 +99,101 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
 
        In your imported project, go to **Settings → General** and make sure the project has a **description** (required for CI/CD Catalog). Then expand **Visibility, project features, permissions**, toggle **CI/CD Catalog resource** to enabled, and click **Save changes**.
 
-    3. **Create a release**
+    3. **Publish a release**
 
-       Go to **Code → Tags** and click **New tag**. Enter a version number (e.g., `1.0.0`) and click **Create tag**. The pipeline will create a release and publish the component to your instance's CI/CD Catalog.
+       The imported project comes with upstream tags. The preferred method is to run a pipeline on an existing tag to trigger the release:
+
+       - Go to **CI/CD → Pipelines → Run pipeline**
+       - Select an imported tag (e.g., `v0.1.28`) from the branch/tag dropdown
+       - Click **Run pipeline**: this creates a release for that tag in the CI/CD Catalog
+
+       Alternatively, create a new tag manually (go to **Code → Tags → New tag**), but this might conflict later when you want to fetch remote tags.
 
     4. **Create a GitLab token**
 
-       In the project you want to scan, go to **User Settings → Access Tokens** and create a Personal Access Token with `read_api` + `read_repository` scopes. Then go to the project's **Settings → CI/CD → Variables** and add the token as `GITLAB_TOKEN` (masked recommended).
+       In the project you want to scan, go to **User Settings → Access Tokens** and create a Personal Access Token with `read_api` + `read_repository` scopes (or `api` if using `mr_comment` or `badge`). **Project Access Tokens** also work: create one inside your project under **Settings → Access Tokens** with the same scopes and at least **Maintainer** role. Then go to the project's **Settings → CI/CD → Variables** and add the token as `GITLAB_TOKEN` (masked recommended).
 
-       The token must belong to a user with **Maintainer** role (or higher) on the project.
+       The token must belong to a user (or project bot) with **Maintainer** role (or higher) on the project.
 
     5. **Use the component in your pipelines**
 
        ```yaml
+       workflow:
+         rules:
+           - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+           - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS # prevents duplicate pipelines
+             when: never
+           - if: $CI_COMMIT_BRANCH
+           - if: $CI_COMMIT_TAG
+
        include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@v1.0.0
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.1.28
+           # inputs:
+           #   stage: .pre | by default runs in .pre which only runs if there is at least another CI job in another stage
        ```
 
-       The format is `<your-gitlab-host>/<project-path>/plumber@<tag>`. Replace with your actual values.
+       To update: re-import or manually pull upstream changes.
     </Steps>
   </TabsContent>
 
-  <TabsContent value="manual">
-    If you prefer to build your own component, use [`templates/plumber.yml`](https://gitlab.com/getplumber/plumber/-/blob/main/templates/plumber.yml) as a starting point.
+  <TabsContent value="mirror">
+    Fork the project on gitlab.com first, then set up a pull mirror on your self-hosted instance. This way, whenever you fetch upstream changes in your fork, your self-hosted mirror stays in sync automatically.
 
-    See [GitLab's CI/CD component documentation](https://docs.gitlab.com/ee/ci/components/) for more details.
+    <Steps>
+    1. **Fork on gitlab.com**
+
+       Go to [getplumber/plumber](https://gitlab.com/getplumber/plumber) on gitlab.com, click **Fork**, and create a fork under your gitlab.com namespace (e.g., `your-org/plumber`).
+
+    2. **Create a mirrored project on your self-hosted instance**
+
+       On your self-hosted GitLab, go to **New Project → Import project → Repository by URL** and use this URL: `https://gitlab.com/your-org/plumber.git`. Choose a group and project name (e.g., `infrastructure/plumber`).
+
+    3. **Set up pull mirroring**
+
+       In your self-hosted project, go to **Settings → Repository → Mirroring repositories**. Add the mirror URL `https://gitlab.com/your-org/plumber.git`, set the direction to **Pull**, and add a gitlab.com token with `read_repository` scope if the fork is private. Click **Mirror repository**.
+
+       <Aside variant="info">
+         Pull mirroring syncs automatically (every 30 minutes on GitLab Premium, or manually on other tiers). When upstream releases a new version, sync your fork on gitlab.com first, then your self-hosted mirror picks it up.
+       </Aside>
+
+    4. **Enable the CI/CD Catalog**
+
+       Go to **Settings → General** and make sure the project has a **description** (required for CI/CD Catalog). Then expand **Visibility, project features, permissions**, toggle **CI/CD Catalog resource** to enabled, and click **Save changes**.
+
+    5. **Publish a release**
+
+       The mirrored project comes with upstream tags. The preferred method is to run a pipeline on an existing tag to trigger the release:
+
+       - Go to **CI/CD → Pipelines → Run pipeline**
+       - Select an imported tag (e.g., `v0.1.28`) from the branch/tag dropdown
+       - Click **Run pipeline**: this creates a release for that tag in the CI/CD Catalog
+
+       Alternatively, create a new tag manually via **Code → Tags → New tag**.
+
+    6. **Create a GitLab token**
+
+       In the project you want to scan, go to **User Settings → Access Tokens** and create a Personal Access Token with `read_api` + `read_repository` scopes (or `api` if using `mr_comment` or `badge`). **Project Access Tokens** also work: create one inside your project under **Settings → Access Tokens** with the same scopes and at least **Maintainer** role. Then go to the project's **Settings → CI/CD → Variables** and add the token as `GITLAB_TOKEN` (masked recommended).
+
+       The token must belong to a user (or project bot) with **Maintainer** role (or higher) on the project.
+
+    7. **Use the component in your pipelines**
+
+       ```yaml
+       workflow:
+         rules:
+           - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+           - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS # prevents duplicate pipelines
+             when: never
+           - if: $CI_COMMIT_BRANCH
+           - if: $CI_COMMIT_TAG
+
+       include:
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.1.28
+           # inputs:
+           #   stage: .pre | by default runs in .pre which only runs if there is at least another CI job in another stage
+       ```
+
+    </Steps>
   </TabsContent>
 </Tabs>
 
@@ -194,7 +282,7 @@ include:
 | `pbom_file` | `plumber-pbom.json` | Path to write PBOM (Pipeline Bill of Materials) output |
 | `pbom_cyclonedx_file` | `plumber-cyclonedx-sbom.json` | Path to write CycloneDX SBOM (auto-uploaded as GitLab report) |
 | `print_output` | `true` | Print text output to stdout |
-| `stage` | `.pre` | Pipeline stage for the job |
+| `stage` | `.pre` | Pipeline stage for the job. `.pre` runs before all other stages but requires at least one job in a regular stage. If Plumber is the only job in your pipeline, set this to `test` or another stage |
 | `image` | `getplumber/plumber:0.1` | Docker image to use |
 | `allow_failure` | `false` | Allow job to fail without blocking |
 | `verbose` | `false` | Enable debug output for troubleshooting |
@@ -301,7 +389,10 @@ include:
 | `403 Forbidden` on badge | Token needs `api` scope (not `read_api`) when `badge: true` |
 | MR comment not posted | `mr_comment` only works in merge request pipelines (`CI_MERGE_REQUEST_IID` must be set) |
 | Badge not created/updated | Token needs `api` scope and Maintainer role (or higher) on the project |
-| Component not found | For self-hosted GitLab, you must fork the component to your instance |
+| Component not found | For self-hosted GitLab, you must import or mirror the component to your instance |
+| Plumber job not running | The default stage is `.pre`, which requires at least one other job in a regular stage. Override with `inputs: { stage: test }` |
+| Two pipelines on the same push | Add [`workflow:rules`](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines) to your `.gitlab-ci.yml` to prevent duplicate branch + MR pipelines (see [Quick Start](#quick-start-gitlabcom)) |
+| Plumber job skipped on branch | The component only runs on merge request events, the default branch, and tags. Open an MR or push to the default branch to trigger it |
 
 <Aside variant="info">
   **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](/discord).
