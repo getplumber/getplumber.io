@@ -1,0 +1,57 @@
+---
+title: "Plumber 1.1 Release - What's New"
+description: "Introducing Plumber 1.1: portfolio compliance details, and various improvements"
+draft: false
+authors:
+  - plumber
+pubDate: 2026-03-09
+heroImage: ./heroImage.png
+categories:
+  - "Releases"
+---
+
+import portfolioCompliance from './portfolio-compliance.png';
+
+
+# Plumber 1.1
+
+**We're thrilled to announce the launch of Plumber 1.1:**
+
+> **📊 Portfolio compliance at a glance, and a smoother experience**
+
+**This release brings detailed portfolio compliance views, and several refinements across the platform.**
+
+## 📊 Portfolio Compliance
+
+For each of your portfolios (that contain projects or groups), you now get
+detailed compliance information, including each policy associated with them.
+
+**What you can do:**
+- **Overall compliance**: See the compliance percentage for the entire portfolio at a glance
+- **Compliance per policy**: Drill down into each policy (e.g. DevSecOps practices, ISO 27001, Security) with individual compliance scores and project counts
+- **Quick access to issues**: Visualize all issues for the portfolio, or filter by portfolio and policy for targeted insights
+- **Direct links**: Jump to policy definitions or issue lists with a single click
+
+<div style={{ maxWidth: "800px" }}>
+  <img
+    src={portfolioCompliance.src}
+    alt="Portfolio compliance dashboard showing Transilien portfolio with compliance per policy"
+    className="w-full"
+  />
+</div>
+
+## ⚙️ Minor Updates
+
+- **Fix**: Outdated documentation links fixed
+- **Fix**: Default sort of User Activity updated (now sorted by last activity by default)
+- **UX improvements**: Logs are now displayed in a modal
+- **UX improvements**: Various UX enhancements across the platform
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.37.0`
+- Frontend: `v2.33.0`
+- Helm chart: `v1.1.0`
+</Admonition>
