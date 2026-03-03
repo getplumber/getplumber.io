@@ -101,7 +101,7 @@ const imageUrl =
   openGraph={{
     basic: {
       title: title,
-      type: "website",
+      type: type === "blog" ? "article" : "website",
       image: imageUrl,
       url: canonicalUrl.toString(),
     },
@@ -115,6 +115,12 @@ const imageUrl =
       height: optimizedImage?.attributes.height || "630",
       alt: title,
     },
+    ...(type === "blog" && {
+      article: {
+        publishedTime: (Astro.props as BlogProps).postFrontmatter.pubDate?.toISOString(),
+        modifiedTime: (Astro.props as BlogProps).postFrontmatter.updatedDate?.toISOString(),
+      },
+    }),
   }}
   twitter={{
     site: "@" + siteData.author.twitter,

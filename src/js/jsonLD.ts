@@ -41,22 +41,35 @@ export default function jsonLDGenerator(props: JsonLDProps) {
       authorsJsonLd = authorsJsonLdArray;
     }
 
-    return `<script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Blogposting",
-        "mainEntityOfPage": {
-          "@type": "WebPage",
-          "@id": "${canonicalUrl}"
-        },
-        "headline": "${postFrontmatter.title}",
-        "description": "${postFrontmatter.description}",
-        "image": "${image.src}",
-        "author": ${JSON.stringify(authorsJsonLd)},
-        "datePublished": "${postFrontmatter.pubDate}",
-        "dateModified": "${postFrontmatter.updatedDate}"
-      }
-    </script>`;
+    const baseUrl = import.meta.env.SITE?.replace(/\/$/, "") ?? "";
+    const absoluteImage = image.src.startsWith("http") ? image.src : `${baseUrl}${image.src}`;
+    const datePublished = postFrontmatter.pubDate instanceof Date
+      ? postFrontmatter.pubDate.toISOString()
+      : postFrontmatter.pubDate;
+    const dateModified = postFrontmatter.updatedDate instanceof Date
+      ? postFrontmatter.updatedDate.toISOString()
+      : undefined;
+
+    const blogPosting: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": canonicalUrl.toString(),
+      },
+      "headline": postFrontmatter.title,
+      "description": postFrontmatter.description,
+      "image": absoluteImage,
+      "author": authorsJsonLd,
+      "publisher": { "@type": "Organization", "name": siteData.title, "url": baseUrl },
+      "datePublished": datePublished,
+    };
+
+    if (dateModified) {
+      blogPosting["dateModified"] = dateModified;
+    }
+
+    return `<script type="application/ld+json">${JSON.stringify(blogPosting)}</script>`;
   }
   // Organization + WebSite for SEO and AEO (answer engines use entity markup)
   const baseUrl = import.meta.env.SITE?.replace(/\/$/, "") ?? "";

