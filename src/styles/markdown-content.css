@@ -27,6 +27,11 @@
 
 .markdown-content :is(h1, h2, h3, h4, h5, h6):not(:where(.not-content *)) {
   @apply text-foreground mt-2 text-base leading-normal;
+  scroll-margin-top: 5rem;
+}
+
+.markdown-content span[id]:empty {
+  scroll-margin-top: 5rem;
 }
 
 .markdown-content h1:not(:where(.not-content *)) {

@@ -1,6 +1,6 @@
 ---
-title: "CI/CD Compliance Guidelines: A Reference Framework for Secure Software Delivery"
-description: "Authoritative guidelines for CI/CD compliance based on industry standards, regulatory requirements, and real-world supply chain incidents. Define, verify, correct, and prove your pipeline posture."
+title: "CI/CD Compliance Framework for Secure Pipelines"
+description: "Checklist and controls for audit-ready CI/CD compliance (ISO 27001, NIS2, DORA, CRA). Examples, evidence, drift detection, and remediation at scale."
 draft: false
 authors:
   - plumber
@@ -18,9 +18,21 @@ categories:
 heroImage: ./heroImage.png
 ---
 
-# CI/CD Compliance Guidelines: A Reference Framework for Secure Software Delivery
+# CI/CD Compliance Framework for Secure Pipelines
 
-Organizations today run hundreds or thousands of CI/CD pipelines. These pipelines access code, secrets, and production environments. Yet there is no reliable way to guarantee their compliance at scale. This article explains what CI/CD compliance means, why it matters now, and how to approach it.
+Organizations today run hundreds or thousands of CI/CD pipelines. These pipelines access code, secrets, and production environments, yet there is no reliable way to guarantee their pipeline security and compliance at scale.
+
+<Aside variant="info" title="In this article">
+
+- **What** CI/CD compliance means and why pipelines are a governance blind spot
+- **Why now**: supply chain attacks, regulatory pressure (ISO 27001, NIS2, DORA, CRA), and the cost of manual audits
+- **A four-step framework**: Define, Verify, Remediate, Prove
+- **A 22-point compliance checklist** you can use immediately
+- **Control guidelines** with rationale, grouped by category
+- **Regulatory mapping table** (ISO 27001 / NIS2 / DORA / CRA)
+- **FAQ** answering the most common compliance questions
+
+</Aside>
 
 ## What Does CI/CD Compliance Mean?
 
@@ -28,57 +40,40 @@ Organizations today run hundreds or thousands of CI/CD pipelines. These pipeline
 
 <Steps class="my-6">
 
-1. ### What requirements must we follow?
+1. **What requirements must we follow?**
    *(no hardcoded secrets, trusted images only, required security checks)*
-2. ### Are we actually following those requirements?
-   *(automated controls prevent bypassing required checks)*   
-3. ### Can we prove it?
+2. **Are we actually following those requirements?**
+   *(automated controls prevent bypassing required checks)*
+3. **Can we prove it?**
    *(evidence for auditors, regulators, or internal governance)*
-4. ### Is it sustainable over time?
+4. **Is it sustainable over time?**
    *(continuous verification, not a one-time snapshot)*
 
 </Steps>
 
-CI/CD compliance is not paperwork. It’s not a one-time manual checklist either.
-It’s about ensuring that the systems delivering your software are secure, auditable, and aligned with your organization’s risk posture.
+CI/CD compliance is not paperwork or a one-time checklist. It's about ensuring that the systems delivering your software are secure, auditable, and aligned with your organization's risk posture. When your pipelines are compliant, you significantly reduce the risk of supply chain attacks, data leaks, misconfigurations, and regulatory penalties.
 
-When your CI/CD pipelines are compliant, you significantly reduce the risk of supply chain attacks, data leaks, misconfigurations, and regulatory penalties. 
+## Why CI/CD Pipelines Need Compliance Now
 
-CI/CD Compliance becomes part of how software is delivered — not an afterthought.
-
-## Why CI/CD Pipelines Need to Be Compliant Now
-
-Three converging forces make CI/CD compliance urgent today.
+Four converging forces make CI/CD compliance and pipeline security urgent today.
 
 <Steps class="my-6">
 
-1. ### Pipelines are a prime attack target
-   Attackers have shifted focus to the software supply chain. Compromising one pipeline can expose code, credentials, and production access across many projects. Incidents like **TJ-Actions** (23,000 repos, March 2025), **Shai-Hulud** (tens of thousands of repos, late 2025), and **SolarWinds** ($12M average impact per victim) show that pipelines are no longer a niche concern.
-   
-   The risk is not whether a supply chain attack will occur. It’s whether you will detect it, and how long it will take you to realize it.
-2. ### Regulators are asking
-   Regulators and auditors are no longer focusing only on the software you ship.
-   They are now examining the systems that build, test, and deploy it : **your software supply chain.**
-   Frameworks like ISO 27001, NIS2, DORA, and the Cyber Resilience Act (CRA) require organizations to secure their information systems. CI/CD pipelines are now part of that scope.
+1. **Pipelines are a prime attack target**
 
-   To protect your organization, regulators now expect clear answers to questions such as:
+   Attackers have shifted focus to the software supply chain. Compromising one pipeline can expose code, credentials, and production access across many projects. Incidents like the [tj-actions/changed-files compromise](/blog/tj-actions-compromised), the [Shai-Hulud campaign](/blog/shai-hulud), and the SolarWinds breach demonstrate that workflow security is no longer a niche concern. See [incident details and sources](#supply-chain-incidents-with-sources) below.
 
-   * How many CI/CD pipelines run every day?
-   * Are they all secure and compliant?
-   * Can you prove it?
-   * How do you detect drift or compromise?
+2. **Regulators are asking**
 
-   CI/CD is no longer just an engineering topic. **It is a governance and risk issue.**
-   
-3. ### The hidden cost of this blind spot
-   Manual audits don’t scale. On average, they take around 1 hour per pipeline per month.
-   For 100 pipelines, that represents roughly the workload of more than one full-time employee — easily over €100,000 per year in staffing costs alone, depending on the country.
+   Frameworks like ISO 27001, NIS2, DORA, and the Cyber Resilience Act (CRA) now require organizations to secure the systems that build, test, and deploy software. Auditors expect clear answers: how many pipelines run daily, are they compliant, can you prove it, and how do you detect drift? CI/CD is no longer just an engineering topic. **It is a governance and risk issue.**
 
-   And in many organizations, even when monitoring exists, it often lives in silos, built ad hoc by individual teams, outside centralized governance. In other words: shadow IT.
+3. **Pipelines escape governance**
 
-   That’s only the visible cost.
+   A CI/CD pipeline is one of the most privileged systems in your organization: it reads your code, accesses your secrets, and writes to production at scale. Yet security requirements are rarely verified continuously, pipeline code is seldom audited against formal standards, and many organizations still treat CI/CD as a purely technical concern rather than a high-privilege attack surface.
 
-   Non-compliance can represent 2–2.5% of annual revenue, not counting delivery stoppages, reputational damage, regulatory fines, or incident response expenses.
+4. **Manual audits don't scale**
+
+   On average, auditing one pipeline takes about 1 hour per month. For 100 pipelines, that's over one full-time employee, easily exceeding €100,000/year. And in many organizations, even when monitoring exists, it lives in silos outside centralized governance. Non-compliance can represent 2-2.5% of annual revenue, not counting delivery stoppages, regulatory fines, or incident response.
 
 </Steps>
 
@@ -86,63 +81,114 @@ Three converging forces make CI/CD compliance urgent today.
 The question is no longer *if* a supply chain attack will happen. It is whether you will notice when it does.
 </Aside>
 
-## Why CI/CD Compliance Is a Blind Spot
+## Supply Chain Incidents (With Sources)
 
-CI/CD pipelines automate integration, testing, packaging, and deployment.
-They are powerful automation systems with extensive privileges — often able to access source code, secrets, infrastructure, and production environments.
+These well-documented incidents illustrate distinct attack vectors targeting CI/CD infrastructure:
 
-But they are also code. And like any code, they can be compromised, misconfigured, or neglected.
+<div class="my-4 space-y-3">
 
-Three main reasons explain why pipelines often escape proper governance:
+<details>
+<summary>**tj-actions/changed-files** (March 2025) — 23,000 repos compromised</summary>
 
-<Steps class="my-6">
+A widely used GitHub Action was compromised, exfiltrating CI/CD secrets from ~23,000 repositories. Any pipeline referencing a mutable version tag pulled the malicious code. This demonstrated the danger of unpinned action versions and the blast radius of a single compromised dependency.
 
-1. ### Controls exist on paper, but are not continuously verified
-   Security requirements may be defined, but they are rarely monitored systematically.
-   Pipelines evolve, configurations drift, and compliance becomes assumed rather than demonstrated.
-2. ### Pipeline code is rarely audited against formal requirements
-   Dev and DevOps teams build and maintain pipelines, but security and compliance teams often lack visibility.
-   As a result, no one consistently checks whether pipeline logic actually meets defined standards.
-3. ### CI/CD is seen as a technical topic, not as a high-privilege attack surface or a security concern
-   Pipelines automate builds and deployments, but they also hold powerful access to source code, secrets, and production environments.
-   Many organizations still underestimate their security impact.
+[Analysis on Snyk](https://snyk.io/blog/tj-actions-supply-chain-attack-what-you-need-to-know/) | [Our dedicated article](/blog/tj-actions-compromised)
 
-</Steps>
+</details>
 
-<Aside variant="caution" title="Key takeaway">
+<details>
+<summary>**Shai-Hulud** (late 2025) — npm + GitHub Actions exploitation</summary>
 
-A CI/CD pipeline is one of the most privileged systems in your organization:
+Malicious npm packages combined with GitHub Actions exploitation to propagate across repositories, leveraging CI runner security weaknesses to exfiltrate secrets and spread laterally. The campaign illustrated how multiple attack vectors can chain together through the CI/CD pipeline.
 
-1. It continuously reads your application code  
-2. It has access to your most sensitive secrets  
-3. It has the authority to write to production — automatically and at scale
+[Analysis on Aikido](https://www.aikido.dev/blog/malware-hiding-in-plain-sight-spying-on-north-korean-hackers) | [Our dedicated article](/blog/shai-hulud)
 
-</Aside>
+</details>
+
+<details>
+<summary>**SolarWinds** (December 2020) — 18,000+ organizations affected</summary>
+
+Attackers injected code into the build process of SolarWinds Orion, affecting 18,000+ organizations and demonstrating that build provenance and artifact integrity are critical. The attack went undetected for months, highlighting the need for continuous monitoring of build systems.
+
+</details>
+
+</div>
+
+For a broader view, see our [Top 5 Software Supply Chain Security Incidents](/blog/top-5-cybersecurity-incidents-in-cicd) and the [OWASP Top 10 CI/CD Security Risks](https://owasp.org/www-project-top-10-ci-cd-security-risks/).
 
 ## A Four-Step Compliance Framework
 
-Ensuring CI/CD compliance typically follows four continuous steps:
-
+Ensuring CI/CD compliance follows four continuous steps:
 
 <Steps class="my-6">
 
-1. ### Define
-   requirements (security rules, quality, compliance and governance standards).
-   The [OWASP Top 10 CI/CD Security Risks](https://owasp.org/www-project-top-10-ci-cd-security-risks/) provide a useful reference to start.
+1. **Define** requirements (security rules, quality, governance standards). The [OWASP Top 10 CI/CD Security Risks](https://owasp.org/www-project-top-10-ci-cd-security-risks/) provide a useful starting reference. Map these to your regulatory obligations (ISO 27001, NIS2, DORA, CRA).
 
-2. ### Verify
-   posture (analyze pipelines, detect violations, and identify configuration drift before it becomes risk)
-3. ### Remediate
-   issues (close gaps, and realign pipelines with defined requirements)
-4. ### Prove
-   compliance (audit-ready evidence, continuous monitoring to demonstrate compliance over time.)
+2. **Verify** posture (analyze pipelines, detect violations, identify configuration drift). This includes workflow security checks, CI runner security audits, and artifact integrity verification.
+
+3. **Remediate** issues (close gaps and realign pipelines with defined requirements).
+
+4. **Prove** compliance (audit-ready evidence, continuous monitoring to demonstrate compliance over time).
 
 </Steps>
 
+## CI/CD Compliance Checklist
 
+Use this checklist to quickly assess your pipeline security posture. Each control maps to the [detailed guidelines](#control-categories-and-guidelines) and [regulatory mapping](#control-mapping-iso-27001--nis2--dora--cra) below.
 
+<div class="border-border/50 bg-background/50 my-6 space-y-5 rounded-xl border p-6">
+  <div>
+    <p class="text-primary-500 mb-2 text-sm font-bold uppercase tracking-wide">Container images & supply chain</p>
+    <ol class="list-decimal space-y-1 pl-6">
+      <li>Pin all CI/CD container images to digest or explicit version (no <code>latest</code> tags)</li>
+      <li>Use only trusted, approved image registries</li>
+      <li>Scan container images for known vulnerabilities before use</li>
+    </ol>
+  </div>
+  <div>
+    <p class="text-primary-500 mb-2 text-sm font-bold uppercase tracking-wide">Secrets & variables</p>
+    <ol start="4" class="list-decimal space-y-1 pl-6">
+      <li>Never hardcode secrets in pipeline configuration files</li>
+      <li>Store secrets in a dedicated secret manager or CI/CD protected variables</li>
+      <li>Mask all sensitive values in pipeline logs</li>
+      <li>Restrict secret access to protected branches and environments only</li>
+    </ol>
+  </div>
+  <div>
+    <p class="text-primary-500 mb-2 text-sm font-bold uppercase tracking-wide">Pipeline composition</p>
+    <ol start="8" class="list-decimal space-y-1 pl-6">
+      <li>Require mandatory security scans (SAST, secret detection, dependency checks) in every pipeline</li>
+      <li>Pin all pipeline templates, includes, and reusable actions to explicit versions</li>
+      <li>Detect and alert on template overrides or bypasses</li>
+    </ol>
+  </div>
+  <div>
+    <p class="text-primary-500 mb-2 text-sm font-bold uppercase tracking-wide">Access & authorization</p>
+    <ol start="11" class="list-decimal space-y-1 pl-6">
+      <li>Protect critical branches (disable force push, require code owner approval)</li>
+      <li>Enforce minimum merge request approvals</li>
+      <li>Restrict merge and push access to authorized roles only</li>
+    </ol>
+  </div>
+  <div>
+    <p class="text-primary-500 mb-2 text-sm font-bold uppercase tracking-wide">Policy, monitoring & evidence</p>
+    <ol start="14" class="list-decimal space-y-1 pl-6">
+      <li>Define and enforce a CI/CD security policy at the organization level</li>
+      <li>Maintain audit logs for all pipeline executions and configuration changes</li>
+      <li>Monitor for configuration drift continuously (not just periodic snapshots)</li>
+      <li>Generate SBOM or build provenance attestations for release artifacts</li>
+      <li>Scope CI/CD tokens to minimum required permissions</li>
+      <li>Isolate CI runner environments (avoid shared runners for sensitive workloads)</li>
+      <li>Review and rotate CI/CD credentials on a defined schedule</li>
+      <li>Validate artifact integrity with signing or attestations before deployment</li>
+      <li>Document evidence retention policy for compliance audits</li>
+    </ol>
+  </div>
+</div>
 
 ## Control Categories and Guidelines
+
+Each checklist item above is detailed here with its rationale. Use the links to jump to a category.
 
 <nav class="my-6 flex w-full flex-wrap gap-2" aria-label="Jump to control category">
   <a href="#1-cicd-container-images" class="border-primary-300 dark:border-primary-600/60 bg-primary-50/50 dark:bg-primary-950/30 hover:border-primary-500 dark:hover:border-primary-500/80 hover:bg-primary-100/50 dark:hover:bg-primary-900/30 text-primary-700 dark:text-primary-300 inline-flex items-center rounded-lg border px-4 py-2.5 text-sm font-semibold transition">
@@ -162,15 +208,19 @@ Ensuring CI/CD compliance typically follows four continuous steps:
   </a>
 </nav>
 
+<span id="1-cicd-container-images"></span>
+
 ### 1. CI/CD Container Images
 
-Pipelines run in containers. Untrusted or poorly configured images introduce supply chain risk.
+Pipelines run in containers. Untrusted or poorly configured images introduce supply chain risk and compromise artifact integrity.
 
 | Guideline | Rationale |
 |-----------|-----------|
 | **Use only trusted image sources** | Untrusted registries can deliver malicious images that steal credentials, exfiltrate code, or alter artifacts. |
-| **Avoid mutable tags (e.g. `latest`)** | Floating tags can pull compromised or breaking images without notice. Pin to explicit versions. |
-| **Scan images for vulnerabilities** | Integrate scanning into the pipeline before deployment. |
+| **Avoid mutable tags (e.g. `latest`)** | Floating tags can pull compromised or breaking images without notice. Pin to explicit versions or digests. |
+| **Scan images for vulnerabilities** | Integrate scanning into the pipeline before deployment. This supports build provenance and artifact integrity. |
+
+<span id="2-cicd-variables-and-secrets"></span>
 
 ### 2. CI/CD Variables and Secrets
 
@@ -181,10 +231,13 @@ Variables and secrets grant access to sensitive resources. Exposure or misuse le
 | **Never hardcode secrets in pipeline config** | Secrets in `.gitlab-ci.yml` or similar files are visible to anyone with repo access. Use CI/CD variables or external secret managers. |
 | **Protect sensitive variables** | Restrict variables to protected branches/tags so they are not exposed on forks or feature branches. |
 | **Mask sensitive values in logs** | Unmasked variables appear in pipeline logs and can be exfiltrated. |
+| **Scope CI/CD tokens to minimum permissions** | Overly broad tokens increase the blast radius of a compromise. Apply least-privilege to all pipeline credentials. |
+
+<span id="3-pipeline-composition"></span>
 
 ### 3. Pipeline Composition
 
-How pipelines are built (templates, components, hardcoded jobs) affects maintainability and compliance.
+How pipelines are built (templates, components, hardcoded jobs) affects maintainability, workflow security, and compliance.
 
 | Guideline | Rationale |
 |-----------|-----------|
@@ -192,11 +245,13 @@ How pipelines are built (templates, components, hardcoded jobs) affects maintain
 | **Require mandatory templates** | Security scans (SAST, secret detection, dependency checks) must be present and not overridable. |
 | **Pin template and include versions** | Avoid `main` or default branches. Use explicit versions to prevent pulling compromised or breaking changes. |
 | **Detect and limit overrides** | Overriding required templates can bypass security checks. Overrides should be explicit and justified. |
-| **Include all required validations** | Missing checks increase the risk of vulnerabilities, defects, or non-compliant code reaching production. |
+| **Generate SBOM / signing / attestations** | Build provenance records and software bill of materials support traceability and regulatory evidence. |
+
+<span id="4-access-and-authorization"></span>
 
 ### 4. Access and Authorization
 
-Who can change code and pipelines directly impacts security and compliance.
+Who can change code and pipelines directly impacts pipeline security and compliance.
 
 | Guideline | Rationale |
 |-----------|-----------|
@@ -205,56 +260,150 @@ Who can change code and pipelines directly impacts security and compliance.
 | **Enforce code owner approval** | Merges without code owner review increase the risk of bugs and security issues. |
 | **Restrict merge and push access** | Limit who can merge or push to protected branches. |
 | **Enforce merge request approval rules** | Require a minimum number of approvals before merge. |
-| **Respect role quotas** | Too many Owners or Maintainers weakens governance and increases misconfiguration risk. |
+| **Secure GitHub Actions tokens and CI/CD credentials** | Default tokens often have write permissions. Scope them down and rotate them regularly. |
+
+<span id="5-security-policy-and-visibility"></span>
 
 ### 5. Security Policy and Visibility
 
-Compliance requires defined policies and continuous visibility.
+Compliance requires defined policies and continuous visibility across all pipelines and CI runners.
 
 | Guideline | Rationale |
 |-----------|-----------|
-| **Define a security policy source** | Projects must reference the organization’s security policy to ensure consistent checks. |
+| **Define a security policy source** | Projects must reference the organization's security policy to ensure consistent checks. |
 | **Maintain logging and visibility** | Without logs and monitoring, drift and compromise go undetected. |
+| **Isolate CI runner environments** | Shared CI runners can leak data between projects. Dedicated or ephemeral runners improve CI runner security. |
 
-## Five Questions to Assess Your Posture
+## Control Mapping (ISO 27001 / NIS2 / DORA / CRA)
 
-Before investing in tooling or process changes, answer these questions:
+This table maps CI/CD compliance control categories to high-level regulatory requirements. Use it to demonstrate coverage during audits and gap assessments.
 
-<Steps class="my-6">
+| Control Category | Evidence | ISO 27001 | NIS2 | DORA | CRA |
+|---|---|---|---|---|---|
+| **Access control** (branch protection, role management, approval rules) | Merge request logs, role audit exports, branch protection config | Access control, Change management | Security of network and information systems | ICT access management | Secure development lifecycle |
+| **Secret management** (no hardcoded secrets, masking, protected variables) | Secret scan reports, variable config exports | Information classification, Cryptographic controls | Incident handling, Risk management | ICT risk management | Vulnerability handling |
+| **Container image security** (trusted sources, pinned versions, scanning) | Image scan reports, registry allow-lists | Supplier relationships, Vulnerability management | Supply chain security | Third-party ICT risk | Product security requirements |
+| **Pipeline composition** (mandatory templates, pinned includes, override detection) | Template compliance reports, override alerts | Change management, Configuration management | Risk management measures | ICT change management | Secure by default |
+| **Build provenance** (SBOM, signing, attestations) | SBOM exports, signed artifacts, attestation logs | Asset management, Supplier security | Supply chain security | Digital operational resilience testing | Transparency, Vulnerability disclosure |
+| **Logging and monitoring** (pipeline execution logs, drift detection) | Audit logs, drift detection reports, dashboards | Monitoring, Audit logging | Monitoring obligations | ICT-related incident reporting | Reporting obligations |
+| **CI runner security** (isolation, ephemeral runners, scoped tokens) | Runner configuration exports, token permission audits | Operations security | Security of network and information systems | ICT operational security | Secure development lifecycle |
 
-1. ### How many CI/CD pipelines do you have?
-   (50, 250, 500, 5000?)
-2. ### Is your organization subject to security or compliance requirements?
-   (ISO 27001, NIS2, CRA, DORA, internal rules?)
-3. ### What would be the impact of a cyberattack on one pipeline?
-   (Ransomware, data theft, production outage, regulatory penalties?)
-4. ### How do you verify today that all pipelines are compliant?
-   (Manual checks, spot audits, or continuous automation?)
-5. ### What effort does this represent?
-   (Time, budget, headcount?)
-
-</Steps>
-
-If the answers reveal gaps, the framework above provides a starting point for improvement.
-
-## Making Compliance Durable
-
-Compliance is not a one-time project. Pipelines change constantly. New projects are added, templates are updated, and configurations drift. To stay compliant:
-
-<Aside variant="tip" title="Four pillars of durable compliance">
-- **Automate checks** so violations are detected as soon as they appear.
-- **Run continuously** rather than relying on periodic snapshots.
-- **Produce audit-ready evidence** (reports, scores, change history) that answers “What was the compliance state on date X?”
-- **Reduce manual effort** so security and DevOps teams can focus on remediation instead of repetitive audits.
+<Aside variant="tip" title="Note">
+This mapping is high-level and intended as a starting point. For precise article/annex references, consult the full text of each regulation with your compliance team.
 </Aside>
 
-The goal is real, proven, and lasting CI/CD compliance: not a checkbox exercise, but an operational discipline.
+## Key Takeaways
 
-## References
+<Aside variant="caution" title="What to remember from this guide">
 
-- [OWASP Top 10 CI/CD Security Risks](https://owasp.org/www-project-top-10-ci-cd-security-risks/)
-- [ANSSI – Panorama de la cybermenace 2024](https://www.ssi.gouv.fr/)
-- [ISO/IEC 27001:2022](https://www.iso.org/standard/27001)
-- [NIS2 Directive](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32022L2555)
-- [DORA – Digital Operational Resilience Act](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32022L2554)
-- [CRA – Cyber Resilience Act](https://digital-strategy.ec.europa.eu/en/library/cyber-resilience-act)
+1. **CI/CD pipelines are high-privilege systems** that read code, access secrets, and deploy to production. They deserve the same governance as any critical infrastructure.
+2. **Compliance is not optional.** ISO 27001, NIS2, DORA, and the CRA all now scope CI/CD pipelines as part of the software supply chain.
+3. **Follow four steps**: Define your requirements, Verify your posture continuously, Remediate gaps, and Prove compliance with audit-ready evidence.
+4. **Automate everything.** Manual audits do not scale. Continuous, automated checks are the only way to keep pace with pipeline changes.
+5. **Start with the [22-point checklist](#cicd-compliance-checklist)** above, then map controls to your regulatory framework using the [mapping table](#control-mapping-iso-27001--nis2--dora--cra).
+
+</Aside>
+
+## FAQ
+
+<div class="my-4 space-y-2">
+
+<details>
+<summary>What is CI/CD compliance?</summary>
+
+CI/CD compliance means your pipelines meet defined security, quality, and governance standards. It covers how code is built, tested, and deployed, and ensures that these processes are auditable, repeatable, and aligned with regulatory frameworks like ISO 27001, NIS2, or DORA.
+
+</details>
+
+<details>
+<summary>How do you prove CI/CD compliance to auditors?</summary>
+
+By producing audit-ready evidence: pipeline execution logs, configuration snapshots, secret scan reports, template compliance checks, and drift detection records. Continuous monitoring tools can generate this evidence automatically, rather than relying on manual spot checks.
+
+</details>
+
+<details>
+<summary>What evidence should be retained for CI/CD compliance?</summary>
+
+Retain pipeline execution logs, security scan results (SAST, secret detection, dependency checks), branch protection configurations, merge request approval records, image scan reports, SBOM exports, and any drift detection alerts. Define a retention policy aligned with your regulatory requirements.
+
+</details>
+
+<details>
+<summary>How do you avoid bypassing required checks in CI/CD?</summary>
+
+Enforce mandatory pipeline templates that cannot be overridden. Protect critical branches with approval rules and disable force push. Use automated controls to detect when required security scans are missing or when pipeline configurations deviate from the approved baseline.
+
+</details>
+
+<details>
+<summary>How do you secure GitHub Actions tokens and CI/CD credentials?</summary>
+
+Scope tokens to the minimum permissions required for each workflow. Use short-lived, automatically rotated credentials where possible. Restrict secret access to protected branches and environments. Monitor for overly broad token permissions across your CI runner security configuration.
+
+</details>
+
+<details>
+<summary>What is build provenance and why does it matter?</summary>
+
+Build provenance is a verifiable record of how a software artifact was built: what source code, what tools, what environment. It supports artifact integrity and traceability, which regulators increasingly require. SBOM generation and signing/attestations are practical ways to implement it.
+
+</details>
+
+<details>
+<summary>What regulations require CI/CD compliance?</summary>
+
+ISO 27001 (information security management), NIS2 (network and information security), DORA (digital operational resilience for financial services), and the Cyber Resilience Act (CRA, product security for EU market) all include requirements that apply to CI/CD pipelines as part of the software supply chain.
+
+</details>
+
+<details>
+<summary>How often should CI/CD compliance be assessed?</summary>
+
+Continuously. Point-in-time assessments miss configuration drift, new vulnerabilities, and evolving threats. Automated, continuous compliance monitoring is the only scalable approach for organizations running dozens or hundreds of pipelines.
+
+</details>
+
+</div>
+
+## Related Resources
+
+<div class="my-4 grid gap-2 sm:grid-cols-2">
+
+<a href="/blog/top-5-cybersecurity-incidents-in-cicd" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Top 5 Supply Chain Incidents</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Real-world attacks on CI/CD infrastructure</p>
+</a>
+
+<a href="/blog/tj-actions-compromised" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">tj-actions Attack Analysis</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Could it hit GitLab CI/CD pipelines?</p>
+</a>
+
+<a href="/blog/shai-hulud" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Shai-Hulud 2.0</strong>
+  <p class="text-foreground/60 mt-1 text-sm">When npm install becomes a CI/CD attack</p>
+</a>
+
+<a href="/blog/hands-on-cli" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Fix Non-Compliant Pipelines</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Hands-on guide in 5 minutes</p>
+</a>
+
+<a href="/docs/use-plumber/controls" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Plumber Controls Reference</strong>
+  <p class="text-foreground/60 mt-1 text-sm">CI/CD secrets and compliance controls</p>
+</a>
+
+<a href="https://owasp.org/www-project-top-10-ci-cd-security-risks/" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">OWASP Top 10 CI/CD Risks</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Industry reference for pipeline security</p>
+</a>
+
+</div>
+
+<div class="text-foreground/50 mt-4 text-sm">
+
+**Regulatory references:** [ISO/IEC 27001:2022](https://www.iso.org/standard/27001) · [NIS2 Directive](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32022L2555) · [CRA](https://digital-strategy.ec.europa.eu/en/library/cyber-resilience-act)
+
+</div>
