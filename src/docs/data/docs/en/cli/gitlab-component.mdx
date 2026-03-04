@@ -199,7 +199,7 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
 
 ## Compliance Controls
 
-Plumber includes **8 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
+Plumber includes **10 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
 
 | Control | Description |
 |---------|-------------|
@@ -211,6 +211,33 @@ Plumber includes **8 compliance controls**. Each can be enabled/disabled and cus
 | **Includes must not use forbidden versions** | Prevents mutable version references like `main`, `HEAD` |
 | **Pipeline must include component** | Ensures required CI/CD components are included; detects overridden jobs |
 | **Pipeline must include template** | Ensures required templates are included; detects overridden jobs |
+| **Pipeline must not enable debug trace** | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
+| **Pipeline must not use unsafe variable expansion** | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
+
+<details>
+<summary>**Unsafe Variable Expansion Detection**</summary>
+
+Detects user-controlled CI variables (MR title, commit message, branch name) passed to commands that re-interpret their input as shell code ([OWASP CICD-SEC-1](https://owasp.org/www-project-top-10-ci-cd-security-risks/)). Normal usage like `echo $CI_COMMIT_BRANCH` is safe; only re-interpretation contexts like `eval`, `sh -c`, and `bash -c` are flagged.
+
+Some legitimate usages (Helm deploys, Terraform, etc.) can be allowed via `allowedPatterns`:
+
+```yaml
+pipelineMustNotUseUnsafeVariableExpansion:
+  enabled: true
+  dangerousVariables:
+    - CI_MERGE_REQUEST_TITLE
+    - CI_COMMIT_MESSAGE
+    - CI_COMMIT_REF_NAME
+    - CI_COMMIT_BRANCH
+  allowedPatterns:
+    - "helm.*--set.*\\$CI_"
+    - "terraform workspace select.*\\$CI_"
+    - "docker build.*--build-arg.*\\$CI_"
+```
+
+See the [CLI documentation](/docs/cli/#available-controls) for the full list of flagged vs. safe patterns.
+
+</details>
 
 <Aside variant="tip">
   See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for all control options.
