@@ -1,12 +1,17 @@
 name: Deploy Production
 
 on:
+  # zizmor: ignore[dangerous-triggers] — workflow_run is used safely here:
+  # only triggers after Lint succeeds on main, checkouts a specific SHA
   workflow_run:
     workflows: ["Lint"]
     types: [completed]
     branches:
       - main
       - master
+
+permissions:
+  contents: read
 
 jobs:
   deploy-production:
@@ -15,12 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: "20"
           cache: "npm"
