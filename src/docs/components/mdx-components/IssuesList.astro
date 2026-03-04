@@ -1,0 +1,101 @@
+---
+/**
+ * Renders the full list of Plumber issues grouped by category.
+ * Used in the Issues index page (use-plumber/issues.mdx).
+ */
+import { issues } from "@/data/issues";
+import { Icon } from "astro-icon/components";
+
+const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+
+export const severityBadge: Record<string, string> = {
+  critical:
+    "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 ring-red-300 dark:ring-red-700/50",
+  high: "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 ring-orange-300 dark:ring-orange-700/50",
+  medium:
+    "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 ring-yellow-300 dark:ring-yellow-700/50",
+  low: "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 ring-blue-300 dark:ring-blue-700/50",
+};
+
+export const fixDurationBadge: Record<string, string> = {
+  "very quick":
+    "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 ring-emerald-300/70 dark:ring-emerald-700/60",
+  immediate:
+    "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 ring-emerald-300/70 dark:ring-emerald-700/60",
+  quick:
+    "bg-primary/10 text-primary dark:text-primary ring-primary/40",
+  medium:
+    "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 ring-yellow-300/70 dark:ring-yellow-700/60",
+  long:
+    "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 ring-orange-300/70 dark:ring-orange-700/60",
+  extended:
+    "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 ring-red-300/70 dark:ring-red-700/60",
+};
+
+const grouped = new Map<string, typeof allEntries>();
+const allEntries = Object.values(issues);
+
+for (const entry of allEntries) {
+  if (!grouped.has(entry.category)) grouped.set(entry.category, []);
+  grouped.get(entry.category)!.push(entry);
+}
+
+for (const entries of grouped.values()) {
+  entries.sort((a, b) => {
+    const sevDiff = severityOrder[a.severity] - severityOrder[b.severity];
+    return sevDiff !== 0 ? sevDiff : a.code.localeCompare(b.code);
+  });
+}
+---
+
+<div class="not-prose space-y-10 mt-6">
+  {
+    [...grouped.entries()].map(([category, entries]) => (
+      <div>
+        <h2 class="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-3 pb-2 border-b border-border">
+          {category}
+        </h2>
+        <div class="flex flex-col">
+          {entries.map((entry) => (
+            <div>
+              <a
+                href={`/docs/use-plumber/issues/${entry.code}`}
+                class="group flex items-center gap-3 rounded-md border border-border bg-muted/30 px-3 py-2 hover:border-muted-foreground/40 hover:bg-muted/70 transition-all"
+              >
+                <span
+                  class="shrink-0 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 w-[5rem]"
+                  title="Unique identifier for this issue"
+                >
+                  {entry.code}
+                </span>
+                <span class="flex-1 min-w-0">
+                  <span class="block text-xs md:text-sm text-foreground/80 group-hover:text-foreground transition-colors leading-snug">
+                    {entry.title}
+                  </span>
+                </span>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <span
+                    class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[entry.severity]}`}
+                    title="How severe the impact is if this issue is not fixed"
+                  >
+                    <Icon name="tabler/alert-triangle" color="currentColor" class="h-3 w-3" />
+                    {entry.severity.charAt(0).toUpperCase() + entry.severity.slice(1)}
+                  </span>
+                  <span
+                    class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${
+                      fixDurationBadge[entry.fixDuration] ?? "bg-muted text-muted-foreground ring-border"
+                    }`}
+                    title="Approximate time needed to fix this issue"
+                  >
+                    <Icon name="tabler/clock" color="currentColor" class="h-3 w-3" />
+                    {(entry.fixDuration.charAt(0).toUpperCase() + entry.fixDuration.slice(1)).replace("quick", "Quick")}
+                  </span>
+                </div>
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))
+  }
+</div>

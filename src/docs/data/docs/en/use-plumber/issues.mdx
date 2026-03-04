@@ -1,19 +1,54 @@
 ---
-title: Issue Status Overview
-description: Learn about issue statuses in Plumber.
+title: Issues
+description: Complete reference of all Plumber issues (ISSUE-XXXX), with severity, category, and links to detailed remediation guides.
 sidebar:
   order: 2
   label: Issues
+  indent: true
 ---
 
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/starwind/breadcrumb";
+
+<div class="not-content">
+  <Breadcrumb class="mb-4 text-xs md:text-sm">
+    <BreadcrumbList class="list-none gap-0!">
+      <BreadcrumbItem class="pl-0! pr-3">
+        <BreadcrumbLink href="/docs/use-plumber/controls" class="text-[var(--docs-link)] font-semibold hover:text-[var(--docs-link-hover)]!">
+          Controls
+        </BreadcrumbLink>
+      </BreadcrumbItem>
+      <BreadcrumbSeparator />
+      <BreadcrumbItem class="pl-3">
+        <BreadcrumbPage class="rounded-md bg-muted px-2 py-0.5 text-foreground">
+          Issues
+        </BreadcrumbPage>
+      </BreadcrumbItem>
+    </BreadcrumbList>
+  </Breadcrumb>
+</div>
+
+## Issues list
+
+When a control detects a violation in your project, Plumber creates an **Issue**. Each issue has a unique identifier following the format `ISSUE-XXXX` and is grouped by control.
+
+Click any issue to see the full description, impact, before/after configuration examples, and remediation steps.
+
+<IssuesList />
+
+## Issues status
 An issue status can be:
 - **Detected:** The default state for a newly discovered issue.
 - **In progress:** A user started to work on fixing this issue.
 - **Dismissed:** A user has evaluated this issue and dismissed it. Dismissed issues are ignored if detected in subsequent analyses.
 - **Fixed:** The issue has been fixed or is no longer detected. If a fixed issue is reintroduced and detected again, its status is set back to **Detected**.
-
 An issue typically goes through the following lifecycle:
-
 <div style={{maxWidth: "480px"}}>
 <img src="/docs/use-plumber/img/issue_status_diagram.svg" alt="Diagram of the Issue status lifecycle on Plumber" />
 </div>

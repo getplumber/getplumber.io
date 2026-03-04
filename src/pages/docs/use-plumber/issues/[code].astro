@@ -1,0 +1,407 @@
+---
+/**
+ * Issue documentation page.
+ * Displays full details for a Plumber issue: description, impact,
+ * remediation with before/after configuration examples.
+ *
+ * URL: https://getplumber.io/docs/use-plumber/issues/ISSUE-3
+ */
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/starwind/breadcrumb";
+import { Icon } from "astro-icon/components";
+import DocsLayoutStandalone from "@/docs/layouts/DocsLayoutStandalone.astro";
+import { issues, type IssueDoc } from "@/data/issues";
+import { fixDurationBadge } from "@/docs/components/mdx-components/IssuesList.astro";
+import { severityBadge } from "@/docs/components/mdx-components/IssuesList.astro";
+
+export function getStaticPaths() {
+  return Object.entries(issues).map(([code, doc]) => ({
+    params: { code },
+    props: doc,
+  }));
+}
+
+type Props = IssueDoc;
+
+const props = Astro.props;
+const {
+  code,
+  title,
+  category,
+  severity,
+  fixDuration,
+  controlName,
+  controlConfigKey,
+  description,
+  impact,
+  remediation,
+  badExample,
+  badExampleCaption,
+  goodExample,
+  goodExampleCaption,
+  tips,
+  relatedCodes,
+} = props;
+
+const severityColors: Record<string, { bg: string; text: string; ring: string; label: string }> = {
+  critical: {
+    bg: "bg-red-100 dark:bg-red-900/40",
+    text: "text-red-700 dark:text-red-400",
+    ring: "ring-red-300 dark:ring-red-700/50",
+    label: "Critical",
+  },
+  high: {
+    bg: "bg-orange-100 dark:bg-orange-900/40",
+    text: "text-orange-700 dark:text-orange-400",
+    ring: "ring-orange-300 dark:ring-orange-700/50",
+    label: "High",
+  },
+  medium: {
+    bg: "bg-yellow-100 dark:bg-yellow-900/40",
+    text: "text-yellow-700 dark:text-yellow-400",
+    ring: "ring-yellow-300 dark:ring-yellow-700/50",
+    label: "Medium",
+  },
+  low: {
+    bg: "bg-blue-100 dark:bg-blue-900/40",
+    text: "text-blue-700 dark:text-blue-400",
+    ring: "ring-blue-300 dark:ring-blue-700/50",
+    label: "Low",
+  },
+};
+const sev = severityColors[severity];
+
+const fixDurationStyles: Record<
+  string,
+  { bg: string; text: string; ring: string; label: string }
+> = {
+  immediate: {
+    bg: "bg-emerald-100 dark:bg-emerald-900/40",
+    text: "text-emerald-700 dark:text-emerald-300",
+    ring: "ring-emerald-300 dark:ring-emerald-700/60",
+    label: "Immediate",
+  },
+  "very quick": {
+    bg: "bg-emerald-100 dark:bg-emerald-900/40",
+    text: "text-emerald-700 dark:text-emerald-300",
+    ring: "ring-emerald-300 dark:ring-emerald-700/60",
+    label: "Very quick",
+  },
+  quick: {
+    bg: "bg-primary/10",
+    text: "text-primary",
+    ring: "ring-primary/40",
+    label: "Quick",
+  },
+  medium: {
+    bg: "bg-yellow-100 dark:bg-yellow-900/40",
+    text: "text-yellow-700 dark:text-yellow-300",
+    ring: "ring-yellow-300 dark:ring-yellow-700/60",
+    label: "Medium",
+  },
+  long: {
+    bg: "bg-orange-100 dark:bg-orange-900/40",
+    text: "text-orange-700 dark:text-orange-300",
+    ring: "ring-orange-300 dark:ring-orange-700/60",
+    label: "Long",
+  },
+  extended: {
+    bg: "bg-red-100 dark:bg-red-900/40",
+    text: "text-red-700 dark:text-red-300",
+    ring: "ring-red-300 dark:ring-red-700/60",
+    label: "Extended",
+  },
+};
+const fix = fixDurationStyles[fixDuration] ?? {
+  bg: "bg-muted",
+  text: "text-muted-foreground",
+  ring: "ring-border",
+  label: "Unknown",
+};
+
+const allCodes = Object.keys(issues);
+const currentIndex = allCodes.indexOf(code);
+const prevCode = currentIndex > 0 ? allCodes[currentIndex - 1] : null;
+const nextCode = currentIndex < allCodes.length - 1 ? allCodes[currentIndex + 1] : null;
+
+/** Convert markdown-style `inline code` to HTML <code> and escape the rest for safe set:html */
+function inlineCodeToHtml(text: string): string {
+  const escape = (s: string) =>
+    s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  return text
+    .split(/(`[^`]+`)/g)
+    .map((part) => {
+      if (part.startsWith("`") && part.endsWith("`")) {
+        return "<code>" + escape(part.slice(1, -1)) + "</code>";
+      }
+      return escape(part);
+    })
+    .join("");
+}
+
+const pageHeadings: { depth: number; slug: string; text: string }[] = [
+  { depth: 2, slug: "what-is-this", text: "What is this?" },
+  { depth: 2, slug: "impact", text: "Impact" },
+  { depth: 2, slug: "how-to-fix", text: "How to fix" },
+  ...(tips.length > 0 ? [{ depth: 2, slug: "tips", text: "Tips" }] : []),
+  { depth: 2, slug: "configuration", text: "Configuration" },
+  ...(relatedCodes.length > 0
+    ? [{ depth: 2, slug: "related-issues", text: "Related issues" }]
+    : []),
+];
+---
+
+<DocsLayoutStandalone
+  title={`${code} — ${title} | Plumber Issues`}
+  description={description}
+  sectionId="main"
+  headings={pageHeadings}
+>
+  <!-- Breadcrumb -->
+  <Breadcrumb class="mb-4 text-xs md:text-sm">
+    <BreadcrumbList >
+      <BreadcrumbItem class="pl-0!">
+        <BreadcrumbLink href="/docs/use-plumber/controls" class={"mt-2"}>Controls</BreadcrumbLink>
+      </BreadcrumbItem>
+      <BreadcrumbSeparator />
+      <BreadcrumbItem>
+        <BreadcrumbLink href="/docs/use-plumber/issues">Issues</BreadcrumbLink>
+      </BreadcrumbItem>
+      <BreadcrumbSeparator />
+      <BreadcrumbItem>
+        <BreadcrumbPage class="rounded-md bg-muted px-2 py-0.5 text-foreground">
+          {code}
+        </BreadcrumbPage>
+      </BreadcrumbItem>
+    </BreadcrumbList>
+  </Breadcrumb>
+
+  <!-- Header -->
+  <header class="mb-10">
+    <div class="flex flex-wrap items-center gap-3 mb-3">
+      <span
+        class="inline-flex items-center rounded-md bg-emerald-100 dark:bg-emerald-900/40 px-3 py-1 text-sm font-mono font-bold text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-700/50"
+        title="Unique identifier for this issue"
+      >
+        {code}
+      </span>
+      <span
+        class={`inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${sev.bg} ${sev.text} ${sev.ring}`}
+        title="How severe the impact is if this issue is not fixed"
+      >
+        <Icon name="tabler/alert-triangle" color="currentColor" class="h-3.5 w-3.5" />
+        {sev.label}
+      </span>
+      <span
+        class={`inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${fix.bg} ${fix.text} ${fix.ring}`}
+        title="Approximate time needed to fix this issue"
+      >
+        <Icon name="tabler/clock" color="currentColor" class="h-3.5 w-3.5" />
+        {fix.label}
+      </span>
+      <span
+        class="inline-flex items-center rounded-md bg-muted px-2.5 py-1 text-sm text-muted-foreground ring-1 ring-border"
+        title="Category of the control that raised this issue"
+      >
+        {category}
+      </span>
+    </div>
+    <h1 class="docs-h1 docs-text-gradient mb-2">{title}</h1>
+    <p class="mt-2 text-sm text-muted-foreground">
+      Control: <span class="text-foreground">{controlName}</span>
+      · Config key: <code class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground"
+        >{controlConfigKey}</code
+      >
+    </p>
+  </header>
+
+  <!-- Description -->
+  <section id="what-is-this" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+    <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+      <span>📋</span> What is this?
+    </h2>
+    <p class="text-foreground/80 leading-relaxed" set:html={inlineCodeToHtml(description)} />
+  </section>
+
+  <!-- Impact -->
+  <section id="impact" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+    <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+      <span>⚠️</span> Impact
+    </h2>
+    <div
+      class={`rounded-lg border p-4 ${
+        severity === "critical"
+          ? "border-red-300 dark:border-red-800/50 bg-red-50 dark:bg-red-950/20"
+          : "border-yellow-300 dark:border-yellow-800/50 bg-yellow-50 dark:bg-yellow-950/20"
+      }`}
+    >
+      <p class="text-foreground/80 leading-relaxed" set:html={inlineCodeToHtml(impact)} />
+    </div>
+  </section>
+
+  <!-- Remediation -->
+  <section id="how-to-fix" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+    <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+      <span>🔧</span> How to fix
+    </h2>
+    <p class="text-foreground/80 leading-relaxed mb-6" set:html={inlineCodeToHtml(remediation)} />
+
+    <!-- Bad example -->
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-2">
+        <span
+          class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 ring-1 ring-red-300 dark:ring-red-800/50"
+          >✗ Before</span
+        >
+        <span class="text-sm text-muted-foreground">{badExampleCaption}</span>
+      </div>
+      <pre
+        class="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed ring-1 ring-red-900/30"
+        ><code class="text-zinc-300">{badExample}</code></pre>
+    </div>
+
+    <!-- Good example -->
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-2">
+        <span
+          class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-800/50"
+          >✓ After</span
+        >
+        <span class="text-sm text-muted-foreground">{goodExampleCaption}</span>
+      </div>
+      <pre
+        class="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed ring-1 ring-emerald-900/30"
+        ><code class="text-zinc-300">{goodExample}</code></pre>
+    </div>
+  </section>
+
+  <!-- Tips -->
+  {
+    tips.length > 0 && (
+      <section id="tips" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+        <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+          <span>💡</span> Tips
+        </h2>
+        <ul class="space-y-2 list-none pl-0">
+          {tips.map((tip) => (
+            <li class="flex items-start gap-2 text-foreground/80">
+              <span class="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
+              <span class="flex-1 min-w-0" set:html={inlineCodeToHtml(tip)} />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <!-- Configuration -->
+  <section id="configuration" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+    <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+      <span>⚙️</span> Configuration
+    </h2>
+    <p class="text-foreground/80 mb-3">
+      This control is configured in <code
+        class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground">.plumber.yaml</code
+      > under the key:
+    </p>
+    <pre class="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm ring-1 ring-zinc-800"
+      ><code class="text-zinc-300">{`controls:\n  ${controlConfigKey}:\n    enabled: true`}</code
+      ></pre>
+    <p class="mt-3 text-sm text-muted-foreground">
+      See the <a href="/docs/cli" class="underline">CLI documentation</a> for the full configuration
+      reference.
+    </p>
+  </section>
+
+  <!-- Related issues -->
+  {
+    relatedCodes.length > 0 && (
+      <section id="related-issues" class="mb-10 scroll-mt-[calc(var(--nav-height)+1rem)]">
+        <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+          <span>🔗</span> Related issues
+        </h2>
+        <div class="flex flex-col gap-2">
+          {relatedCodes.map((rc) => {
+            const related = issues[rc];
+            return related ? (
+              <a
+                href={`/docs/use-plumber/issues/${rc}`}
+                class="inline-flex items-center gap-2 rounded-lg bg-muted px-3 text-sm ring-1 ring-border hover:ring-emerald-500/50 hover:bg-muted/80 transition-all h-10"
+              >
+                <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">{rc}</span>
+                <span class="text-muted-foreground">{related.title}</span>
+                <div class="flex items-center gap-1.5 shrink-0 ml-auto">
+                  <span
+                    class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[related.severity]}`}
+                    title="How severe the impact is if this issue is not fixed"
+                  >
+                    <Icon name="tabler/alert-triangle" color="currentColor" class="h-3 w-3" />
+                    {related.severity.charAt(0).toUpperCase() + related.severity.slice(1)}
+                  </span>
+                  <span
+                    class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${
+                      fixDurationBadge[related.fixDuration] ?? "bg-muted text-muted-foreground ring-border"
+                    }`}
+                    title="Approximate time needed to fix this issue"
+                  >
+                    <Icon name="tabler/clock" color="currentColor" class="h-3 w-3" />
+                    {(related.fixDuration.charAt(0).toUpperCase() + related.fixDuration.slice(1)).replace("quick", "Quick")}
+                  </span>
+                </div>
+              </a>
+            ) : null;
+          })}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Navigation -->
+  <nav
+    class="flex items-center justify-between border-t border-border pt-6"
+    aria-label="Issues navigation"
+  >
+    {
+      prevCode ? (
+        <a
+          href={`/docs/use-plumber/issues/${prevCode}`}
+          class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span>←</span>
+          <span class="font-mono">{prevCode}</span>
+        </a>
+      ) : (
+        <span />
+      )
+    }
+    <a
+      href="/docs/use-plumber/controls"
+      class="text-sm text-primary hover:text-primary/80 transition-colors"
+    >
+      All Controls →
+    </a>
+    {
+      nextCode ? (
+        <a
+          href={`/docs/use-plumber/issues/${nextCode}`}
+          class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span class="font-mono">{nextCode}</span>
+          <span>→</span>
+        </a>
+      ) : (
+        <span />
+      )
+    }
+  </nav>
+</DocsLayoutStandalone>

@@ -20,10 +20,11 @@ const comparePathsWithTrailingSlash = (path1: string, path2: string): boolean =>
 interface Props {
   link: string;
   text: string;
+  indent?: boolean;
   badge?: ComponentProps<typeof Badge>;
 }
 
-const { link, text, badge } = Astro.props;
+const { link, text, indent = false, badge } = Astro.props;
 
 // get the current page locale to use in links to other pages
 const currLocale = getLocaleFromUrl(Astro.url);
@@ -31,10 +32,17 @@ const currLocale = getLocaleFromUrl(Astro.url);
 // internal link - normalize to remove trailing slash (except root)
 let actualLink = link === "/" ? "/" : link.replace(/\/$/, "");
 
-const currentPath = comparePathsWithTrailingSlash(Astro.url.pathname, actualLink);
+const linkWithSlash = actualLink.endsWith("/") ? actualLink : `${actualLink}/`;
+const currentWithSlash = Astro.url.pathname.endsWith("/")
+  ? Astro.url.pathname
+  : `${Astro.url.pathname}/`;
+
+// Active when exact match or when current page is a child of this link
+const currentPath =
+  currentWithSlash === linkWithSlash || currentWithSlash.startsWith(linkWithSlash);
 ---
 
-<li>
+<li class:list={[indent && "pl-4 border-l border-zinc-800"]}>
   <a
     href={actualLink}
     class:list={[
@@ -46,6 +54,7 @@ const currentPath = comparePathsWithTrailingSlash(Astro.url.pathname, actualLink
     ]}
   >
     <div class="flex items-center gap-2">
+      {indent && <span class="text-zinc-600 text-xs">↳</span>}
       <span>{text}</span>
       {badge && <Badge text={badge.text} variant={badge.variant} />}
     </div>

@@ -412,20 +412,22 @@ Plumber uses a `.plumber.yaml` configuration file to customize checks.
 
 ### Available Controls
 
-Plumber includes **10 compliance controls**. Each can be enabled/disabled and customized:
+Plumber includes compliance controls covering CI/CD configuration, repository settings, and access management. Each can be enabled/disabled and customized.
+When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-3`) with a direct link to its documentation page.
 
-| Control | Description |
-|---------|-------------|
-| **Container images must not use forbidden tags** | Flags `latest`, `dev`, and other mutable tags. Can enforce digest pinning for all images |
-| **Container images must come from authorized sources** | Ensures images come from trusted registries |
-| **Branch must be protected** | Verifies critical branches have proper protection |
-| **Pipeline must not include hardcoded jobs** | Detects jobs defined directly instead of from includes |
-| **Includes must be up to date** | Checks if included templates have newer versions |
-| **Includes must not use forbidden versions** | Prevents mutable version references like `main`, `HEAD` |
-| **Pipeline must include component** | Ensures required CI/CD components are included; detects overridden jobs |
-| **Pipeline must include template** | Ensures required templates are included; detects overridden jobs |
-| **Pipeline must not enable debug trace** | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
-| **Pipeline must not use unsafe variable expansion** | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
+| Control | Issues | Description |
+|---------|--------|-------------|
+|| **Container images must not use forbidden tags** | [ISSUE-3](/docs/use-plumber/issues/ISSUE-3) | Flags `latest`, `dev`, and other mutable tags. Can enforce digest pinning for all images |
+|| **Container images must be pinned by digest** | [ISSUE-33](/docs/use-plumber/issues/ISSUE-33) | Ensures images use SHA256 digest pinning |
+|| **Container images must come from authorized sources** | [ISSUE-2](/docs/use-plumber/issues/ISSUE-2) | Ensures images come from trusted registries |
+|| **Branch must be protected** | [ISSUE-14](/docs/use-plumber/issues/ISSUE-14) [ISSUE-27](/docs/use-plumber/issues/ISSUE-27) | Verifies critical branches have proper protection |
+|| **Pipeline must not include hardcoded jobs** | [ISSUE-8](/docs/use-plumber/issues/ISSUE-8) | Detects jobs defined directly instead of from includes |
+|| **Includes must be up to date** | [ISSUE-10](/docs/use-plumber/issues/ISSUE-10) | Checks if included templates have newer versions |
+|| **Includes must not use forbidden versions** | [ISSUE-11](/docs/use-plumber/issues/ISSUE-11) | Prevents mutable version references like `main`, `HEAD` |
+|| **Pipeline must include component** | [ISSUE-29](/docs/use-plumber/issues/ISSUE-29) [ISSUE-30](/docs/use-plumber/issues/ISSUE-30) | Ensures required CI/CD components are included; detects overridden jobs |
+|| **Pipeline must include template** | [ISSUE-12](/docs/use-plumber/issues/ISSUE-12) [ISSUE-13](/docs/use-plumber/issues/ISSUE-13) | Ensures required templates are included; detects overridden jobs |
+|| **Pipeline must not enable debug trace** | [ISSUE-34](/docs/use-plumber/issues/ISSUE-34) | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
+|| **Pipeline must not use unsafe variable expansion** | - | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
 
 <details>
 <summary>**Unsafe Variable Expansion Detection**</summary>
@@ -481,6 +483,43 @@ For example, the script line `sh -c "helm upgrade myapp . --set image.tag=$CI_CO
 </Aside>
 
 </details>
+
+### Issues
+
+Every violation detected by Plumber is identified as an **Issue** following the pattern `ISSUE-XXXX`. Each issue links to a dedicated documentation page with:
+
+- **Description** of the problem
+- **Impact** on your security posture
+- **How to fix** with before/after configuration examples
+- **Tips** for best practices
+
+Issues are displayed in the CLI output, MR comments, and the summary table. Click any issue to view its full documentation.
+
+| Issue | Title |
+|-------|-------|
+| [ISSUE-2](/docs/use-plumber/issues/ISSUE-2) | Untrusted image source |
+| [ISSUE-3](/docs/use-plumber/issues/ISSUE-3) | Forbidden container image tag |
+| [ISSUE-4](/docs/use-plumber/issues/ISSUE-4) | Unprotected variable |
+| [ISSUE-5](/docs/use-plumber/issues/ISSUE-5) | Unmasked variable |
+| [ISSUE-7](/docs/use-plumber/issues/ISSUE-7) | Secret leak in pipeline configuration |
+| [ISSUE-8](/docs/use-plumber/issues/ISSUE-8) | Hardcoded job |
+| [ISSUE-9](/docs/use-plumber/issues/ISSUE-9) | Forbidden override of job |
+| [ISSUE-10](/docs/use-plumber/issues/ISSUE-10) | Outdated template |
+| [ISSUE-11](/docs/use-plumber/issues/ISSUE-11) | Forbidden include version |
+| [ISSUE-12](/docs/use-plumber/issues/ISSUE-12) | Missing required template |
+| [ISSUE-13](/docs/use-plumber/issues/ISSUE-13) | Forbidden override of required template |
+| [ISSUE-14](/docs/use-plumber/issues/ISSUE-14) | Branch protection missing |
+| [ISSUE-20](/docs/use-plumber/issues/ISSUE-20) | Missing security policy source on project |
+| [ISSUE-22](/docs/use-plumber/issues/ISSUE-22) | Merge request approval rule is below the minimum level of approvals required |
+| [ISSUE-23](/docs/use-plumber/issues/ISSUE-23) | Merge request approval settings are not compliant |
+| [ISSUE-24](/docs/use-plumber/issues/ISSUE-24) | No merge request approval rule covering all protected branches |
+| [ISSUE-25](/docs/use-plumber/issues/ISSUE-25) | Invalid pipeline composition |
+| [ISSUE-27](/docs/use-plumber/issues/ISSUE-27) | Branch protection configuration not compliant |
+| [ISSUE-28](/docs/use-plumber/issues/ISSUE-28) | Merge request settings are not compliant |
+| [ISSUE-29](/docs/use-plumber/issues/ISSUE-29) | Missing required component |
+| [ISSUE-30](/docs/use-plumber/issues/ISSUE-30) | Forbidden override of required component |
+| [ISSUE-31](/docs/use-plumber/issues/ISSUE-31) | Members' role quotas are not respected for projects |
+| [ISSUE-32](/docs/use-plumber/issues/ISSUE-32) | Members' role quotas are not respected for groups |
 
 ### Example Configuration
 

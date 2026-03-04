@@ -54,6 +54,7 @@ export default defineConfig({
         "@/docs/components/mdx-components/TabsContent.astro",
         "@/docs/components/mdx-components/TabsList.astro",
         "@/docs/components/mdx-components/TabsTrigger.astro",
+        "@/docs/components/mdx-components/IssuesList.astro",
       ],
     }),
     expressiveCode({

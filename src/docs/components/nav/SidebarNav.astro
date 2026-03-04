@@ -198,6 +198,7 @@ const docsBySection = sectionFilteredDocs.reduce(
       text: doc.data.sidebar?.label ? doc.data.sidebar.label : doc.data.title,
       link: `/${docsRoute}/${doc.id}`,
       order: doc.data.sidebar?.order,
+      indent: doc.data.sidebar?.indent,
       badge: doc.data.sidebar?.badge,
     });
     return acc;
@@ -208,6 +209,7 @@ const docsBySection = sectionFilteredDocs.reduce(
       text: string;
       link: string;
       order?: number;
+      indent?: boolean;
       label?: string;
       badge?: { text: string; variant: "tip" | "caution" | "danger" | "info" };
     }>
@@ -306,7 +308,7 @@ for (const section of sections) {
           </h2>
           <ul class="space-y-2">
             {docsBySection[section].map((doc) => (
-              <SidebarLink link={doc.link} text={doc.text} badge={doc.badge} />
+              <SidebarLink link={doc.link} text={doc.text} indent={doc.indent} badge={doc.badge} />
             ))}
           </ul>
         </div>
