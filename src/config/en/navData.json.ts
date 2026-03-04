@@ -20,7 +20,7 @@ const navConfig: navItem[] = [
     link: "/platform",
   },
   {
-    text: "Resources",
+    text: "Docs",
     megaMenuColumns: [
       {
         title: "Documentation",
@@ -29,11 +29,11 @@ const navConfig: navItem[] = [
           { text: "OpenSource CLI", link: "/docs/cli", icon: "tabler/terminal-2" },
         ],
       },
-      {
-        title: "Blog",
-        items: [{ text: "Blog", link: "/blog", icon: "tabler/news" }],
-      },
     ],
+  },
+  {
+    text: "Blog",
+    link: "/blog",
   },
   {
     text: "Discord",

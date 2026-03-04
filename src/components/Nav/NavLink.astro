@@ -37,6 +37,14 @@ if (!link.includes(domain) && !link.startsWith("/") && !link.startsWith("#")) {
   // internal link - normalize to remove trailing slash (except root)
   actualLink = link === "/" ? "/" : link.replace(/\/$/, "");
 }
+
+// determine if this nav item should be highlighted as active
+const isActive =
+  actualLink === "/docs"
+    ? Astro.url.pathname.startsWith("/docs")
+    : actualLink === "/blog"
+      ? Astro.url.pathname.startsWith("/blog")
+      : comparePathsWithTrailingSlash(Astro.url.pathname, actualLink);
 ---
 
 <li class="w-full">
@@ -45,10 +53,7 @@ if (!link.includes(domain) && !link.startsWith("/") && !link.startsWith("#")) {
       `nav__link--base primary-focus relative flex shrink-0 items-center gap-1.5 px-4 py-1.5 whitespace-nowrap ${className}`,
       {
         // styling for current active page link
-        "text-primary-600 dark:text-primary-400": comparePathsWithTrailingSlash(
-          Astro.url.pathname,
-          actualLink,
-        ),
+        "text-primary-600 dark:text-primary-400": isActive,
       },
     ]}
     href={actualLink}

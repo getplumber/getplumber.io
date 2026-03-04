@@ -20,8 +20,10 @@ if (cols >= 5) {
   gridClass = "grid-cols-3";
 } else if (cols == 2) {
   gridClass = "grid-cols-2";
+} else if (cols == 1) {
+  gridClass = "grid-cols-1";
 } else {
-  throw new Error("Mega menu dropdown must have at least 2 columns");
+  throw new Error("Mega menu dropdown must have at least 1 column");
 }
 ---
 
@@ -31,10 +33,9 @@ if (cols >= 5) {
     class:list={[
       "nav__link--base primary-focus mega-menu__dropdown-button hidden w-full items-center gap-1 px-4 py-1.5 whitespace-nowrap md:flex",
       {
-        // styling for current active page link (when on docs or blog)
+        // styling for current active page link (Docs section)
         "text-primary-600 dark:text-primary-400":
-          navItem.text === "Resources" &&
-          (Astro.url.pathname.startsWith("/docs") || Astro.url.pathname.startsWith("/blog")),
+          navItem.text === "Docs" && Astro.url.pathname.startsWith("/docs"),
       },
     ]}
     type="button"
