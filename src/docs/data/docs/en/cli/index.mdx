@@ -412,18 +412,48 @@ Plumber uses a `.plumber.yaml` configuration file to customize checks.
 
 ### Available Controls
 
-Plumber includes **8 compliance controls**. Each can be enabled/disabled and customized:
+Plumber includes **8 compliance controls**. Each can be enabled/disabled and customized.
+When a control detects an issue, it reports a structured **error code** (e.g., `PLB-0101`) with a direct link to its documentation page.
 
-| Control | Description |
-|---------|-------------|
-| **Container images must not use forbidden tags** | Flags `latest`, `dev`, and other mutable tags. Can enforce digest pinning for all images |
-| **Container images must come from authorized sources** | Ensures images come from trusted registries |
-| **Branch must be protected** | Verifies critical branches have proper protection |
-| **Pipeline must not include hardcoded jobs** | Detects jobs defined directly instead of from includes |
-| **Includes must be up to date** | Checks if included templates have newer versions |
-| **Includes must not use forbidden versions** | Prevents mutable version references like `main`, `HEAD` |
-| **Pipeline must include component** | Ensures required CI/CD components are included; detects overridden jobs |
-| **Pipeline must include template** | Ensures required templates are included; detects overridden jobs |
+| Control | Error Codes | Description |
+|---------|-------------|-------------|
+| **Container images must not use forbidden tags** | [`PLB-0101`](/e/PLB-0101) | Flags `latest`, `dev`, and other mutable tags |
+| **Container images must be pinned by digest** | [`PLB-0102`](/e/PLB-0102) | Ensures images use SHA256 digest pinning |
+| **Container images must come from authorized sources** | [`PLB-0103`](/e/PLB-0103) | Ensures images come from trusted registries |
+| **Branch must be protected** | [`PLB-0201`](/e/PLB-0201) [`PLB-0202`](/e/PLB-0202) | Verifies critical branches have proper protection |
+| **Pipeline must not include hardcoded jobs** | [`PLB-0301`](/e/PLB-0301) | Detects jobs defined directly instead of from includes |
+| **Includes must be up to date** | [`PLB-0302`](/e/PLB-0302) | Checks if included templates have newer versions |
+| **Includes must not use forbidden versions** | [`PLB-0303`](/e/PLB-0303) | Prevents mutable version references like `main`, `HEAD` |
+| **Pipeline must include component** | [`PLB-0401`](/e/PLB-0401) [`PLB-0402`](/e/PLB-0402) | Ensures required CI/CD components are included; detects overridden jobs |
+| **Pipeline must include template** | [`PLB-0403`](/e/PLB-0403) [`PLB-0404`](/e/PLB-0404) | Ensures required templates are included; detects overridden jobs |
+| **Pipeline must not enable debug trace** | [`PLB-0501`](/e/PLB-0501) | Detects `CI_DEBUG_TRACE` enabled in pipeline configuration |
+
+### Error Codes
+
+Every issue detected by Plumber is identified by a unique error code following the pattern `PLB-XXXX`. Each code links to a dedicated documentation page with:
+
+- **Description** of the problem
+- **Impact** on your security posture
+- **How to fix** with before/after YAML examples
+- **Tips** for best practices
+
+Error codes are displayed in the CLI output, MR comments, and the summary table. Click any code to view its full documentation.
+
+| Code | Issue |
+|------|-------|
+| [`PLB-0101`](/e/PLB-0101) | Forbidden image tag |
+| [`PLB-0102`](/e/PLB-0102) | Image not pinned by digest |
+| [`PLB-0103`](/e/PLB-0103) | Unauthorized image source |
+| [`PLB-0201`](/e/PLB-0201) | Branch not protected |
+| [`PLB-0202`](/e/PLB-0202) | Non-compliant branch protection |
+| [`PLB-0301`](/e/PLB-0301) | Hardcoded job |
+| [`PLB-0302`](/e/PLB-0302) | Outdated include version |
+| [`PLB-0303`](/e/PLB-0303) | Forbidden include version |
+| [`PLB-0401`](/e/PLB-0401) | Required component missing |
+| [`PLB-0402`](/e/PLB-0402) | Required component overridden |
+| [`PLB-0403`](/e/PLB-0403) | Required template missing |
+| [`PLB-0404`](/e/PLB-0404) | Required template overridden |
+| [`PLB-0501`](/e/PLB-0501) | Debug trace enabled |
 
 ### Example Configuration
 
