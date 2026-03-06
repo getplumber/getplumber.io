@@ -101,6 +101,20 @@ All of these improvements landed in a single PR ([#96](https://github.com/getplu
 - Removed an accidentally committed compiled `main` binary from the source tree (this was dragging down the Binary-Artifacts score)
 - Added `main` to `.gitignore`
 
+## Want to Apply This to Your Own Project?
+
+We wrote a companion post with step-by-step instructions, workflow snippets, and Scorecard impact for each change:
+
+**[6 Practical Steps to Harden Your GitHub Project's Supply Chain](/blog/harden-github-supply-chain)**
+
+It covers SHA-pinned actions, SLSA provenance setup, least-privilege permissions, persisted credentials, the Best Practices badge, and the Scorecard action, all with copy-paste YAML examples.
+
+## What's Next
+
+We're working toward 100% on the Best Practices badge and continuing to improve our Scorecard score. The main remaining items are enabling required PR reviews and status checks on the `main` branch (Branch-Protection) and growing the contributor review process (Code-Review).
+
+Supply chain security is not a one-time checkbox. It's an ongoing practice. The same way Plumber continuously monitors your GitLab pipelines for compliance drift, these frameworks continuously evaluate whether your project's security posture is holding up.
+
 ## Links
 
 - [Plumber on GitHub](https://github.com/getplumber/plumber)

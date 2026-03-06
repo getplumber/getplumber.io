@@ -1,0 +1,212 @@
+---
+title: "6 Practical Steps to Harden Your GitHub Project's Supply Chain"
+description: "A step-by-step guide to adding SLSA provenance, OpenSSF Scorecard, SHA-pinned actions, least-privilege tokens, and more to your open-source project."
+draft: false
+authors:
+  - plumber
+pubDate: 2026-03-06
+categories:
+  - "Security"
+  - "Open Source"
+  - "CI/CD"
+  - "Supply Chain"
+  - "GitHub"
+heroImage: ../OpenSSF-and-Salsa/heroImage.svg
+---
+
+# 6 Practical Steps to Harden Your GitHub Project's Supply Chain
+
+Recent attacks like [hackerbot-claw](/blog/hackerbot-claw-cicd-governance) have shown that CI/CD misconfigurations in open-source projects are actively exploited. Mutable action tags, overly permissive tokens, and unprotected workflows are the entry points.
+
+The good news: most of these issues are straightforward to fix. This post walks through six practical changes you can make today, with concrete examples. These are the same steps we applied to [Plumber's own supply chain](/blog/openssf-and-salsa), earning an OpenSSF Scorecard of 7.6, SLSA Level 3 provenance, and a 90% OpenSSF Best Practices badge.
+
+## 1. Pin Your GitHub Actions by SHA
+
+**Impact: Pinned-Dependencies 10/10 on OpenSSF Scorecard**
+
+This is the single most impactful change. When you reference an action by tag (e.g., `actions/checkout@v4`), the tag owner can update what it points to at any time. A compromised or hijacked tag means malicious code runs in your workflow with your repository's permissions.
+
+Replace mutable tags with full commit SHAs:
+
+```yaml
+# Before (mutable tag, vulnerable)
+- uses: actions/checkout@v4
+
+# After (pinned by SHA, immutable)
+- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+```
+
+Keep the version in a comment for readability. Dependabot will automatically open PRs to update the SHAs when new versions are released. Enable it by adding this to `.github/dependabot.yml`:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+```
+
+## 2. Add SLSA Provenance to Your Releases
+
+**Impact: Signed-Releases 10/10 on OpenSSF Scorecard**
+
+[SLSA](https://slsa.dev) (Supply-chain Levels for Software Artifacts) provenance gives your users a cryptographic guarantee that your release binaries were built from the expected source code, on a trusted build platform, without tampering.
+
+The [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) project provides reusable workflows for Go, Node, containers, and generic artifacts. Here's a simplified example for Go:
+
+```yaml
+provenance:
+  needs: [build]
+  permissions:
+    actions: read
+    id-token: write
+    contents: write
+  uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+  with:
+    base64-subjects: "${{ needs.build.outputs.hashes }}"
+    upload-assets: true
+```
+
+Users can then verify your binaries with:
+
+```bash
+slsa-verifier verify-artifact your-binary \
+  --provenance-path multiple.intoto.jsonl \
+  --source-uri github.com/your-org/your-project \
+  --source-branch main
+```
+
+For a complete working example, see [Plumber's release workflow](https://github.com/getplumber/plumber/blob/main/.github/workflows/release.yml).
+
+## 3. Set Least-Privilege Permissions
+
+**Impact: Token-Permissions 10/10 on OpenSSF Scorecard**
+
+By default, GitHub Actions workflows get a `GITHUB_TOKEN` with broad permissions. A deny-all default at the workflow level, combined with job-level overrides, ensures each job only gets what it needs.
+
+```yaml
+# Deny all permissions at workflow level
+permissions: {}
+
+jobs:
+  test:
+    permissions:
+      contents: read    # Only needs to read code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+  release:
+    permissions:
+      contents: write   # Needs to create releases
+      id-token: write   # Needs OIDC for SLSA provenance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+```
+
+This limits the blast radius if any step is compromised. An attacker who gains code execution in the `test` job can only read code, not push changes or create releases.
+
+## 4. Disable Persisted Credentials on Checkout
+
+**Impact: Reduces token exposure across all workflow steps**
+
+By default, `actions/checkout` stores the `GITHUB_TOKEN` in the local git config so subsequent `git` commands can authenticate. If you don't need git push in later steps, disable this:
+
+```yaml
+- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+  with:
+    persist-credentials: false
+```
+
+This is especially important in workflows that run third-party tools, scripts, or build systems that could read the stored credentials.
+
+## 5. Register for the OpenSSF Best Practices Badge
+
+**Impact: CII-Best-Practices check on OpenSSF Scorecard**
+
+The [OpenSSF Best Practices](https://www.bestpractices.dev) program evaluates your project against a comprehensive checklist covering documentation, change control, reporting, quality, security, and analysis. Even partially completing it surfaces areas you may have overlooked.
+
+To get started:
+
+1. Go to [bestpractices.dev](https://www.bestpractices.dev) and sign in with GitHub
+2. Add your project and start filling in the criteria
+3. Add the badge to your README:
+
+```markdown
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/YOUR_ID/badge)](https://www.bestpractices.dev/projects/YOUR_ID)
+```
+
+Common quick wins that improve your score:
+
+- Add a `SECURITY.md` with vulnerability reporting instructions (Security-Policy 10/10)
+- Add a `CONTRIBUTING.md` with contribution guidelines
+- Set up issue templates for bug reports
+- Enable GitHub Security Advisories for private vulnerability reporting
+
+## 6. Run the OpenSSF Scorecard Action
+
+**Impact: Continuous automated security posture monitoring**
+
+The [Scorecard GitHub Action](https://github.com/ossf/scorecard-action) runs the same checks that produce your public score, right in your repository. Set it up to run weekly and on pushes to `main`:
+
+```yaml
+name: OpenSSF Scorecard
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly on Monday
+
+permissions: {}
+
+jobs:
+  scorecard:
+    permissions:
+      security-events: write  # Upload SARIF
+      id-token: write         # Publish results
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - uses: ossf/scorecard-action@05b42c624433fc40578a4040d5cf5e36ddca94b1 # v2.4.3
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - uses: github/codeql-action/upload-sarif@48ab28a6f5dbc2a99bf1e0131198dd8f1df78169
+        with:
+          sarif_file: results.sarif
+```
+
+Results appear in your repository's Security tab as code scanning alerts, making it easy to track improvements over time. The public score is also visible at `securityscorecards.dev/viewer/?uri=github.com/your-org/your-project`.
+
+## Putting It All Together
+
+Here's a summary of what each change improves on the OpenSSF Scorecard:
+
+| Change | Scorecard Check | Expected Score |
+|--------|----------------|----------------|
+| Pin actions by SHA | Pinned-Dependencies | 10/10 |
+| SLSA provenance | Signed-Releases | 10/10 |
+| Least-privilege permissions | Token-Permissions | 10/10 |
+| SECURITY.md | Security-Policy | 10/10 |
+| Dependabot | Dependency-Update-Tool | 10/10 |
+| Scorecard action | (enables monitoring) | - |
+| Best Practices badge | CII-Best-Practices | 10/10 |
+
+Most of these changes take minutes to implement individually, and the compound effect is significant. For a real-world example of all of them applied together, see [Plumber's PR #96](https://github.com/getplumber/plumber/pull/96).
+
+## Links
+
+- [SLSA Framework](https://slsa.dev)
+- [SLSA GitHub Generator](https://github.com/slsa-framework/slsa-github-generator)
+- [OpenSSF Scorecard](https://securityscorecards.dev)
+- [OpenSSF Scorecard Action](https://github.com/ossf/scorecard-action)
+- [OpenSSF Best Practices](https://www.bestpractices.dev)
+- [slsa-verifier](https://github.com/slsa-framework/slsa-verifier)
+- [Plumber's supply chain hardening post](/blog/openssf-and-salsa)
