@@ -1,0 +1,67 @@
+---
+/**
+ * Renders the full list of Plumber error codes grouped by category.
+ * Used in the Error Codes index page (use-plumber/error-codes.mdx).
+ */
+import { errorCodes } from "@/data/error-codes";
+
+const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+
+const severityBadge: Record<string, string> = {
+  critical: "bg-red-900/40 text-red-400 ring-red-700/50",
+  high: "bg-orange-900/40 text-orange-400 ring-orange-700/50",
+  medium: "bg-yellow-900/40 text-yellow-400 ring-yellow-700/50",
+  low: "bg-blue-900/40 text-blue-400 ring-blue-700/50",
+};
+
+// Group by category, preserving insertion order within each group
+const grouped = new Map<string, typeof allEntries>();
+const allEntries = Object.values(errorCodes);
+
+for (const entry of allEntries) {
+  if (!grouped.has(entry.category)) grouped.set(entry.category, []);
+  grouped.get(entry.category)!.push(entry);
+}
+
+// Sort entries within each category by severity then code
+for (const entries of grouped.values()) {
+  entries.sort((a, b) => {
+    const sevDiff = severityOrder[a.severity] - severityOrder[b.severity];
+    return sevDiff !== 0 ? sevDiff : a.code.localeCompare(b.code);
+  });
+}
+---
+
+<div class="not-prose space-y-10 mt-6">
+  {[...grouped.entries()].map(([category, entries]) => (
+    <div>
+      <h2 class="text-sm font-semibold uppercase tracking-widest text-zinc-500 mb-3 pb-2 border-b border-zinc-800">
+        {category}
+      </h2>
+      <ul class="space-y-2">
+        {entries.map((entry) => (
+          <li>
+            <a
+              href={`/docs/use-plumber/error-codes/${entry.code}`}
+              class="group flex items-start gap-3 rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-3 hover:border-zinc-700 hover:bg-zinc-800/60 transition-all"
+            >
+              <span class="mt-0.5 shrink-0 font-mono text-sm font-bold text-emerald-400 w-[5.5rem]">
+                {entry.code}
+              </span>
+              <span class="flex-1 min-w-0">
+                <span class="block text-sm text-zinc-200 group-hover:text-white transition-colors leading-snug">
+                  {entry.title}
+                </span>
+              </span>
+              <span
+                class={`shrink-0 mt-0.5 inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${severityBadge[entry.severity]}`}
+              >
+                {entry.severity.charAt(0).toUpperCase() + entry.severity.slice(1)}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))}
+</div>

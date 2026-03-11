@@ -4,10 +4,18 @@
  * Displays full details for a Plumber error code: description, impact,
  * remediation with before/after YAML examples.
  *
- * URL: https://getplumber.io/e/PLB-0101
+ * URL: https://getplumber.io/docs/use-plumber/error-codes/PLB-0101
  */
-import BaseLayout from "@layouts/BaseLayout.astro";
-import { errorCodes, type ErrorCodeDoc } from "./_codes";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/starwind/breadcrumb";
+import DocsLayoutStandalone from "@/docs/layouts/DocsLayoutStandalone.astro";
+import { errorCodes, type ErrorCodeDoc } from "@/data/error-codes";
 
 export function getStaticPaths() {
   return Object.entries(errorCodes).map(([code, doc]) => ({
@@ -49,68 +57,90 @@ const allCodes = Object.keys(errorCodes);
 const currentIndex = allCodes.indexOf(code);
 const prevCode = currentIndex > 0 ? allCodes[currentIndex - 1] : null;
 const nextCode = currentIndex < allCodes.length - 1 ? allCodes[currentIndex + 1] : null;
+
+// Headings for "On this page" TOC (slug must match id on each section)
+const pageHeadings: { depth: number; slug: string; text: string }[] = [
+  { depth: 2, slug: "what-is-this", text: "What is this?" },
+  { depth: 2, slug: "impact", text: "Impact" },
+  { depth: 2, slug: "how-to-fix", text: "How to fix" },
+  ...(tips.length > 0 ? [{ depth: 2, slug: "tips", text: "Tips" }] : []),
+  { depth: 2, slug: "configuration", text: "Configuration" },
+  ...(relatedCodes.length > 0 ? [{ depth: 2, slug: "related-error-codes", text: "Related error codes" }] : []),
+];
 ---
 
-<BaseLayout
+<DocsLayoutStandalone
   title={`${code} — ${title} | Plumber Error Codes`}
   description={description}
-  noindex={false}
+  sectionId="main"
+  headings={pageHeadings}
 >
-  <div class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-    <!-- Breadcrumb -->
-    <nav class="mb-8 text-sm" aria-label="Breadcrumb">
-      <ol class="flex items-center gap-2 text-zinc-400">
-        <li><a href="/docs/use-plumber/controls" class="hover:text-white transition-colors">Controls</a></li>
-        <li class="text-zinc-600">/</li>
-        <li><a href="/docs/use-plumber/controls" class="hover:text-white transition-colors">Error Codes</a></li>
-        <li class="text-zinc-600">/</li>
-        <li class="text-white font-medium">{code}</li>
-      </ol>
-    </nav>
+  <!-- Breadcrumb -->
+  <Breadcrumb class="mb-4 text-xs md:text-sm">
+    <BreadcrumbList class="list-none gap-0!">
+      <BreadcrumbItem class="pl-0! pt-2">
+        <BreadcrumbLink href="/docs/use-plumber/controls">
+          Controls
+        </BreadcrumbLink>
+      </BreadcrumbItem>
+      <BreadcrumbSeparator />
+      <BreadcrumbItem>
+        <BreadcrumbLink href="/docs/use-plumber/error-codes">
+          Error Codes
+        </BreadcrumbLink>
+      </BreadcrumbItem>
+      <BreadcrumbSeparator />
+      <BreadcrumbItem>
+        <BreadcrumbPage class="rounded-md bg-zinc-800/60 px-2 py-0.5 text-zinc-100">
+          {code}
+        </BreadcrumbPage>
+      </BreadcrumbItem>
+    </BreadcrumbList>
+  </Breadcrumb>
 
-    <!-- Header -->
-    <header class="mb-10">
+  <!-- Header -->
+  <header class="mb-10">
       <div class="flex flex-wrap items-center gap-3 mb-3">
         <span class="inline-flex items-center rounded-md bg-emerald-900/40 px-3 py-1 text-sm font-mono font-bold text-emerald-400 ring-1 ring-emerald-700/50">
           {code}
         </span>
-        <span class={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${sev.bg} ${sev.text} ring-current/20`}>
+        <span class={`inline-flex items-center rounded-md px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${sev.bg} ${sev.text} ring-current/20`}>
           {sev.label}
         </span>
-        <span class="inline-flex items-center rounded-md bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-300 ring-1 ring-zinc-700">
+        <span class="inline-flex items-center rounded-md bg-zinc-800 px-2.5 py-1 text-sm text-zinc-300 ring-1 ring-zinc-700">
           {category}
         </span>
       </div>
-      <h1 class="text-3xl font-bold text-white sm:text-4xl">
+      <h1 class="docs-h1 docs-text-gradient mb-2">
         {title}
       </h1>
       <p class="mt-2 text-sm text-zinc-400">
         Control: <span class="text-zinc-300">{controlName}</span>
         · Config key: <code class="text-xs bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">{controlConfigKey}</code>
       </p>
-    </header>
+  </header>
 
-    <!-- Description -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+  <!-- Description -->
+  <section id="what-is-this" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+      <h2 class="docs-h2 text-xl font-semibold text-white mb-3 flex items-center gap-2">
         <span class="text-zinc-500">📋</span> What is this?
       </h2>
       <p class="text-zinc-300 leading-relaxed" set:html={description} />
-    </section>
+  </section>
 
-    <!-- Impact -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+  <!-- Impact -->
+  <section id="impact" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+      <h2 class="docs-h2 text-xl font-semibold text-white mb-3 flex items-center gap-2">
         <span class="text-zinc-500">⚠️</span> Impact
       </h2>
       <div class={`rounded-lg border p-4 ${severity === "critical" ? "border-red-800/50 bg-red-950/20" : "border-yellow-800/50 bg-yellow-950/20"}`}>
         <p class="text-zinc-300 leading-relaxed" set:html={impact} />
       </div>
-    </section>
+  </section>
 
-    <!-- Remediation -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+  <!-- Remediation -->
+  <section id="how-to-fix" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+      <h2 class="docs-h2 text-xl font-semibold text-white mb-3 flex items-center gap-2">
         <span class="text-zinc-500">🔧</span> How to fix
       </h2>
       <p class="text-zinc-300 leading-relaxed mb-6">{remediation}</p>
@@ -132,12 +162,12 @@ const nextCode = currentIndex < allCodes.length - 1 ? allCodes[currentIndex + 1]
         </div>
         <pre class="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm leading-relaxed ring-1 ring-emerald-900/30"><code class="text-zinc-300">{goodExample}</code></pre>
       </div>
-    </section>
+  </section>
 
-    <!-- Tips -->
-    {tips.length > 0 && (
-      <section class="mb-8">
-        <h2 class="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+  <!-- Tips -->
+  {tips.length > 0 && (
+    <section id="tips" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+        <h2 class="docs-h2 text-xl font-semibold text-white mb-3 flex items-center gap-2">
           <span class="text-zinc-500">💡</span> Tips
         </h2>
         <ul class="space-y-2">
@@ -148,12 +178,12 @@ const nextCode = currentIndex < allCodes.length - 1 ? allCodes[currentIndex + 1]
             </li>
           ))}
         </ul>
-      </section>
-    )}
+    </section>
+  )}
 
-    <!-- Configuration -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+  <!-- Configuration -->
+  <section id="configuration" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+      <h2 class="docs-h2 text-xl font-semibold text-white mb-3 flex items-center gap-2">
         <span class="text-zinc-500">⚙️</span> Configuration
       </h2>
       <p class="text-zinc-300 mb-3">
@@ -163,12 +193,12 @@ const nextCode = currentIndex < allCodes.length - 1 ? allCodes[currentIndex + 1]
       <p class="mt-3 text-sm text-zinc-400">
         See the <a href="/docs/cli" class="text-emerald-400 hover:text-emerald-300 underline">CLI documentation</a> for the full configuration reference.
       </p>
-    </section>
+  </section>
 
-    <!-- Related codes -->
-    {relatedCodes.length > 0 && (
-      <section class="mb-10">
-        <h2 class="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+  <!-- Related codes -->
+  {relatedCodes.length > 0 && (
+    <section id="related-error-codes" class="mb-10 scroll-mt-[calc(var(--nav-height)+1rem)]">
+        <h2 class="docs-h2 text-xl font-semibold text-white mb-3 flex items-center gap-2">
           <span class="text-zinc-500">🔗</span> Related error codes
         </h2>
         <div class="flex flex-wrap gap-2">
@@ -176,7 +206,7 @@ const nextCode = currentIndex < allCodes.length - 1 ? allCodes[currentIndex + 1]
             const related = errorCodes[rc];
             return related ? (
               <a
-                href={`/e/${rc}`}
+                href={`/docs/use-plumber/error-codes/${rc}`}
                 class="inline-flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 text-sm ring-1 ring-zinc-700 hover:ring-emerald-700 hover:bg-zinc-700 transition-all"
               >
                 <span class="font-mono font-bold text-emerald-400">{rc}</span>
@@ -185,26 +215,25 @@ const nextCode = currentIndex < allCodes.length - 1 ? allCodes[currentIndex + 1]
             ) : null;
           })}
         </div>
-      </section>
-    )}
+    </section>
+  )}
 
-    <!-- Navigation -->
-    <nav class="flex items-center justify-between border-t border-zinc-800 pt-6" aria-label="Error codes navigation">
-      {prevCode ? (
-        <a href={`/e/${prevCode}`} class="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
-          <span>←</span>
-          <span class="font-mono">{prevCode}</span>
-        </a>
-      ) : <span />}
-      <a href="/docs/use-plumber/controls" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-        All Controls →
+  <!-- Navigation -->
+  <nav class="flex items-center justify-between border-t border-zinc-800 pt-6" aria-label="Error codes navigation">
+    {prevCode ? (
+      <a href={`/docs/use-plumber/error-codes/${prevCode}`} class="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
+        <span>←</span>
+        <span class="font-mono">{prevCode}</span>
       </a>
-      {nextCode ? (
-        <a href={`/e/${nextCode}`} class="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
-          <span class="font-mono">{nextCode}</span>
-          <span>→</span>
-        </a>
-      ) : <span />}
-    </nav>
-  </div>
-</BaseLayout>
+    ) : <span />}
+    <a href="/docs/use-plumber/controls" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+      All Controls →
+    </a>
+    {nextCode ? (
+      <a href={`/docs/use-plumber/error-codes/${nextCode}`} class="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
+        <span class="font-mono">{nextCode}</span>
+        <span>→</span>
+      </a>
+    ) : <span />}
+  </nav>
+</DocsLayoutStandalone>

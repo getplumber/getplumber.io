@@ -96,6 +96,7 @@ const docsCollection = defineCollection({
         .object({
           label: z.string().optional(),
           order: z.number().optional(),
+          indent: z.boolean().optional(),
           badge: z
             .object({
               text: z.string(),

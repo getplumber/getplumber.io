@@ -1,0 +1,132 @@
+---
+/**
+ * Docs layout for standalone pages (e.g. error code pages) that are not
+ * from the content collection. Provides the same shell as DocsLayout:
+ * BaseLayoutDocs, left SidebarNav, main content slot, right TableOfContents.
+ */
+import type { MarkdownHeading } from "astro";
+
+import SidebarNav from "@/docs/components/nav/SidebarNav.astro";
+import TableOfContents from "@/docs/components/table-of-contents/TableOfContents.astro";
+import TocLink from "@/docs/components/table-of-contents/TocLink.astro";
+
+import BaseLayoutDocs from "./BaseLayoutDocs.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  sectionId?: string;
+  headings?: MarkdownHeading[];
+  minHeadingLevel?: number;
+  maxHeadingLevel?: number;
+}
+
+const {
+  title,
+  description,
+  sectionId = "main",
+  headings = [],
+  minHeadingLevel = 2,
+  maxHeadingLevel = 3,
+} = Astro.props;
+
+const filteredHeadings = headings.filter(
+  (h) => h.depth <= maxHeadingLevel && h.depth >= minHeadingLevel,
+);
+---
+
+<BaseLayoutDocs title={title} description={description} sectionId={sectionId}>
+  <div
+    class="docs-site-container min-h-[calc(100vh-var(--nav-height))] flex-1 border-x md:grid md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[240px_minmax(0,1fr)_240px] lg:gap-10 2xl:grid-cols-[240px_minmax(0,1fr)_280px]"
+  >
+    {/* Desktop Sidebar */}
+    <aside class="hidden w-full shrink-0 border-r md:block">
+      <div class="sticky top-(--nav-height)">
+        <div
+          class="max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-(--main-content-pt) pb-4"
+        >
+          <SidebarNav sectionId={sectionId} />
+        </div>
+      </div>
+    </aside>
+
+    {/* Main Content */}
+    <main class="w-full min-w-0">
+      {/* Mobile Table of Contents Dropdown */}
+      {
+        filteredHeadings.length > 0 && (
+          <div class="sticky top-[calc(var(--nav-height)-1px)] z-40 -mx-4 mb-4 md:-ml-0 lg:hidden">
+            <details class="mobile-toc bg-background/90 relative border-b px-4 py-2 backdrop-blur">
+              <summary class="cursor-pointer list-none font-medium">On this page</summary>
+              <nav class="bg-background absolute top-full right-0 left-0 space-y-1 border-b px-4 pt-2 pb-4">
+                {filteredHeadings.map((heading) => (
+                  <TocLink heading={heading} minHeadingLevel={minHeadingLevel} />
+                ))}
+              </nav>
+            </details>
+          </div>
+        )
+      }
+
+      {/* Content */}
+      <div
+        id="main-content"
+        class="mr-auto w-full max-w-2xl scroll-mt-[calc(var(--nav-height)+1rem)] overflow-x-hidden pb-(--main-content-pt) md:pl-6 lg:mt-(--main-content-pt) lg:px-1 xl:mx-auto"
+      >
+        <div class="docs-markdown-content">
+          <slot />
+        </div>
+      </div>
+    </main>
+
+    {/* Desktop Table of Contents */}
+    <aside class="hidden text-sm lg:block">
+      <div class="sticky top-(--nav-height)">
+        <div
+          class="max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-(--main-content-pt) pb-4"
+        >
+          {
+            filteredHeadings.length > 0 && (
+              <TableOfContents headings={filteredHeadings} minHeadingLevel={minHeadingLevel} />
+            )
+          }
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="pointer-events-none fixed inset-0 z-50 hidden dark:block">
+    <div class="docs-site-container relative flex h-14">
+      <div
+        class="from-primary/50 dark:from-foreground/20 pointer-events-none absolute -top-[500px] -left-[100px] z-50 h-[1000px] w-[200px] -rotate-45 bg-gradient-to-b to-transparent blur-2xl"
+      >
+      </div>
+    </div>
+  </div>
+</BaseLayoutDocs>
+
+<style>
+  .mobile-toc summary::before {
+    --details-marker-size: 1.25rem;
+
+    background-color: currentColor;
+    content: "";
+    display: inline-block;
+    height: var(--details-marker-size);
+    width: var(--details-marker-size);
+    margin-inline: calc((var(--details-marker-size) / 4) * -1) 0.25rem;
+    vertical-align: middle;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.8 11.3 10.6 7a1 1 0 1 0-1.4 1.5l3.5 3.5-3.5 3.5a1 1 0 0 0 0 1.4 1 1 0 0 0 .7.3 1 1 0 0 0 .7-.3l4.2-4.2a1 1 0 0 0 0-1.4Z'/%3E%3C/svg%3E%0A");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.8 11.3 10.6 7a1 1 0 1 0-1.4 1.5l3.5 3.5-3.5 3.5a1 1 0 0 0 0 1.4 1 1 0 0 0 .7.3 1 1 0 0 0 .7-.3l4.2-4.2a1 1 0 0 0 0-1.4Z'/%3E%3C/svg%3E%0A");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .mobile-toc summary::before {
+      transition: transform 0.2s ease-in-out;
+    }
+  }
+  .mobile-toc[open] > summary::before {
+    transform: rotateZ(90deg);
+  }
+</style>
