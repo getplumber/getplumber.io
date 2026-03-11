@@ -28,7 +28,7 @@ Organizations today run hundreds or thousands of CI/CD pipelines. These pipeline
 - **Why now**: supply chain attacks, regulatory pressure (ISO 27001, NIS2, DORA, CRA), and the cost of manual audits
 - **A real-world case**: [hackerbot-claw](/blog/hackerbot-claw-cicd-governance) (Feb 2026), an AI bot that compromised 5 of 7 major repos in 7 days using documented misconfigurations
 - **A four-step framework**: Define, Verify, Remediate, Prove
-- **A 25-point compliance checklist** you can use immediately
+- **A 26-point compliance checklist** you can use immediately
 - **Control guidelines** with rationale, grouped by category
 - **Regulatory mapping table** (ISO 27001 / NIS2 / DORA / CRA)
 - **FAQ** answering the most common compliance questions
@@ -118,7 +118,7 @@ Attackers injected code into the build process of SolarWinds Orion, affecting 18
 
 An autonomous AI-powered bot scanned public repositories for exploitable GitHub Actions workflows and compromised 5 of 7 targeted repositories in one week. Targets included Aqua Security's Trivy (25k+ stars, 178 releases deleted), awesome-go (140k+ stars, `GITHUB_TOKEN` with write permissions exfiltrated), CNCF's akri, Microsoft's ai-discovery-agent, and DataDog's iac-scanner. Every exploit used a known, documented misconfiguration: `pull_request_target` with untrusted checkout, unescaped `${{ }}` expressions in `run:` blocks, missing `author_association` checks, and excessive token permissions. No zero-days were involved.
 
-[StepSecurity Analysis](https://www.stepsecurity.io/blog/hackerbot-claw-github-actions-exploitation) | [Our dedicated article](/blog/hackerbot-claw-cicd-governance)
+[StepSecurity Analysis](https://www.stepsecurity.io/blog/hackerbot-claw-github-actions-exploitation) | [Our dedicated article](/blog/hackerbot-claw-cicd-governance) | [Trivy incident write-up 🇫🇷](https://blog.stephane-robert.info/post/trivy-depot-github-vide/)
 
 </details>
 
@@ -170,11 +170,12 @@ Use this checklist to quickly assess your pipeline security posture. Each contro
       <li>Require mandatory security scans (SAST, secret detection, dependency checks) in every pipeline</li>
       <li>Pin all pipeline templates, includes, and reusable actions to explicit versions</li>
       <li>Detect and alert on template overrides or bypasses</li>
+      <li>Maintain a Pipeline Bill of Materials (PBOM) documenting runner images, templates, actions, plugins, and their versions</li>
     </ol>
   </div>
   <div>
     <p class="text-primary-500 mb-2 text-sm font-bold uppercase tracking-wide">Access & authorization</p>
-    <ol start="11" class="list-decimal space-y-1 pl-6">
+    <ol start="12" class="list-decimal space-y-1 pl-6">
       <li>Protect critical branches (disable force push, require code owner approval)</li>
       <li>Enforce minimum merge request approvals</li>
       <li>Restrict merge and push access to authorized roles only</li>
@@ -185,7 +186,7 @@ Use this checklist to quickly assess your pipeline security posture. Each contro
   </div>
   <div>
     <p class="text-primary-500 mb-2 text-sm font-bold uppercase tracking-wide">Policy, monitoring & evidence</p>
-    <ol start="17" class="list-decimal space-y-1 pl-6">
+    <ol start="18" class="list-decimal space-y-1 pl-6">
       <li>Define and enforce a CI/CD security policy at the organization level</li>
       <li>Maintain audit logs for all pipeline executions and configuration changes</li>
       <li>Monitor for configuration drift continuously (not just periodic snapshots)</li>
@@ -259,6 +260,7 @@ How pipelines are built (templates, components, hardcoded jobs) affects maintain
 | **Pin template and include versions** | Avoid `main` or default branches. Use explicit versions to prevent pulling compromised or breaking changes. |
 | **Detect and limit overrides** | Overriding required templates can bypass security checks. Overrides should be explicit and justified. |
 | **Generate SBOM / signing / attestations** | Build provenance records and software bill of materials support traceability and regulatory evidence. |
+| **Maintain a Pipeline Bill of Materials (PBOM)** | A PBOM inventories the components that make up your CI/CD pipeline itself: runner images, templates, reusable actions, plugins, and their versions. While SBOM tracks what is inside your artifacts, PBOM tracks what built them, enabling auditors to verify the integrity and provenance of the build process. |
 
 <span id="4-access-and-authorization"></span>
 
@@ -299,7 +301,7 @@ This table maps CI/CD compliance control categories to high-level regulatory req
 | **Access control** (branch protection, role management, approval rules) | Merge request logs, role audit exports, branch protection config | Access control, Change management | Security of network and information systems | ICT access management | Secure development lifecycle |
 | **Secret management** (no hardcoded secrets, masking, protected variables) | Secret scan reports, variable config exports | Information classification, Cryptographic controls | Incident handling, Risk management | ICT risk management | Vulnerability handling |
 | **Container image security** (trusted sources, pinned versions, scanning) | Image scan reports, registry allow-lists | Supplier relationships, Vulnerability management | Supply chain security | Third-party ICT risk | Product security requirements |
-| **Pipeline composition** (mandatory templates, pinned includes, override detection) | Template compliance reports, override alerts | Change management, Configuration management | Risk management measures | ICT change management | Secure by default |
+| **Pipeline composition** (mandatory templates, pinned includes, override detection, PBOM) | Template compliance reports, override alerts, PBOM exports | Change management, Configuration management | Risk management measures | ICT change management | Secure by default |
 | **Build provenance** (SBOM, signing, attestations) | SBOM exports, signed artifacts, attestation logs | Asset management, Supplier security | Supply chain security | Digital operational resilience testing | Transparency, Vulnerability disclosure |
 | **Logging and monitoring** (pipeline execution logs, drift detection) | Audit logs, drift detection reports, dashboards | Monitoring, Audit logging | Monitoring obligations | ICT-related incident reporting | Reporting obligations |
 | **CI runner security** (isolation, ephemeral runners, scoped tokens) | Runner configuration exports, token permission audits | Operations security | Security of network and information systems | ICT operational security | Secure development lifecycle |
@@ -316,7 +318,7 @@ This mapping is high-level and intended as a starting point. For precise article
 2. **Compliance is not optional.** ISO 27001, NIS2, DORA, and the CRA all now scope CI/CD pipelines as part of the software supply chain.
 3. **Follow four steps**: Define your requirements, Verify your posture continuously, Remediate gaps, and Prove compliance with audit-ready evidence.
 4. **Automate everything.** Manual audits do not scale. Continuous, automated checks are the only way to keep pace with pipeline changes.
-5. **Start with the [25-point checklist](#cicd-compliance-checklist)** above, then map controls to your regulatory framework using the [mapping table](#control-mapping-iso-27001--nis2--dora--cra).
+5. **Start with the [26-point checklist](#cicd-compliance-checklist)** above, then map controls to your regulatory framework using the [mapping table](#control-mapping-iso-27001--nis2--dora--cra).
 6. **The threat is real and automated.** The [hackerbot-claw campaign](/blog/hackerbot-claw-cicd-governance) (Feb 2026) showed an autonomous AI bot compromising 5 of 7 major repositories in 7 days using only known, documented misconfigurations. Every exploit in that campaign is addressed in this checklist.
 
 </Aside>
@@ -420,6 +422,26 @@ Continuously. Point-in-time assessments miss configuration drift, new vulnerabil
 <a href="https://owasp.org/www-project-top-10-ci-cd-security-risks/" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
   <strong class="text-foreground">OWASP Top 10 CI/CD Risks</strong>
   <p class="text-foreground/60 mt-1 text-sm">Industry reference for pipeline security</p>
+</a>
+
+<a href="https://blog.stephane-robert.info/post/trivy-depot-github-vide/" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Trivy supply chain incident 🇫🇷</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Trivy wiped by an AI bot: full timeline and IOCs</p>
+</a>
+
+<a href="https://blog.stephane-robert.info/post/securiser-workflows-github-actions-supply-chain/" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">15 GitHub Actions Security Traps 🇫🇷</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Common pitfalls that expose your CI/CD pipelines</p>
+</a>
+
+<a href="https://blog.stephane-robert.info/docs/pipeline-cicd/securiser/" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Securing a CI/CD Pipeline 🇫🇷</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Conceptual model: identities, dependencies, runners, artifacts</p>
+</a>
+
+<a href="https://blog.stephane-robert.info/docs/securiser/supply-chain/" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Software Supply Chain Security 🇫🇷</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Attack vectors, regulations (CRA, NIS2), and defense frameworks</p>
 </a>
 
 </div>
