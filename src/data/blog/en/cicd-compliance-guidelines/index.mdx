@@ -26,8 +26,9 @@ Organizations today run hundreds or thousands of CI/CD pipelines. These pipeline
 
 - **What** CI/CD compliance means and why pipelines are a governance blind spot
 - **Why now**: supply chain attacks, regulatory pressure (ISO 27001, NIS2, DORA, CRA), and the cost of manual audits
+- **A real-world case**: [hackerbot-claw](/blog/hackerbot-claw-cicd-governance) (Feb 2026), an AI bot that compromised 5 of 7 major repos in 7 days using documented misconfigurations
 - **A four-step framework**: Define, Verify, Remediate, Prove
-- **A 22-point compliance checklist** you can use immediately
+- **A 25-point compliance checklist** you can use immediately
 - **Control guidelines** with rationale, grouped by category
 - **Regulatory mapping table** (ISO 27001 / NIS2 / DORA / CRA)
 - **FAQ** answering the most common compliance questions
@@ -61,7 +62,7 @@ Four converging forces make CI/CD compliance and pipeline security urgent today.
 
 1. **Pipelines are a prime attack target**
 
-   Attackers have shifted focus to the software supply chain. Compromising one pipeline can expose code, credentials, and production access across many projects. Incidents like the [tj-actions/changed-files compromise](/blog/tj-actions-compromised), the [Shai-Hulud campaign](/blog/shai-hulud), and the SolarWinds breach demonstrate that workflow security is no longer a niche concern. See [incident details and sources](#supply-chain-incidents-with-sources) below.
+   Attackers have shifted focus to the software supply chain. Compromising one pipeline can expose code, credentials, and production access across many projects. Incidents like the [tj-actions/changed-files compromise](/blog/tj-actions-compromised), the [Shai-Hulud campaign](/blog/shai-hulud), the SolarWinds breach, and most recently the [hackerbot-claw campaign](/blog/hackerbot-claw-cicd-governance) (an autonomous AI bot that compromised 5 of 7 targeted repos in 7 days using known misconfigurations) demonstrate that workflow security is no longer a niche concern. See [incident details and sources](#supply-chain-incidents-with-sources) below.
 
 2. **Regulators are asking**
 
@@ -109,6 +110,15 @@ Malicious npm packages combined with GitHub Actions exploitation to propagate ac
 <summary>**SolarWinds** (December 2020) — 18,000+ organizations affected</summary>
 
 Attackers injected code into the build process of SolarWinds Orion, affecting 18,000+ organizations and demonstrating that build provenance and artifact integrity are critical. The attack went undetected for months, highlighting the need for continuous monitoring of build systems.
+
+</details>
+
+<details>
+<summary>**hackerbot-claw** (February 2026) — 5 of 7 major repos compromised in 7 days</summary>
+
+An autonomous AI-powered bot scanned public repositories for exploitable GitHub Actions workflows and compromised 5 of 7 targeted repositories in one week. Targets included Aqua Security's Trivy (25k+ stars, 178 releases deleted), awesome-go (140k+ stars, `GITHUB_TOKEN` with write permissions exfiltrated), CNCF's akri, Microsoft's ai-discovery-agent, and DataDog's iac-scanner. Every exploit used a known, documented misconfiguration: `pull_request_target` with untrusted checkout, unescaped `${{ }}` expressions in `run:` blocks, missing `author_association` checks, and excessive token permissions. No zero-days were involved.
+
+[StepSecurity Analysis](https://www.stepsecurity.io/blog/hackerbot-claw-github-actions-exploitation) | [Our dedicated article](/blog/hackerbot-claw-cicd-governance)
 
 </details>
 
@@ -168,11 +178,14 @@ Use this checklist to quickly assess your pipeline security posture. Each contro
       <li>Protect critical branches (disable force push, require code owner approval)</li>
       <li>Enforce minimum merge request approvals</li>
       <li>Restrict merge and push access to authorized roles only</li>
+      <li>Restrict sensitive workflow triggers (e.g., <code>pull_request_target</code>, comment dispatches) to trusted contributors only — never check out or execute untrusted fork code in privileged trigger contexts</li>
+      <li>Verify contributor trust level (<code>author_association</code>) before executing workflows triggered by external actors such as issue comments or PR reviews</li>
+      <li>Never interpolate externally-controlled values (branch names, PR titles, filenames, issue bodies) directly into shell commands; always assign them to environment variables first</li>
     </ol>
   </div>
   <div>
     <p class="text-primary-500 mb-2 text-sm font-bold uppercase tracking-wide">Policy, monitoring & evidence</p>
-    <ol start="14" class="list-decimal space-y-1 pl-6">
+    <ol start="17" class="list-decimal space-y-1 pl-6">
       <li>Define and enforce a CI/CD security policy at the organization level</li>
       <li>Maintain audit logs for all pipeline executions and configuration changes</li>
       <li>Monitor for configuration drift continuously (not just periodic snapshots)</li>
@@ -261,6 +274,9 @@ Who can change code and pipelines directly impacts pipeline security and complia
 | **Restrict merge and push access** | Limit who can merge or push to protected branches. |
 | **Enforce merge request approval rules** | Require a minimum number of approvals before merge. |
 | **Secure GitHub Actions tokens and CI/CD credentials** | Default tokens often have write permissions. Scope them down and rotate them regularly. |
+| **Restrict `pull_request_target` to trusted code only** | Workflows using `pull_request_target` run with repository secrets and full permissions, even when triggered by a fork. Never check out or execute code from untrusted contributors in this context. The hackerbot-claw campaign exploited this pattern to exfiltrate PATs and `GITHUB_TOKEN` from major open-source projects. |
+| **Verify contributor trust level for comment-triggered workflows** | Comment-triggered or dispatch-based workflows without `author_association` checks allow any external user to trigger privileged CI execution. Restrict to `OWNER`, `MEMBER`, or `COLLABORATOR` as appropriate. |
+| **Never interpolate externally-controlled values directly in shell commands** | Branch names, PR titles, filenames, and issue bodies are attacker-controlled input. Always assign them to environment variables before use in `run:` blocks to prevent shell injection. This class of vulnerability was used across multiple hackerbot-claw targets. |
 
 <span id="5-security-policy-and-visibility"></span>
 
@@ -300,7 +316,8 @@ This mapping is high-level and intended as a starting point. For precise article
 2. **Compliance is not optional.** ISO 27001, NIS2, DORA, and the CRA all now scope CI/CD pipelines as part of the software supply chain.
 3. **Follow four steps**: Define your requirements, Verify your posture continuously, Remediate gaps, and Prove compliance with audit-ready evidence.
 4. **Automate everything.** Manual audits do not scale. Continuous, automated checks are the only way to keep pace with pipeline changes.
-5. **Start with the [22-point checklist](#cicd-compliance-checklist)** above, then map controls to your regulatory framework using the [mapping table](#control-mapping-iso-27001--nis2--dora--cra).
+5. **Start with the [25-point checklist](#cicd-compliance-checklist)** above, then map controls to your regulatory framework using the [mapping table](#control-mapping-iso-27001--nis2--dora--cra).
+6. **The threat is real and automated.** The [hackerbot-claw campaign](/blog/hackerbot-claw-cicd-governance) (Feb 2026) showed an autonomous AI bot compromising 5 of 7 major repositories in 7 days using only known, documented misconfigurations. Every exploit in that campaign is addressed in this checklist.
 
 </Aside>
 
@@ -373,6 +390,11 @@ Continuously. Point-in-time assessments miss configuration drift, new vulnerabil
 <a href="/blog/top-5-cybersecurity-incidents-in-cicd" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
   <strong class="text-foreground">Top 5 Supply Chain Incidents</strong>
   <p class="text-foreground/60 mt-1 text-sm">Real-world attacks on CI/CD infrastructure</p>
+</a>
+
+<a href="/blog/hackerbot-claw-cicd-governance" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">hackerbot-claw: CI/CD Pipelines as Attack Surface</strong>
+  <p class="text-foreground/60 mt-1 text-sm">AI bot compromised 5 of 7 major repos via known misconfigurations</p>
 </a>
 
 <a href="/blog/tj-actions-compromised" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
