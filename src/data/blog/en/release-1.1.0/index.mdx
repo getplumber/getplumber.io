@@ -17,9 +17,9 @@ import portfolioCompliance from './portfolio-compliance.png';
 
 **We're thrilled to announce the launch of Plumber 1.1:**
 
-> **📊 Portfolio compliance at a glance, and a smoother experience**
+> **⚡ Quick install, portfolio compliance at a glance, and a smoother experience**
 
-**This release brings detailed portfolio compliance views, and several refinements across the platform.**
+**This release introduces a guided installation process, detailed portfolio compliance views, and several refinements across the platform.**
 
 ## 📊 Portfolio Compliance
 
@@ -39,6 +39,45 @@ detailed compliance information, including each policy associated with them.
     className="w-full"
   />
 </div>
+
+## ⚡ Quick Install
+
+Previously, installing Plumber meant cloning the repository and editing configuration files manually: domain name, GitLab OIDC credentials, TLS settings, database connection, secrets. One by one.
+
+**1.1 replaces all of that with a single command:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/getplumber/platform/main/install.sh | bash
+```
+
+The interactive installer guides you through every decision:
+
+<Steps className="my-2">
+<br/>
+1. **Domain name** configuration
+2. **GitLab OIDC** application setup
+3. **TLS certificate** method (Let's Encrypt or custom certificates)
+4. **Database** choice (internal PostgreSQL or your own external database)
+5. **Secrets** auto-generated for you
+
+</Steps>
+
+Plumber starts automatically when the setup is complete.
+
+### ⏫ Updating
+
+Upgrades follow the same philosophy. One script handles everything:
+
+```bash
+./scripts/update.sh
+```
+
+It stops the running containers, pulls the latest changes, loads the new image versions, migrates your `.env` if needed, and restarts.
+
+<Admonition variant="info">
+The manual install path is still fully supported for teams that prefer it or need advanced customization. Both options are covered in the [installation documentation](/docs/installation/docker-compose).
+</Admonition>
+
 
 ## ⚙️ Minor Updates
 
