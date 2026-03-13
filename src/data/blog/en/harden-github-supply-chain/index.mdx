@@ -4,14 +4,14 @@ description: "A step-by-step guide to adding SLSA provenance, OpenSSF Scorecard,
 draft: false
 authors:
   - plumber
-pubDate: 2026-03-06
+pubDate: 2026-03-13
 categories:
   - "Security"
   - "Open Source"
   - "CI/CD"
   - "Supply Chain"
   - "GitHub"
-heroImage: ../OpenSSF-and-Salsa/heroImage.svg
+heroImage: ../OpenSSF-and-Salsa/heroImage.png
 ---
 
 # 6 Practical Steps to Harden Your GitHub Project's Supply Chain
@@ -68,7 +68,9 @@ provenance:
     upload-assets: true
 ```
 
-Users can then verify your binaries with:
+Users can then verify your binaries' provenance with the slsa-verifier tool.  
+First, download your binary and your `multiple.intoto.jsonl` from the release page, for example: [Plumber v0.1.66](https://github.com/getplumber/plumber/releases/tag/v0.1.66)
+
 
 ```bash
 slsa-verifier verify-artifact your-binary \

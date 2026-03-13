@@ -55,7 +55,7 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
        - if: $CI_COMMIT_TAG
 
    include:
-     - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
+     - component: gitlab.com/getplumber/plumber/plumber@v0.1.29
        # inputs:
        #   stage: .pre | by default runs in .pre which only runs if there is at least another CI job in another stage
    ```
@@ -104,7 +104,7 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
        The imported project comes with upstream tags. The preferred method is to run a pipeline on an existing tag to trigger the release:
 
        - Go to **CI/CD → Pipelines → Run pipeline**
-       - Select an imported tag (e.g., `v0.1.28`) from the branch/tag dropdown
+       - Select an imported tag (e.g., `v0.1.29`) from the branch/tag dropdown
        - Click **Run pipeline**: this creates a release for that tag in the CI/CD Catalog
 
        Alternatively, create a new tag manually (go to **Code → Tags → New tag**), but this might conflict later when you want to fetch remote tags.
@@ -127,7 +127,7 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
            - if: $CI_COMMIT_TAG
 
        include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.1.28
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.1.29
            # inputs:
            #   stage: .pre | by default runs in .pre which only runs if there is at least another CI job in another stage
        ```
@@ -165,7 +165,7 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
        The mirrored project comes with upstream tags. The preferred method is to run a pipeline on an existing tag to trigger the release:
 
        - Go to **CI/CD → Pipelines → Run pipeline**
-       - Select an imported tag (e.g., `v0.1.28`) from the branch/tag dropdown
+       - Select an imported tag (e.g., `v0.1.29`) from the branch/tag dropdown
        - Click **Run pipeline**: this creates a release for that tag in the CI/CD Catalog
 
        Alternatively, create a new tag manually via **Code → Tags → New tag**.
@@ -188,7 +188,7 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
            - if: $CI_COMMIT_TAG
 
        include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.1.28
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.1.29
            # inputs:
            #   stage: .pre | by default runs in .pre which only runs if there is at least another CI job in another stage
        ```
@@ -250,7 +250,7 @@ Run or skip specific controls using their names from the table above. Useful for
 ```yaml
 # Run only image-related controls
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.29
     inputs:
       controls: containerImageMustNotUseForbiddenTags,containerImageMustComeFromAuthorizedSources
 ```
@@ -258,7 +258,7 @@ include:
 ```yaml
 # Run everything except branch protection
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.29
     inputs:
       skip_controls: branchMustBeProtected
 ```
@@ -271,7 +271,7 @@ Override any input to fit your needs:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.29
     inputs:
       # Target (defaults to current project)
       server_url: https://gitlab.example.com # Self-hosted GitLab
@@ -361,7 +361,7 @@ Automatically post compliance summaries on merge requests to catch issues before
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.29
     inputs:
       mr_comment: true  # Requires api scope on token
 ```
@@ -384,7 +384,7 @@ Display a live compliance badge on your project's overview page.
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.28
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.29
     inputs:
       badge: true  # Requires api scope on token
 ```
