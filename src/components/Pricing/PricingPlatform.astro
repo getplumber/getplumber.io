@@ -25,6 +25,7 @@ interface planInfo {
  */
 interface featureRow {
   feature: string; // feature name
+  description?: string; // optional short description of what the control analyzes
   plans: (boolean | string)[];
 }
 // Features are grouped into sections
@@ -68,26 +69,34 @@ const pricingData: pricingTable = {
       features: [
         {
           feature: "CI/CD Container Images",
+          description: "Analyzes image tags and sources, like forbidden tags or untrusted registries",
           plans: [true, true],
         },
         {
           feature: "CI/CD Variables",
+          description: "Checks CI/CD variables for masking and protection issues",
           plans: [true, true],
         },
         {
           feature: "CI/CD Secrets",
+          description: "Detects possible secret leaks in pipeline configuration",
           plans: [true, true],
         },
         {
           feature: "Pipeline Composition",
+          description:
+            "Validates pipeline steps and templates, including required components and versions",
           plans: [true, true],
         },
         {
           feature: "AI Pipeline Composition",
+          description: "Uses AI to detect invalid or missing pipeline steps like tests and scans",
           plans: [false, true],
         },
         {
           feature: "Access and Authorization",
+          description:
+            "Reviews branch protection and merge request rules against access control policies",
           plans: [true, true],
         },
       ],
@@ -96,15 +105,15 @@ const pricingData: pricingTable = {
       title: "Auto-fix",
       features: [
         {
-          feature: "AI Suggestion",
+          feature: "AI: Suggestion",
           plans: [false, true],
         },
         {
-          feature: "Projects settings",
+          feature: "API: Projects Settings",
           plans: [true, true],
         },
         {
-          feature: "Merge request creation",
+          feature: "API: Merge request creation",
           plans: [false, true],
         },
       ],
@@ -118,7 +127,7 @@ const pricingData: pricingTable = {
         },
         {
           feature: "Export",
-          plans: [false, true],
+          plans: ["Up to 10 projects", "Unlimited projects"],
         },
         {
           feature: "GitLab integration",
@@ -126,11 +135,11 @@ const pricingData: pricingTable = {
         },
         {
           feature: "Compliance & issues history",
-          plans: [false, true],
+          plans: ["Up to 1 month", "Unlimited"],
         },
         {
           feature: "Scheduled analysis",
-          plans: [false, true],
+          plans: [true, true],
         },
       ],
     },
@@ -266,6 +275,11 @@ const pricingData: pricingTable = {
                                 />
                                 <span class="ml-2 inline">
                                   {featureRow.feature}
+                                  {featureRow.description && (
+                                    <span class="text-base-600 dark:text-base-400 block text-xs">
+                                      {featureRow.description}
+                                    </span>
+                                  )}
                                   <span>
                                     {
                                       // if the feature row has a string, show it
@@ -325,7 +339,14 @@ const pricingData: pricingTable = {
               {featureGroup.features.map((feature) => (
                 // each feature group has feature name, and data for each plan to display in the row
                 <div class="border-base-600/40 grid grid-cols-3 border-b">
-                  <p class="py-2 opacity-90 dark:opacity-80">{feature.feature}</p>
+                  <p class="py-2 opacity-90 dark:opacity-80">
+                    {feature.feature}
+                    {feature.description && (
+                      <span class="text-base-600 dark:text-base-400 block text-xs">
+                        {feature.description}
+                      </span>
+                    )}
+                  </p>
                   {feature.plans.map((plan, planIdx) => (
                     <div
                       class="flex items-center justify-center py-2"
