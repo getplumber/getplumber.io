@@ -31,8 +31,24 @@ const authorsData = await getEntries(authors);
 >
   <article class="site-container mt-16 md:mt-28" data-pagefind-ignore>
     <div class="mx-auto mt-10 grid w-full max-w-2xl gap-10 lg:max-w-none lg:grid-cols-3">
-      <!-- table of contents -->
+      <!-- table of contents + hero on desktop -->
       <aside class="lg:order-2" data-pagefind-ignore>
+        <!-- hero at top of sidebar on desktop (not sticky, scrolls with page) -->
+        {
+          heroImage && (
+            <div class="hidden lg:block lg:mb-6">
+              <Image
+                src={heroImage}
+                alt={`Cover for ${title}`}
+                width={400}
+                quality="high"
+                class="border-base-300 dark:border-base-600/60 w-full rounded-lg border object-cover"
+                loading="eager"
+                format="webp"
+              />
+            </div>
+          )
+        }
         <div class="lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)]">
           <TableOfContents headings={headings} />
         </div>
@@ -41,6 +57,22 @@ const authorsData = await getEntries(authors);
       <!-- main content -->
       <div class="lg:col-span-2">
         <div class="text-base-content text-base">
+          <!-- hero at top of page on mobile/tablet -->
+          {
+            heroImage && (
+              <div class="mb-10 lg:hidden">
+                <Image
+                  src={heroImage}
+                  alt={`Cover for ${title}`}
+                  width={800}
+                  quality="high"
+                  class="border-base-300 dark:border-base-600/60 w-full rounded-lg border object-cover"
+                  loading="eager"
+                  format="webp"
+                />
+              </div>
+            )
+          }
           {
             updatedDate && (
               <div class="mb-6 italic">
