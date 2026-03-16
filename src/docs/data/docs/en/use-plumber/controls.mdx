@@ -21,6 +21,7 @@ Plumber allows defining controls for GitLab projects, covering both CI/CD config
 | CI/CD variables must be protected [ISSUE-4](/docs/use-plumber/issues/ISSUE-4) | <span style={{fontSize: '0.85em'}}>Verifies that CI/CD variables used in a project have the protected field enabled.</span> | <span style={{fontSize: '0.85em'}}>Ensures sensitive values are restricted to protected branches or tags, reducing unauthorized exposure.</span> |
 | CI/CD variables must be masked [ISSUE-5](/docs/use-plumber/issues/ISSUE-5) | <span style={{fontSize: '0.85em'}}>Verifies that CI/CD variables used in a project have the masked field enabled.</span> | <span style={{fontSize: '0.85em'}}>Prevents variable values from being exposed in pipeline logs, reducing the risk of leaks.</span> |
 | Pipeline must not enable debug trace [ISSUE-34](/docs/use-plumber/issues/ISSUE-34) | <span style={{fontSize: '0.85em'}}>Verifies that `CI_DEBUG_TRACE` and `CI_DEBUG_SERVICES` are not enabled in the pipeline configuration.</span> | <span style={{fontSize: '0.85em'}}>Prevents exposure of all CI/CD variable values in job logs, including secrets and tokens.</span> |
+| Pipeline must not use unsafe variable expansion [ISSUE-35](/docs/use-plumber/issues/ISSUE-35) | <span style={{fontSize: '0.85em'}}>Detects user-controlled CI variables expanded in shell re-interpretation contexts (`eval`, `sh -c`, `bash -c`, `source`).</span> | <span style={{fontSize: '0.85em'}}>Prevents command injection via crafted branch names, MR titles, or commit messages (OWASP CICD-SEC-1).</span> |
 
 ## CI/CD Secrets
 | Control | Problem | Impact |
@@ -53,3 +54,8 @@ Plumber allows defining controls for GitLab projects, covering both CI/CD config
 | Control | Problem | Impact |
 |---------|---------|--------|
 | Project must have a security policy source [ISSUE-20](/docs/use-plumber/issues/ISSUE-20) | <span style={{fontSize: '0.85em'}}>Verifies if the projects have a specific project as their source of security policy.</span> | <span style={{fontSize: '0.85em'}}>Ensures compliance with security policy and reduces risk of unmanaged vulnerabilities.</span> |
+
+## Pipeline Security
+| Control | Problem | Impact |
+|---------|---------|--------|
+| Security jobs must not be weakened [ISSUE-36](/docs/use-plumber/issues/ISSUE-36) | <span style={{fontSize: '0.85em'}}>Detects security scanning jobs (SAST, Secret Detection, Container Scanning, etc.) weakened by `allow_failure: true`, `rules:` overrides with `when: never`/`when: manual`, or `when: manual` at job level.</span> | <span style={{fontSize: '0.85em'}}>Prevents silently neutralized security scans that give a false sense of compliance (OWASP CICD-SEC-4).</span> |

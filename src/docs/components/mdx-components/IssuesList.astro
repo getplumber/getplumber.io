@@ -78,7 +78,7 @@ for (const entries of grouped.values()) {
                     class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[entry.severity]}`}
                     title="How severe the impact is if this issue is not fixed"
                   >
-                    <Icon name="tabler/alert-triangle" color="currentColor" class="h-3 w-3" />
+                    <Icon name="tabler/alert-triangle" color="currentColor"  size="15px" />
                     {entry.severity.charAt(0).toUpperCase() + entry.severity.slice(1)}
                   </span>
                   <span
@@ -87,7 +87,7 @@ for (const entries of grouped.values()) {
                     }`}
                     title="Approximate time needed to fix this issue"
                   >
-                    <Icon name="tabler/clock" color="currentColor" class="h-3 w-3" />
+                    <Icon name="tabler/clock" color="currentColor" size="15px" />
                     {(entry.fixDuration.charAt(0).toUpperCase() + entry.fixDuration.slice(1)).replace("quick", "Quick")}
                   </span>
                 </div>

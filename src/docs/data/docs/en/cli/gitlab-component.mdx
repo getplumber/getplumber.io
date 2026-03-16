@@ -199,7 +199,7 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
 
 ## Compliance Controls
 
-Plumber includes **10 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
+Plumber includes **11 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
 
 | Control | Description |
 |---------|-------------|
@@ -213,6 +213,7 @@ Plumber includes **10 compliance controls**. Each can be enabled/disabled and cu
 | **Pipeline must include template** | Ensures required templates are included; detects overridden jobs |
 | **Pipeline must not enable debug trace** | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
 | **Pipeline must not use unsafe variable expansion** | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
+| **Security jobs must not be weakened** | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
 
 <details>
 <summary>**Unsafe Variable Expansion Detection**</summary>
@@ -236,6 +237,39 @@ pipelineMustNotUseUnsafeVariableExpansion:
 ```
 
 See the [CLI documentation](/docs/cli/#available-controls) for the full list of flagged vs. safe patterns.
+
+</details>
+
+<details>
+<summary>**Security Job Weakening Detection**</summary>
+
+Detects security scanning jobs (SAST, Secret Detection, Container Scanning, Dependency Scanning, DAST, License Scanning) that have been silently neutralized through local overrides in `.gitlab-ci.yml`. Maps to [OWASP CICD-SEC-4](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Poisoned Pipeline Execution).
+
+Three independent sub-controls:
+- **`allowFailureMustBeFalse`** (default: off): Detects `allow_failure: true`. Opt-in because GitLab templates ship with this.
+- **`rulesMustNotBeRedefined`** (default: on): Detects `rules:` overrides with `when: never` or `when: manual`.
+- **`whenMustNotBeManual`** (default: on): Detects `when: manual` at job level.
+
+```yaml
+securityJobsMustNotBeWeakened:
+  enabled: true
+  securityJobPatterns:
+    - "*-sast"
+    - "secret_detection"
+    - "container_scanning"
+    - "*_dependency_scanning"
+    - "dast"
+    - "dast_*"
+    - "license_scanning"
+  allowFailureMustBeFalse:
+    enabled: false
+  rulesMustNotBeRedefined:
+    enabled: true
+  whenMustNotBeManual:
+    enabled: true
+```
+
+See the [CLI documentation](/docs/cli/#available-controls) for full details and examples.
 
 </details>
 

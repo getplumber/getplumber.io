@@ -1169,6 +1169,132 @@ deploy:
     relatedCodes: ["ISSUE-4", "ISSUE-5", "ISSUE-7"],
   },
 
+  "ISSUE-35": {
+    code: "ISSUE-35",
+    title: "Unsafe variable expansion",
+    category: "CI/CD Variables",
+    severity: "critical",
+    fixDuration: "medium",
+    controlName: "Pipeline must not use unsafe variable expansion",
+    controlConfigKey: "pipelineMustNotUseUnsafeVariableExpansion",
+    description:
+      "A user-controlled CI variable (MR title, commit message, branch name) is expanded in a shell re-interpretation context such as `eval`, `sh -c`, `bash -c`, or `source`. The expanded value is executed as code, enabling command injection.",
+    impact:
+      "An attacker can craft a branch name, MR title, or commit message to inject arbitrary commands into your pipeline. This is a direct path to secret exfiltration, source code theft, and supply chain compromise. Maps to OWASP CICD-SEC-1 (Insufficient Flow Control).",
+    remediation:
+      "Avoid passing user-controlled variables to commands that re-interpret input as shell code. Use the variable in a safe context (e.g., `echo`, environment variable assignment) or add the script line to `allowedPatterns` in `.plumber.yaml` if the usage is intentional and safe.",
+    badExample: `# .gitlab-ci.yml — ❌ Variables in shell re-interpretation contexts
+deploy:
+  script:
+    - eval "deploy --branch $CI_COMMIT_BRANCH"
+
+notify:
+  script:
+    - sh -c "echo Deploying $CI_MERGE_REQUEST_TITLE"
+
+release:
+  script:
+    - bash -c "tag=$CI_COMMIT_REF_NAME; push_release $tag"`,
+    badExampleCaption: "User-controlled variables are passed to eval, sh -c, and bash -c, enabling command injection.",
+    goodExample: `# .gitlab-ci.yml — ✅ Variables used in safe contexts
+deploy:
+  script:
+    - deploy --branch "$CI_COMMIT_BRANCH"
+
+notify:
+  script:
+    - echo "Deploying $CI_MERGE_REQUEST_TITLE"
+
+release:
+  script:
+    - push_release "$CI_COMMIT_REF_NAME"
+
+# If you have legitimate sh -c usage, allow it in .plumber.yaml:
+# pipelineMustNotUseUnsafeVariableExpansion:
+#   allowedPatterns:
+#     - "helm.*--set.*\\\\$CI_"
+#     - "terraform workspace select.*\\\\$CI_"`,
+    goodExampleCaption: "Variables are used directly in shell commands without re-interpretation.",
+    tips: [
+      "Normal shell expansion (`echo $CI_COMMIT_BRANCH`) is safe. Only re-interpretation contexts (`eval`, `sh -c`, `bash -c`, `source`) are flagged.",
+      "Use `allowedPatterns` (regex) to suppress specific findings for legitimate usages like Helm or Terraform.",
+      "Escape `$` as `\\\\$` and `{`/`}` as `\\\\{`/`\\\\}` in `allowedPatterns` regex.",
+      "Indirect aliasing (`variables: { B: $CI_COMMIT_BRANCH }` then `sh -c $B`) is not tracked (known limitation).",
+    ],
+    relatedCodes: ["ISSUE-34", "ISSUE-7"],
+  },
+
+  "ISSUE-36": {
+    code: "ISSUE-36",
+    title: "Security job weakened",
+    category: "Pipeline Security",
+    severity: "high",
+    fixDuration: "quick",
+    controlName: "Security jobs must not be weakened",
+    controlConfigKey: "securityJobsMustNotBeWeakened",
+    description:
+      "A security scanning job (SAST, Secret Detection, Container Scanning, Dependency Scanning, DAST, License Scanning) has been weakened by overriding its configuration in `.gitlab-ci.yml`. The pipeline still includes the security template but the actual scanning is neutralized.",
+    impact:
+      "Weakened security jobs give a false sense of compliance. The pipeline appears to include security scanning, but the scans either never run, require manual intervention, or silently ignore failures. Maps to OWASP CICD-SEC-4 (Poisoned Pipeline Execution).",
+    remediation:
+      "Remove the override that weakens the security job. Security jobs should run automatically on every pipeline and block the pipeline on failure.",
+    badExample: `# .gitlab-ci.yml — ❌ Security jobs are weakened
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+# Weakened: failures are silently ignored
+semgrep-sast:
+  allow_failure: true
+
+# Weakened: job will never run
+secret_detection:
+  rules:
+    - when: never
+
+# Weakened: job only runs if manually triggered
+container_scanning:
+  when: manual`,
+    badExampleCaption: "Security jobs are present but neutralized through allow_failure, rules override, and when: manual.",
+    goodExample: `# .gitlab-ci.yml — ✅ Security jobs run as intended
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/Container-Scanning.gitlab-ci.yml
+
+# No local overrides — security jobs run as designed by the templates
+# Customization is done through CI/CD variables:
+variables:
+  SAST_EXCLUDED_PATHS: "test/**"
+  SECRET_DETECTION_HISTORIC_SCAN: "false"
+
+# .plumber.yaml
+# securityJobsMustNotBeWeakened:
+#   enabled: true
+#   securityJobPatterns:
+#     - "*-sast"
+#     - "secret_detection"
+#     - "container_scanning"
+#     - "*_dependency_scanning"
+#     - "dast"
+#     - "dast_*"
+#     - "license_scanning"
+#   allowFailureMustBeFalse:
+#     enabled: false   # opt-in (GitLab templates ship with allow_failure: true)
+#   rulesMustNotBeRedefined:
+#     enabled: true
+#   whenMustNotBeManual:
+#     enabled: true`,
+    goodExampleCaption: "Security templates are included without overrides. Configuration is done via variables.",
+    tips: [
+      "Security jobs are identified by matching job names against `securityJobPatterns` (wildcards supported). Customize patterns to match your pipeline's security jobs.",
+      "The `allowFailureMustBeFalse` sub-control is off by default because GitLab templates ship with `allow_failure: true`. Enable it if your org wants security checks to block the pipeline.",
+      "`rulesMustNotBeRedefined` and `whenMustNotBeManual` are on by default since these patterns effectively disable scanning.",
+      "Each sub-control can be toggled independently for gradual adoption.",
+    ],
+    relatedCodes: ["ISSUE-29", "ISSUE-30", "ISSUE-13"],
+  },
+
   "ISSUE-32": {
     code: "ISSUE-32",
     title: "Members' role quotas are not respected for groups",

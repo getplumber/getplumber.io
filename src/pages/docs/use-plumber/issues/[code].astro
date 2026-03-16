@@ -199,18 +199,18 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
         class={`inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${sev.bg} ${sev.text} ${sev.ring}`}
         title="How severe the impact is if this issue is not fixed"
       >
-        <Icon name="tabler/alert-triangle" color="currentColor" class="h-3.5 w-3.5" />
+        <Icon name="tabler/alert-triangle" color="currentColor" size="16px" />
         {sev.label}
       </span>
       <span
         class={`inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${fix.bg} ${fix.text} ${fix.ring}`}
         title="Approximate time needed to fix this issue"
       >
-        <Icon name="tabler/clock" color="currentColor" class="h-3.5 w-3.5" />
+        <Icon name="tabler/clock" color="currentColor" size="16px" />
         {fix.label}
       </span>
       <span
-        class="inline-flex items-center rounded-md bg-muted px-2.5 py-1 text-sm text-muted-foreground ring-1 ring-border"
+        class="inline-flex items-center rounded-md bg-muted px-2.5 h-[28px] text-sm text-muted-foreground ring-1 ring-border"
         title="Category of the control that raised this issue"
       >
         {category}
@@ -345,7 +345,7 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
                     class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[related.severity]}`}
                     title="How severe the impact is if this issue is not fixed"
                   >
-                    <Icon name="tabler/alert-triangle" color="currentColor" class="h-3 w-3" />
+                    <Icon size="15px" name="tabler/alert-triangle" color="currentColor" class="h-3 w-3" />
                     {related.severity.charAt(0).toUpperCase() + related.severity.slice(1)}
                   </span>
                   <span
@@ -354,7 +354,7 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
                     }`}
                     title="Approximate time needed to fix this issue"
                   >
-                    <Icon name="tabler/clock" color="currentColor" class="h-3 w-3" />
+                    <Icon size="15px" name="tabler/clock" color="currentColor" class="h-3 w-3" />
                     {(related.fixDuration.charAt(0).toUpperCase() + related.fixDuration.slice(1)).replace("quick", "Quick")}
                   </span>
                 </div>

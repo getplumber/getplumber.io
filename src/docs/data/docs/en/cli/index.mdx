@@ -42,11 +42,11 @@ This is useful for local testing, CI/CD integration, or automated compliance che
     **Install a specific version:**
 
     ```bash
-    brew install getplumber/plumber/plumber@0.1.66
+    brew install getplumber/plumber/plumber@0.1.67
     ```
 
     <Aside variant="info">
-      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.1.66/bin/plumber`) or run `brew link plumber@0.1.66` to add it to your PATH.
+      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.1.67/bin/plumber`) or run `brew link plumber@0.1.67` to add it to your PATH.
     </Aside>
   </TabsContent>
 
@@ -427,7 +427,8 @@ When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-3`) wi
 || **Pipeline must include component** | [ISSUE-29](/docs/use-plumber/issues/ISSUE-29) [ISSUE-30](/docs/use-plumber/issues/ISSUE-30) | Ensures required CI/CD components are included; detects overridden jobs |
 || **Pipeline must include template** | [ISSUE-12](/docs/use-plumber/issues/ISSUE-12) [ISSUE-13](/docs/use-plumber/issues/ISSUE-13) | Ensures required templates are included; detects overridden jobs |
 || **Pipeline must not enable debug trace** | [ISSUE-34](/docs/use-plumber/issues/ISSUE-34) | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
-|| **Pipeline must not use unsafe variable expansion** | - | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
+|| **Pipeline must not use unsafe variable expansion** | [ISSUE-35](/docs/use-plumber/issues/ISSUE-35) | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
+|| **Security jobs must not be weakened** | [ISSUE-36](/docs/use-plumber/issues/ISSUE-36) | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
 
 <details>
 <summary>**Unsafe Variable Expansion Detection**</summary>
@@ -481,6 +482,60 @@ For example, the script line `sh -c "helm upgrade myapp . --set image.tag=$CI_CO
 <Aside variant="info">
   Escape `$` as `\\$` and `{`/`}` as `\\{`/`\\}` in patterns. Only direct variable names are detected. Indirect aliasing (`variables: { B: $CI_COMMIT_BRANCH }` then `sh -c $B`) is not tracked.
 </Aside>
+
+</details>
+
+<details>
+<summary>**Security Job Weakening Detection**</summary>
+
+GitLab lets you override any property of an included job. This means someone can include a security template (SAST, Secret Detection, Container Scanning, Dependency Scanning, DAST, License Scanning) but silently neutralize it. The pipeline still looks compliant, but the scanning is disabled. Maps to [OWASP CICD-SEC-4](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Poisoned Pipeline Execution).
+
+This control detects three weakening patterns, each a separate sub-control you can toggle independently:
+
+- **`allowFailureMustBeFalse`** (default: off, opt-in): Detects `allow_failure: true`. Off by default because GitLab templates ship with this setting.
+- **`rulesMustNotBeRedefined`** (default: on): Detects `rules:` overrides with `when: never` or `when: manual`.
+- **`whenMustNotBeManual`** (default: on): Detects `when: manual` set at job level.
+
+**Flagged: security jobs weakened**
+
+```yaml
+include:
+  - template: Security/SAST.gitlab-ci.yml
+
+semgrep-sast:
+  allow_failure: true       # failures silently ignored
+
+secret_detection:
+  rules:
+    - when: never            # job will never run
+
+container_scanning:
+  when: manual               # requires manual trigger
+```
+
+**Configuration**
+
+Security jobs are identified by matching job names against `securityJobPatterns` (wildcards supported):
+
+```yaml
+securityJobsMustNotBeWeakened:
+  enabled: true
+  securityJobPatterns:
+    - "*-sast"
+    - "secret_detection"
+    - "container_scanning"
+    - "*_dependency_scanning"
+    - "gemnasium-*"
+    - "dast"
+    - "dast_*"
+    - "license_scanning"
+  allowFailureMustBeFalse:
+    enabled: false
+  rulesMustNotBeRedefined:
+    enabled: true
+  whenMustNotBeManual:
+    enabled: true
+```
 
 </details>
 
@@ -619,6 +674,25 @@ controls:
       - "helm.*--set.*\\$CI_"
       - "terraform workspace select.*\\$CI_"
       - "docker build.*--build-arg.*\\$CI_"
+
+  # Detect security scanning jobs that have been silently weakened
+  securityJobsMustNotBeWeakened:
+    enabled: true
+    securityJobPatterns:
+      - "*-sast"
+      - "secret_detection"
+      - "container_scanning"
+      - "*_dependency_scanning"
+      - "gemnasium-*"
+      - "dast"
+      - "dast_*"
+      - "license_scanning"
+    allowFailureMustBeFalse:
+      enabled: false   # opt-in (GitLab templates ship with allow_failure: true)
+    rulesMustNotBeRedefined:
+      enabled: true
+    whenMustNotBeManual:
+      enabled: true
 ```
 
 <Aside variant="info">
@@ -662,6 +736,7 @@ Controls not selected are reported as **skipped** in the output. The `--controls
 | `pipelineMustNotEnableDebugTrace` |
 | `pipelineMustNotIncludeHardcodedJobs` |
 | `pipelineMustNotUseUnsafeVariableExpansion` |
+| `securityJobsMustNotBeWeakened` |
 
 </details>
 

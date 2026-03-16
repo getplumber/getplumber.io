@@ -74,7 +74,7 @@ export GITLAB_TOKEN=glpat-xxxxxxxxxxxxxxxxxxxx
 plumber config generate
 ```
 
-This creates `.plumber.yaml`: your compliance contract defining 10 controls:
+This creates `.plumber.yaml`: your compliance contract defining 11 controls:
 
 1. Container images must not use forbidden tags
 2. Container images must come from authorized sources
@@ -86,6 +86,7 @@ This creates `.plumber.yaml`: your compliance contract defining 10 controls:
 8. Pipeline must include template
 9. Pipeline must not enable debug trace
 10. Pipeline must not use unsafe variable expansion
+11. Security jobs must not be weakened
 
 ### Step 4: Run Your First Scan
 
