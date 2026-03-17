@@ -28,8 +28,8 @@ export interface IssueDoc {
 }
 
 export const issues: Record<string, IssueDoc> = {
-  "ISSUE-2": {
-    code: "ISSUE-2",
+  "ISSUE-101": {
+    code: "ISSUE-101",
     title: "Untrusted image source",
     category: "CI/CD Container Images",
     severity: "critical",
@@ -78,11 +78,11 @@ sast:
       "Use wildcard patterns in `trustedUrls` (e.g., `gcr.io/your-org/*`).",
       "Consider setting up a private registry mirror for external images.",
     ],
-    relatedCodes: ["ISSUE-3"],
+    relatedCodes: ["ISSUE-102"],
   },
 
-  "ISSUE-3": {
-    code: "ISSUE-3",
+  "ISSUE-102": {
+    code: "ISSUE-102",
     title: "Forbidden container image tag",
     category: "CI/CD Container Images",
     severity: "medium",
@@ -123,11 +123,11 @@ lint:
       "Configure forbidden tags in `.plumber.yaml` under `containerImageMustNotUseForbiddenTags.tags`.",
       "Common forbidden tags include: `latest`, `dev`, `staging`, `main`, `master`.",
     ],
-    relatedCodes: ["ISSUE-2"],
+    relatedCodes: ["ISSUE-101"],
   },
 
-  "ISSUE-4": {
-    code: "ISSUE-4",
+  "ISSUE-201": {
+    code: "ISSUE-201",
     title: "Unprotected variable",
     category: "CI/CD Variables",
     severity: "medium",
@@ -168,13 +168,13 @@ controls:
     tips: [
       "Enable variable protection in GitLab under **Settings > CI/CD > Variables**.",
       "Protected variables are only injected into pipelines running on protected branches or tags.",
-      "Combine with masking (see ISSUE-5) to also hide the value from logs.",
+      "Combine with masking (see ISSUE-202) to also hide the value from logs.",
     ],
-    relatedCodes: ["ISSUE-5"],
+    relatedCodes: ["ISSUE-202"],
   },
 
-  "ISSUE-5": {
-    code: "ISSUE-5",
+  "ISSUE-202": {
+    code: "ISSUE-202",
     title: "Unmasked variable",
     category: "CI/CD Variables",
     severity: "medium",
@@ -218,13 +218,13 @@ controls:
       "Enable masking in GitLab under **Settings > CI/CD > Variables**.",
       "GitLab requires masked values to meet certain format requirements (at least 8 characters, no spaces).",
       "For variables that cannot be masked due to format, consider using an external secrets manager.",
-      "Combine with protection (see ISSUE-4) for full coverage.",
+      "Combine with protection (see ISSUE-201) for full coverage.",
     ],
-    relatedCodes: ["ISSUE-4", "ISSUE-7"],
+    relatedCodes: ["ISSUE-201", "ISSUE-301"],
   },
 
-  "ISSUE-7": {
-    code: "ISSUE-7",
+  "ISSUE-301": {
+    code: "ISSUE-301",
     title: "Secret leak in pipeline configuration",
     category: "CI/CD Secrets",
     severity: "critical",
@@ -272,11 +272,11 @@ api-call:
       "For production workloads, consider using an external secrets manager (HashiCorp Vault, AWS Secrets Manager, etc.).",
       "Add secret patterns to `.gitignore` or use pre-commit hooks to prevent accidental commits.",
     ],
-    relatedCodes: ["ISSUE-4", "ISSUE-5"],
+    relatedCodes: ["ISSUE-201", "ISSUE-202"],
   },
 
-  "ISSUE-8": {
-    code: "ISSUE-8",
+  "ISSUE-401": {
+    code: "ISSUE-401",
     title: "Hardcoded job",
     category: "Pipeline Composition",
     severity: "medium",
@@ -332,11 +332,11 @@ variables:
       "Create shared templates in a dedicated project for organization-specific jobs.",
       "Some project-specific jobs may be acceptable — discuss with your team what should be centralized.",
     ],
-    relatedCodes: ["ISSUE-9", "ISSUE-10", "ISSUE-11"],
+    relatedCodes: ["ISSUE-402", "ISSUE-403", "ISSUE-404"],
   },
 
-  "ISSUE-9": {
-    code: "ISSUE-9",
+  "ISSUE-402": {
+    code: "ISSUE-402",
     title: "Forbidden override of job",
     category: "Pipeline Composition",
     severity: "high",
@@ -377,11 +377,11 @@ variables:
       "Template jobs should be designed to accept configuration through environment variables.",
       "If the override is essential, create a fork of the template and use that instead.",
     ],
-    relatedCodes: ["ISSUE-8", "ISSUE-13"],
+    relatedCodes: ["ISSUE-401", "ISSUE-406"],
   },
 
-  "ISSUE-10": {
-    code: "ISSUE-10",
+  "ISSUE-403": {
+    code: "ISSUE-403",
     title: "Outdated template",
     category: "Pipeline Composition",
     severity: "low",
@@ -413,11 +413,11 @@ include:
       "Consider using Renovate or Dependabot to automate version updates in your CI configuration.",
       "Check the CI Catalog changelog for breaking changes before updating major versions.",
     ],
-    relatedCodes: ["ISSUE-8", "ISSUE-11"],
+    relatedCodes: ["ISSUE-401", "ISSUE-404"],
   },
 
-  "ISSUE-11": {
-    code: "ISSUE-11",
+  "ISSUE-404": {
+    code: "ISSUE-404",
     title: "Forbidden include version",
     category: "Pipeline Composition",
     severity: "medium",
@@ -455,11 +455,11 @@ include:
       "Default forbidden versions: `latest`, `~latest`, `main`, `master`, `HEAD`.",
       "Set `defaultBranchIsForbiddenVersion: true` to also forbid using the project's default branch name.",
     ],
-    relatedCodes: ["ISSUE-8", "ISSUE-10"],
+    relatedCodes: ["ISSUE-401", "ISSUE-403"],
   },
 
-  "ISSUE-12": {
-    code: "ISSUE-12",
+  "ISSUE-405": {
+    code: "ISSUE-405",
     title: "Missing required template",
     category: "Pipeline Composition",
     severity: "high",
@@ -498,11 +498,11 @@ include:
       "Templates are matched by their file path pattern.",
       "Coordinate with your platform team to know which templates are mandatory.",
     ],
-    relatedCodes: ["ISSUE-13", "ISSUE-29"],
+    relatedCodes: ["ISSUE-406", "ISSUE-408"],
   },
 
-  "ISSUE-13": {
-    code: "ISSUE-13",
+  "ISSUE-406": {
+    code: "ISSUE-406",
     title: "Forbidden override of required template",
     category: "Pipeline Composition",
     severity: "high",
@@ -543,11 +543,11 @@ variables:
       "Plumber shows exactly which job keys are overridden in the issue details.",
       "Consider making critical template jobs non-overridable by design.",
     ],
-    relatedCodes: ["ISSUE-12", "ISSUE-30"],
+    relatedCodes: ["ISSUE-405", "ISSUE-409"],
   },
 
-  "ISSUE-14": {
-    code: "ISSUE-14",
+  "ISSUE-501": {
+    code: "ISSUE-501",
     title: "Branch protection missing",
     category: "Access and Authorization",
     severity: "critical",
@@ -601,11 +601,11 @@ branchMustBeProtected:
       "Set `minPushAccessLevel: 40` (Maintainer) to prevent developers from pushing directly.",
       "Enable `codeOwnerApprovalRequired` if you use a CODEOWNERS file.",
     ],
-    relatedCodes: ["ISSUE-27"],
+    relatedCodes: ["ISSUE-505"],
   },
 
-  "ISSUE-20": {
-    code: "ISSUE-20",
+  "ISSUE-601": {
+    code: "ISSUE-601",
     title: "Missing security policy source on project",
     category: "Security Source",
     severity: "critical",
@@ -648,11 +648,11 @@ controls:
       "Security policy sources can be managed at the group level to apply to all projects at once.",
       "Check GitLab documentation for supported security policy types (scan execution, scan result, etc.).",
     ],
-    relatedCodes: ["ISSUE-25"],
+    relatedCodes: ["ISSUE-407"],
   },
 
-  "ISSUE-22": {
-    code: "ISSUE-22",
+  "ISSUE-502": {
+    code: "ISSUE-502",
     title: "Merge request approval rule is below the minimum level of approvals required",
     category: "Access and Authorization",
     severity: "high",
@@ -695,11 +695,11 @@ controls:
       "Consider requiring different approval counts for different branch patterns (e.g., more for `main`).",
       "Combine with code owner approvals for critical areas of your codebase.",
     ],
-    relatedCodes: ["ISSUE-23", "ISSUE-24"],
+    relatedCodes: ["ISSUE-503", "ISSUE-504"],
   },
 
-  "ISSUE-23": {
-    code: "ISSUE-23",
+  "ISSUE-503": {
+    code: "ISSUE-503",
     title: "Merge request approval settings are not compliant",
     category: "Access and Authorization",
     severity: "high",
@@ -742,11 +742,11 @@ controls:
       "'Remove all approvals when commits are added' ensures the latest changes are always reviewed.",
       "These settings can also be enforced at the group level for consistency.",
     ],
-    relatedCodes: ["ISSUE-22", "ISSUE-24"],
+    relatedCodes: ["ISSUE-502", "ISSUE-504"],
   },
 
-  "ISSUE-24": {
-    code: "ISSUE-24",
+  "ISSUE-504": {
+    code: "ISSUE-504",
     title: "No merge request approval rule covering all protected branches",
     category: "Access and Authorization",
     severity: "high",
@@ -783,13 +783,13 @@ controls:
     tips: [
       "Create one 'catch-all' rule that targets all protected branches as a baseline.",
       "You can add additional branch-specific rules on top of the catch-all rule.",
-      "This control complements ISSUE-22 (minimum approvals) for a complete review policy.",
+      "This control complements ISSUE-502 (minimum approvals) for a complete review policy.",
     ],
-    relatedCodes: ["ISSUE-22", "ISSUE-23"],
+    relatedCodes: ["ISSUE-502", "ISSUE-503"],
   },
 
-  "ISSUE-25": {
-    code: "ISSUE-25",
+  "ISSUE-407": {
+    code: "ISSUE-407",
     title: "Invalid pipeline composition",
     category: "Pipeline Composition",
     severity: "high",
@@ -849,11 +849,11 @@ deploy:
       "Use job name patterns to detect required phases across different pipeline implementations.",
       "Consider blocking deployments if required phases are missing using GitLab protected environments.",
     ],
-    relatedCodes: ["ISSUE-12", "ISSUE-29"],
+    relatedCodes: ["ISSUE-405", "ISSUE-408"],
   },
 
-  "ISSUE-27": {
-    code: "ISSUE-27",
+  "ISSUE-505": {
+    code: "ISSUE-505",
     title: "Branch protection configuration not compliant",
     category: "Access and Authorization",
     severity: "high",
@@ -897,11 +897,11 @@ branchMustBeProtected:
       "Access levels: 0 = No one, 30 = Developer, 40 = Maintainer.",
       "Force push should almost always be disabled on production branches.",
     ],
-    relatedCodes: ["ISSUE-14"],
+    relatedCodes: ["ISSUE-501"],
   },
 
-  "ISSUE-28": {
-    code: "ISSUE-28",
+  "ISSUE-506": {
+    code: "ISSUE-506",
     title: "Merge request settings are not compliant",
     category: "Access and Authorization",
     severity: "medium",
@@ -943,11 +943,11 @@ controls:
       "Enforcing squash commits ensures each feature is represented as a single atomic commit.",
       "Check `.plumber.yaml` for the exact settings your policy requires.",
     ],
-    relatedCodes: ["ISSUE-22", "ISSUE-23"],
+    relatedCodes: ["ISSUE-502", "ISSUE-503"],
   },
 
-  "ISSUE-29": {
-    code: "ISSUE-29",
+  "ISSUE-408": {
+    code: "ISSUE-408",
     title: "Missing required component",
     category: "Pipeline Composition",
     severity: "high",
@@ -980,11 +980,11 @@ include:
       "Alternatively, use `requiredGroups` with arrays for OR-of-ANDs logic.",
       "The `include` must match the component path pattern — check your `.plumber.yaml` for the exact paths.",
     ],
-    relatedCodes: ["ISSUE-30", "ISSUE-12"],
+    relatedCodes: ["ISSUE-409", "ISSUE-405"],
   },
 
-  "ISSUE-30": {
-    code: "ISSUE-30",
+  "ISSUE-409": {
+    code: "ISSUE-409",
     title: "Forbidden override of required component",
     category: "Pipeline Composition",
     severity: "high",
@@ -1022,11 +1022,11 @@ include:
       "Variables can usually be set globally without overriding the job itself.",
       "If you need to customize behavior not covered by inputs, consider forking the component.",
     ],
-    relatedCodes: ["ISSUE-29", "ISSUE-13"],
+    relatedCodes: ["ISSUE-408", "ISSUE-406"],
   },
 
-  "ISSUE-31": {
-    code: "ISSUE-31",
+  "ISSUE-507": {
+    code: "ISSUE-507",
     title: "Members' role quotas are not respected for projects",
     category: "Access and Authorization",
     severity: "high",
@@ -1073,11 +1073,11 @@ controls:
       "Use GitLab groups to manage access at scale instead of adding individual project members.",
       "Follow the principle of least privilege: grant members the minimum role needed for their tasks.",
     ],
-    relatedCodes: ["ISSUE-32"],
+    relatedCodes: ["ISSUE-508"],
   },
 
-  "ISSUE-33": {
-    code: "ISSUE-33",
+  "ISSUE-103": {
+    code: "ISSUE-103",
     title: "Container image is not pinned by digest",
     category: "CI/CD Container Images",
     severity: "critical",
@@ -1118,11 +1118,11 @@ controls:
       "Use `crane digest <image>:<tag>` (from `go-containerregistry`) for a quick digest lookup.",
       "Consider automating digest updates with tools like Renovate or Dependabot.",
     ],
-    relatedCodes: ["ISSUE-2", "ISSUE-3"],
+    relatedCodes: ["ISSUE-101", "ISSUE-102"],
   },
 
-  "ISSUE-34": {
-    code: "ISSUE-34",
+  "ISSUE-203": {
+    code: "ISSUE-203",
     title: "Pipeline enables CI debug trace",
     category: "CI/CD Variables",
     severity: "critical",
@@ -1166,11 +1166,11 @@ deploy:
       "Configure `pipelineMustNotEnableDebugTrace.forbiddenVariables` to also flag other sensitive debug variables.",
       "Consider setting up CI job log retention policies to limit exposure window.",
     ],
-    relatedCodes: ["ISSUE-4", "ISSUE-5", "ISSUE-7"],
+    relatedCodes: ["ISSUE-201", "ISSUE-202", "ISSUE-301"],
   },
 
-  "ISSUE-35": {
-    code: "ISSUE-35",
+  "ISSUE-204": {
+    code: "ISSUE-204",
     title: "Unsafe variable expansion",
     category: "CI/CD Variables",
     severity: "critical",
@@ -1221,13 +1221,13 @@ release:
       "Escape `$` as `\\\\$` and `{`/`}` as `\\\\{`/`\\\\}` in `allowedPatterns` regex.",
       "Indirect aliasing (`variables: { B: $CI_COMMIT_BRANCH }` then `sh -c $B`) is not tracked (known limitation).",
     ],
-    relatedCodes: ["ISSUE-34", "ISSUE-7"],
+    relatedCodes: ["ISSUE-203", "ISSUE-301"],
   },
 
-  "ISSUE-36": {
-    code: "ISSUE-36",
+  "ISSUE-410": {
+    code: "ISSUE-410",
     title: "Security job weakened",
-    category: "Pipeline Security",
+    category: "Pipeline Composition",
     severity: "high",
     fixDuration: "quick",
     controlName: "Security jobs must not be weakened",
@@ -1292,11 +1292,11 @@ variables:
       "`rulesMustNotBeRedefined` and `whenMustNotBeManual` are on by default since these patterns effectively disable scanning.",
       "Each sub-control can be toggled independently for gradual adoption.",
     ],
-    relatedCodes: ["ISSUE-29", "ISSUE-30", "ISSUE-13"],
+    relatedCodes: ["ISSUE-408", "ISSUE-409", "ISSUE-406"],
   },
 
-  "ISSUE-32": {
-    code: "ISSUE-32",
+  "ISSUE-508": {
+    code: "ISSUE-508",
     title: "Members' role quotas are not respected for groups",
     category: "Access and Authorization",
     severity: "high",
@@ -1341,6 +1341,6 @@ controls:
       "Use subgroups to apply different access policies to different teams.",
       "Regularly review group membership when team members change roles or leave the organization.",
     ],
-    relatedCodes: ["ISSUE-31"],
+    relatedCodes: ["ISSUE-507"],
   },
 };
