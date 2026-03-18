@@ -14,7 +14,7 @@ This page describes how to set up a self-managed instance of Plumber using
 - **GitLab instance version >=17.7**
 - The system requires a Linux server. It runs in 🐳 Docker containers using a
    docker-compose configuration. Specifications:
-   - OS: Ubuntu or Debian
+   - OS: **Ubuntu** or **Debian** (tested and supported)
    - Hardware
       - CPU x86_64/amd64 with at least 2 cores
       - 4 GB RAM
@@ -28,6 +28,16 @@ This page describes how to set up a self-managed instance of Plumber using
    - Installed software
       - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
       - [Docker](https://docs.docker.com/engine/install/) **>= 20.10**
+
+<details>
+<summary>⚠️ <strong>Windows / WSL</strong></summary>
+
+Plumber's install scripts are designed for native Linux environments (Ubuntu, Debian).
+Some users have successfully installed Plumber through **WSL (Windows Subsystem for Linux)**, but we do not officially support this setup.
+Depending on your WSL configuration, how you cloned the repository, and your Git settings, you may need to adjust script files manually.
+If you see CRLF-related errors (for example `bad interpreter: /bin/bash^M`),  or `\r` convert line endings with `dos2unix`.
+
+</details>
 
 ## 🚀 Installation
 
