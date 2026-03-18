@@ -199,7 +199,7 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
 
 ## Compliance Controls
 
-Plumber includes **11 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
+Plumber includes **12 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
 
 | Control | Description |
 |---------|-------------|
@@ -214,6 +214,7 @@ Plumber includes **11 compliance controls**. Each can be enabled/disabled and cu
 | **Pipeline must not enable debug trace** | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
 | **Pipeline must not use unsafe variable expansion** | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
 | **Security jobs must not be weakened** | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
+| **Pipeline must not execute unverified scripts** | Detects `curl \| bash`, `wget \| sh`, and download-then-execute patterns without integrity verification (OWASP CICD-SEC-3) |
 
 <details>
 <summary>**Unsafe Variable Expansion Detection**</summary>
@@ -270,6 +271,24 @@ securityJobsMustNotBeWeakened:
 ```
 
 See the [CLI documentation](/docs/cli/#available-controls) for full details and examples.
+
+</details>
+
+<details>
+<summary>**Unverified Script Execution Detection**</summary>
+
+Detects CI/CD jobs that download and immediately execute scripts from the internet without integrity verification. Patterns like `curl | bash`, `wget | sh`, or download-then-execute sequences are flagged. Lines that include checksum verification (e.g., `sha256sum`, `gpg --verify`) between download and execution are automatically excluded.
+
+Maps to [OWASP CICD-SEC-3](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).
+
+```yaml
+pipelineMustNotExecuteUnverifiedScripts:
+  enabled: true
+  trustedUrls: []
+    # - https://internal-artifacts.example.com/*
+```
+
+Add trusted URL patterns to `trustedUrls` (supports wildcards) to suppress findings for known-good sources. See the [CLI documentation](/docs/cli/#available-controls) for full details.
 
 </details>
 
@@ -351,7 +370,7 @@ include:
 | `badge` | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 | `controls` | - | Run only listed controls (comma-separated). Cannot be used with `skip_controls` |
 | `skip_controls` | - | Skip listed controls (comma-separated). Cannot be used with `controls` |
-| `fail_warnings` | `false` | Treat configuration warnings (unknown keys) as errors (exit 1) |
+| `fail_warnings` | `false` | Treat configuration warnings (unknown keys) as errors (exit 2) |
 
 ## Configuration
 

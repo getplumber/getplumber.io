@@ -42,11 +42,11 @@ This is useful for local testing, CI/CD integration, or automated compliance che
     **Install a specific version:**
 
     ```bash
-    brew install getplumber/plumber/plumber@0.1.68
+    brew install getplumber/plumber/plumber@0.1.69
     ```
 
     <Aside variant="info">
-      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.1.68/bin/plumber`) or run `brew link plumber@0.1.68` to add it to your PATH.
+      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.1.69/bin/plumber`) or run `brew link plumber@0.1.69` to add it to your PATH.
     </Aside>
   </TabsContent>
 
@@ -200,7 +200,7 @@ plumber analyze [flags]
 | `--badge` | No | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
 | `--skip-controls` | No | - | Skip listed controls (comma-separated). Cannot be used with `--controls` |
-| `--fail-warnings` | No | `false` | Treat configuration warnings (unknown keys) as errors (exit 1) |
+| `--fail-warnings` | No | `false` | Treat configuration warnings (unknown keys) as errors (exit 2) |
 | `--verbose`, `-v` | No | `false` | Enable verbose/debug output |
 
 <Aside variant="info">
@@ -234,7 +234,8 @@ export PLUMBER_NO_UPDATE_CHECK=1
 | Code | Meaning |
 |------|---------|
 | `0` | Passed (compliance ≥ threshold) |
-| `1` | Failed (compliance < threshold or error) |
+| `1` | Compliance failure (compliance < threshold) |
+| `2` | Runtime error (config error, network failure, missing token, etc.) |
 
 ### `plumber config generate`
 
@@ -307,9 +308,9 @@ plumber config validate [flags]
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--config`, `-c` | `.plumber.yaml` | Path to configuration file |
-| `--fail-warnings` | `false` | Treat configuration warnings as errors (exit 1) |
+| `--fail-warnings` | `false` | Treat configuration warnings as errors (exit 2) |
 
-Warnings are printed to stderr so they don't interfere with scripted output. Use `--fail-warnings` to exit with code 1 when warnings are found (useful in CI).
+Warnings are printed to stderr so they don't interfere with scripted output. Use `--fail-warnings` to exit with code 2 when warnings are found (useful in CI).
 
 **Examples:**
 
@@ -417,18 +418,19 @@ When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-101`) 
 
 | Control | Issues | Description |
 |---------|--------|-------------|
-|| **Container images must not use forbidden tags** | [ISSUE-102](/docs/use-plumber/issues/ISSUE-102) | Flags `latest`, `dev`, and other mutable tags. Can enforce digest pinning for all images |
-|| **Container images must be pinned by digest** | [ISSUE-103](/docs/use-plumber/issues/ISSUE-103) | Ensures images use SHA256 digest pinning |
-|| **Container images must come from authorized sources** | [ISSUE-101](/docs/use-plumber/issues/ISSUE-101) | Ensures images come from trusted registries |
-|| **Branch must be protected** | [ISSUE-501](/docs/use-plumber/issues/ISSUE-501) [ISSUE-505](/docs/use-plumber/issues/ISSUE-505) | Verifies critical branches have proper protection |
-|| **Pipeline must not include hardcoded jobs** | [ISSUE-401](/docs/use-plumber/issues/ISSUE-401) | Detects jobs defined directly instead of from includes |
-|| **Includes must be up to date** | [ISSUE-403](/docs/use-plumber/issues/ISSUE-403) | Checks if included templates have newer versions |
-|| **Includes must not use forbidden versions** | [ISSUE-404](/docs/use-plumber/issues/ISSUE-404) | Prevents mutable version references like `main`, `HEAD` |
-|| **Pipeline must include component** | [ISSUE-408](/docs/use-plumber/issues/ISSUE-408) [ISSUE-409](/docs/use-plumber/issues/ISSUE-409) | Ensures required CI/CD components are included; detects overridden jobs |
-|| **Pipeline must include template** | [ISSUE-405](/docs/use-plumber/issues/ISSUE-405) [ISSUE-406](/docs/use-plumber/issues/ISSUE-406) | Ensures required templates are included; detects overridden jobs |
-|| **Pipeline must not enable debug trace** | [ISSUE-203](/docs/use-plumber/issues/ISSUE-203) | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
-|| **Pipeline must not use unsafe variable expansion** | [ISSUE-204](/docs/use-plumber/issues/ISSUE-204) | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
-|| **Security jobs must not be weakened** | [ISSUE-410](/docs/use-plumber/issues/ISSUE-410) | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
+| **Container images must not use forbidden tags** | [ISSUE-102](/docs/use-plumber/issues/ISSUE-102) | Flags `latest`, `dev`, and other mutable tags. Can enforce digest pinning for all images |
+| **Container images must be pinned by digest** | [ISSUE-103](/docs/use-plumber/issues/ISSUE-103) | Ensures images use SHA256 digest pinning |
+| **Container images must come from authorized sources** | [ISSUE-101](/docs/use-plumber/issues/ISSUE-101) | Ensures images come from trusted registries |
+| **Branch must be protected** | [ISSUE-501](/docs/use-plumber/issues/ISSUE-501) [ISSUE-505](/docs/use-plumber/issues/ISSUE-505) | Verifies critical branches have proper protection |
+| **Pipeline must not include hardcoded jobs** | [ISSUE-401](/docs/use-plumber/issues/ISSUE-401) | Detects jobs defined directly instead of from includes |
+| **Includes must be up to date** | [ISSUE-403](/docs/use-plumber/issues/ISSUE-403) | Checks if included templates have newer versions |
+| **Includes must not use forbidden versions** | [ISSUE-404](/docs/use-plumber/issues/ISSUE-404) | Prevents mutable version references like `main`, `HEAD` |
+| **Pipeline must include component** | [ISSUE-408](/docs/use-plumber/issues/ISSUE-408) [ISSUE-409](/docs/use-plumber/issues/ISSUE-409) | Ensures required CI/CD components are included; detects overridden jobs |
+| **Pipeline must include template** | [ISSUE-405](/docs/use-plumber/issues/ISSUE-405) [ISSUE-406](/docs/use-plumber/issues/ISSUE-406) | Ensures required templates are included; detects overridden jobs |
+| **Pipeline must not enable debug trace** | [ISSUE-203](/docs/use-plumber/issues/ISSUE-203) | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
+| **Pipeline must not use unsafe variable expansion** | [ISSUE-204](/docs/use-plumber/issues/ISSUE-204) | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
+| **Security jobs must not be weakened** | [ISSUE-410](/docs/use-plumber/issues/ISSUE-410) | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
+| **Pipeline must not execute unverified scripts** | [ISSUE-411](/docs/use-plumber/issues/ISSUE-411) | Detects `curl \| bash`, `wget \| sh`, and download-then-execute patterns without integrity verification (OWASP CICD-SEC-3) |
 
 <details>
 <summary>**Unsafe Variable Expansion Detection**</summary>
@@ -539,6 +541,31 @@ securityJobsMustNotBeWeakened:
 
 </details>
 
+<details>
+<summary>**Unverified Script Execution Detection**</summary>
+
+Detects CI/CD jobs that download and immediately execute scripts from the internet without integrity verification. This is a well-documented supply chain attack vector: an attacker who compromises the remote URL can serve a modified script that exfiltrates secrets. Maps to [OWASP CICD-SEC-3](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).
+
+**Detected patterns:**
+- Direct pipe to shell: `curl ... | bash`, `wget ... | sh`, `curl ... | python`, etc.
+- Download-and-execute: `curl -o script.sh ... && bash script.sh`
+- Download-redirect-execute: `curl ... > install.sh; sh install.sh`
+
+Lines that include checksum verification (e.g., `sha256sum`, `gpg --verify`) between the download and execution are automatically excluded.
+
+**Configuration:**
+
+```yaml
+pipelineMustNotExecuteUnverifiedScripts:
+  enabled: true
+  trustedUrls: []
+    # - https://internal-artifacts.example.com/*
+```
+
+Add trusted URL patterns to `trustedUrls` (supports wildcards) to suppress findings for known-good sources.
+
+</details>
+
 ### Issues
 
 Every violation detected by Plumber is identified as an **Issue** following the pattern `ISSUE-XXXX`. Each issue links to a dedicated documentation page with:
@@ -554,8 +581,11 @@ Issues are displayed in the CLI output, MR comments, and the summary table. Clic
 |-------|-------|
 | [ISSUE-101](/docs/use-plumber/issues/ISSUE-101) | Untrusted image source |
 | [ISSUE-102](/docs/use-plumber/issues/ISSUE-102) | Forbidden container image tag |
+| [ISSUE-103](/docs/use-plumber/issues/ISSUE-103) | Container image not pinned by digest |
 | [ISSUE-201](/docs/use-plumber/issues/ISSUE-201) | Unprotected variable |
 | [ISSUE-202](/docs/use-plumber/issues/ISSUE-202) | Unmasked variable |
+| [ISSUE-203](/docs/use-plumber/issues/ISSUE-203) | Pipeline enables CI debug trace |
+| [ISSUE-204](/docs/use-plumber/issues/ISSUE-204) | Unsafe variable expansion |
 | [ISSUE-301](/docs/use-plumber/issues/ISSUE-301) | Secret leak in pipeline configuration |
 | [ISSUE-401](/docs/use-plumber/issues/ISSUE-401) | Hardcoded job |
 | [ISSUE-402](/docs/use-plumber/issues/ISSUE-402) | Forbidden override of job |
@@ -575,6 +605,8 @@ Issues are displayed in the CLI output, MR comments, and the summary table. Clic
 | [ISSUE-409](/docs/use-plumber/issues/ISSUE-409) | Forbidden override of required component |
 | [ISSUE-507](/docs/use-plumber/issues/ISSUE-507) | Members' role quotas are not respected for projects |
 | [ISSUE-508](/docs/use-plumber/issues/ISSUE-508) | Members' role quotas are not respected for groups |
+| [ISSUE-410](/docs/use-plumber/issues/ISSUE-410) | Security job weakened |
+| [ISSUE-411](/docs/use-plumber/issues/ISSUE-411) | Unverified script execution |
 
 ### Example Configuration
 
@@ -693,6 +725,12 @@ controls:
       enabled: true
     whenMustNotBeManual:
       enabled: true
+
+  # Detect unverified script downloads and execution (curl|bash, wget|sh)
+  pipelineMustNotExecuteUnverifiedScripts:
+    enabled: true
+    trustedUrls: []
+      # - https://internal-artifacts.example.com/*
 ```
 
 <Aside variant="info">
@@ -734,6 +772,7 @@ Controls not selected are reported as **skipped** in the output. The `--controls
 | `pipelineMustIncludeComponent` |
 | `pipelineMustIncludeTemplate` |
 | `pipelineMustNotEnableDebugTrace` |
+| `pipelineMustNotExecuteUnverifiedScripts` |
 | `pipelineMustNotIncludeHardcodedJobs` |
 | `pipelineMustNotUseUnsafeVariableExpansion` |
 | `securityJobsMustNotBeWeakened` |

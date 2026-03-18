@@ -1295,6 +1295,67 @@ variables:
     relatedCodes: ["ISSUE-408", "ISSUE-409", "ISSUE-406"],
   },
 
+  "ISSUE-411": {
+    code: "ISSUE-411",
+    title: "Unverified script execution",
+    category: "Pipeline Composition",
+    severity: "high",
+    fixDuration: "medium",
+    controlName: "Pipeline must not execute unverified scripts",
+    controlConfigKey: "pipelineMustNotExecuteUnverifiedScripts",
+    description:
+      "A CI/CD job downloads and immediately executes a script from the internet without verifying its integrity. Patterns like `curl | bash`, `wget | sh`, or download-then-execute sequences are a well-documented supply chain attack vector.",
+    impact:
+      "An attacker who compromises the remote URL can serve a modified script that exfiltrates CI/CD secrets (`$CI_JOB_TOKEN`, deploy keys, custom variables), modifies source code, or injects backdoors into build artifacts. Maps to OWASP CICD-SEC-3 (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).",
+    remediation:
+      "Download the script to a file first, verify its checksum against a known-good value, then execute it. Alternatively, vendor the script into your repository or use a trusted package manager.",
+    badExample: `# .gitlab-ci.yml — ❌ Download and execute without verification
+setup:
+  script:
+    - curl -sSL https://example.com/install.sh | bash
+
+tools:
+  script:
+    - wget -qO- https://get.example.com | sh
+
+deploy:
+  script:
+    - curl -o deploy.sh https://example.com/deploy.sh
+    - bash deploy.sh`,
+    badExampleCaption: "Scripts are downloaded and executed without any integrity check.",
+    goodExample: `# .gitlab-ci.yml — ✅ Verify integrity before execution
+setup:
+  script:
+    - curl -sSL -o install.sh https://example.com/install.sh
+    - echo "a]3f8...expected_sha256  install.sh" | sha256sum -c -
+    - bash install.sh
+
+tools:
+  script:
+    # Vendored script committed to the repo
+    - bash scripts/setup-tools.sh
+
+deploy:
+  script:
+    - curl -o deploy.sh https://example.com/deploy.sh
+    - gpg --verify deploy.sh.sig deploy.sh
+    - bash deploy.sh
+
+# .plumber.yaml
+# pipelineMustNotExecuteUnverifiedScripts:
+#   enabled: true
+#   trustedUrls:
+#     - https://internal-artifacts.example.com/*`,
+    goodExampleCaption: "Scripts are verified with checksums or GPG signatures before execution.",
+    tips: [
+      "Lines that include checksum verification (e.g., `sha256sum`, `gpg --verify`) between download and execution are automatically excluded.",
+      "Add trusted URL patterns to `trustedUrls` (supports wildcards) to suppress findings for known-good internal sources.",
+      "Consider vendoring external scripts into your repository for full control over their content.",
+      "Use a trusted package manager (apt, brew, pip) instead of raw script downloads when possible.",
+    ],
+    relatedCodes: ["ISSUE-401", "ISSUE-204"],
+  },
+
   "ISSUE-508": {
     code: "ISSUE-508",
     title: "Members' role quotas are not respected for groups",
