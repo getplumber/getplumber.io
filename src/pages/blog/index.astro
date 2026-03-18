@@ -10,22 +10,25 @@ const posts = await getAllPosts(currLocale, true); // exclude archived posts (ar
 ---
 
 <BaseLayout
-  title="Plumber Blog - CI/CD Compliance"
-  description="Learn from our blog posts about web development, design, and more."
+  title="Plumber Blog - CI/CD Compliance and Project Governance"
+  description="Learn DevOps best practices for CI/CD compliance, pipeline governance, drift detection, and automated, secure deployments."
 >
   <div class="site-container mt-24 md:mt-36">
     <div class="flex">
       <p class="colored-title">Our blog</p>
     </div>
     <div class="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <h1 class="h2">Blog posts to help you on your journey</h1>
+      <h1 class="h2">Learn about CI/CD compliance, DevOps best practices, and governance guides to secure your pipelines.</h1>
     </div>
     <BlogIndexLayout posts={posts} class="mt-10" />
-    <a
-      href="/blog/archive"
-      class="text-base-content/60 hover:text-base-content text-right text-sm underline md:mt-0"
-    >
-      View blog archive
-    </a>
   </div>
+  <div class="mt-6 site-container">
+
+    <a
+    href="/blog/archive"
+    class=" text-base-content/60 hover:text-base-content text-right text-sm underline"
+    >
+    View blog archive
+  </a>
+</div>
 </BaseLayout>
