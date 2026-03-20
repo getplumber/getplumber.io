@@ -26,9 +26,9 @@ This post walks through what each of these means, what we changed, and how the r
 
 In early 2026, the [hackerbot-claw supply chain attack](https://getplumber.io/blog/hackerbot-claw-cicd-governance) compromised `aquasecurity/trivy` and six other major repositories by exploiting weak CI/CD configurations: mutable action tags, overly permissive tokens, and workflows that trusted external pull requests with write access.
 
-The attack pattern was simple: a malicious actor submitted pull requests that exploited `pull_request_target` triggers and mutable GitHub Action tags to inject code into trusted CI pipelines. The result? Arbitrary code execution with repository write access, secret exfiltration, and poisoned releases.
+That attack specifically exploited `pull_request_target` triggers and mutable GitHub Action tags to inject code into trusted CI pipelines. Our hardening steps below address some of the same underlying weaknesses (mutable references, excessive permissions, unsigned releases) but not the full attack chain. For example, defending against `pull_request_target` abuse requires careful workflow design beyond what's covered here.
 
-These aren't theoretical risks. They're exactly the kind of issues that Plumber detects in GitLab pipelines (mutable tags, missing protections, unsafe variable expansion). So it was only natural to apply the same rigor to our own GitHub release pipeline.
+The conceptual overlap with Plumber is real: Plumber detects mutable tags, missing branch protections, and unsafe variable expansion in GitLab pipelines. The same categories of risk exist in GitHub Actions, just with different mechanics. Hardening our own GitHub release pipeline was a natural extension of the principles we enforce for others.
 
 ## The Three Pillars
 
@@ -43,16 +43,32 @@ These aren't theoretical risks. They're exactly the kind of issues that Plumber 
 - The provenance is **non-falsifiable**: even a compromised project maintainer cannot tamper with it
 - Users can **cryptographically verify** that a binary was built from a specific commit using the expected build process
 
-In practice, every Plumber release now includes a signed SLSA provenance attestation `multiple.intoto.jsonl` alongside the binaries. Download the binary and the provenance file from the [releases page](https://github.com/getplumber/plumber/releases), then verify with:
+#### What this does and doesn't protect against
+
+SLSA provenance addresses **post-build tampering**: someone replacing a release binary, a compromised CI pipeline producing unexpected output, or a hijacked maintainer account publishing poisoned artifacts. It proves that the binary you downloaded was built from the expected source, on trusted infrastructure.
+
+It does **not** guarantee the source code is free of vulnerabilities, that build dependencies weren't compromised, or that the build environment itself was clean. It's a seal of origin, not a clean bill of health.
+
+#### How we generate attestations
+
+Every Plumber release generates build provenance attestations using GitHub's [`actions/attest-build-provenance`](https://github.com/actions/attest-build-provenance). The attestations are signed via Sigstore using the GitHub Actions OIDC identity and stored in [GitHub's attestation store](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds), visible in the GitHub web UI under **Actions > Attestations**.
+
+#### When and how to verify
+
+You should verify attestations before deploying a binary to production, in automated deployment pipelines, and after any security incident to confirm previously deployed binaries are genuine.
 
 ```bash
-slsa-verifier verify-artifact plumber-linux-amd64 \
-  --provenance-path multiple.intoto.jsonl \
-  --source-uri github.com/getplumber/plumber \
-  --source-branch main
+# Download the binary from the release page
+gh release download v0.1.72 --repo getplumber/plumber \
+  --pattern 'plumber-linux-amd64'
+
+# Verify its provenance
+gh attestation verify plumber-linux-amd64 --repo getplumber/plumber
 ```
 
-This gives users a cryptographic guarantee that the binary they downloaded was built from the tagged source code, on GitHub's infrastructure, without tampering.
+No extra tools needed. The `gh` CLI fetches the attestation from GitHub's store and checks it automatically. On success, this confirms the binary was built from the expected commit, on GitHub's infrastructure, and wasn't modified after the build.
+
+If you deploy container images to Kubernetes, you can enforce attestation verification at the cluster level with a policy engine like [Kyverno](https://kyverno.io/). A `ClusterPolicy` with `verifyImages` can reject pods whose images lack a valid SLSA provenance attestation signed by the expected GitHub Actions workflow, turning verification into an automated guardrail rather than a manual step.
 
 ### OpenSSF Scorecard
 
@@ -81,11 +97,9 @@ You can follow our progress at [bestpractices.dev/projects/12096](https://www.be
 
 ## What We Changed
 
-All of these improvements landed in a single PR ([#96](https://github.com/getplumber/plumber/pull/96)), contributed by [Stephane Robert](https://github.com/stephrobert) and reviewed/hardened before merging. Here's a summary:
-
 ### Release Workflow Hardening
 
-- **SLSA provenance generation**: New `hash` and `provenance` jobs in the release workflow compute SHA256 hashes and generate signed SLSA Level 3 attestations for every binary
+- **SLSA provenance generation**: The release workflow uses `actions/attest-build-provenance` to generate signed SLSA Level 3 attestations for every binary, stored in GitHub's attestation store
 - **SHA-pinned actions**: All GitHub Actions across all four workflows are now pinned by commit SHA, not mutable tags. This prevents the exact attack vector used in the hackerbot-claw incident
 - **Least-privilege tokens**: Workflow-level `permissions: {}` (deny-all) with job-level overrides granting only what each step needs
 - **No persisted credentials**: `persist-credentials: false` on every checkout step, so `GITHUB_TOKEN` isn't available to subsequent steps

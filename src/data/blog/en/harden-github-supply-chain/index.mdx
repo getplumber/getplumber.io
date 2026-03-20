@@ -16,9 +16,11 @@ heroImage: ./heroImage.png
 
 # 6 Practical Steps to Harden Your GitHub Project's Supply Chain
 
-Recent attacks like [hackerbot-claw](/blog/hackerbot-claw-cicd-governance) have shown that CI/CD misconfigurations in open-source projects are actively exploited. Mutable action tags, overly permissive tokens, and unprotected workflows are the entry points.
+Attacks like [hackerbot-claw](/blog/hackerbot-claw-cicd-governance) have shown that CI/CD misconfigurations are actively exploited. That attack specifically targeted GitHub Actions workflows by abusing `pull_request_target` triggers and mutable action tags to gain write access and exfiltrate secrets. Not every project is vulnerable to that exact chain, but the underlying weaknesses (mutable references, overly permissive tokens, unsigned releases) are widespread and apply broadly.
 
-The good news: most of these issues are straightforward to fix. This post walks through six practical changes you can make today, with concrete examples. These are the same steps we applied to [Plumber's own supply chain](/blog/openssf-and-salsa), earning an OpenSSF Scorecard of 7.6, SLSA Level 3 provenance, and a 90% OpenSSF Best Practices badge.
+The steps below won't prevent every attack vector used in hackerbot-claw. For example, protecting against `pull_request_target` abuse requires workflow design decisions beyond what's covered here. But they do address the foundational supply chain hygiene issues that make projects easier to compromise in the first place.
+
+This post walks through six practical changes you can make today, with concrete examples. These are the same steps we applied to [Plumber's own supply chain](/blog/openssf-and-salsa), earning an OpenSSF Scorecard of 7.6, SLSA Level 3 provenance, and a 90% OpenSSF Best Practices badge.
 
 ## 1. Pin Your GitHub Actions by SHA
 
@@ -53,31 +55,86 @@ updates:
 
 [SLSA](https://slsa.dev) (Supply-chain Levels for Software Artifacts) provenance gives your users a cryptographic guarantee that your release binaries were built from the expected source code, on a trusted build platform, without tampering.
 
-The [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) project provides reusable workflows for Go, Node, containers, and generic artifacts. Here's a simplified example for Go:
+### What SLSA provenance protects against
+
+SLSA doesn't prevent all supply chain attacks. It specifically addresses **post-build tampering**: someone replacing a binary on the release page, a compromised CI pipeline producing different output than expected, or a maintainer account being hijacked to publish a poisoned release.
+
+It does **not** protect against vulnerabilities in the source code itself, compromised dependencies pulled during build, or attacks that happen before the build step. Think of it as a seal on the package: it proves the package came from the expected factory, not that the factory's ingredients were safe.
+
+### Setting it up
+
+GitHub provides a first-party action for generating build provenance attestations: [`actions/attest-build-provenance`](https://github.com/actions/attest-build-provenance). It signs your artifacts via Sigstore using the GitHub Actions OIDC identity and stores the attestations in [GitHub's attestation store](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds), making them visible in the GitHub web UI and verifiable with the `gh` CLI.
+
+Add it to your release workflow after building your artifacts:
 
 ```yaml
-provenance:
-  needs: [build]
+release:
   permissions:
-    actions: read
-    id-token: write
     contents: write
-  uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
-  with:
-    base64-subjects: "${{ needs.build.outputs.hashes }}"
-    upload-assets: true
+    id-token: write
+    attestations: write
+  steps:
+    - name: Build
+      run: # ... your build steps ...
+
+    - name: Attest build provenance
+      uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+      with:
+        subject-path: dist/your-binary-*
 ```
 
-Users can then verify your binaries' provenance with the slsa-verifier tool.  
-First, download your binary and your `multiple.intoto.jsonl` from the release page, for example: [Plumber v0.1.69](https://github.com/getplumber/plumber/releases/tag/v0.1.69)
+The `subject-path` accepts globs, so a single step can attest all your release binaries. The attestations are stored natively in GitHub. No separate provenance file needs to be uploaded to the release.
 
+### When and how to verify
+
+Verification matters most in these scenarios:
+
+- **Before deploying to production**: if you download a binary from a GitHub release and deploy it to servers, verify it first. This catches tampering between the build and your deployment.
+- **In automated pipelines**: add a verification step in your deployment pipeline so it fails if the attestation doesn't match.
+- **After security incidents**: if you suspect a compromise, re-verify previously deployed binaries against their attestations to confirm they're genuine.
+
+Users verify with the GitHub CLI, no extra tools needed:
 
 ```bash
-slsa-verifier verify-artifact your-binary \
-  --provenance-path multiple.intoto.jsonl \
-  --source-uri github.com/your-org/your-project \
-  --source-branch main
+# Download the binary
+gh release download v1.0.0 --repo your-org/your-project \
+  --pattern 'your-binary-linux-amd64'
+
+# Verify its provenance
+gh attestation verify your-binary-linux-amd64 --repo your-org/your-project
 ```
+
+On success, this confirms the binary was built from the expected commit, on GitHub's infrastructure, and wasn't modified after the build.
+
+You can also browse attestations in the GitHub web UI: go to your repository, click **Actions**, then click **Attestations** in the left sidebar under "Management".
+
+For container images, attestation verification can also be enforced at the cluster level. For example, [Kyverno](https://kyverno.io/) can reject pods whose images lack a valid attestation:
+
+```yaml
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-provenance
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: check-attestation
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      verifyImages:
+        - imageReferences: ["ghcr.io/your-org/*"]
+          attestations:
+            - type: https://slsa.dev/provenance/v1
+              attestors:
+                - entries:
+                    - keyless:
+                        issuer: https://token.actions.githubusercontent.com
+                        subject: https://github.com/your-org/your-repo/.github/workflows/*
+```
+
+This shifts verification from a manual step to a guardrail: workloads that don't have valid provenance simply can't run.
 
 For a complete working example, see [Plumber's release workflow](https://github.com/getplumber/plumber/blob/main/.github/workflows/release.yml).
 
@@ -206,9 +263,9 @@ Most of these changes take minutes to implement individually, and the compound e
 ## Links
 
 - [SLSA Framework](https://slsa.dev)
-- [SLSA GitHub Generator](https://github.com/slsa-framework/slsa-github-generator)
+- [GitHub Artifact Attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds)
+- [actions/attest-build-provenance](https://github.com/actions/attest-build-provenance)
 - [OpenSSF Scorecard](https://securityscorecards.dev)
 - [OpenSSF Scorecard Action](https://github.com/ossf/scorecard-action)
 - [OpenSSF Best Practices](https://www.bestpractices.dev)
-- [slsa-verifier](https://github.com/slsa-framework/slsa-verifier)
 - [Plumber's supply chain hardening post](/blog/openssf-and-salsa)
