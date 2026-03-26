@@ -7,6 +7,8 @@ import BlogIndexLayout from "@layouts/BlogIndexLayout2.astro";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const posts = await getAllPosts(currLocale, true); // exclude archived posts (archive/)
+
+const filterCategories = ["Customer Story", "Releases", "Guide", "News"];
 ---
 
 <BaseLayout
@@ -20,7 +22,7 @@ const posts = await getAllPosts(currLocale, true); // exclude archived posts (ar
     <div class="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <h1 class="h2">Learn about CI/CD compliance, DevOps best practices, and governance guides to secure your pipelines.</h1>
     </div>
-    <BlogIndexLayout posts={posts} class="mt-10" />
+    <BlogIndexLayout posts={posts} filterCategories={filterCategories} class="mt-10" />
   </div>
   <div class="mt-6 site-container">
 

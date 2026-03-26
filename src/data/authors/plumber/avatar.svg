@@ -1,58 +1,18 @@
-<svg width="214" height="214" viewBox="0 0 214 214" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_1485_2680)">
-<line x1="5.5" y1="51.1116" x2="208.223" y2="51.1116" stroke="#00BE00" stroke-width="10.1362"/>
-<line x1="5.5" y1="61.2483" x2="208.223" y2="61.2483" stroke="#00BE00" stroke-width="10.1362"/>
-<line x1="5.5" y1="40.9749" x2="208.223" y2="40.9749" stroke="#00D400" stroke-width="10.1362"/>
-<line x1="5.5" y1="30.8421" x2="208.223" y2="30.8421" stroke="#00D400" stroke-width="10.1362"/>
-<line x1="5.5" y1="20.7054" x2="208.223" y2="20.7054" stroke="#00EA00" stroke-width="10.1362"/>
-<line x1="5.5" y1="10.5686" x2="208.223" y2="10.5686" stroke="#00EA00" stroke-width="10.1362"/>
-<line x1="5.5" y1="71.385" x2="208.223" y2="71.385" stroke="#00A800" stroke-width="10.1362"/>
-<line x1="5.5" y1="81.5218" x2="208.223" y2="81.5218" stroke="#00A800" stroke-width="10.1362"/>
-<line x1="5.5" y1="91.6585" x2="208.223" y2="91.6585" stroke="#009200" stroke-width="10.1362"/>
-<line x1="5.5" y1="101.795" x2="208.223" y2="101.795" stroke="#009200" stroke-width="10.1362"/>
-<line x1="5.5" y1="111.928" x2="208.223" y2="111.928" stroke="#007C00" stroke-width="10.1362"/>
-<line x1="5.5" y1="122.065" x2="208.223" y2="122.065" stroke="#007C00" stroke-width="10.1362"/>
-<line x1="5.5" y1="132.201" x2="208.223" y2="132.201" stroke="#006600" stroke-width="10.1362"/>
-<line x1="5.5" y1="142.338" x2="208.223" y2="142.338" stroke="#006600" stroke-width="10.1362"/>
-<line x1="5.5" y1="152.475" x2="208.223" y2="152.475" stroke="#005000" stroke-width="10.1362"/>
-<line x1="5.5" y1="162.612" x2="208.223" y2="162.612" stroke="#005000" stroke-width="10.1362"/>
-<line x1="5.5" y1="172.748" x2="208.223" y2="172.748" stroke="#003A00" stroke-width="10.1362"/>
-<line x1="5.5" y1="182.881" x2="208.223" y2="182.881" stroke="#003A00" stroke-width="10.1362"/>
-<line x1="5.5" y1="193.018" x2="208.223" y2="193.018" stroke="#002400" stroke-width="10.1362"/>
-<line x1="5.5" y1="203.158" x2="208.223" y2="203.158" stroke="#002400" stroke-width="10.1362"/>
-<line x1="168.5" y1="48.8929" x2="142.143" y2="48.8928" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="164.108" y1="53.2812" x2="164.108" y2="62.067" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="164.108" y1="62.0703" x2="164.108" y2="70.856" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="164.108" y1="70.8555" x2="164.108" y2="79.6412" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="168.5" y1="101.612" x2="142.143" y2="101.612" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="98.2148" y1="92.8259" x2="150.929" y2="92.8259" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="150.928" y1="57.6741" x2="71.8564" y2="57.6741" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="54.2861" y1="75.2478" x2="71.8575" y2="75.2478" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="63.0723" y1="66.4626" x2="80.6437" y2="66.4626" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="164.108" y1="79.6406" x2="164.108" y2="88.4263" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="164.108" y1="88.4297" x2="164.108" y2="97.2154" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="58.679" y1="79.6406" x2="58.679" y2="88.4263" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="58.679" y1="88.4297" x2="58.679" y2="97.2154" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="58.679" y1="97.2188" x2="58.679" y2="106.004" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="93.8206" y1="97.2188" x2="93.8206" y2="106.004" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="93.8206" y1="106" x2="93.8206" y2="114.786" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="58.679" y1="106" x2="58.679" y2="114.786" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="93.8206" y1="114.781" x2="93.8206" y2="123.567" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="93.8206" y1="123.57" x2="93.8206" y2="132.356" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="93.8206" y1="132.359" x2="93.8206" y2="141.145" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="89.4277" y1="145.533" x2="106.999" y2="145.533" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="63.0723" y1="145.53" x2="45.5009" y2="145.53" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="58.679" y1="132.359" x2="58.679" y2="141.145" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="58.679" y1="123.57" x2="58.679" y2="132.356" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="58.679" y1="114.781" x2="58.679" y2="123.567" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="49.8929" y1="149.926" x2="49.8928" y2="158.711" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="102.608" y1="149.926" x2="102.608" y2="158.711" stroke="#F5F5F5" stroke-width="8.7857"/>
-<line x1="45.5" y1="163.107" x2="107" y2="163.107" stroke="#F5F5F5" stroke-width="8.7857"/>
+<svg width="115" height="115" viewBox="0 0 115 115" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_1528_4912" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="115" height="115">
+<circle cx="57.5" cy="57.5" r="57.5" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask0_1528_4912)">
+<path d="M0 0H115V11.5H0V0Z" fill="#00C900"/>
+<path d="M0 11.5H115V23H0V11.5Z" fill="#00BE00"/>
+<path d="M0 23H115V34.5H0V23Z" fill="#00B300"/>
+<path d="M0 34.5H115V46H0V34.5Z" fill="#00A800"/>
+<path d="M0 46H115V57.5H0V46Z" fill="#009D00"/>
+<path d="M0 57.5H115V69H0V57.5Z" fill="#009200"/>
+<path d="M0 69H115V80.5H0V69Z" fill="#008700"/>
+<path d="M0 80.5H115V92H0V80.5Z" fill="#007C00"/>
+<path d="M0 92H115V103.5H0V92Z" fill="#007100"/>
+<path d="M0 103.5H115V115H0V103.5Z" fill="#006600"/>
+<path d="M88.55 28.75H75.2429M86.3327 30.9673V35.403M86.3327 35.4044V53.1456M88.55 55.3648H75.2429M48.6287 50.9291H79.6787M79.6787 33.1852H39.7573M30.8857 42.0569H39.7571M35.3218 37.6217H44.1932M33.1035 44.2747V53.1456M33.1035 53.147V66.453M50.8466 53.147V66.453M50.8466 66.4544V75.3253M48.6287 77.542H57.5001M35.3218 77.5426H26.4504M33.1035 75.3253V66.4544M28.6679 79.7599V84.1956M55.2827 79.7599V84.1956M26.45 86.4143H57.5M81.8966 30.9673V53.1459M41.9748 39.8396V84.1967M46.4109 35.4044V84.1972M48.6287 81.9791H53.0644M30.8857 81.9791H35.3214M37.5391 84.197V44.2755M48.6287 37.6217H79.6787M48.6287 42.0569H79.6787M48.6287 46.492H79.6787" stroke="#F5F5F5" stroke-width="4.43571"/>
 </g>
-<rect x="5.5" y="5.5" width="202.723" height="202.723" rx="101.362" stroke="#F5F5F5" stroke-width="11"/>
-<defs>
-<clipPath id="clip0_1485_2680">
-<rect x="5.5" y="5.5" width="202.723" height="202.723" rx="101.362" fill="white"/>
-</clipPath>
-</defs>
 </svg>

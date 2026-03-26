@@ -6,13 +6,13 @@ import FeatureMetrics from "@components/Feature/FeatureMetrics.astro";
 import PipelineBlindSpot from "@components/Feature/PipelineBlindSpot.astro";
 import PlatformHero from "@components/Hero/PlatformHero.astro";
 import LogoCloud2 from "@components/LogoCloud/LogoCloud2.astro";
-import PageSidebarNav from "@components/Nav/PageSidebarNav.astro";
-import Pricing3 from "@components/Pricing/Pricing3.astro";
 import PricingPlatform from "@components/Pricing/PricingPlatform.astro";
 import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
+import Testimonials2 from "@components/Testimonials/Testimonials2.astro";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
+
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const siteData = getTranslatedData("siteData", currLocale);
@@ -37,7 +37,7 @@ const pageSections = [
   <AtPlumber />
 
   <FeatureMetrics />
-  <!-- <Testimonials2 /> -->
+  <Testimonials2 />
   <SectionDivider />
 
   <PricingPlatform />

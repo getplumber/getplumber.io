@@ -1,55 +1,38 @@
+import NicolasPAvatar from "../../assets/testimonials/nicolas_p.jpeg";
+import OlivierLAvatar from "../../assets/testimonials/olivier_l.jpeg";
+import SteveAAvatar from "../../assets/testimonials/steve_a.jpeg";
+import YannHAvatar from "../../assets/testimonials/yann_h.png";
 import { type TestimonialItem } from "../types/configDataTypes";
 
 export const testimonialData: TestimonialItem[] = [
-  // {
-  //   avatar: Aniket,
-  //   name: "Aniket P",
-  //   title: "Data Scientist",
-  //   testimonial: `I'm not a front-end dev, but I wanted to rebuild my personal site with Astro. If you're in the same shoes,
-  //     I can't recommend enough Cosmic Themes.
-  //     `,
-  // },
-  // {
-  //   avatar: BowTiedFocus,
-  //   name: "BowTiedFocus",
-  //   title: "Frontend Engineer",
-  //   testimonial: `The Blogsmith Pro theme is ridiculously well put together and documented.
-  //     I learned a ton about Astro engineering by studying it, and I've already used some of the components
-  //     for my web design clients.
-  //     `,
-  // },
-  // {
-  //   avatar: Damiano,
-  //   name: "Damiano L",
-  //   title: "C++ Developer",
-  //   testimonial: `Cosmic Themes provides some of the best Astro themes out there. They are well designed, easy to customize and,
-  //     most importantly, the team is very responsive concerning support and feature requests.
-  //     `,
-  // },
-  // {
-  //   avatar: David,
-  //   name: "David G",
-  //   title: "Web Developer",
-  //   testimonial: `It's the cleanest template standup experience ever! I've never used Astro, but looking at the demo, code, it
-  //     should be fairly simple pickup on top of my existing React and NextJS experience.
-  //     `,
-  // },
-  // {
-  //   avatar: TravisB,
-  //   name: "Travis B",
-  //   title: "Developer",
-  //   testimonial: `Cosmic themes are for webdevs and marketers who don't want to waste time reinventing the wheel.
-  //   Their themes have great examples of some of the creative things you can accomplish with Astro.
-  //     `,
-  // },
-  // {
-  //   avatar: Isaac,
-  //   name: "Isaac",
-  //   title: "SaaS Developer",
-  //   testimonial: `My step-dad is starting a construction business and we're looking through Astro themes right now for his website
-  //     and stumbled upon Cosmic Themes "Galaxy" theme. Absolutely filthy. Excellent work, man.
-  //     `,
-  // },
+  {
+    avatar: OlivierLAvatar,
+    name: "Olivier LAVAUX",
+    title: "CISO at Numspot",
+    testimonial:
+      "Numspot requires continuous monitoring of its CI/CD pipeline compliance. Auditability is a critical focus to ensure that pipeline security processes do not deviate over time.",
+  },
+  {
+    avatar: NicolasPAvatar,
+    name: "Nicolas PETROUSSENKO",
+    title: "COO at Point Base",
+    testimonial:
+      "We are both a consulting firm and a software publisher. With Plumber, we empower our clients to achieve Security by Design while enabling our developers to build compliant pipelines effortlessly. It transforms compliance from a manual burden into an automated, auditable process.",
+  },
+  {
+    avatar: YannHAvatar,
+    name: "Yann HILLEREAU",
+    title: "IT Manager at FDI Access",
+    testimonial:
+      "Compliance is not just about the product. We must also prove that the way we build and deliver it is secure.",
+  },
+  {
+    avatar: SteveAAvatar,
+    name: "Steve ALBERT",
+    title: "Head of Operations at Numspot",
+    testimonial:
+      "Numspot's sovereign platform is intentionally designed to incorporate security and compliance as fundamental elements, embedded into every pipeline from day one, providing the level of security and compliance needed to navigate qualifications and certifications with peace of mind.",
+  },
 ];
 
 export default testimonialData;
