@@ -104,6 +104,12 @@ Or specify explicitly:
 plumber analyze --gitlab-url https://gitlab.com --project your-group/your-project
 ```
 
+If your project uses a custom CI config path, pass it explicitly:
+
+```bash
+plumber analyze --gitlab-url https://gitlab.com --project your-group/your-project --ci-config-path .gitlab/ci/main.yml
+```
+
 ### Step 5: Interpret the Results
 
 Each control shows a pass or fail status, and the overall compliance score (0-100%) gives you a single metric to track. In our [Medium walkthrough](https://medium.com/@moukarzeljoseph/your-gitlab-pipelines-are-probably-non-compliant-heres-how-to-fix-that-in-5-minutes-5009614a1fb1), we scan a non-compliant project and walk through fixing each issue — going from 12.5% to 37.5% compliance in minutes just by tweaking the config.
@@ -114,7 +120,7 @@ The real power comes from continuous compliance monitoring. Add Plumber to your 
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.29
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.30
 ```
 
 Plumber will now run automatically on every push to default branch, every tag, and every merge request. See our [GitLab Component docs](/docs/cli/gitlab-component/) for full setup instructions.
@@ -126,8 +132,9 @@ Want compliance results directly in your merge requests and project overview? En
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.29
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.30
     inputs:
+      ci_config_path: $CI_CONFIG_PATH # defaults to project's configured CI config path
       mr_comment: true  # Post compliance summary on MRs
       badge: true       # Show compliance badge on project page
 ```

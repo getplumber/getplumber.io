@@ -17,6 +17,8 @@ The Plumber CLI allows you to analyze GitLab CI/CD pipelines from the command li
 - Outdated includes/templates
 - Forbidden version patterns (e.g., `main`, `HEAD`)
 - Missing required components or templates
+- Security jobs weakened via unsafe overrides (`allow_failure`, `rules`, `when: manual`)
+- Unverified remote script execution patterns (`curl | bash`, `wget | sh`)
 
 This is useful for local testing, CI/CD integration, or automated compliance checks.
 
@@ -42,11 +44,11 @@ This is useful for local testing, CI/CD integration, or automated compliance che
     **Install a specific version:**
 
     ```bash
-    brew install getplumber/plumber/plumber@0.1.72
+    brew install getplumber/plumber/plumber@0.1.75
     ```
 
     <Aside variant="info">
-      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.1.72/bin/plumber`) or run `brew link plumber@0.1.72` to add it to your PATH.
+      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.1.75/bin/plumber`) or run `brew link plumber@0.1.75` to add it to your PATH.
     </Aside>
   </TabsContent>
 
@@ -201,6 +203,7 @@ plumber analyze [flags]
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
 | `--skip-controls` | No | - | Skip listed controls (comma-separated). Cannot be used with `--controls` |
 | `--fail-warnings` | No | `false` | Treat configuration warnings (unknown keys) as errors (exit 2) |
+| `--ci-config-path` | No | auto-detect | Override CI configuration file path. Defaults to project CI config path from GitLab settings (usually `.gitlab-ci.yml`) |
 | `--verbose`, `-v` | No | `false` | Enable verbose/debug output |
 
 <Aside variant="info">
@@ -360,6 +363,17 @@ plumber analyze \
   --branch develop \
   --config .plumber.yaml \
   --threshold 80
+```
+
+### Custom CI Configuration Path
+
+Use this when your project defines a custom CI/CD configuration file path in GitLab:
+
+```bash
+plumber analyze \
+  --gitlab-url https://gitlab.com \
+  --project mygroup/myproject \
+  --ci-config-path .gitlab/ci/main.yml
 ```
 
 ### Silent Mode (JSON Only)
@@ -795,7 +809,7 @@ Or via the GitLab CI component:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.29
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.30
     inputs:
       mr_comment: true  # Requires api scope on token
 ```
@@ -824,7 +838,7 @@ Or via the GitLab CI component:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.29
+  - component: gitlab.com/getplumber/plumber/plumber@v0.1.30
     inputs:
       badge: true  # Requires api scope on token
 ```
