@@ -1224,6 +1224,65 @@ release:
     relatedCodes: ["ISSUE-203", "ISSUE-301"],
   },
 
+  "ISSUE-205": {
+    code: "ISSUE-205",
+    title: "Job variable overrides controlled variable",
+    category: "CI/CD Variables",
+    severity: "high",
+    fixDuration: "quick",
+    controlName: "Pipeline must not override job variables",
+    controlConfigKey: "pipelineMustNotOverrideJobVariables",
+    description:
+      "A CI/CD variable that should only be set in GitLab CI/CD Settings (as a protected or project-level variable) is redefined in the pipeline configuration file (`.gitlab-ci.yml`). This control inspects only the raw user-authored YAML, so variables defined inside included templates or components are not flagged.",
+    impact:
+      "An attacker who can modify `.gitlab-ci.yml` could override variables like `SECURE_ANALYZERS_PREFIX` to point to a fake registry, or set `SAST_DISABLED: \"true\"` to silently disable security scanners. The pipeline still appears green, but no actual scanning occurs. This applies to any variable the organization considers controlled, not just security-related ones.",
+    remediation:
+      "Remove the variable from `.gitlab-ci.yml` (both global `variables:` and per-job `variables:` blocks) and set it in **GitLab CI/CD Settings > Variables** instead. Configure the list of controlled variables in `.plumber.yaml` under `pipelineMustNotOverrideJobVariables.variables`.",
+    badExample: `# .gitlab-ci.yml — ❌ Controlled variables defined in the YAML
+variables:
+  SECURE_ANALYZERS_PREFIX: "registry.evil.com/scanners"
+  SAST_DISABLED: "true"
+
+build:
+  image: golang:1.22
+  variables:
+    SECRET_DETECTION_DISABLED: "true"
+    SAST_EXCLUDED_PATHS: "**/*"
+  script:
+    - go build ./...`,
+    badExampleCaption: "Controlled variables are redefined in .gitlab-ci.yml, bypassing CI/CD Settings.",
+    goodExample: `# .gitlab-ci.yml — ✅ No controlled variables in the YAML
+variables:
+  GOPROXY: "https://proxy.golang.org,direct"
+
+build:
+  image: golang:1.22
+  script:
+    - go build ./...
+
+# In GitLab: Settings > CI/CD > Variables
+# Add: SECURE_ANALYZERS_PREFIX, SAST_DISABLED, etc.
+# Set Protected: true, Masked: false (or true if appropriate)
+
+# .plumber.yaml
+# pipelineMustNotOverrideJobVariables:
+#   enabled: true
+#   variables:
+#     - SECURE_ANALYZERS_PREFIX
+#     - SAST_DISABLED
+#     - SECRET_DETECTION_DISABLED
+#     - SAST_EXCLUDED_PATHS`,
+    goodExampleCaption: "Controlled variables are managed in GitLab CI/CD Settings, not in the YAML.",
+    tips: [
+      "The control checks the raw user-authored `.gitlab-ci.yml` only. Variables defined by included components or templates are not flagged.",
+      "Variable name matching is case-insensitive: `sast_disabled` and `SAST_DISABLED` are both detected.",
+      "Any value triggers the issue, even `\"false\"`. The variable should not be defined in the YAML at all.",
+      "Use this control for any variable your organization considers controlled, not just security-related ones.",
+      "Default controlled variables cover common GitLab security scanner variables (`SECURE_ANALYZERS_PREFIX`, `SAST_DISABLED`, `CONTAINER_SCANNING_DISABLED`, etc.).",
+    ],
+    relatedCodes: ["ISSUE-203", "ISSUE-204", "ISSUE-410"],
+  },
+
   "ISSUE-410": {
     code: "ISSUE-410",
     title: "Security job weakened",

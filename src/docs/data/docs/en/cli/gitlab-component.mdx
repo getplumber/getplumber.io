@@ -17,6 +17,7 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 - Outdated includes/templates
 - Forbidden version patterns (e.g., `main`, `HEAD`)
 - Missing required components or templates
+- Controlled CI/CD variables overridden in the pipeline YAML
 
 <Button variant="outline" class="!border-base-900 dark:!border-base-100 hover:!border-primary-500/90 dark:hover:!border-primary-100/90" href="https://gitlab.com/getplumber/plumber"><Icon name="tabler/brand-gitlab" class="mr-2" />View on GitLab</Button>
 
@@ -199,7 +200,7 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
 
 ## Compliance Controls
 
-Plumber includes **12 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
+Plumber includes **13 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
 
 | Control | Description |
 |---------|-------------|
@@ -214,6 +215,7 @@ Plumber includes **12 compliance controls**. Each can be enabled/disabled and cu
 | **Pipeline must not enable debug trace** | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
 | **Pipeline must not use unsafe variable expansion** | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
 | **Security jobs must not be weakened** | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
+| **Pipeline must not override job variables** | Detects controlled CI/CD variables redefined in `.gitlab-ci.yml` that should only be set in GitLab CI/CD Settings |
 | **Pipeline must not execute unverified scripts** | Detects `curl \| bash`, `wget \| sh`, and download-then-execute patterns without integrity verification (OWASP CICD-SEC-3) |
 
 <details>
@@ -289,6 +291,26 @@ pipelineMustNotExecuteUnverifiedScripts:
 ```
 
 Add trusted URL patterns to `trustedUrls` (supports wildcards) to suppress findings for known-good sources. See the [CLI documentation](/docs/cli/#available-controls) for full details.
+
+</details>
+
+<details>
+<summary>**Job Variable Override Detection**</summary>
+
+Detects CI/CD variables that are redefined in `.gitlab-ci.yml` when they should only be set in **GitLab CI/CD Settings > Variables**. Only variables the user wrote directly are checked; variables injected by included templates or components are ignored.
+
+```yaml
+pipelineMustNotOverrideJobVariables:
+  enabled: true
+  variables:
+    - SECURE_ANALYZERS_PREFIX
+    - SAST_DISABLED
+    - SECRET_DETECTION_DISABLED
+    - CONTAINER_SCANNING_DISABLED
+    - DAST_DISABLED
+```
+
+Add any variable name your organization considers controlled. Matching is case-insensitive. See the [CLI documentation](/docs/cli/#available-controls) for full details and examples.
 
 </details>
 
