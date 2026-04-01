@@ -107,7 +107,7 @@ cat versions.env >> .env
 
 **In your `.env` file:**
 
-- **If you want to connect Plumber to a specific GitLab group only**: add the path of the group in `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**)
+- **If you want to connect Plumber to a specific GitLab group only**: add the **group path as defined in GitLab** in the `ORGANIZATION` variable (to run the onboarding, you must be at least **Maintainer in this group**). On GitLab.com or non‑self‑hosted instances, this path may differ from the display name of the group, and GitLab can append extra characters to make it unique. Check the group settings (or the GitLab API `full_path`) to copy the exact value.
 
    ```bash title=".env"
    ORGANIZATION="<group-path>"
