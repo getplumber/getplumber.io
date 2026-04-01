@@ -992,7 +992,7 @@ include:
     controlName: "Pipelines must include components",
     controlConfigKey: "pipelineMustIncludeComponent",
     description:
-      "A required GitLab catalog component, as defined in your Policy controls, has been overridden in the project pipeline.",
+      "A required GitLab catalog component, as defined in your Policy controls, has been overridden in the project pipeline. The following CI/CD keywords are detected as overrides: `after_script`, `allow_failure`, `artifacts`, `before_script`, `cache`, `coverage`, `dast_configuration`, `dependencies`, `environment`, `identity`, `image`, `inherit`, `interruptible`, `manual_confirmation`, `needs`, `pages`, `parallel`, `release`, `resource_group`, `retry`, `rules`, `script`, `secrets`, `services`, `stage`, `tags`, `timeout`, `trigger`, `when`.",
     impact:
       "Overriding required components can lead to non-compliant and insecure pipelines. For example, overriding a security scan component might bypass mandatory security checks.",
     remediation:
@@ -1413,6 +1413,112 @@ deploy:
       "Use a trusted package manager (apt, brew, pip) instead of raw script downloads when possible.",
     ],
     relatedCodes: ["ISSUE-401", "ISSUE-204"],
+  },
+
+  "ISSUE-412": {
+    code: "ISSUE-412",
+    title: "Docker-in-Docker service detected",
+    category: "Pipeline Composition",
+    severity: "high",
+    fixDuration: "medium",
+    controlName: "Pipeline must not use Docker-in-Docker",
+    controlConfigKey: "pipelineMustNotUseDockerInDocker",
+    description:
+      "A CI/CD job uses a Docker-in-Docker (dind) service. On shared runners running in privileged mode, this creates a Docker daemon inside the CI container that enables container escape, lateral movement between jobs, and access to secrets from other projects on the same runner.",
+    impact:
+      "Docker-in-Docker in privileged mode grants near-root access to the host. An attacker (or a compromised dependency) can escape the container, list and inspect other containers on the runner, read volumes mounted by other CI jobs (potentially containing secrets), and probe the runner's internal network.",
+    remediation:
+      "Replace Docker-in-Docker with a rootless container build tool. Kaniko builds container images inside a container without requiring a Docker daemon or privileged mode.",
+    badExample: `# .gitlab-ci.yml — ❌ Uses Docker-in-Docker service
+build-image:
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA`,
+    badExampleCaption: "This job runs a Docker daemon inside the CI container, requiring privileged mode on the runner.",
+    goodExample: `# .gitlab-ci.yml — ✅ Uses Kaniko (no privileged mode needed)
+build-image:
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  script:
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+# .plumber.yaml
+# pipelineMustNotUseDockerInDocker:
+#   enabled: true
+#   detectInsecureDaemon: true`,
+    goodExampleCaption: "Kaniko builds container images without requiring a Docker daemon or privileged mode.",
+    tips: [
+      "Kaniko and Buildah are the most common alternatives to Docker-in-Docker for building container images in CI/CD.",
+      "If Docker-in-Docker is truly required, ensure it runs on dedicated (not shared) runners with proper network isolation.",
+      "The `detectInsecureDaemon` option (default: true) also flags jobs where TLS is disabled between the CI job and the DinD daemon.",
+      "This control inspects the `services:` declaration in the CI configuration. A Docker daemon started manually from `script:` (e.g., `dockerd &`) or embedded in a custom image is not detected (known limitation).",
+      "Only images with `docker:` prefix and a tag containing `dind` or `latest` are matched. Renamed or aliased DinD images (e.g., `myregistry.com/custom-builder:stable`) are not detected.",
+    ],
+    relatedCodes: ["ISSUE-413", "ISSUE-101"],
+  },
+
+  "ISSUE-413": {
+    code: "ISSUE-413",
+    title: "Docker-in-Docker with insecure daemon configuration",
+    category: "Pipeline Composition",
+    severity: "critical",
+    fixDuration: "quick",
+    controlName: "Pipeline must not use Docker-in-Docker",
+    controlConfigKey: "pipelineMustNotUseDockerInDocker",
+    description:
+      "A CI/CD job uses Docker-in-Docker with an insecure daemon configuration. Setting `DOCKER_TLS_CERTDIR` to an empty string or using `DOCKER_HOST` with `tcp://docker:2375` disables TLS encryption between the CI job and the Docker daemon.",
+    impact:
+      "Without TLS, all communication between the CI job and the Docker daemon is in plaintext. On shared infrastructure, this allows network-level eavesdropping, man-in-the-middle attacks, and Docker API command injection by other containers on the same network.",
+    remediation:
+      "If Docker-in-Docker is required, do not set `DOCKER_TLS_CERTDIR` to an empty string and use `tcp://docker:2376` (TLS) instead of `tcp://docker:2375` (plaintext). Prefer Kaniko or Buildah to avoid this pattern entirely.",
+    badExample: `# .gitlab-ci.yml — ❌ DinD with TLS disabled
+build-image:
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE .
+    - docker push $CI_REGISTRY_IMAGE`,
+    badExampleCaption: "TLS is disabled, exposing all Docker API traffic in plaintext.",
+    goodExample: `# .gitlab-ci.yml — ✅ DinD with TLS enabled (if DinD is truly required)
+build-image:
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "/certs/client"
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE .
+    - docker push $CI_REGISTRY_IMAGE
+
+# Better: use Kaniko instead of DinD entirely
+# (see ISSUE-412 for examples)`,
+    goodExampleCaption: "TLS is enabled with proper certificate configuration.",
+    tips: [
+      "Port 2375 is Docker's unencrypted port. Port 2376 is the TLS-encrypted port.",
+      "Setting `DOCKER_TLS_CERTDIR: \"\"` explicitly disables TLS certificate generation in the DinD service.",
+      "This issue only fires when a DinD service is also present in the same job. Insecure variables without DinD are not flagged.",
+      "The best fix is to replace Docker-in-Docker entirely with Kaniko or Buildah (see ISSUE-412).",
+      "Only `DOCKER_TLS_CERTDIR` and `DOCKER_HOST` variables declared in YAML (`variables:`) are checked. TLS disabled via `dockerd` flags in `script:` or via runtime exports in `before_script:` is not detected (known limitation).",
+      "Only port 2375 is flagged as insecure. Custom non-TLS ports (e.g., `tcp://docker:12345`) are not detected.",
+    ],
+    relatedCodes: ["ISSUE-412", "ISSUE-101"],
   },
 
   "ISSUE-508": {

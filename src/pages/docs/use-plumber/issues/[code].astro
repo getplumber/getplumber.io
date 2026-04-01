@@ -259,9 +259,9 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
 
     <!-- Bad example -->
     <div class="mb-6">
-      <div class="flex items-center gap-2 mb-2">
+      <div class="inline-block ">
         <span
-          class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 ring-1 ring-red-300 dark:ring-red-800/50"
+          class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 ring-1 ring-red-300 dark:ring-red-800/50"
           >✗ Before</span
         >
         <span class="text-sm text-muted-foreground">{badExampleCaption}</span>
@@ -275,9 +275,9 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
 
     <!-- Good example -->
     <div class="mb-6">
-      <div class="flex items-center gap-2 mb-2">
+      <div class="inline-block">
         <span
-          class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-800/50"
+          class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-800/50"
           >✓ After</span
         >
         <span class="text-sm text-muted-foreground">{goodExampleCaption}</span>

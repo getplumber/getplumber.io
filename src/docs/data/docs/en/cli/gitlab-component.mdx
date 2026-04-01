@@ -18,6 +18,7 @@ The Plumber GitLab Component lets you add compliance scanning directly to your G
 - Forbidden version patterns (e.g., `main`, `HEAD`)
 - Missing required components or templates
 - Controlled CI/CD variables overridden in the pipeline YAML
+- Docker-in-Docker (dind) services enabling container escape on shared runners
 
 <Button variant="outline" class="!border-base-900 dark:!border-base-100 hover:!border-primary-500/90 dark:hover:!border-primary-100/90" href="https://gitlab.com/getplumber/plumber"><Icon name="tabler/brand-gitlab" class="mr-2" />View on GitLab</Button>
 
@@ -200,7 +201,7 @@ If you're running a self-hosted GitLab instance, you'll need to host your own co
 
 ## Compliance Controls
 
-Plumber includes **13 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
+Plumber includes **14 compliance controls**. Each can be enabled/disabled and customized in your `.plumber.yaml`:
 
 | Control | Description |
 |---------|-------------|
@@ -217,6 +218,7 @@ Plumber includes **13 compliance controls**. Each can be enabled/disabled and cu
 | **Security jobs must not be weakened** | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
 | **Pipeline must not override job variables** | Detects controlled CI/CD variables redefined in `.gitlab-ci.yml` that should only be set in GitLab CI/CD Settings |
 | **Pipeline must not execute unverified scripts** | Detects `curl \| bash`, `wget \| sh`, and download-then-execute patterns without integrity verification (OWASP CICD-SEC-3) |
+| **Pipeline must not use Docker-in-Docker** | Detects Docker-in-Docker (dind) services and insecure daemon configurations enabling container escape on shared runners |
 
 <details>
 <summary>**Unsafe Variable Expansion Detection**</summary>
@@ -311,6 +313,23 @@ pipelineMustNotOverrideJobVariables:
 ```
 
 Add any variable name your organization considers controlled. Matching is case-insensitive. See the [CLI documentation](/docs/cli/#available-controls) for full details and examples.
+
+</details>
+
+<details>
+<summary>**Docker-in-Docker Detection**</summary>
+
+Detects CI/CD jobs that use Docker-in-Docker (dind) services, which require privileged mode and can enable container escape, lateral movement, and access to secrets from other jobs on shared runners.
+
+When `detectInsecureDaemon` is enabled (default), Plumber also flags jobs where DinD is configured without TLS: `DOCKER_TLS_CERTDIR` set to an empty string or `DOCKER_HOST` using port 2375 (plaintext).
+
+```yaml
+pipelineMustNotUseDockerInDocker:
+  enabled: true
+  detectInsecureDaemon: true
+```
+
+Consider using [Kaniko](https://github.com/GoogleContainerTools/kaniko) or [Buildah](https://github.com/containers/buildah) as safer alternatives that do not require privileged mode. See the [CLI documentation](/docs/cli/#available-controls) for full details.
 
 </details>
 
