@@ -13,7 +13,7 @@ This page describes how to run a self-managed instance of Plumber on
 ## 💻 Requirements
 
 - **GitLab instance version >=17.7**
-- **A Redis instance version >= 6**
+- **A Redis instance version >= 6** (or let the chart deploy one for you)
 - **A PostgreSQL instance version >= 13**
 - A Kubernetes cluster with:
   - One ingress controller(ex: [Nginx](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx) or [Traefik](https://artifacthub.io/packages/helm/traefik/traefik))
@@ -29,7 +29,8 @@ This page describes how to run a self-managed instance of Plumber on
 
 The Helm chart used in this documentation allows installing all these services
 embedded in the chart as dependencies or to use external `PostgreSQL`
-and/or `Redis`. Both alternatives are detailed below.
+and/or `Redis`. The chart can optionally deploy a standalone Redis instance
+for you. Both alternatives are detailed below.
 
 <Steps>
 
@@ -289,10 +290,45 @@ and/or `Redis`. Both alternatives are detailed below.
 
    **Redis**
 
-   Add following configuration in your `custom_values.yaml` file:
+   You can either let the chart deploy a standalone Redis instance or use an
+   external one.
+
+   **Option A: Deploy Redis via the chart**
 
    ```yaml
    redis:
+     deploy: true
+
+     # Not using secret for auth (comment if you use secret)
+     auth:
+       password: REPLACE_ME_BY_REDIS_PASSWORD
+
+     # Using existing secret for auth (uncomment if you use secret)
+     #auth:
+     #  existingSecret: "redis-secret"
+     #  existingSecretPasswordKey: "password"
+
+     # Persistence is disabled by default (Redis is used as a cache/queue).
+     # Uncomment to enable:
+     #master:
+     #  persistence:
+     #    enabled: false
+
+     # To pull from a private registry, uncomment and configure:
+     #image:
+     #  registry: my-private-registry.example.com
+     #  repository: bitnami/redis
+     #  tag: "8.6.2"
+     #  pullPolicy: IfNotPresent
+     #  pullSecrets:
+     #    - my-registry-secret
+   ```
+
+   **Option B: Use an external Redis**
+
+   ```yaml
+   redis:
+     deploy: false
 
      custom:
        port: 6379
@@ -313,7 +349,12 @@ and/or `Redis`. Both alternatives are detailed below.
 
 5. ### 🚀 Install the chart
 
-   Run the following command:
+   If you enabled `redis.deploy: true`, update chart dependencies first:
+   ```sh
+   helm dependency update plumber/plumber
+   ```
+
+   Then install:
 
    ```sh
    helm upgrade -n plumber --create-namespace --install plumber plumber/plumber -f custom_values.yaml
@@ -371,17 +412,25 @@ postgresql:
     dbName: "plumber"
     sslmode: "require"
 
+# Option A: Deploy Redis via the chart
 redis:
+  deploy: true
   auth:
     password: REDACTED
-  custom:
-    port: 6379
-    host: "REDACTED"
-    user: "REDACTED"
-    cert: |
-      -----BEGIN CERTIFICATE-----
-      REDACTED
-      -----END CERTIFICATE-----
+
+# Option B: Use an external Redis
+#redis:
+#  deploy: false
+#  auth:
+#    password: REDACTED
+#  custom:
+#    port: 6379
+#    host: "REDACTED"
+#    user: "REDACTED"
+#    cert: |
+#      -----BEGIN CERTIFICATE-----
+#      REDACTED
+#      -----END CERTIFICATE-----
 ```
 </Aside>
 
