@@ -2,6 +2,8 @@
 import "@/styles/global.css";
 import "@/docs/styles/docs-markdown-content.css";
 
+import Analytics from "@vercel/analytics/astro";
+
 import Footer from "@/components/Footer/Footer.astro";
 import Nav from "@/components/Nav/Nav.astro";
 import CookieConsent from "@/docs/components/cookie-consent/CookieConsent.astro";
@@ -49,5 +51,6 @@ const currLocale = getLocaleFromUrl(Astro.url);
       </div>
     </div>
     <Footer />
+    <Analytics />
   </body>
 </html>
