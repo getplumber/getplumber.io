@@ -1,12 +1,9 @@
 ---
 import PipelineAnimation from "@components/Animation/PipelineAnimation.astro";
 import Button from "@components/Button/Button.astro";
-import { getGitHubRepoInfo } from "@js/githubRepoUtils";
-import { getLocaleFromUrl } from "@js/localeUtils";
+import GitHubHeroStatsBadge from "@components/Hero/GitHubHeroStatsBadge.astro";
+import { PLUMBER_GITHUB_REPO_URL } from "@js/plumberGithubRepo";
 import { Icon } from "astro-icon/components";
-
-const currLocale = getLocaleFromUrl(Astro.url);
-const githubInfo = await getGitHubRepoInfo();
 ---
 
 <section
@@ -59,50 +56,7 @@ const githubInfo = await getGitHubRepoInfo();
     </div> -->
     <!-- Hero text -->
     <div class="mb-12 text-center">
-      <!-- GitHub repo stats badge (stars, latest version) -->
-      {
-        (githubInfo.stars !== null || githubInfo.latestVersion !== null) && (
-          <div
-            class="bg-base-800/90 border-primary-500/30 ring-primary-500/15 absolute top-16 right-0 left-0 mx-auto inline-flex w-max flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border px-4 py-2 text-sm ring-1 sm:gap-x-4 md:top-24"
-            data-mos="fade-up"
-            data-mos-delay="0.3"
-            data-mos-anchor="#plumber-hero"
-          >
-            <a
-              href="https://github.com/getplumber/plumber"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-base-300 hover:text-primary-400 inline-flex items-center gap-1.5 transition"
-            >
-              <Icon name="tabler/brand-github" class="h-4 w-4 shrink-0" aria-hidden="true" />
-              {githubInfo.stars !== null && (
-                <>
-                  <Icon
-                    name="tabler/star-filled"
-                    class="h-4 w-4 text-amber-400"
-                    aria-hidden="true"
-                  />
-                  <span>{githubInfo.stars.toLocaleString()} stars</span>
-                </>
-              )}
-            </a>
-            {githubInfo.stars !== null && githubInfo.latestVersion && (
-              <span class="bg-base-500/50 h-3.5 w-px shrink-0" aria-hidden="true" />
-            )}
-            {githubInfo.latestVersion && (
-              <a
-                href="https://github.com/getplumber/plumber/releases/latest"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-base-300 hover:text-primary-400 inline-flex items-center gap-1.5 transition"
-              >
-                <Icon name="tabler/tag" class="h-4 w-4" aria-hidden="true" />
-                <span>v{githubInfo.latestVersion}</span>
-              </a>
-            )}
-          </div>
-        )
-      }
+      <GitHubHeroStatsBadge />
       <h1
         class="from-base-900 to-base-600/90 dark:from-base-100 dark:to-base-400/90 bg-gradient-to-r bg-clip-text pb-4 text-5xl font-medium text-transparent md:text-6xl"
         data-mos="fade-up"
@@ -130,12 +84,7 @@ const githubInfo = await getGitHubRepoInfo();
         data-mos-delay="0.4"
         data-mos-anchor="#plumber-hero"
       >
-        <Button
-          variant="primary"
-          href="https://github.com/getplumber/plumber"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <Button variant="primary" href={PLUMBER_GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
           View on GitHub
         </Button>
         <Button variant="outline" href="/docs/cli" arrow="right"> CLI Documentation </Button>

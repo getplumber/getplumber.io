@@ -1,0 +1,52 @@
+---
+import {
+  PLUMBER_GITHUB_RELEASES_LATEST_URL,
+  PLUMBER_GITHUB_REPO_URL,
+} from "@js/plumberGithubRepo";
+import { Icon } from "astro-icon/components";
+---
+
+<div
+  id="gh-hero-stats-badge"
+  class="bg-base-800/90 border-primary-500/30 ring-primary-500/15 absolute top-16 right-0 left-0 mx-auto hidden w-max flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border px-4 py-2 text-sm ring-1 sm:gap-x-4 md:top-24"
+  data-mos="fade-up"
+  data-mos-delay="0.3"
+  data-mos-anchor="#plumber-hero"
+  aria-hidden="true"
+>
+  <a
+    href={PLUMBER_GITHUB_REPO_URL}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="text-base-300 hover:text-primary-400 inline-flex items-center gap-1.5 transition"
+  >
+    <Icon name="tabler/brand-github" class="h-4 w-4 shrink-0" aria-hidden="true" />
+    <span class="inline-flex items-center gap-1.5" data-gh-stars-wrap>
+      <Icon name="tabler/star-filled" class="h-4 w-4 text-amber-400" aria-hidden="true" />
+      <span id="gh-stars" class="tabular-nums text-xs"></span>
+      <span>stars</span>
+    </span>
+  </a>
+  <span
+    id="gh-hero-stats-divider"
+    class="bg-base-500/50 h-3.5 w-px shrink-0"
+    aria-hidden="true"
+  />
+  <a
+    href={PLUMBER_GITHUB_RELEASES_LATEST_URL}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="text-base-300 hover:text-primary-400 inline-flex items-center gap-1.5 transition"
+    data-gh-release-wrap
+  >
+    <Icon name="tabler/tag" class="h-4 w-4 shrink-0" aria-hidden="true" />
+    <span id="gh-release" class="min-w-[2.5rem] font-mono text-xs tracking-tight"></span>
+  </a>
+</div>
+
+<script>
+  import { initGitHubHeroStats } from "@js/githubHeroStats";
+
+  initGitHubHeroStats();
+  document.addEventListener("astro:after-swap", initGitHubHeroStats);
+</script>
