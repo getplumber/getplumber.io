@@ -10,7 +10,11 @@ const localizedPaths = Object.fromEntries(
   ),
 );
 // Use canonical domain (Astro.site) for hreflang, not request origin, for SEO consistency
-const canonicalOrigin = new URL(Astro.site).origin;
+const site = Astro.site;
+if (!site) {
+  throw new Error("Set `site` in astro.config so hreflang links use the canonical origin.");
+}
+const canonicalOrigin = new URL(site).origin;
 ---
 
 {

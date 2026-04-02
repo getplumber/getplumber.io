@@ -3,7 +3,6 @@ import ExternalLink from "@components/MarkdownComponents/ExternalLink.astro";
 import { defaultLocale } from "@config/siteSettings.json";
 import { filterCollectionByLanguage } from "@js/localeUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
-import { type InferGetStaticPropsType } from "astro";
 import { type CollectionEntry, getCollection, render } from "astro:content";
 
 export async function getStaticPaths() {
@@ -24,7 +23,7 @@ export async function getStaticPaths() {
   }));
 }
 
-type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+type Props = CollectionEntry<"otherPages">;
 const page = Astro.props as Props;
 
 // convert markdown to html
