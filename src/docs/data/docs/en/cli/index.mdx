@@ -46,11 +46,11 @@ This is useful for local testing, CI/CD integration, or automated compliance che
     **Install a specific version:**
 
     ```bash
-    brew install getplumber/plumber/plumber@0.1.77
+    brew install getplumber/plumber/plumber@0.1.82
     ```
 
     <Aside variant="info">
-      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.1.77/bin/plumber`) or run `brew link plumber@0.1.77` to add it to your PATH.
+      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.1.82/bin/plumber`) or run `brew link plumber@0.1.82` to add it to your PATH.
     </Aside>
   </TabsContent>
 
@@ -337,6 +337,44 @@ Configuration validation warnings:
   - Unknown control in .plumber.yaml: "containerImageMustNotUseForbiddenTag". Did you mean "containerImageMustNotUseForbiddenTags"?
   - Unknown key "tag" in control "containerImageMustNotUseForbiddenTags". Did you mean "tags"?
   - Unknown key "allowForcePushes" in control "branchMustBeProtected". Did you mean "allowForcePush"?
+```
+
+### `plumber explain`
+
+Look up detailed information for an issue code directly from the terminal.
+
+```bash
+plumber explain [ISSUE-CODE] [flags]
+```
+
+`ISSUE-CODE` supports both full and shorthand forms:
+- `ISSUE-412`
+- `412`
+
+```bash
+plumber explain ISSUE-412
+plumber explain 412
+plumber explain --list
+```
+
+**Sample output** (`plumber explain ISSUE-412`):
+
+```
+ISSUE-412: Docker-in-Docker service detected
+Control:     pipelineMustNotUseDockerInDocker
+
+Description:
+  A CI/CD job uses a Docker-in-Docker (dind) service. On shared runners
+  running in privileged mode, this enables container escape, lateral
+  movement, and access to secrets from other jobs on the same runner.
+
+Remediation:
+  Replace Docker-in-Docker with a safer alternative such as Kaniko or
+  Buildah for building container images. These tools do not require
+  privileged mode and avoid the security risks of running a Docker daemon
+  inside a CI container.
+
+Documentation: https://getplumber.io/docs/use-plumber/issues/ISSUE-412
 ```
 
 ## Usage Examples
@@ -641,6 +679,14 @@ Every violation detected by Plumber is identified as an **Issue** following the 
 - **Tips** for best practices
 
 Issues are displayed in the CLI output, MR comments, and the summary table. Click any issue to view its full documentation.
+
+You can also inspect a code locally from the CLI:
+
+```bash
+plumber explain ISSUE-412
+# shorthand:
+plumber explain 412
+```
 
 | Issue | Title |
 |-------|-------|
