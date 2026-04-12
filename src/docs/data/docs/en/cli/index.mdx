@@ -138,13 +138,24 @@ This is useful for local testing, CI/CD integration, or automated compliance che
 ## Quick Start
 
 <Steps>
-1. **Generate a config file**
+1. **Create a config file**
+
+   Pick **one** of these (they produce different files on purpose):
+
+   | Command | When to use | Output |
+   |---------|-------------|--------|
+   | [`plumber config generate`](#plumber-config-generate) | First-time setup, CI, or you want every control documented inline | Full default `.plumber.yaml` **with comments** (official template) |
+   | [`plumber config init`](#plumber-config-init) | You want a **smaller** file and only selected checks (interactive terminal) | Minimal YAML: only controls you enable in the wizard |
 
    ```bash
+   # Full commented template (same file Plumber ships as the default)
    plumber config generate
+
+   # Or: interactive wizard → tailored minimal config (TTY required)
+   plumber config init
    ```
 
-   This creates `.plumber.yaml` with default compliance rules. You can customize it [later](#configuration).
+   In CI or scripts, use **`plumber config generate`** (optionally `--output` / `--force`), then delete or disable controls you do not need. **`plumber config init`** requires an interactive terminal. See [Creating your configuration file](#creating-your-configuration-file) below.
 
 2. **Create and set your GitLab token**
 
@@ -242,9 +253,33 @@ export PLUMBER_NO_UPDATE_CHECK=1
 | `1` | Compliance failure (compliance < threshold) |
 | `2` | Runtime error (config error, network failure, missing token, etc.) |
 
+### `plumber config init`
+
+Interactive wizard to create a **minimal** `.plumber.yaml`: pick policy areas (container images, pipeline composition, branch protection, variables) and only those controls are written. For each selected area, prompts cover the tunable fields in the schema (lists, booleans, GitLab access levels, `required` expressions for catalog components and file templates, and so on).
+
+**Requires an interactive terminal** (TTY). In CI or Docker without a TTY, use [`plumber config generate`](#plumber-config-generate) instead and edit the file.
+
+**Contrast:** [`plumber config generate`](#plumber-config-generate) always writes the **full** default template **with comments**; `init` writes a **short** file shaped by your answers.
+
+```bash
+plumber config init [flags]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--output`, `-o` | `.plumber.yaml` | Output file path |
+| `--force`, `-f` | `false` | Overwrite existing file without asking |
+
+**Examples:**
+
+```bash
+plumber config init
+plumber config init -o configs/plumber.yaml
+```
+
 ### `plumber config generate`
 
-Generate a default `.plumber.yaml` configuration file.
+Writes the **official default** `.plumber.yaml`: the full template Plumber ships with, including comments and every control documented inline. Safe for **scripts and CI** (no prompts). Use [`plumber config init`](#plumber-config-init) when you have a TTY and want a **smaller** file with only the checks you pick.
 
 ```bash
 plumber config generate [flags]
@@ -258,13 +293,8 @@ plumber config generate [flags]
 **Examples:**
 
 ```bash
-# Generate default config
 plumber config generate
-
-# Custom filename
 plumber config generate --output my-plumber.yaml
-
-# Overwrite existing file
 plumber config generate --force
 ```
 
@@ -464,6 +494,15 @@ The CycloneDX output follows the [CycloneDX 1.5 specification](https://cyclonedx
 ## Configuration
 
 Plumber uses a `.plumber.yaml` configuration file to customize checks.
+
+### Creating your configuration file
+
+There are two supported ways to create a new file:
+
+- **`plumber config generate`** writes the **official default template**: long-form YAML with **comments** explaining every control. Use this when you want the full reference in the repo (typical first commit, or automation that should not depend on a TTY).
+- **`plumber config init`** runs an **interactive wizard** and writes a **minimal** `.plumber.yaml` containing only the policy areas and options you choose. It requires a normal interactive terminal (not suitable for headless CI).
+
+After the file exists, use **`plumber config validate`** to check for typos, **`plumber config view`** to see the effective settings without comments, and **`plumber config diff`** to compare your file to the embedded default.
 
 ### Available Controls
 
@@ -989,7 +1028,7 @@ include:
 | `404 Not Found` | Verify the project path and GitLab URL are correct |
 | MR comment not posted | `--mr-comment` only works in merge request pipelines (`CI_MERGE_REQUEST_IID` must be set) |
 | Badge not created/updated | Token needs `api` scope and Maintainer role (or higher) on the project |
-| Configuration file not found | Ensure the path to `.plumber.yaml` is correct (use absolute path in Docker) |
+| Configuration file not found | Ensure `--config` points at the real file (use an absolute path in Docker). Create a file with `plumber config generate` or `plumber config init` |
 
 <Aside variant="info">
   **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](/discord).
