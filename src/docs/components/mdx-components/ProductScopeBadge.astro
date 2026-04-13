@@ -1,0 +1,30 @@
+---
+/**
+ * Labels whether a control or issue applies to Plumber Platform + CLI ("all")
+ * or to Open Source CLI analysis only ("cli").
+ */
+interface Props {
+  scope: "cli" | "all";
+  size?: "compact" | "header";
+}
+
+const { scope, size = "compact" } = Astro.props;
+const isCli = scope === "cli";
+---
+
+<span
+  class:list={[
+    "not-content inline-flex shrink-0 items-center font-medium ring-1 ring-inset whitespace-nowrap",
+    size === "header"
+      ? "rounded-md h-[28px] px-2.5 py-1 text-sm leading-none"
+      : "rounded px-2 py-0.5 text-[10px] md:text-xs",
+    isCli
+      ? "bg-violet-100 text-violet-800 ring-violet-300 dark:bg-violet-900/40 dark:text-violet-200 dark:ring-violet-700/50"
+      : "bg-muted/80 text-muted-foreground ring-border",
+  ]}
+  title={isCli
+    ? "This control is evaluated by the Open Source CLI only. It is not enforced as a Plumber Platform control."
+    : "This control applies to Plumber Platform and the Open Source CLI."}
+>
+  {isCli ? "CLI" : "All"}
+</span>

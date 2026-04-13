@@ -15,6 +15,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/starwind/breadcrumb";
+import { Icon } from "astro-icon/components";
 
 <div class="not-content">
   <Breadcrumb class="mb-4 text-xs md:text-sm">
@@ -38,7 +39,42 @@ import {
 
 When a control detects a violation in your project, Plumber creates an **Issue**. Each issue has a unique identifier following the format `ISSUE-XXXX` and is grouped by control.
 
+**All** means the control applies to Plumber Platform and the Open Source CLI. **CLI** means the Open Source CLI reports this issue only (it is not enforced as a Platform control). See [Compliance Controls](/docs/use-plumber/controls) for the full table.
+
 Click any issue to see the full description, impact, before/after configuration examples, and remediation steps.
+
+<div class="not-content my-5 rounded-md bg-muted/40 px-3 py-2.5  leading-snug md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-1">
+  <div class="mb-4 md:mb-0">
+    <div class="flex items-center gap-1 mb-1.5">
+      <Icon name="tabler/alert-triangle" color="currentColor"  size="15px" />
+      <p class="text-foreground  font-semibold">
+        Severity
+      </p>
+    </div>
+    <p class="text-muted-foreground mb-2 text-[12px]">Impact if the issue is present and exploited, not likelihood. Plumber detects; you assess.</p>
+    <ul class="text-muted-foreground list-none space-y-1.5 pl-0 [&>li]:pl-0 text-[13px]">
+      <li><span class="text-foreground font-medium">🔴 Critical</span> — <em>If exploited, immediate severe consequences: pipeline takeover, secrets leak, or supply chain compromise. Address as top priority.</em></li>
+      <li><span class="text-foreground font-medium">🟠 High</span> — <em>Significantly weakens defenses. If exploited or triggered by human error, can lead to a serious incident or major compliance failure.</em></li>
+      <li><span class="text-foreground font-medium">🟡 Medium</span> — <em>Degrades security hygiene. Does not directly expose the pipeline or repo, but creates conditions that may contribute to a future incident or error.</em></li>
+      <li><span class="text-foreground font-medium">🔵 Low</span> — <em>No short-term security impact; deviation from best practices. Address in continuous improvement.</em></li>
+    </ul>
+  </div>
+  <div>
+    <div class="flex items-center gap-1 mb-1.5">
+      <Icon name="tabler/clock" color="currentColor" size="15px" />
+      <p class="text-foreground  font-semibold">
+        Fix duration
+      </p>
+    </div>
+    <p class="text-muted-foreground mb-2 text-[12px]">Rough effort to remediate. Your environment and process may differ.</p>
+    <ul class="text-muted-foreground list-none space-y-1.5 pl-0 [&>li]:pl-0 text-[13px]">
+      <li><span class="text-foreground font-medium">🔴 Extended</span> — <em>More than 2 days to fix.</em></li>
+      <li><span class="text-foreground font-medium">🟠 Long</span> — <em>1 to 2 days to fix.</em></li>
+      <li><span class="text-foreground font-medium">🟡 Medium</span> — <em>1 to 4 hours to fix.</em></li>
+      <li><span class="text-foreground font-medium">🔵 Quick</span> — <em>Less than 1 hour to fix.</em></li>
+    </ul>
+  </div>
+</div>
 
 <IssuesList />
 

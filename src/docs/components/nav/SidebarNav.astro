@@ -8,7 +8,7 @@ import { Icon } from "astro-icon/components";
 import { siteSettings } from "@/docs/config/siteSettings.json";
 import {
   docsRoute,
-  getOrderedSectionIds,
+  getSectionById,
   getSectionTitle,
   getTabById,
   getTabSections,
@@ -212,6 +212,7 @@ const docsBySection = sectionFilteredDocs.reduce(
     }
 
     acc[section].push({
+      contentId: doc.id,
       text: doc.data.sidebar?.label ? doc.data.sidebar.label : doc.data.title,
       link: `/${docsRoute}/${doc.id}`,
       order: doc.data.sidebar?.order,
@@ -223,6 +224,7 @@ const docsBySection = sectionFilteredDocs.reduce(
   {} as Record<
     string,
     Array<{
+      contentId: string;
       text: string;
       link: string;
       order?: number;
@@ -325,7 +327,23 @@ for (const section of sections) {
           </h2>
           <ul class="space-y-2">
             {docsBySection[section].map((doc) => (
-              <SidebarLink link={doc.link} text={doc.text} indent={doc.indent} badge={doc.badge} />
+              <SidebarLink
+                link={doc.link}
+                text={doc.text}
+                indent={doc.indent}
+                badge={doc.badge}
+                highlightDescendants={doc.contentId === "use-plumber/issues"}
+              />
+            ))}
+            {getSectionById(section, sectionId, currLocale)?.navLinks?.map((item) => (
+              <SidebarLink
+                link={getLocalizedRoute(currLocale, item.href)}
+                text={item.text}
+                indent={item.indent}
+                highlightDescendants={
+                  item.href.replace(/\/$/, "") === "/docs/use-plumber/issues"
+                }
+              />
             ))}
           </ul>
         </div>

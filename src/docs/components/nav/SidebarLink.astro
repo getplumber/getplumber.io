@@ -22,9 +22,11 @@ interface Props {
   text: string;
   indent?: boolean;
   badge?: ComponentProps<typeof Badge>;
+  /** When true, also active for paths under this link (e.g. issue detail pages under the Issues index). */
+  highlightDescendants?: boolean;
 }
 
-const { link, text, indent = false, badge } = Astro.props;
+const { link, text, indent = false, badge, highlightDescendants = false } = Astro.props;
 
 // get the current page locale to use in links to other pages
 const currLocale = getLocaleFromUrl(Astro.url);
@@ -32,14 +34,15 @@ const currLocale = getLocaleFromUrl(Astro.url);
 // internal link - normalize to remove trailing slash (except root)
 let actualLink = link === "/" ? "/" : link.replace(/\/$/, "");
 
+const pathname = Astro.url.pathname;
 const linkWithSlash = actualLink.endsWith("/") ? actualLink : `${actualLink}/`;
-const currentWithSlash = Astro.url.pathname.endsWith("/")
-  ? Astro.url.pathname
-  : `${Astro.url.pathname}/`;
+const currentWithSlash = pathname.endsWith("/") ? pathname : `${pathname}/`;
 
-// Active when exact match or when current page is a child of this link
 const currentPath =
-  currentWithSlash === linkWithSlash || currentWithSlash.startsWith(linkWithSlash);
+  highlightDescendants && actualLink !== "/"
+    ? comparePathsWithTrailingSlash(pathname, actualLink) ||
+      currentWithSlash.startsWith(linkWithSlash)
+    : comparePathsWithTrailingSlash(pathname, actualLink);
 ---
 
 <li

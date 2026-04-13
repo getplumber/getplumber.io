@@ -6,6 +6,9 @@
  *
  * URL: https://getplumber.io/docs/use-plumber/issues/ISSUE-101
  */
+import { Code as ExpressiveCode } from "astro-expressive-code/components";
+import { Icon } from "astro-icon/components";
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,12 +17,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/starwind/breadcrumb";
-import { Code as ExpressiveCode } from "astro-expressive-code/components";
-import { Icon } from "astro-icon/components";
-import DocsLayoutStandalone from "@/docs/layouts/DocsLayoutStandalone.astro";
-import { issues, type IssueDoc } from "@/data/issues";
+import { type IssueDoc,issues } from "@/data/issues";
 import { fixDurationBadge } from "@/docs/components/mdx-components/IssuesList.astro";
 import { severityBadge } from "@/docs/components/mdx-components/IssuesList.astro";
+import ProductScopeBadge from "@/docs/components/mdx-components/ProductScopeBadge.astro";
+import DocsLayoutStandalone from "@/docs/layouts/DocsLayoutStandalone.astro";
 
 export function getStaticPaths() {
   return Object.entries(issues).map(([code, doc]) => ({
@@ -48,7 +50,10 @@ const {
   goodExampleCaption,
   tips,
   relatedCodes,
+  productScope,
 } = props;
+
+const resolvedProductScope = productScope === "cli" ? "cli" : "all";
 
 const severityColors: Record<string, { bg: string; text: string; ring: string; label: string }> = {
   critical: {
@@ -210,6 +215,7 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
         <Icon name="tabler/clock" color="currentColor" size="16px" />
         {fix.label}
       </span>
+      <ProductScopeBadge scope={resolvedProductScope} size="header" />
       <span
         class="inline-flex items-center rounded-md bg-muted px-2.5 h-[28px] text-sm text-muted-foreground ring-1 ring-border"
         title="Category of the control that raised this issue"

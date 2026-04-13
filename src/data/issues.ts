@@ -25,6 +25,11 @@ export interface IssueDoc {
   tips: string[];
   /** Related issue codes */
   relatedCodes: string[];
+  /**
+   * Where this control applies: Plumber Platform and CLI (`all`), or Open Source CLI analysis only (`cli`).
+   * Omit for `all`.
+   */
+  productScope?: "all" | "cli";
 }
 
 export const issues: Record<string, IssueDoc> = {
@@ -1084,6 +1089,7 @@ controls:
     fixDuration: "medium",
     controlName: "Container images must be pinned by digest",
     controlConfigKey: "containerImagesMustBePinnedByDigest",
+    productScope: "cli",
     description:
       "When digest pinning is enabled in your configuration, every container image must be referenced by its SHA256 digest (`image@sha256:...`). This image is using a tag reference instead.",
     impact:
@@ -1129,6 +1135,7 @@ controls:
     fixDuration: "quick",
     controlName: "Pipeline must not enable debug trace",
     controlConfigKey: "pipelineMustNotEnableDebugTrace",
+    productScope: "cli",
     description:
       "The pipeline enables `CI_DEBUG_TRACE` or `CI_DEBUG_SERVICES`, which causes GitLab CI to print all environment variables, including secrets, in the job logs.",
     impact:
@@ -1177,6 +1184,7 @@ deploy:
     fixDuration: "medium",
     controlName: "Pipeline must not use unsafe variable expansion",
     controlConfigKey: "pipelineMustNotUseUnsafeVariableExpansion",
+    productScope: "cli",
     description:
       "A user-controlled CI variable (MR title, commit message, branch name) is expanded in a shell re-interpretation context such as `eval`, `sh -c`, `bash -c`, or `source`. The expanded value is executed as code, enabling command injection.",
     impact:
@@ -1291,6 +1299,7 @@ build:
     fixDuration: "quick",
     controlName: "Security jobs must not be weakened",
     controlConfigKey: "securityJobsMustNotBeWeakened",
+    productScope: "cli",
     description:
       "A security scanning job (SAST, Secret Detection, Container Scanning, Dependency Scanning, DAST, License Scanning) has been weakened by overriding its configuration in `.gitlab-ci.yml`. The pipeline still includes the security template but the actual scanning is neutralized.",
     impact:
@@ -1362,6 +1371,7 @@ variables:
     fixDuration: "medium",
     controlName: "Pipeline must not execute unverified scripts",
     controlConfigKey: "pipelineMustNotExecuteUnverifiedScripts",
+    productScope: "cli",
     description:
       "A CI/CD job downloads and immediately executes a script from the internet without verifying its integrity. Patterns like `curl | bash`, `wget | sh`, or download-then-execute sequences are a well-documented supply chain attack vector.",
     impact:

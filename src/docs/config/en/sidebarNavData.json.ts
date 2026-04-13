@@ -41,6 +41,10 @@ const sidebarNavData: DocsSidebarNavData = {
         {
           id: "cli",
           title: "CLI",
+          navLinks: [
+            { text: "Controls", href: "/docs/use-plumber/controls" },
+            { text: "Issues", href: "/docs/use-plumber/issues", indent: true },
+          ],
         },
       ],
     },

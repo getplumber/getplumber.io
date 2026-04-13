@@ -150,10 +150,10 @@
 
   /* Table styling */
   .docs-markdown-content table:not(:where(.not-content *)) {
-    @apply mb-4 overflow-auto;
+    @apply mb-4;
   }
   .docs-markdown-content :where(table):not(:where(.not-content *)) {
-    @apply w-full table-auto border-spacing-0 text-sm;
+    @apply min-w-full table-auto border-spacing-0 text-sm;
   }
   .docs-markdown-content :is(th, td):not(:where(.not-content, .not-content *)) {
     @apply border-border table-cell border-b px-4 py-2;
@@ -243,5 +243,13 @@
   /* <summary> with only a paragraph automatically added when using MDX */
   .docs-markdown-content summary:not(:where(.not-content, .not-content *)) p:only-child {
     display: inline;
+  }
+
+  /* On mobile, override inline font-size in table cells for readability */
+  @media (max-width: 767px) {
+    .docs-markdown-content :is(td, th) span[style],
+    .docs-markdown-content :is(td, th) code[style] {
+      font-size: inherit !important;
+    }
   }
 }

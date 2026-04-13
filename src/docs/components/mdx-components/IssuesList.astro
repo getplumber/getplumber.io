@@ -3,8 +3,10 @@
  * Renders the full list of Plumber issues grouped by category.
  * Used in the Issues index page (use-plumber/issues.mdx).
  */
-import { issues } from "@/data/issues";
 import { Icon } from "astro-icon/components";
+
+import { issues } from "@/data/issues";
+import ProductScopeBadge from "@/docs/components/mdx-components/ProductScopeBadge.astro";
 
 const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
 
@@ -74,6 +76,7 @@ for (const entries of grouped.values()) {
                   </span>
                 </span>
                 <div class="flex items-center gap-1.5 shrink-0">
+                  <ProductScopeBadge scope={entry.productScope === "cli" ? "cli" : "all"} />
                   <span
                     class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[entry.severity]}`}
                     title="How severe the impact is if this issue is not fixed"

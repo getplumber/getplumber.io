@@ -55,6 +55,7 @@ export default defineConfig({
         "@/docs/components/mdx-components/TabsList.astro",
         "@/docs/components/mdx-components/TabsTrigger.astro",
         "@/docs/components/mdx-components/IssuesList.astro",
+        "@/docs/components/mdx-components/ProductScopeBadge.astro",
       ],
     }),
     expressiveCode({
@@ -69,7 +70,9 @@ export default defineConfig({
     react(),
     icon(),
     keystatic(),
-    sitemap(),
+    sitemap({
+      filter: (page) => !page.includes("/animation-preview"),
+    }),
     compress({
       HTML: true,
       JavaScript: true,

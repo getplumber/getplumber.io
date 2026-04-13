@@ -1,0 +1,50 @@
+---
+import "@/styles/global.css";
+
+import favicon from "@assets/images/favicon.svg";
+import PipelineAnimation from "@components/Animation/PipelineAnimation.astro";
+import interVariable from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2";
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link
+      rel="preload"
+      href={interVariable}
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+    <link rel="icon" type="image/svg+xml" href={favicon.src} />
+    <title>Pipeline Animation Preview</title>
+  </head>
+  <body>
+    <div class="">
+      <PipelineAnimation variant="flat" />
+    </div>
+  </body>
+</html>
+
+<style>
+  @import "tailwindcss/theme" theme(reference);
+  @import "@/styles/tailwind-theme.css" theme(reference);
+
+  body {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--astro-code-color-background);
+    overflow: hidden;
+  }
+
+  .animation-wrapper {
+    width: 100%;
+    max-width: 800px;
+  }
+</style>

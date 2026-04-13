@@ -52,6 +52,16 @@ export interface DocsSection {
    * Display title for the section
    */
   title: string;
+  /**
+   * Extra sidebar links for this section (same tab). Use for destinations outside this folder,
+   * e.g. Platform docs linked from the Open Source CLI tab.
+   */
+  navLinks?: Array<{
+    text: string;
+    /** Path in the default locale, e.g. /docs/use-plumber/controls */
+    href: string;
+    indent?: boolean;
+  }>;
 }
 
 /**

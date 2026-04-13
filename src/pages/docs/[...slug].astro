@@ -14,6 +14,7 @@ import CustomH5Copy from "@/docs/components/markdown-overrides/CustomH5Copy.astr
 import CustomH6 from "@/docs/components/markdown-overrides/CustomH6.astro";
 import CustomH6Copy from "@/docs/components/markdown-overrides/CustomH6Copy.astro";
 import ExternalLink from "@/docs/components/markdown-overrides/ExternalLink.astro";
+import ScrollableTable from "@/docs/components/markdown-overrides/ScrollableTable.astro";
 import { defaultLocale, siteSettings } from "@/docs/config/siteSettings.json";
 import { docsRoute } from "@/docs/js/docsUtils";
 import { filterCollectionByLanguage } from "@/docs/js/localeUtils";
@@ -101,6 +102,7 @@ const { Content, headings } = await render(doc);
       <Content
         components={{
           a: ExternalLink,
+          table: ScrollableTable,
           h1: CustomH1,
           h2: CustomH2,
           h3: CustomH3,
@@ -113,6 +115,7 @@ const { Content, headings } = await render(doc);
       <Content
         components={{
           a: ExternalLink,
+          table: ScrollableTable,
           h1: CustomH1Copy,
           h2: CustomH2Copy,
           h3: CustomH3Copy,
