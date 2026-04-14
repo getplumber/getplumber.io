@@ -308,20 +308,13 @@ for you. Both alternatives are detailed below.
      #  existingSecret: "redis-secret"
      #  existingSecretPasswordKey: "password"
 
-     # Persistence is disabled by default (Redis is used as a cache/queue).
-     # Uncomment to enable:
-     #master:
-     #  persistence:
-     #    enabled: false
-
-     # To pull from a private registry, uncomment and configure:
+     # To pull from a private registry or pin an exact version, uncomment and configure:
      #image:
-     #  registry: my-private-registry.example.com
-     #  repository: bitnami/redis
-     #  tag: "8.6.2"
+     #  registry: my-private-registry.example.com  # omit to use Docker Hub
+     #  repository: redis                           # defaults to official Redis image
+     #  tag: "8.4"
+     #  digest: ""  # optional: pin exact version with sha256:...
      #  pullPolicy: IfNotPresent
-     #  pullSecrets:
-     #    - my-registry-secret
    ```
 
    **Option B: Use an external Redis**
@@ -348,13 +341,6 @@ for you. Both alternatives are detailed below.
    ```
 
 5. ### 🚀 Install the chart
-
-   If you enabled `redis.deploy: true`, update chart dependencies first:
-   ```sh
-   helm dependency update plumber/plumber
-   ```
-
-   Then install:
 
    ```sh
    helm upgrade -n plumber --create-namespace --install plumber plumber/plumber -f custom_values.yaml
