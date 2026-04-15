@@ -2,6 +2,7 @@ import NicolasPAvatar from "../../assets/testimonials/nicolas_p.jpeg";
 import OlivierLAvatar from "../../assets/testimonials/olivier_l.jpeg";
 import SteveAAvatar from "../../assets/testimonials/steve_a.jpeg";
 import YannHAvatar from "../../assets/testimonials/yann_h.png";
+import LucasDAvatar from "../../assets/testimonials/lucas_d.png";
 import { type TestimonialItem } from "../types/configDataTypes";
 
 export const testimonialData: TestimonialItem[] = [
@@ -32,6 +33,13 @@ export const testimonialData: TestimonialItem[] = [
     title: "Head of Operations at Numspot",
     testimonial:
       "Numspot's sovereign platform is intentionally designed to incorporate security and compliance as fundamental elements, embedded into every pipeline from day one, providing the level of security and compliance needed to navigate qualifications and certifications with peace of mind.",
+  },
+  {
+    avatar: LucasDAvatar,
+    name: "Lucas Delcroix-Eustache",
+    title: "CTO at Libération",
+    testimonial:
+      "We needed visibility first. Standardization came next. Now our CI/CD pipelines are clear, consistent, and easier to maintain.",
   },
 ];
 
