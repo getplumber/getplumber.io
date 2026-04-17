@@ -53,7 +53,8 @@ const {
   productScope,
 } = props;
 
-const resolvedProductScope = productScope === "cli" ? "cli" : "all";
+const resolvedProductScope =
+  productScope === "cli" ? "cli" : productScope === "platform" ? "platform" : "all";
 
 const severityColors: Record<string, { bg: string; text: string; ring: string; label: string }> = {
   critical: {
@@ -160,7 +161,9 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
   { depth: 2, slug: "impact", text: "Impact" },
   { depth: 2, slug: "how-to-fix", text: "How to fix" },
   ...(tips.length > 0 ? [{ depth: 2, slug: "tips", text: "Tips" }] : []),
-  { depth: 2, slug: "configuration", text: "Configuration" },
+  ...(productScope !== "platform"
+    ? [{ depth: 2, slug: "configuration", text: "Configuration" }]
+    : []),
   ...(relatedCodes.length > 0
     ? [{ depth: 2, slug: "related-issues", text: "Related issues" }]
     : []),
@@ -306,7 +309,7 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
         <ul class="space-y-2 list-none pl-0">
           {tips.map((tip) => (
             <li class="flex items-start gap-2 text-foreground/80">
-              <span class="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
+              <span class="mt-[10px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
               <span class="flex-1 min-w-0" set:html={inlineCodeToHtml(tip)} />
             </li>
           ))}
@@ -315,24 +318,34 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
     )
   }
 
-  <!-- Configuration -->
-  <section id="configuration" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
-    <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
-      <span>⚙️</span> Configuration
-    </h2>
-    <p class="text-foreground/80 mb-3">
-      This control is configured in <code
-        class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground">.plumber.yaml</code
-      > under the key:
-    </p>
-    <pre class="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm ring-1 ring-zinc-800"
-      ><code class="text-zinc-300">{`controls:\n  ${controlConfigKey}:\n    enabled: true`}</code
-      ></pre>
-    <p class="mt-3 text-sm text-muted-foreground">
-      See the <a href="/docs/cli" class="underline">CLI documentation</a> for the full configuration
-      reference.
-    </p>
-  </section>
+  <!-- Configuration (not shown for Platform-only issues; policy field is still in the header) -->
+  {
+    productScope !== "platform" && (
+      <section id="configuration" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+        <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+          <span>⚙️</span> Configuration
+        </h2>
+        <p class="text-foreground/80 mb-3">
+          This control is configured in{" "}
+          <code class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground">.plumber.yaml</code>{" "}
+          under the key:
+        </p>
+        <pre class="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm ring-1 ring-zinc-800">
+          <code class="text-zinc-300">{`controls:\n  ${controlConfigKey}:\n    enabled: true`}</code>
+        </pre>
+        <p class="mt-3 text-sm text-muted-foreground">
+          See the <a href="/docs/cli" class="underline">CLI documentation</a> for the full configuration
+          reference.
+          {productScope !== "cli" && (
+            <>
+              {" "}
+              On Plumber Platform, the same key is used in your policy configuration.
+            </>
+          )}
+        </p>
+      </section>
+    )
+  }
 
   <!-- Related issues -->
   {

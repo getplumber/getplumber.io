@@ -525,6 +525,7 @@ When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-101`) 
 | **Security jobs must not be weakened** | [ISSUE-410](/docs/use-plumber/issues/ISSUE-410) | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
 | **Pipeline must not override job variables** | [ISSUE-205](/docs/use-plumber/issues/ISSUE-205) | Detects controlled CI/CD variables redefined in `.gitlab-ci.yml` that should only be set in GitLab CI/CD Settings |
 | **Pipeline must not execute unverified scripts** | [ISSUE-411](/docs/use-plumber/issues/ISSUE-411) | Detects `curl \| bash`, `wget \| sh`, and download-then-execute patterns without integrity verification (OWASP CICD-SEC-3) |
+| **Pipeline must not use Docker-in-Docker** | [ISSUE-412](/docs/use-plumber/issues/ISSUE-412) [ISSUE-413](/docs/use-plumber/issues/ISSUE-413) | Detects `docker:dind` services and insecure Docker daemon configuration (for example TLS disabled) |
 
 <details>
 <summary>**Unsafe Variable Expansion Detection**</summary>
@@ -710,14 +711,14 @@ Consider using [Kaniko](https://github.com/GoogleContainerTools/kaniko) or [Buil
 
 ### Issues
 
-Every violation detected by Plumber is identified as an **Issue** following the pattern `ISSUE-XXXX`. Each issue links to a dedicated documentation page with:
+The Open Source CLI reports **Issues** using identifiers like `ISSUE-XXXX`. Each links to a documentation page with:
 
 - **Description** of the problem
 - **Impact** on your security posture
 - **How to fix** with before/after configuration examples
 - **Tips** for best practices
 
-Issues are displayed in the CLI output, MR comments, and the summary table. Click any issue to view its full documentation.
+These IDs appear in CLI output, MR comments, and summary tables. Click any issue below for full detail. [Compliance Controls](/docs/use-plumber/controls) and the [Issues](/docs/use-plumber/issues) index also list **Platform**-only findings that the CLI does not emit.
 
 You can also inspect a code locally from the CLI:
 
@@ -732,34 +733,22 @@ plumber explain 412
 | [ISSUE-101](/docs/use-plumber/issues/ISSUE-101) | Untrusted image source |
 | [ISSUE-102](/docs/use-plumber/issues/ISSUE-102) | Forbidden container image tag |
 | [ISSUE-103](/docs/use-plumber/issues/ISSUE-103) | Container image not pinned by digest |
-| [ISSUE-201](/docs/use-plumber/issues/ISSUE-201) | Unprotected variable |
-| [ISSUE-202](/docs/use-plumber/issues/ISSUE-202) | Unmasked variable |
 | [ISSUE-203](/docs/use-plumber/issues/ISSUE-203) | Pipeline enables CI debug trace |
 | [ISSUE-204](/docs/use-plumber/issues/ISSUE-204) | Unsafe variable expansion |
 | [ISSUE-205](/docs/use-plumber/issues/ISSUE-205) | Job variable overrides controlled variable |
-| [ISSUE-301](/docs/use-plumber/issues/ISSUE-301) | Secret leak in pipeline configuration |
 | [ISSUE-401](/docs/use-plumber/issues/ISSUE-401) | Hardcoded job |
-| [ISSUE-402](/docs/use-plumber/issues/ISSUE-402) | Forbidden override of job |
 | [ISSUE-403](/docs/use-plumber/issues/ISSUE-403) | Outdated template |
 | [ISSUE-404](/docs/use-plumber/issues/ISSUE-404) | Forbidden include version |
 | [ISSUE-405](/docs/use-plumber/issues/ISSUE-405) | Missing required template |
 | [ISSUE-406](/docs/use-plumber/issues/ISSUE-406) | Forbidden override of required template |
-| [ISSUE-501](/docs/use-plumber/issues/ISSUE-501) | Branch protection missing |
-| [ISSUE-601](/docs/use-plumber/issues/ISSUE-601) | Missing security policy source on project |
-| [ISSUE-502](/docs/use-plumber/issues/ISSUE-502) | Merge request approval rule is below the minimum level of approvals required |
-| [ISSUE-503](/docs/use-plumber/issues/ISSUE-503) | Merge request approval settings are not compliant |
-| [ISSUE-504](/docs/use-plumber/issues/ISSUE-504) | No merge request approval rule covering all protected branches |
-| [ISSUE-407](/docs/use-plumber/issues/ISSUE-407) | Invalid pipeline composition |
-| [ISSUE-505](/docs/use-plumber/issues/ISSUE-505) | Branch protection configuration not compliant |
-| [ISSUE-506](/docs/use-plumber/issues/ISSUE-506) | Merge request settings are not compliant |
 | [ISSUE-408](/docs/use-plumber/issues/ISSUE-408) | Missing required component |
 | [ISSUE-409](/docs/use-plumber/issues/ISSUE-409) | Forbidden override of required component |
-| [ISSUE-507](/docs/use-plumber/issues/ISSUE-507) | Members' role quotas are not respected for projects |
-| [ISSUE-508](/docs/use-plumber/issues/ISSUE-508) | Members' role quotas are not respected for groups |
 | [ISSUE-410](/docs/use-plumber/issues/ISSUE-410) | Security job weakened |
 | [ISSUE-411](/docs/use-plumber/issues/ISSUE-411) | Unverified script execution |
 | [ISSUE-412](/docs/use-plumber/issues/ISSUE-412) | Docker-in-Docker service detected |
 | [ISSUE-413](/docs/use-plumber/issues/ISSUE-413) | Docker-in-Docker with insecure daemon configuration |
+| [ISSUE-501](/docs/use-plumber/issues/ISSUE-501) | Branch protection missing |
+| [ISSUE-505](/docs/use-plumber/issues/ISSUE-505) | Branch protection configuration not compliant |
 
 ### Example Configuration
 

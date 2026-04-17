@@ -26,10 +26,10 @@ export interface IssueDoc {
   /** Related issue codes */
   relatedCodes: string[];
   /**
-   * Where this control applies: Plumber Platform and CLI (`all`), or Open Source CLI analysis only (`cli`).
-   * Omit for `all`.
+   * Where this control applies: Plumber Platform and CLI (`all`), Plumber Platform only (`platform`),
+   * or Open Source CLI analysis only (`cli`). Omit for `all`.
    */
-  productScope?: "all" | "cli";
+  productScope?: "all" | "cli" | "platform";
 }
 
 export const issues: Record<string, IssueDoc> = {
@@ -137,6 +137,7 @@ lint:
     category: "CI/CD Variables",
     severity: "medium",
     fixDuration: "quick",
+    productScope: "platform",
     controlName: "CI/CD variables must be protected",
     controlConfigKey: "cicdVariablesMustBeProtected",
     description:
@@ -163,15 +164,10 @@ lint:
 #   Key:       DEPLOY_KEY
 #   Value:     -----BEGIN RSA PRIVATE KEY-----...
 #   Protected: true    ← Only available on protected branches/tags
-#   Masked:    true
-#
-# .plumber.yaml
-controls:
-  cicdVariablesMustBeProtected:
-    enabled: true`,
+#   Masked:    true`,
     goodExampleCaption: "Protecting the variable restricts its use to protected branches and tags only.",
     tips: [
-      "Enable variable protection in GitLab under **Settings > CI/CD > Variables**.",
+      "Enable variable protection in GitLab under `Settings > CI/CD > Variables`.",
       "Protected variables are only injected into pipelines running on protected branches or tags.",
       "Combine with masking (see ISSUE-202) to also hide the value from logs.",
     ],
@@ -184,6 +180,7 @@ controls:
     category: "CI/CD Variables",
     severity: "medium",
     fixDuration: "quick",
+    productScope: "platform",
     controlName: "CI/CD variables must be masked",
     controlConfigKey: "cicdVariablesMustBeMasked",
     description:
@@ -212,12 +209,7 @@ controls:
 #
 # Job log output (value is hidden):
 #   $ echo $DATABASE_PASSWORD
-#   [MASKED]
-#
-# .plumber.yaml
-controls:
-  cicdVariablesMustBeMasked:
-    enabled: true`,
+#   [MASKED]`,
     goodExampleCaption: "Masking the variable hides its value in all pipeline logs.",
     tips: [
       "Enable masking in GitLab under **Settings > CI/CD > Variables**.",
@@ -234,6 +226,7 @@ controls:
     category: "CI/CD Secrets",
     severity: "critical",
     fixDuration: "quick",
+    productScope: "platform",
     controlName: "Pipeline configuration must not contain secrets",
     controlConfigKey: "pipelineConfigurationMustNotContainSecrets",
     description:
@@ -337,52 +330,7 @@ variables:
       "Create shared templates in a dedicated project for organization-specific jobs.",
       "Some project-specific jobs may be acceptable — discuss with your team what should be centralized.",
     ],
-    relatedCodes: ["ISSUE-402", "ISSUE-403", "ISSUE-404"],
-  },
-
-  "ISSUE-402": {
-    code: "ISSUE-402",
-    title: "Forbidden override of job",
-    category: "Pipeline Composition",
-    severity: "high",
-    fixDuration: "medium",
-    controlName: "Pipeline must not override template jobs",
-    controlConfigKey: "pipelineMustNotOverrideTemplateJobs",
-    description:
-      "A CI/CD job coming from a template has been overridden in the project CI/CD configuration.",
-    impact:
-      "Overriding a template's job may cause inconsistent or insecure pipeline configurations. For example, if your security scan job is overridden, untested code might be deployed.",
-    remediation:
-      "Remove job overrides from the project CI/CD configuration. If overrides are relevant, include them in the required template or create a new one.",
-    badExample: `# .gitlab-ci.yml — ❌ Job from template overridden
-include:
-  - project: my-org/ci-templates
-    ref: v2.1.0
-    file: /templates/security.yml
-
-# Overrides the security-scan job defined in the template
-security-scan:
-  script:
-    - echo "Security scan disabled for speed"
-  when: manual`,
-    badExampleCaption: "The template's security-scan job is overridden, bypassing the original implementation.",
-    goodExample: `# .gitlab-ci.yml — ✅ Template job used without override
-include:
-  - project: my-org/ci-templates
-    ref: v2.1.0
-    file: /templates/security.yml
-
-# No local overrides — template jobs run as designed
-# Use variables for customization:
-variables:
-  SECURITY_SCAN_LEVEL: "high"`,
-    goodExampleCaption: "Template jobs run as designed. Customization is done via variables.",
-    tips: [
-      "If you need to customize a template job, contact the template owner to add configuration variables.",
-      "Template jobs should be designed to accept configuration through environment variables.",
-      "If the override is essential, create a fork of the template and use that instead.",
-    ],
-    relatedCodes: ["ISSUE-401", "ISSUE-406"],
+    relatedCodes: ["ISSUE-403", "ISSUE-404"],
   },
 
   "ISSUE-403": {
@@ -615,6 +563,7 @@ branchMustBeProtected:
     category: "Security Source",
     severity: "critical",
     fixDuration: "quick",
+    productScope: "platform",
     controlName: "Project must have a security policy source",
     controlConfigKey: "projectMustHaveSecurityPolicySource",
     description:
@@ -628,25 +577,14 @@ branchMustBeProtected:
 #   (none)
 #
 # The project has no linked security policy project, meaning
-# no security policies are enforced on this project.
-
-# .plumber.yaml
-# projectMustHaveSecurityPolicySource:
-#   enabled: true
-#   sourceProject: my-org/security-policies`,
+# no security policies are enforced on this project.`,
     badExampleCaption: "No security policy project is linked to this GitLab project.",
     goodExample: `# GitLab project settings — ✅ Security policy source configured
 # Secure > Security configuration > Security policy project:
 #   my-org/security-policies
 #
 # The project is now linked to the organization's security
-# policy repository, ensuring all security policies are enforced.
-
-# .plumber.yaml
-controls:
-  projectMustHaveSecurityPolicySource:
-    enabled: true
-    sourceProject: my-org/security-policies`,
+# policy repository, ensuring all security policies are enforced.`,
     goodExampleCaption: "The project is linked to the organization's security policy source.",
     tips: [
       "Create a dedicated security policy project in your organization to centralize all security policies.",
@@ -662,6 +600,7 @@ controls:
     category: "Access and Authorization",
     severity: "high",
     fixDuration: "quick",
+    productScope: "platform",
     controlName: "MR approval rules must have at least N approvals required",
     controlConfigKey: "mrApprovalRulesMustHaveAtLeastNApprovals",
     description:
@@ -675,28 +614,17 @@ controls:
 #
 #   Rule name: Security Team
 #   Eligible approvers: Security Team (5 members)
-#   Approvals required: 1   ← Below minimum (2 required by policy)
-#
-# .plumber.yaml
-# mrApprovalRulesMustHaveAtLeastNApprovals:
-#   enabled: true
-#   minimumApprovals: 2`,
+#   Approvals required: 1   ← Below minimum (2 required by policy)`,
     badExampleCaption: "The approval rule requires only 1 approval, but the policy requires at least 2.",
     goodExample: `# GitLab project settings — ✅ Sufficient approvals configured
 # Settings > Merge requests > Approval rules:
 #
 #   Rule name: Security Team
 #   Eligible approvers: Security Team (5 members)
-#   Approvals required: 2   ← Meets minimum requirement
-#
-# .plumber.yaml
-controls:
-  mrApprovalRulesMustHaveAtLeastNApprovals:
-    enabled: true
-    minimumApprovals: 2`,
+#   Approvals required: 2   ← Meets minimum requirement`,
     goodExampleCaption: "Approval rule meets the minimum number of required approvals.",
     tips: [
-      "Set the minimum in `.plumber.yaml` under `mrApprovalRulesMustHaveAtLeastNApprovals.minimumApprovals`.",
+      "Set the minimum in your Plumber Platform policy under `mrApprovalRulesMustHaveAtLeastNApprovals.minimumApprovals`.",
       "Consider requiring different approval counts for different branch patterns (e.g., more for `main`).",
       "Combine with code owner approvals for critical areas of your codebase.",
     ],
@@ -709,6 +637,7 @@ controls:
     category: "Access and Authorization",
     severity: "high",
     fixDuration: "quick",
+    productScope: "platform",
     controlName: "MR approval settings must be compliant",
     controlConfigKey: "mrApprovalSettingsMustBeCompliant",
     description:
@@ -732,15 +661,7 @@ controls:
 #
 #   Prevent approval by author:                  true
 #   Prevent approvals by users who add commits:  true
-#   Remove all approvals when commits are added: true
-#
-# .plumber.yaml
-controls:
-  mrApprovalSettingsMustBeCompliant:
-    enabled: true
-    preventApprovalByAuthor: true
-    preventApprovalByCommitAuthor: true
-    resetApprovalsOnPush: true`,
+#   Remove all approvals when commits are added: true`,
     goodExampleCaption: "Approval settings prevent self-approval and reset on new commits.",
     tips: [
       "Enable 'Prevent approval by author' to ensure code is reviewed by someone other than the author.",
@@ -756,6 +677,7 @@ controls:
     category: "Access and Authorization",
     severity: "high",
     fixDuration: "quick",
+    productScope: "platform",
     controlName: "An MR approval rule must be defined to cover all protected branches",
     controlConfigKey: "mrApprovalRuleMustCoverAllProtectedBranches",
     description:
@@ -778,12 +700,7 @@ controls:
 #
 #   Rule: "All Approvals" → applies to: All protected branches
 #   Eligible approvers: Maintainers
-#   Approvals required: 1
-#
-# .plumber.yaml
-controls:
-  mrApprovalRuleMustCoverAllProtectedBranches:
-    enabled: true`,
+#   Approvals required: 1`,
     goodExampleCaption: "An approval rule covering all protected branches ensures consistent review.",
     tips: [
       "Create one 'catch-all' rule that targets all protected branches as a baseline.",
@@ -799,6 +716,7 @@ controls:
     category: "Pipeline Composition",
     severity: "high",
     fixDuration: "long",
+    productScope: "platform",
     controlName: "Pipeline must include required phases",
     controlConfigKey: "pipelineMustIncludeRequiredPhases",
     description:
@@ -850,7 +768,7 @@ deploy:
     - kubectl apply -f k8s/`,
     goodExampleCaption: "All required pipeline phases are present before deployment.",
     tips: [
-      "Define required pipeline phases in `.plumber.yaml` under `pipelineMustIncludeRequiredPhases.requiredPhases`.",
+      "Define required pipeline phases in your Plumber Platform policy under `pipelineMustIncludeRequiredPhases.requiredPhases`.",
       "Use job name patterns to detect required phases across different pipeline implementations.",
       "Consider blocking deployments if required phases are missing using GitLab protected environments.",
     ],
@@ -911,6 +829,7 @@ branchMustBeProtected:
     category: "Access and Authorization",
     severity: "medium",
     fixDuration: "quick",
+    productScope: "platform",
     controlName: "MR settings must be compliant",
     controlConfigKey: "mrSettingsMustBeCompliant",
     description:
@@ -934,19 +853,12 @@ branchMustBeProtected:
 #
 #   Merge method: Fast-forward merge
 #   Squash commits: Always (required by policy)
-#   Delete source branch: Enabled by default
-#
-# .plumber.yaml
-controls:
-  mrSettingsMustBeCompliant:
-    enabled: true
-    mergeMethod: fast_forward
-    squashOption: always`,
+#   Delete source branch: Enabled by default`,
     goodExampleCaption: "MR settings comply with the policy: fast-forward merge and always squash.",
     tips: [
       "Fast-forward merge keeps a linear history, making it easier to bisect and revert.",
       "Enforcing squash commits ensures each feature is represented as a single atomic commit.",
-      "Check `.plumber.yaml` for the exact settings your policy requires.",
+      "Check your Plumber Platform policy for the exact merge and squash settings required.",
     ],
     relatedCodes: ["ISSUE-502", "ISSUE-503"],
   },
@@ -1036,6 +948,7 @@ include:
     category: "Access and Authorization",
     severity: "medium",
     fixDuration: "medium",
+    productScope: "platform",
     controlName: "Number of project members must respect a quota",
     controlConfigKey: "numberOfProjectMembersMustRespectQuota",
     description:
@@ -1051,12 +964,7 @@ include:
 #   bob    → Maintainer
 #   carol  → Maintainer
 #   dave   → Maintainer
-#   eve    → Maintainer    ← 4 Maintainers (max allowed: 2)
-#
-# .plumber.yaml
-# numberOfProjectMembersMustRespectQuota:
-#   enabled: true
-#   maxMaintainers: 2`,
+#   eve    → Maintainer    ← 4 Maintainers (max allowed: 2)`,
     badExampleCaption: "The project has 4 maintainers, exceeding the allowed quota of 2.",
     goodExample: `# GitLab project members — ✅ Quotas respected
 # Settings > Members:
@@ -1065,13 +973,7 @@ include:
 #   bob    → Maintainer
 #   carol  → Maintainer
 #   dave   → Developer    ← Downgraded to meet quota
-#   eve    → Developer    ← Downgraded to meet quota
-#
-# .plumber.yaml
-controls:
-  numberOfProjectMembersMustRespectQuota:
-    enabled: true
-    maxMaintainers: 2`,
+#   eve    → Developer    ← Downgraded to meet quota`,
     goodExampleCaption: "Member roles are adjusted to meet the defined quota.",
     tips: [
       "Regularly audit project members and their roles using GitLab's member management page.",
@@ -1238,6 +1140,7 @@ release:
     category: "CI/CD Variables",
     severity: "critical",
     fixDuration: "quick",
+    productScope: "cli",
     controlName: "Pipeline must not override job variables",
     controlConfigKey: "pipelineMustNotOverrideJobVariables",
     description:
@@ -1431,6 +1334,7 @@ deploy:
     category: "Pipeline Composition",
     severity: "high",
     fixDuration: "medium",
+    productScope: "cli",
     controlName: "Pipeline must not use Docker-in-Docker",
     controlConfigKey: "pipelineMustNotUseDockerInDocker",
     description:
@@ -1483,6 +1387,7 @@ build-image:
     category: "Pipeline Composition",
     severity: "critical",
     fixDuration: "quick",
+    productScope: "cli",
     controlName: "Pipeline must not use Docker-in-Docker",
     controlConfigKey: "pipelineMustNotUseDockerInDocker",
     description:
@@ -1537,6 +1442,7 @@ build-image:
     category: "Access and Authorization",
     severity: "medium",
     fixDuration: "medium",
+    productScope: "platform",
     controlName: "Number of group members must respect a quota",
     controlConfigKey: "numberOfGroupMembersMustRespectQuota",
     description:
@@ -1551,12 +1457,7 @@ build-image:
 #   alice  → Owner
 #   bob    → Owner
 #   carol  → Owner
-#   dave   → Owner    ← 4 Owners (max allowed: 2)
-#
-# .plumber.yaml
-# numberOfGroupMembersMustRespectQuota:
-#   enabled: true
-#   maxOwners: 2`,
+#   dave   → Owner    ← 4 Owners (max allowed: 2)`,
     badExampleCaption: "The group has 4 owners, exceeding the allowed quota of 2.",
     goodExample: `# GitLab group members — ✅ Quotas respected
 # Group > Members:
@@ -1564,13 +1465,7 @@ build-image:
 #   alice  → Owner
 #   bob    → Owner
 #   carol  → Maintainer  ← Downgraded to meet quota
-#   dave   → Maintainer  ← Downgraded to meet quota
-#
-# .plumber.yaml
-controls:
-  numberOfGroupMembersMustRespectQuota:
-    enabled: true
-    maxOwners: 2`,
+#   dave   → Maintainer  ← Downgraded to meet quota`,
     goodExampleCaption: "Group member roles are adjusted to comply with the defined quota.",
     tips: [
       "Group owners inherit owner access to all projects in the group — limit this role to trusted admins.",

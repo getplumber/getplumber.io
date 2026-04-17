@@ -1,15 +1,15 @@
 ---
 /**
- * Labels whether a control or issue applies to Plumber Platform + CLI ("all")
- * or to Open Source CLI analysis only ("cli").
+ * Labels where a control applies: Platform + CLI ("all"), Platform only ("platform"),
+ * or Open Source CLI analysis only ("cli").
  */
 interface Props {
-  scope: "cli" | "all";
+  scope: "cli" | "all" | "platform";
   size?: "compact" | "header";
 }
 
 const { scope, size = "compact" } = Astro.props;
-const isCli = scope === "cli";
+const kind = scope === "cli" ? "cli" : scope === "platform" ? "platform" : "all";
 ---
 
 <span
@@ -18,13 +18,19 @@ const isCli = scope === "cli";
     size === "header"
       ? "rounded-md h-[28px] px-2.5 py-1 text-sm leading-none"
       : "rounded px-2 py-0.5 text-[10px] md:text-xs",
-    isCli
+    kind === "cli"
       ? "bg-violet-100 text-violet-800 ring-violet-300 dark:bg-violet-900/40 dark:text-violet-200 dark:ring-violet-700/50"
-      : "bg-muted/80 text-muted-foreground ring-border",
+      : kind === "platform"
+        ? "bg-sky-100 text-sky-900 ring-sky-300 dark:bg-sky-900/40 dark:text-sky-100 dark:ring-sky-700/50"
+        : "bg-muted/80 text-muted-foreground ring-border",
   ]}
-  title={isCli
-    ? "This control is evaluated by the Open Source CLI only. It is not enforced as a Plumber Platform control."
-    : "This control applies to Plumber Platform and the Open Source CLI."}
+  title={
+    kind === "cli"
+      ? "This control is evaluated by the Open Source CLI only. It is not enforced as a Plumber Platform control."
+      : kind === "platform"
+        ? "This control is enforced on Plumber Platform only."
+        : "This control applies to Plumber Platform and the Open Source CLI."
+  }
 >
-  {isCli ? "CLI" : "All"}
+  {kind === "cli" ? "CLI" : kind === "platform" ? "Platform" : "All"}
 </span>
