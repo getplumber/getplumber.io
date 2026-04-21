@@ -122,7 +122,7 @@ The real power comes from continuous compliance monitoring. Add Plumber to your 
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.31
+  - component: gitlab.com/getplumber/plumber/plumber@v0.2.0
 ```
 
 Plumber will now run automatically on every push to default branch, every tag, and every merge request. See our [GitLab Component docs](/docs/cli/gitlab-component/) for full setup instructions.
@@ -134,7 +134,7 @@ Want compliance results directly in your merge requests and project overview? En
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.1.31
+  - component: gitlab.com/getplumber/plumber/plumber@v0.2.0
     inputs:
       ci_config_path: $CI_CONFIG_PATH # defaults to project's configured CI config path
       mr_comment: true  # Post compliance summary on MRs
