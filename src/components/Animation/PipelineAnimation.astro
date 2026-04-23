@@ -428,7 +428,7 @@ const innerShellClass =
       stat("Authorized", "11");
       stat("Unauthorized", "1");
       issueHdr("Unauthorized Images Found:");
-      issue("CRIT", "ISSUE-101", "Job 'lint' uses unauthorized image: docker.io/golangci/golangci-lint:latest");
+      issue("HIGH", "ISSUE-101", "Job 'lint' uses unauthorized image: docker.io/golangci/golangci-lint:latest");
       o += "\n";
 
       // Branch must be protected
@@ -439,10 +439,10 @@ const innerShellClass =
       stat("Unprotected", "3");
       stat("Non-Compliant", "1");
       issueHdr("Issues Found:");
-      issueSub("HIGH", "ISSUE-505", "Branch 'main' has non-compliant protection settings", "Force push is allowed (should be disabled)");
-      issue("CRIT", "ISSUE-501", "Branch 'dev' is not protected");
-      issue("CRIT", "ISSUE-501", "Branch 'master' is not protected");
-      issue("CRIT", "ISSUE-501", "Branch 'production' is not protected");
+      issueSub("MED", "ISSUE-505", "Branch 'main' has non-compliant protection settings", "Force push is allowed (should be disabled)");
+      issue("HIGH", "ISSUE-501", "Branch 'dev' is not protected");
+      issue("HIGH", "ISSUE-501", "Branch 'master' is not protected");
+      issue("HIGH", "ISSUE-501", "Branch 'production' is not protected");
       o += "\n";
 
       // Pipeline must not include hardcoded jobs
@@ -478,7 +478,7 @@ const innerShellClass =
       stat("Requirement Groups", "1");
       stat("Satisfied Groups", "0");
       issueHdr("Missing Components:");
-      issue("HIGH", "ISSUE-408", "components/secret-detection/dast-detection (group 1)");
+      issue("MED", "ISSUE-408", "components/secret-detection/dast-detection (group 1)");
       o += "\n";
 
       // Pipeline must include template (skipped)
@@ -497,7 +497,7 @@ const innerShellClass =
       stat("Script Lines Checked", "39");
       stat("Unsafe Expansions", "1");
       issueHdr("Unsafe Variable Expansions Found:");
-      issue("CRIT", "ISSUE-204", [
+      issue("MED", "ISSUE-204", [
         "$CI_COMMIT_BRANCH in job 'build' after_script:",
         'sh -c "docker build --build-arg BRANCH=$CI_COMMIT_BRANCH ."',
       ]);
@@ -534,7 +534,11 @@ const innerShellClass =
       o += bd("Summary") + "\n";
       o += dm("────────────────────") + "\n\n";
 
-      o += "  " + cl("▶ Critical issue codes:", "text-red-400") + " ISSUE-101, ISSUE-204, ISSUE-501\n\n";
+      o += "  " + cl("▶ High severity issue codes:", "text-yellow-400") + " ISSUE-101, ISSUE-501\n\n";
+      o +=
+        "  " +
+        cl("▶ Medium severity issue codes:", "text-cyan-400") +
+        " ISSUE-102, ISSUE-204, ISSUE-401, ISSUE-404, ISSUE-408, ISSUE-505\n\n";
       o +=
         "  Status: " +
         `<span class="inline-flex items-center gap-1 text-red-400 font-bold"><span>FAILED</span>${CLI_STATUS_SVG_FAIL}</span>` +
@@ -547,10 +551,10 @@ const innerShellClass =
       o += "  " + cy("╟────────────────────────────────────────────────────┼──────────────────────┼────────────┼──────╢") + "\n";
 
       const ctrlRows: [string, string, string, number][] = [
-        ["Branch must be protected", "ISSUE-501, ISSUE-505", "Critical", 4],
-        ["Container images must come from authorized sources", "ISSUE-101", "Critical", 1],
-        ["Pipeline must not use unsafe variable expansion", "ISSUE-204", "Critical", 1],
-        ["Pipeline must include component", "ISSUE-408", "High", 1],
+        ["Branch must be protected", "ISSUE-501, ISSUE-505", "High", 4],
+        ["Container images must come from authorized sources", "ISSUE-101", "High", 1],
+        ["Pipeline must not use unsafe variable expansion", "ISSUE-204", "Medium", 1],
+        ["Pipeline must include component", "ISSUE-408", "Medium", 1],
         ["Pipeline must not include hardcoded jobs", "ISSUE-401", "Medium", 3],
         ["Container images must not use forbidden tags", "ISSUE-102", "Medium", 1],
         ["Includes must not use forbidden versions", "ISSUE-404", "Medium", 1],
@@ -642,10 +646,10 @@ const innerShellClass =
       const lines: string[] = [];
 
       const controlsData: [string, string, string, number][] = [
-        ["Branch must be protected", "ISSUE-501, ISSUE-505", "Critical", 4],
-        ["Container images must come from authorized sources", "ISSUE-101", "Critical", 1],
-        ["Pipeline must not use unsafe variable expansion", "ISSUE-204", "Critical", 1],
-        ["Pipeline must include component", "ISSUE-408", "High", 1],
+        ["Branch must be protected", "ISSUE-501, ISSUE-505", "High", 4],
+        ["Container images must come from authorized sources", "ISSUE-101", "High", 1],
+        ["Pipeline must not use unsafe variable expansion", "ISSUE-204", "Medium", 1],
+        ["Pipeline must include component", "ISSUE-408", "Medium", 1],
         ["Pipeline must not include hardcoded jobs", "ISSUE-401", "Medium", 3],
         ["Container images must not use forbidden tags", "ISSUE-102", "Medium", 1],
         ["Includes must not use forbidden versions", "ISSUE-404", "Medium", 1],
@@ -691,10 +695,16 @@ const innerShellClass =
           CLI_STATUS_SVG_FAIL +
           "</span>" +
           '</div>' +
-          '<div class="flex items-center gap-2 mt-1">' +
-          '<span class="text-red-400 text-xs">Critical:</span>' +
-          '<span class="text-base-300 text-xs">ISSUE-101, ISSUE-204, ISSUE-501</span>' +
-          '</div></div>',
+          '<div class="flex flex-col gap-0.5 mt-1">' +
+          '<div class="flex items-center gap-2">' +
+          '<span class="text-yellow-400 text-xs">High:</span>' +
+          '<span class="text-base-300 text-xs">ISSUE-101, ISSUE-501</span>' +
+          "</div>" +
+          '<div class="flex items-center gap-2">' +
+          '<span class="text-cyan-400 text-xs">Medium:</span>' +
+          '<span class="text-base-300 text-xs">ISSUE-102, ISSUE-204, ISSUE-401, ISSUE-404, ISSUE-408, ISSUE-505</span>' +
+          "</div>" +
+          "</div></div>",
       );
 
       // Controls section header
