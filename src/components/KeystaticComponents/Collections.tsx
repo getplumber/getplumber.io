@@ -65,7 +65,8 @@ const Blog = (locale: (typeof locales)[number]) =>
       }),
       categories: fields.array(fields.text({ label: "Category" }), {
         label: "Categories",
-        description: "This is NOT case sensitive.",
+        description:
+          "Blog filter ids (case-sensitive): Customer Story, releases-platform (platform release notes), releases-cli (CLI / open-source releases), Guide, News. Legacy value `Releases` in URLs redirects to releases-platform.",
         itemLabel: (props) => props.value,
         // validation: { length: { min: 1 } },
       }),

@@ -1,0 +1,58 @@
+---
+title: "Plumber CLI 0.2 Release - What's New"
+description: "Plumber CLI and GitLab component 0.2: new scoring model, new commands, catalog updates, and fixes"
+draft: false
+authors:
+  - plumber
+pubDate: 2026-04-24
+heroImage: ./heroImage.png
+categories:
+  - "releases-cli"
+---
+
+# Plumber CLI 0.2
+
+**We're thrilled to announce Plumber CLI and the GitLab CI component on the 0.2 release line:**
+
+> **📊 New pipeline scoring model, sharper tooling, and a smoother GitLab experience**
+
+**The open-source [Plumber CLI](https://github.com/getplumber/plumber) scans GitLab pipelines for compliance. This release is anchored on a new scoring model and adds commands that make day-to-day use easier. The [GitLab component catalog](https://gitlab.com/explore/catalog/getplumber/plumber) is updated for the v0.2.0 component line.**
+
+## 💯 New scoring model
+
+- **Pipeline scoring model**: Each issue has a **severity**; findings roll up to **numeric points (0–100)** and a letter grade **A–E**.
+- **Critical malus**: Unresolved Critical issues cap the score.
+- **Where it shows up**: Terminal output, JSON and PBOM, CycloneDX metadata, and merge request comments when you use `--score` or `--score-point`.
+
+## 🛠️ New and updated commands
+
+- **`plumber explain`**: Look up issue codes (`plumber explain ISSUE-412`, numeric ids, `--list`, `--json`, `--all`). Full details in the [CLI reference](/docs/cli/).
+- **`plumber config init`**: Interactive setup that writes a smaller `.plumber.yaml` with the controls you choose. For the full commented template, use `plumber config generate` as before.
+
+## 📖 Docs and badges
+
+Letter grades and how points are computed are documented in the [scoring specification](https://github.com/getplumber/plumber/blob/main/docs/scoring.md). Project badges that show the letter score link to that documentation.
+
+## ⚙️ Configuration defaults
+
+The **trusted registry URL** list in the [default `.plumber.yaml`](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) was refreshed. If you rely on template defaults, run `plumber config diff` against the upstream file to see what changed.
+
+## 🐛 Fixes
+
+- Merge request **badge** links point to the scoring documentation correctly.
+- **GitLab CI `include`**: Scalar string `include` values (not only lists or mappings) are parsed correctly when reading pipeline YAML.
+
+## ⬆️ How to update
+
+- **CLI**: `brew update && brew upgrade plumber`, or use [installation](/docs/cli/#installation) (Mise, binaries, Docker, source).
+- **GitLab.com**: Bump to the latest entry in the [CI/CD component catalog](https://gitlab.com/explore/catalog/getplumber/plumber); the catalog was updated for the **v0.2.0** component line.
+- **Self-hosted GitLab**: Update from the [component template](https://github.com/getplumber/plumber/blob/main/templates/plumber.yml) or your mirror (see the [CLI README](https://github.com/getplumber/plumber?tab=readme-ov-file)).
+- **Config**: Align your `.plumber.yaml` with `plumber config diff`, `plumber config generate`, or `plumber config init`.
+
+---
+
+<Admonition variant="info">
+Versions
+- Plumber CLI: `v0.2.8`
+- GitLab component: latest [catalog](https://gitlab.com/explore/catalog/getplumber/plumber) 
+</Admonition>

@@ -8,7 +8,13 @@ import BlogIndexLayout from "@layouts/BlogIndexLayout2.astro";
 const currLocale = getLocaleFromUrl(Astro.url);
 const posts = await getAllPosts(currLocale, true); // exclude archived posts (archive/)
 
-const filterCategories = ["Customer Story", "Releases", "Guide", "News"];
+const filterCategories = [
+  "Customer Story",
+  { id: "releases-platform", label: "Releases Platform" },
+  { id: "releases-cli", label: "Releases CLI" },
+  "Guide",
+  "News",
+];
 ---
 
 <BaseLayout

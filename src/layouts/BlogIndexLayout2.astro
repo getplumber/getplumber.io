@@ -3,14 +3,20 @@ import PostCard from "@components/PostCard/PostCardDetailed.astro";
 import PostCardLarge from "@components/PostCard/PostCardLargeDetailed.astro";
 import { type CollectionEntry } from "astro:content";
 
+type FilterCategory = string | { id: string; label: string };
+
 interface Props {
   posts: CollectionEntry<"blog">[];
-  filterCategories?: string[];
+  filterCategories?: FilterCategory[];
   class?: string;
 }
 
 const { posts, filterCategories = [], class: className } = Astro.props as Props;
-const hasFilters = filterCategories.length > 0;
+
+const normalizedFilters = filterCategories.map((c) =>
+  typeof c === "string" ? { id: c, label: c } : c,
+);
+const hasFilters = normalizedFilters.length > 0;
 ---
 
 {hasFilters && (
@@ -22,13 +28,13 @@ const hasFilters = filterCategories.length > 0;
     >
       All
     </a>
-    {filterCategories.map((cat) => (
+    {normalizedFilters.map((cat) => (
       <a
-        href={`/blog?category=${encodeURIComponent(cat)}`}
-        data-category={cat}
+        href={`/blog?category=${encodeURIComponent(cat.id)}`}
+        data-category={cat.id}
         class="blog-filter-btn rounded-full border px-4 py-1.5 text-sm font-medium transition-colors"
       >
-        {cat}
+        {cat.label}
       </a>
     ))}
   </nav>
@@ -43,6 +49,7 @@ const hasFilters = filterCategories.length > 0;
         <div
           class:list={["blog-post-item", { "md:col-span-2 lg:col-span-3": isFirst }]}
           data-categories={JSON.stringify(cats)}
+          data-blog-slug={post.id}
         >
           <div class:list={["blog-card-large", { hidden: !isFirst }]}>
             <PostCardLarge post={post} showDescription={true} />
@@ -99,6 +106,26 @@ const hasFilters = filterCategories.length > 0;
 
     const buttons = filterNav.querySelectorAll<HTMLAnchorElement>('.blog-filter-btn');
 
+    function normalizeCategoryParam(raw: string | null): string | null {
+      if (raw === 'Releases') return 'releases-platform';
+      return raw;
+    }
+
+    function postMatchesFilter(
+      activeCategory: string,
+      postCategories: string[],
+      blogSlug: string,
+    ): boolean {
+      if (activeCategory === 'all') return true;
+      if (
+        activeCategory === 'releases-platform' &&
+        blogSlug.includes('release-cli')
+      ) {
+        return false;
+      }
+      return postCategories.includes(activeCategory);
+    }
+
     function applyFilter(category: string | null) {
       const activeCategory = category || 'all';
 
@@ -110,7 +137,8 @@ const hasFilters = filterCategories.length > 0;
 
       posts.forEach((post) => {
         const postCategories: string[] = JSON.parse(post.dataset.categories || '[]');
-        const matches = activeCategory === 'all' || postCategories.includes(activeCategory);
+        const blogSlug = post.dataset.blogSlug ?? '';
+        const matches = postMatchesFilter(activeCategory, postCategories, blogSlug);
         post.classList.toggle('hidden-by-filter', !matches);
       });
 
@@ -136,7 +164,7 @@ const hasFilters = filterCategories.length > 0;
 
     function getCategoryFromUrl() {
       const params = new URLSearchParams(window.location.search);
-      return params.get('category');
+      return normalizeCategoryParam(params.get('category'));
     }
 
     buttons.forEach((btn) => {
