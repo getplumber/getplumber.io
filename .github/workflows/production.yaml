@@ -1,11 +1,11 @@
 name: Deploy Production
 
+# Deploy only on trusted history: a push to main/master on this repository.
+# Do not use workflow_run + workflow_run.head_sha: fork PRs can name a branch
+# "main", satisfy branches: [main], and pass a malicious head_sha while Lint
+# (pull_request, no secrets) still succeeds.
 on:
-  # zizmor: ignore[dangerous-triggers] — workflow_run is used safely here:
-  # only triggers after Lint succeeds on main, checkouts a specific SHA
-  workflow_run:
-    workflows: ["Lint"]
-    types: [completed]
+  push:
     branches:
       - main
       - master
@@ -16,13 +16,11 @@ permissions:
 jobs:
   deploy-production:
     name: Deploy to Production
-    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
 
       - name: Setup Node.js
