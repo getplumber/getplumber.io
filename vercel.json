@@ -8,6 +8,14 @@
     {
       "source": "/api/event",
       "destination": "https://plausible.io/api/event"
+    },
+    {
+      "source": "/radar",
+      "destination": "https://plumber-gitlab-ecosystem-scan.vercel.app/radar"
+    },
+    {
+      "source": "/radar/:path*",
+      "destination": "https://plumber-gitlab-ecosystem-scan.vercel.app/radar/:path*"
     }
   ],
   "redirects": [
