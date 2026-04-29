@@ -13,12 +13,12 @@ This page describes how to run a self-managed instance of Plumber on
 ## 💻 Requirements
 
 - **GitLab instance version >=17.7**
+- **A PostgreSQL instance version >= 13** (or let the chart deploy one for you)
 - **A Redis instance version >= 6** (or let the chart deploy one for you)
-- **A PostgreSQL instance version >= 13**
 - A Kubernetes cluster with:
   - One ingress controller(ex: [Nginx](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx) or [Traefik](https://artifacthub.io/packages/helm/traefik/traefik))
   - A certificate manager with a ACME provider: [cert-manager](https://artifacthub.io/packages/helm/cert-manager/cert-manager)
-  - _Only if you run external services (PostgreSQL and Redis) in Kubernetes_: the ability to provision persistent volumes in your cluster
+  - _If you let the chart deploy PostgreSQL or Redis, or if you run external services in Kubernetes_: the ability to provision persistent volumes in your cluster
 - Your local environment with CLI to interact with Kubernetes API:
   - [Helm](https://github.com/helm/helm)
   - [Kubectl](https://github.com/kubernetes/kubectl)
@@ -29,8 +29,8 @@ This page describes how to run a self-managed instance of Plumber on
 
 The Helm chart used in this documentation allows installing all these services
 embedded in the chart as dependencies or to use external `PostgreSQL`
-and/or `Redis`. The chart can optionally deploy a standalone Redis instance
-for you. Both alternatives are detailed below.
+and/or `Redis`. The chart can optionally deploy a standalone PostgreSQL or
+Redis instance for you. Both alternatives are detailed below.
 
 <Steps>
 
@@ -260,10 +260,68 @@ for you. Both alternatives are detailed below.
 
    **PostgreSQL**
 
-   Add following configuration in your `custom_values.yaml` file
+   You can either let the chart deploy a standalone PostgreSQL instance or
+   use an external one.
+
+   **Option A: Deploy PostgreSQL via the chart**
+
+   When `postgresql.deploy: true`, the chart provisions a single-replica
+   PostgreSQL `StatefulSet`, a headless `Service` named
+   `<release>-postgresql`, and a `PersistentVolumeClaim` for the data
+   directory. The backend and worker pods automatically get an
+   `initContainer` that waits for PostgreSQL to be ready before starting.
+
+   <Aside variant="caution">
+   The bundled PostgreSQL is intended for evaluation, development, and
+   small self-managed deployments. For production workloads we recommend
+   using a managed database via **Option B**.
+   </Aside>
 
    ```yaml
    postgresql:
+     deploy: true
+
+     custom:
+       dbName: 'plumber'
+       sslmode: 'disable'
+       port: 5432
+
+     global:
+       postgresql:
+
+         # Not using secret for auth (comment if you use secret)
+         auth:
+           username: REPLACE_ME_BY_POSTGRES_USERNAME
+           postgresPassword: REPLACE_ME_BY_POSTGRES_PASSWORD
+
+         # Using existing secret for auth password (uncomment if you use secret)
+         #auth:
+         #  username: plumber
+         #  existingSecret: "postgresql-secret"
+         #  secretKeys:
+         #    adminPasswordKey: "password"
+         #    userPasswordKey: "password"
+
+     # Persistence for the PostgreSQL data directory
+     persistence:
+       size: '10Gi'
+       storageClass: '' # leave empty to use the cluster default StorageClass
+       accessMode: ReadWriteOnce
+
+     # To pull from a private registry or pin an exact version, uncomment and configure:
+     #image:
+     #  registry: my-private-registry.example.com  # omit to use Docker Hub
+     #  repository: postgres                        # defaults to official Postgres image
+     #  tag: "18"
+     #  digest: ""  # optional: pin exact version with sha256:...
+     #  pullPolicy: IfNotPresent
+   ```
+
+   **Option B: Use an external PostgreSQL**
+
+   ```yaml
+   postgresql:
+     deploy: false
 
      custom:
        host: REPLACE_ME_BY_POSTGRES_HOST
@@ -386,7 +444,9 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-production"
 
+# Option A: Use an external PostgreSQL
 postgresql:
+  deploy: false
   global:
     postgresql:
       auth:
@@ -397,6 +457,21 @@ postgresql:
     port: 5432
     dbName: "plumber"
     sslmode: "require"
+
+# Option B: Deploy PostgreSQL via the chart
+#postgresql:
+#  deploy: true
+#  global:
+#    postgresql:
+#      auth:
+#        username: REDACTED
+#        postgresPassword: REDACTED
+#  custom:
+#    dbName: "plumber"
+#    sslmode: "disable"
+#    port: 5432
+#  persistence:
+#    size: "10Gi"
 
 # Option A: Deploy Redis via the chart
 redis:
