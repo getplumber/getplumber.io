@@ -16,7 +16,7 @@ const today = new Date();
   class:list={[
     "border-t-base-300 dark:border-t-base-600/60 border-t",
     // Add background on docs pages to prevent content showing through
-    !Astro.url.pathname.startsWith("/docs") && "mt-20",
+    !Astro.url.pathname.startsWith("/docs") && Astro.url.pathname !== "/" && Astro.url.pathname !== "/platform" && "mt-20",
   ]}
 >
   <footer

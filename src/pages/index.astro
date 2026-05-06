@@ -1,6 +1,7 @@
 ---
 import PlumberFeatures from "@components/Feature/PlumberFeatures.astro";
 import PlumberQuickStart from "@components/Feature/PlumberQuickStart.astro";
+import PlumberRadar from "@components/Feature/PlumberRadar.astro";
 import PlumberHero from "@components/Hero/PlumberHero.astro";
 import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
 import { getLocaleFromUrl } from "@js/localeUtils";
@@ -19,4 +20,5 @@ const siteData = getTranslatedData("siteData", currLocale);
   <SectionDivider />
   <PlumberFeatures />
   <PlumberQuickStart />
+  <PlumberRadar />
 </BaseLayout>
