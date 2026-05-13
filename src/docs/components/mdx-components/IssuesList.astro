@@ -1,14 +1,24 @@
 ---
 /**
- * Renders the full list of Plumber issues grouped by category.
+ * Renders the full list of Plumber issues grouped by category,
+ * with a GitLab/GitHub tab toggle at the top. Both lists are rendered
+ * server-side; the inactive one is hidden via class. The active tab is
+ * persisted to localStorage under "plumber:docs:provider" and synced
+ * to the URL as `?p=gitlab|github` so links into the issue detail page
+ * preserve the choice.
+ *
  * Used in the Issues index page (use-plumber/issues.mdx).
  */
 import { Icon } from "astro-icon/components";
 
-import { issues } from "@/data/issues";
+import {
+  type IssueProviderContent,
+  issues,
+  type Provider,
+} from "@/data/issues";
 import ProductScopeBadge from "@/docs/components/mdx-components/ProductScopeBadge.astro";
 
-const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
 
 export const severityBadge: Record<string, string> = {
   critical:
@@ -34,79 +44,291 @@ export const fixDurationBadge: Record<string, string> = {
     "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 ring-red-300/70 dark:ring-red-700/60",
 };
 
-const grouped = new Map<string, typeof allEntries>();
-const allEntries = Object.values(issues);
+type Row = { code: string; content: IssueProviderContent };
 
-for (const entry of allEntries) {
-  if (!grouped.has(entry.category)) grouped.set(entry.category, []);
-  grouped.get(entry.category)!.push(entry);
+function groupByCategory(rows: Row[]): Map<string, Row[]> {
+  const grouped = new Map<string, Row[]>();
+  for (const row of rows) {
+    const cat = row.content.category;
+    if (!grouped.has(cat)) grouped.set(cat, []);
+    grouped.get(cat)!.push(row);
+  }
+  for (const list of grouped.values()) {
+    list.sort((a, b) => {
+      const sevDiff =
+        (severityOrder[a.content.severity] ?? 99) - (severityOrder[b.content.severity] ?? 99);
+      return sevDiff !== 0 ? sevDiff : a.code.localeCompare(b.code);
+    });
+  }
+  return grouped;
 }
 
-for (const entries of grouped.values()) {
-  entries.sort((a, b) => {
-    const sevDiff = severityOrder[a.severity] - severityOrder[b.severity];
-    return sevDiff !== 0 ? sevDiff : a.code.localeCompare(b.code);
-  });
+const providers: { id: Provider; label: string; icon: string }[] = [
+  { id: "gitlab", label: "GitLab", icon: "tabler/brand-gitlab" },
+  { id: "github", label: "GitHub", icon: "tabler/brand-github" },
+];
+
+// Within a provider, rows are split into a shipping group (status !== "roadmap")
+// and a roadmap group. Each group is then category-grouped. We do this on the
+// component side rather than mixing both into one list per category — interlacing
+// shipping/roadmap rows inside a single category section made the active controls
+// hard to spot under the noise of the much-longer roadmap list.
+type ProviderGroups = { shipping: Map<string, Row[]>; roadmap: Map<string, Row[]> };
+
+function splitByStatus(rows: Row[]): ProviderGroups {
+  const shipping: Row[] = [];
+  const roadmap: Row[] = [];
+  for (const row of rows) {
+    if (row.content.status === "roadmap") roadmap.push(row);
+    else shipping.push(row);
+  }
+  return { shipping: groupByCategory(shipping), roadmap: groupByCategory(roadmap) };
 }
+
+const groupedByProvider: Record<Provider, ProviderGroups> = {
+  gitlab: splitByStatus(
+    Object.entries(issues)
+      .filter(([, doc]) => doc.gitlab != null)
+      .map(([code, doc]) => ({ code, content: doc.gitlab! })),
+  ),
+  github: splitByStatus(
+    Object.entries(issues)
+      .filter(([, doc]) => doc.github != null)
+      .map(([code, doc]) => ({ code, content: doc.github! })),
+  ),
+};
+
+// Default provider for SSR (the inline script swaps based on URL/storage).
+const defaultProvider: Provider = "gitlab";
 ---
 
-<div class="not-prose space-y-10 mt-6">
+<div
+  class="not-content not-prose mb-4 inline-flex items-center gap-1 rounded-lg bg-muted/50 p-1 ring-1 ring-border"
+  role="tablist"
+  aria-label="Provider"
+  data-issues-list-tabs
+>
   {
-    [...grouped.entries()].map(([category, entries]) => (
-      <div>
-        <h2 class="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-3 pb-2 border-b border-border">
-          {category}
-        </h2>
-        <div class="flex flex-col">
-          {entries.map((entry) => (
-            <div>
-              <a
-                href={`/docs/use-plumber/issues/${entry.code}`}
-                class="group flex items-center gap-3 rounded-md border border-border bg-muted/30 px-3 py-2 hover:border-muted-foreground/40 hover:bg-muted/70 transition-all"
-              >
-                <span
-                  class="shrink-0 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 w-[5rem]"
-                  title="Unique identifier for this issue"
-                >
-                  {entry.code}
-                </span>
-                <span class="flex-1 min-w-0">
-                  <span class="block text-xs md:text-sm text-foreground/80 group-hover:text-foreground transition-colors leading-snug">
-                    {entry.title}
-                  </span>
-                </span>
-                <div class="flex items-center gap-1.5 shrink-0">
-                  <ProductScopeBadge
-                    scope={
-                      entry.productScope === "cli"
-                        ? "cli"
-                        : entry.productScope === "platform"
-                          ? "platform"
-                          : "all"
-                    }
-                  />
-                  <span
-                    class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[entry.severity]}`}
-                    title="How severe the impact is if this issue is not fixed"
-                  >
-                    <Icon name="tabler/alert-triangle" color="currentColor"  size="15px" />
-                    {entry.severity.charAt(0).toUpperCase() + entry.severity.slice(1)}
-                  </span>
-                  <span
-                    class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${
-                      fixDurationBadge[entry.fixDuration] ?? "bg-muted text-muted-foreground ring-border"
-                    }`}
-                    title="Approximate time needed to fix this issue"
-                  >
-                    <Icon name="tabler/clock" color="currentColor" size="15px" />
-                    {(entry.fixDuration.charAt(0).toUpperCase() + entry.fixDuration.slice(1)).replace("quick", "Quick")}
-                  </span>
-                </div>
-              </a>
-            </div>
-          ))}
-        </div>
-      </div>
+    providers.map((p) => (
+      <button
+        type="button"
+        role="tab"
+        data-provider-tab={p.id}
+        aria-selected={p.id === defaultProvider ? "true" : "false"}
+        class:list={[
+          "provider-tab inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-all",
+          p.id === defaultProvider
+            ? "bg-background text-foreground ring-1 ring-border shadow-sm"
+            : "text-muted-foreground hover:text-foreground",
+        ]}
+      >
+        <Icon name={p.icon} size="18px" />
+        {p.label}
+      </button>
     ))
   }
 </div>
+
+{
+  providers.map((p) => {
+    const groups = groupedByProvider[p.id];
+    const hasShipping = groups.shipping.size > 0;
+    const hasRoadmap = groups.roadmap.size > 0;
+    const hasContent = hasShipping || hasRoadmap;
+    return (
+      <div
+        data-provider-panel={p.id}
+        class:list={["provider-panel not-prose mt-6", p.id === defaultProvider ? "" : "hidden"]}
+      >
+        {!hasContent && (
+          <p class="text-sm text-muted-foreground">
+            No {p.label} issues yet.
+          </p>
+        )}
+
+        {hasShipping && hasRoadmap && (
+          <div class="mb-6 flex items-center gap-2 text-base font-semibold text-foreground">
+            <span class="text-amber-600 dark:text-amber-400">★</span>
+            <span>Currently shipping</span>
+            <span class="text-xs font-normal text-muted-foreground">
+              {Array.from(groups.shipping.values()).reduce((n, l) => n + l.length, 0)} issues
+            </span>
+          </div>
+        )}
+
+        {(() => {
+          const renderCategory = (category: string, entries: Row[]) => (
+            <div>
+              <h2 class="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-3 pb-2 border-b border-border">
+                {category}
+              </h2>
+              <div class="flex flex-col">
+                {entries.map((entry) => (
+                  <a
+                    href={`/docs/use-plumber/issues/${entry.code}?p=${p.id}`}
+                    class="group flex items-center gap-3 rounded-md border border-border bg-muted/30 px-3 py-2 hover:border-muted-foreground/40 hover:bg-muted/70 transition-all"
+                  >
+                    <span
+                      class="shrink-0 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 w-[5rem]"
+                      title="Unique identifier for this issue"
+                    >
+                      {entry.code}
+                    </span>
+                    <span class="flex-1 min-w-0">
+                      <span class="block text-xs md:text-sm text-foreground/80 group-hover:text-foreground transition-colors leading-snug">
+                        {entry.content.title}
+                      </span>
+                    </span>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <ProductScopeBadge
+                        scope={
+                          entry.content.productScope === "cli"
+                            ? "cli"
+                            : entry.content.productScope === "platform"
+                              ? "platform"
+                              : "all"
+                        }
+                      />
+                      {entry.content.status === "roadmap" && (
+                        <span
+                          class="inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 ring-amber-300 dark:ring-amber-700/50"
+                          title="On the roadmap — Rego exists but findings are held back by the engine's bench gate."
+                        >
+                          ⏳ Roadmap
+                        </span>
+                      )}
+                      <span
+                        class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[entry.content.severity]}`}
+                        title="How severe the impact is if this issue is not fixed"
+                      >
+                        <Icon name="tabler/alert-triangle" color="currentColor" size="15px" />
+                        {entry.content.severity.charAt(0).toUpperCase() + entry.content.severity.slice(1)}
+                      </span>
+                      <span
+                        class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${
+                          fixDurationBadge[entry.content.fixDuration] ?? "bg-muted text-muted-foreground ring-border"
+                        }`}
+                        title="Approximate time needed to fix this issue"
+                      >
+                        <Icon name="tabler/clock" color="currentColor" size="15px" />
+                        {(entry.content.fixDuration.charAt(0).toUpperCase() + entry.content.fixDuration.slice(1)).replace("quick", "Quick")}
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          );
+          const roadmapCount = Array.from(groups.roadmap.values()).reduce((n, l) => n + l.length, 0);
+          return (
+            <>
+              <div class="space-y-10">
+                {[...groups.shipping.entries()].map(([cat, entries]) => renderCategory(cat, entries))}
+              </div>
+
+              {hasRoadmap && (
+                <>
+                  <div class="mt-12 mb-6 border-t border-border pt-6 flex flex-wrap items-center gap-3">
+                    <span class="text-base font-semibold text-foreground">
+                      <span class="text-amber-600 dark:text-amber-400">⏳</span> On the roadmap
+                    </span>
+                    <span class="text-xs text-muted-foreground">
+                      {roadmapCount} issues
+                    </span>
+                  </div>
+                  <p class="text-xs text-muted-foreground mb-6 max-w-3xl leading-relaxed">
+                    The controls below are implemented in the engine's Rego
+                    catalog but their findings are held back by the engine's
+                    dev-side bench gate before reaching any output. They are
+                    listed so the codes Plumber may surface in future releases
+                    stay stable. Adding them to your{" "}
+                    <code class="bg-muted px-1.5 py-0.5 rounded text-foreground">.plumber.yaml</code> today has no effect.
+                  </p>
+                  <div class="space-y-10">
+                    {[...groups.roadmap.entries()].map(([cat, entries]) => renderCategory(cat, entries))}
+                  </div>
+                </>
+              )}
+            </>
+          );
+        })()}
+      </div>
+    );
+  })
+}
+
+<script is:inline>
+  (function () {
+    const STORAGE_KEY = "plumber:docs:provider";
+
+    function panelExists(p) {
+      return !!document.querySelector(`[data-provider-panel="${p}"]`);
+    }
+
+    function rewriteIssueLinks(p) {
+      // Update detail-page links inside the active panel to carry ?p=
+      document.querySelectorAll('a[href^="/docs/use-plumber/issues/"]').forEach((a) => {
+        const href = a.getAttribute("href") || "";
+        const m = href.match(/^(\/docs\/use-plumber\/issues\/ISSUE-\d+)(\?.*)?$/);
+        if (m) {
+          a.setAttribute("href", `${m[1]}?p=${p}`);
+        }
+      });
+    }
+
+    function setProvider(p) {
+      if (!panelExists(p)) return;
+      document.querySelectorAll("[data-provider-panel]").forEach((panel) => {
+        const active = panel.getAttribute("data-provider-panel") === p;
+        panel.classList.toggle("hidden", !active);
+      });
+      document.querySelectorAll("[data-provider-tab]").forEach((tab) => {
+        const active = tab.getAttribute("data-provider-tab") === p;
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+        if (active) {
+          tab.classList.add("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
+          tab.classList.remove("text-muted-foreground");
+        } else {
+          tab.classList.remove("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
+          tab.classList.add("text-muted-foreground");
+        }
+      });
+      rewriteIssueLinks(p);
+      try {
+        localStorage.setItem(STORAGE_KEY, p);
+      } catch {
+        /* localStorage unavailable (private mode, etc.); silently ignore. */
+      }
+      const url = new URL(window.location.href);
+      url.searchParams.set("p", p);
+      window.history.replaceState({}, "", url.toString());
+    }
+
+    function initialProvider() {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get("p");
+      if ((fromUrl === "gitlab" || fromUrl === "github") && panelExists(fromUrl)) {
+        return fromUrl;
+      }
+      let fromStorage = null;
+      try {
+        fromStorage = localStorage.getItem(STORAGE_KEY);
+      } catch {
+        /* localStorage unavailable (private mode, etc.); silently ignore. */
+      }
+      if ((fromStorage === "gitlab" || fromStorage === "github") && panelExists(fromStorage)) {
+        return fromStorage;
+      }
+      return "gitlab";
+    }
+
+    setProvider(initialProvider());
+
+    document.querySelectorAll("[data-provider-tab]").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const p = tab.getAttribute("data-provider-tab");
+        if (p === "gitlab" || p === "github") setProvider(p);
+      });
+    });
+  })();
+</script>

@@ -1,0 +1,89 @@
+---
+/**
+ * Provider-tab toggle script shared between the controls and issues
+ * documentation pages. Renders a single inline `<script>` that:
+ *   - reads `?p=gitlab|github` from the URL, then localStorage, then
+ *     falls back to "gitlab";
+ *   - shows/hides `[data-provider-panel]` blocks accordingly;
+ *   - rewrites issue-link query strings so cross-page navigation
+ *     preserves the active provider.
+ *
+ * Wrapped in an `.astro` file so MDX pages can use it without running
+ * into the MDX parser's interpretation of `{` characters inside a
+ * script tag.
+ */
+---
+<script is:inline>
+  (function () {
+    const STORAGE_KEY = "plumber:docs:provider";
+
+    function panelExists(p) {
+      return !!document.querySelector('[data-provider-panel="' + p + '"]');
+    }
+
+    function rewriteIssueLinks(p) {
+      document.querySelectorAll('a[href^="/docs/use-plumber/issues/"]').forEach(function (a) {
+        const href = a.getAttribute("href") || "";
+        const m = href.match(/^(\/docs\/use-plumber\/issues\/ISSUE-\d+)(\?.*)?$/);
+        if (m) {
+          a.setAttribute("href", m[1] + "?p=" + p);
+        }
+      });
+    }
+
+    function setProvider(p) {
+      if (!panelExists(p)) return;
+      document.querySelectorAll("[data-provider-panel]").forEach(function (panel) {
+        const active = panel.getAttribute("data-provider-panel") === p;
+        panel.classList.toggle("hidden", !active);
+      });
+      document.querySelectorAll("[data-provider-tab]").forEach(function (tab) {
+        const active = tab.getAttribute("data-provider-tab") === p;
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+        if (active) {
+          tab.classList.add("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
+          tab.classList.remove("text-muted-foreground");
+        } else {
+          tab.classList.remove("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
+          tab.classList.add("text-muted-foreground");
+        }
+      });
+      rewriteIssueLinks(p);
+      try {
+        localStorage.setItem(STORAGE_KEY, p);
+      } catch (e) {
+        /* localStorage unavailable (private mode, etc.); silently ignore. */
+      }
+      const url = new URL(window.location.href);
+      url.searchParams.set("p", p);
+      window.history.replaceState({}, "", url.toString());
+    }
+
+    function initialProvider() {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get("p");
+      if ((fromUrl === "gitlab" || fromUrl === "github") && panelExists(fromUrl)) {
+        return fromUrl;
+      }
+      let fromStorage = null;
+      try {
+        fromStorage = localStorage.getItem(STORAGE_KEY);
+      } catch (e) {
+        /* localStorage unavailable (private mode, etc.); silently ignore. */
+      }
+      if ((fromStorage === "gitlab" || fromStorage === "github") && panelExists(fromStorage)) {
+        return fromStorage;
+      }
+      return "gitlab";
+    }
+
+    setProvider(initialProvider());
+
+    document.querySelectorAll("[data-provider-tab]").forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        const p = tab.getAttribute("data-provider-tab");
+        if (p === "gitlab" || p === "github") setProvider(p);
+      });
+    });
+  })();
+</script>

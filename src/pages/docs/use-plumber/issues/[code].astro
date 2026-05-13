@@ -4,6 +4,12 @@
  * Displays full details for a Plumber issue: description, impact,
  * remediation with before/after configuration examples.
  *
+ * Each issue carries per-provider content (gitlab / github). When
+ * both providers exist, a tab switcher at the top swaps the whole
+ * page body between the two. The active provider is persisted in
+ * localStorage and reflected as a `?p=` query parameter so links
+ * across the issues / controls pages preserve the choice.
+ *
  * URL: https://getplumber.io/docs/use-plumber/issues/ISSUE-101
  */
 import { Code as ExpressiveCode } from "astro-expressive-code/components";
@@ -17,9 +23,16 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/starwind/breadcrumb";
-import { type IssueDoc,issues } from "@/data/issues";
-import { fixDurationBadge } from "@/docs/components/mdx-components/IssuesList.astro";
-import { severityBadge } from "@/docs/components/mdx-components/IssuesList.astro";
+import {
+  type IssueDoc,
+  type IssueProviderContent,
+  issues,
+  type Provider,
+} from "@/data/issues";
+import {
+  fixDurationBadge,
+  severityBadge,
+} from "@/docs/components/mdx-components/IssuesList.astro";
 import ProductScopeBadge from "@/docs/components/mdx-components/ProductScopeBadge.astro";
 import DocsLayoutStandalone from "@/docs/layouts/DocsLayoutStandalone.astro";
 
@@ -33,28 +46,25 @@ export function getStaticPaths() {
 type Props = IssueDoc;
 
 const props = Astro.props;
-const {
-  code,
-  title,
-  category,
-  severity,
-  fixDuration,
-  controlName,
-  controlConfigKey,
-  description,
-  impact,
-  remediation,
-  badExample,
-  badExampleCaption,
-  goodExample,
-  goodExampleCaption,
-  tips,
-  relatedCodes,
-  productScope,
-} = props;
+const { code, gitlab, github } = props;
 
-const resolvedProductScope =
-  productScope === "cli" ? "cli" : productScope === "platform" ? "platform" : "all";
+type PanelDescriptor = {
+  id: Provider;
+  label: string;
+  icon: string;
+  content: IssueProviderContent;
+};
+
+const panels: PanelDescriptor[] = [];
+if (gitlab) panels.push({ id: "gitlab", label: "GitLab", icon: "tabler/brand-gitlab", content: gitlab });
+if (github) panels.push({ id: "github", label: "GitHub", icon: "tabler/brand-github", content: github });
+
+if (panels.length === 0) {
+  throw new Error(`Issue ${code} has no provider content (gitlab/github both undefined).`);
+}
+
+const defaultProvider: Provider = panels[0].id;
+const defaultContent = panels[0].content;
 
 const severityColors: Record<string, { bg: string; text: string; ring: string; label: string }> = {
   critical: {
@@ -82,7 +92,6 @@ const severityColors: Record<string, { bg: string; text: string; ring: string; l
     label: "Low",
   },
 };
-const sev = severityColors[severity];
 
 const fixDurationStyles: Record<
   string,
@@ -125,17 +134,29 @@ const fixDurationStyles: Record<
     label: "Extended",
   },
 };
-const fix = fixDurationStyles[fixDuration] ?? {
+
+const fixFallback = {
   bg: "bg-muted",
   text: "text-muted-foreground",
   ring: "ring-border",
   label: "Unknown",
 };
 
-const allCodes = Object.keys(issues);
-const currentIndex = allCodes.indexOf(code);
-const prevCode = currentIndex > 0 ? allCodes[currentIndex - 1] : null;
-const nextCode = currentIndex < allCodes.length - 1 ? allCodes[currentIndex + 1] : null;
+// Prev/next is scoped per provider — navigating within a provider should
+// only walk through codes that actually have that provider's content.
+const codesByProvider: Record<Provider, string[]> = {
+  gitlab: Object.keys(issues).filter((c) => issues[c].gitlab != null),
+  github: Object.keys(issues).filter((c) => issues[c].github != null),
+};
+
+function prevNextFor(provider: Provider): { prev: string | null; next: string | null } {
+  const list = codesByProvider[provider];
+  const idx = list.indexOf(code);
+  return {
+    prev: idx > 0 ? list[idx - 1] : null,
+    next: idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null,
+  };
+}
 
 /** Convert markdown-style `inline code` to HTML <code> and escape the rest for safe set:html */
 function inlineCodeToHtml(text: string): string {
@@ -156,27 +177,40 @@ function inlineCodeToHtml(text: string): string {
     .join("");
 }
 
+// Page TOC reflects the default provider's section IDs. The inline script
+// at the bottom rewrites these hrefs on tab change so the right-sidebar
+// TOC always targets the visible panel.
+const showConfig = defaultContent.productScope !== "platform";
 const pageHeadings: { depth: number; slug: string; text: string }[] = [
-  { depth: 2, slug: "what-is-this", text: "What is this?" },
-  { depth: 2, slug: "impact", text: "Impact" },
-  { depth: 2, slug: "how-to-fix", text: "How to fix" },
-  ...(tips.length > 0 ? [{ depth: 2, slug: "tips", text: "Tips" }] : []),
-  ...(productScope !== "platform"
-    ? [{ depth: 2, slug: "configuration", text: "Configuration" }]
+  { depth: 2, slug: `what-is-this-${defaultProvider}`, text: "What is this?" },
+  { depth: 2, slug: `impact-${defaultProvider}`, text: "Impact" },
+  { depth: 2, slug: `how-to-fix-${defaultProvider}`, text: "How to fix" },
+  ...(defaultContent.tips.length > 0
+    ? [{ depth: 2, slug: `tips-${defaultProvider}`, text: "Tips" }]
     : []),
-  ...(relatedCodes.length > 0
-    ? [{ depth: 2, slug: "related-issues", text: "Related issues" }]
+  ...(showConfig
+    ? [{ depth: 2, slug: `configuration-${defaultProvider}`, text: "Configuration" }]
+    : []),
+  ...(defaultContent.relatedCodes.length > 0
+    ? [{ depth: 2, slug: `related-issues-${defaultProvider}`, text: "Related issues" }]
     : []),
 ];
+
+function configKeyExample(provider: Provider, configKey: string): string {
+  if (provider === "github") {
+    return `github:\n  controls:\n    ${configKey}:\n      enabled: true`;
+  }
+  return `gitlab:\n  controls:\n    ${configKey}:\n      enabled: true`;
+}
 ---
 
 <DocsLayoutStandalone
-  title={`${code} — ${title} | Plumber Issues`}
-  description={description}
+  title={`${code} — ${defaultContent.title} | Plumber Issues`}
+  description={defaultContent.description}
   sectionId="main"
   headings={pageHeadings}
 >
-  <!-- Breadcrumb -->
+  <!-- Breadcrumb (shared across providers) -->
   <Breadcrumb class="mb-4 text-xs md:text-sm">
     <BreadcrumbList >
       <BreadcrumbItem class="pl-0!">
@@ -195,237 +229,360 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
     </BreadcrumbList>
   </Breadcrumb>
 
-  <!-- Header -->
-  <header class="mb-10">
-    <div class="flex flex-wrap items-center gap-3 mb-3">
-      <span
-        class="inline-flex items-center rounded-md bg-emerald-100 dark:bg-emerald-900/40 px-3 py-1 text-sm font-mono font-bold text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-700/50"
-        title="Unique identifier for this issue"
-      >
-        {code}
-      </span>
-      <span
-        class={`inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${sev.bg} ${sev.text} ${sev.ring}`}
-        title="How severe the impact is if this issue is not fixed"
-      >
-        <Icon name="tabler/alert-triangle" color="currentColor" size="16px" />
-        {sev.label}
-      </span>
-      <span
-        class={`inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${fix.bg} ${fix.text} ${fix.ring}`}
-        title="Approximate time needed to fix this issue"
-      >
-        <Icon name="tabler/clock" color="currentColor" size="16px" />
-        {fix.label}
-      </span>
-      <ProductScopeBadge scope={resolvedProductScope} size="header" />
-      <span
-        class="inline-flex items-center rounded-md bg-muted px-2.5 h-[28px] text-sm text-muted-foreground ring-1 ring-border"
-        title="Category of the control that raised this issue"
-      >
-        {category}
-      </span>
-    </div>
-    <h1 class="docs-h1 docs-text-gradient mb-2">{title}</h1>
-    <p class="mt-2 text-sm text-muted-foreground">
-      Control: <span class="text-foreground">{controlName}</span>
-      · Config key: <code class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground"
-        >{controlConfigKey}</code
-      >
-    </p>
-  </header>
-
-  <!-- Description -->
-  <section id="what-is-this" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
-    <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
-      <span>📋</span> What is this?
-    </h2>
-    <p class="text-foreground/80 leading-relaxed" set:html={inlineCodeToHtml(description)} />
-  </section>
-
-  <!-- Impact -->
-  <section id="impact" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
-    <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
-      <span>⚠️</span> Impact
-    </h2>
-    <div
-      class={`rounded-lg border p-4 ${
-        severity === "critical"
-          ? "border-red-300 dark:border-red-800/50 bg-red-50 dark:bg-red-950/20"
-          : "border-yellow-300 dark:border-yellow-800/50 bg-yellow-50 dark:bg-yellow-950/20"
-      }`}
-    >
-      <p class="text-foreground/80 leading-relaxed" set:html={inlineCodeToHtml(impact)} />
-    </div>
-  </section>
-
-  <!-- Remediation -->
-  <section id="how-to-fix" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
-    <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
-      <span>🔧</span> How to fix
-    </h2>
-    <p class="text-foreground/80 leading-relaxed mb-6" set:html={inlineCodeToHtml(remediation)} />
-
-    <!-- Bad example -->
-    <div class="mb-6">
-      <div class="inline-block ">
-        <span
-          class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 ring-1 ring-red-300 dark:ring-red-800/50"
-          >✗ Before</span
-        >
-        <span class="text-sm text-muted-foreground">{badExampleCaption}</span>
-      </div>
-      <ExpressiveCode
-        code={badExample}
-        lang="yaml"
-        class="overflow-x-auto rounded-lg text-sm leading-relaxed"
-      />
-    </div>
-
-    <!-- Good example -->
-    <div class="mb-6">
-      <div class="inline-block">
-        <span
-          class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-800/50"
-          >✓ After</span
-        >
-        <span class="text-sm text-muted-foreground">{goodExampleCaption}</span>
-      </div>
-      <ExpressiveCode
-        code={goodExample}
-        lang="yaml"
-        class="overflow-x-auto rounded-lg text-sm leading-relaxed"
-      />
-    </div>
-  </section>
-
-  <!-- Tips -->
+  <!-- Provider tabs: only rendered when this issue exists on both providers. -->
   {
-    tips.length > 0 && (
-      <section id="tips" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
-        <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
-          <span>💡</span> Tips
-        </h2>
-        <ul class="space-y-2 list-none pl-0">
-          {tips.map((tip) => (
-            <li class="flex items-start gap-2 text-foreground/80">
-              <span class="mt-[10px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
-              <span class="flex-1 min-w-0" set:html={inlineCodeToHtml(tip)} />
-            </li>
-          ))}
-        </ul>
-      </section>
+    panels.length > 1 && (
+      <div
+        class="not-content mb-6 inline-flex items-center gap-1 rounded-lg bg-muted/50 p-1 ring-1 ring-border"
+        role="tablist"
+        aria-label="Provider"
+      >
+        {panels.map((p) => (
+          <button
+            type="button"
+            role="tab"
+            data-provider-tab={p.id}
+            aria-selected={p.id === defaultProvider ? "true" : "false"}
+            class:list={[
+              "provider-tab inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-all",
+              p.id === defaultProvider
+                ? "bg-background text-foreground ring-1 ring-border shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            ]}
+          >
+            <Icon name={p.icon} size="18px" />
+            {p.label}
+          </button>
+        ))}
+      </div>
     )
   }
 
-  <!-- Configuration (not shown for Platform-only issues; policy field is still in the header) -->
+  <!-- One panel per provider. Inactive panel is hidden via class. -->
   {
-    productScope !== "platform" && (
-      <section id="configuration" class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
-        <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
-          <span>⚙️</span> Configuration
-        </h2>
-        <p class="text-foreground/80 mb-3">
-          This control is configured in{" "}
-          <code class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground">.plumber.yaml</code>{" "}
-          under the key:
-        </p>
-        <pre
-          class="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm ring-1 ring-zinc-800"
-          ><code class="text-zinc-300">{`controls:\n  ${controlConfigKey}:\n    enabled: true`}</code></pre>
-        <p class="mt-3 text-sm text-muted-foreground">
-          See the <a href="/docs/cli" class="underline">CLI documentation</a> for the full configuration
-          reference.
-          {productScope !== "cli" && (
-            <>
-              {" "}
-              On Plumber Platform, the same key is used in your policy configuration.
-            </>
-          )}
-        </p>
-      </section>
-    )
-  }
-
-  <!-- Related issues -->
-  {
-    relatedCodes.length > 0 && (
-      <section id="related-issues" class="mb-10 scroll-mt-[calc(var(--nav-height)+1rem)]">
-        <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
-          <span>🔗</span> Related issues
-        </h2>
-        <div class="flex flex-col gap-2">
-          {relatedCodes.map((rc) => {
-            const related = issues[rc];
-            return related ? (
-              <a
-                href={`/docs/use-plumber/issues/${rc}`}
-                class="inline-flex items-center gap-2 rounded-lg bg-muted px-3 text-sm ring-1 ring-border hover:ring-emerald-500/50 hover:bg-muted/80 transition-all h-10"
+    panels.map((p) => {
+      const c = p.content;
+      const sev = severityColors[c.severity];
+      const fix = fixDurationStyles[c.fixDuration] ?? fixFallback;
+      const resolvedScope = c.productScope === "cli" ? "cli" : c.productScope === "platform" ? "platform" : "all";
+      const pn = prevNextFor(p.id);
+      const panelShowConfig = c.productScope !== "platform";
+      return (
+        <div
+          data-provider-panel={p.id}
+          role="tabpanel"
+          class:list={["provider-panel", p.id === defaultProvider ? "" : "hidden"]}
+        >
+          <header class="mb-10">
+            <div class="flex flex-wrap items-center gap-3 mb-3">
+              <span
+                class="inline-flex items-center rounded-md bg-emerald-100 dark:bg-emerald-900/40 px-3 py-1 text-sm font-mono font-bold text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-700/50"
+                title="Unique identifier for this issue"
               >
-                <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">{rc}</span>
-                <span class="text-muted-foreground">{related.title}</span>
-                <div class="flex items-center gap-1.5 shrink-0 ml-auto">
-                  <span
-                    class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[related.severity]}`}
-                    title="How severe the impact is if this issue is not fixed"
-                  >
-                    <Icon size="15px" name="tabler/alert-triangle" color="currentColor" class="h-3 w-3" />
-                    {related.severity.charAt(0).toUpperCase() + related.severity.slice(1)}
-                  </span>
-                  <span
-                    class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${
-                      fixDurationBadge[related.fixDuration] ?? "bg-muted text-muted-foreground ring-border"
-                    }`}
-                    title="Approximate time needed to fix this issue"
-                  >
-                    <Icon size="15px" name="tabler/clock" color="currentColor" class="h-3 w-3" />
-                    {(related.fixDuration.charAt(0).toUpperCase() + related.fixDuration.slice(1)).replace("quick", "Quick")}
-                  </span>
-                </div>
-              </a>
-            ) : null;
-          })}
-        </div>
-      </section>
-    )
-  }
+                {code}
+              </span>
+              <span
+                class={`inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${sev.bg} ${sev.text} ${sev.ring}`}
+                title="How severe the impact is if this issue is not fixed"
+              >
+                <Icon name="tabler/alert-triangle" color="currentColor" size="16px" />
+                {sev.label}
+              </span>
+              <span
+                class={`inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${fix.bg} ${fix.text} ${fix.ring}`}
+                title="Approximate time needed to fix this issue"
+              >
+                <Icon name="tabler/clock" color="currentColor" size="16px" />
+                {fix.label}
+              </span>
+              <ProductScopeBadge scope={resolvedScope} size="header" />
+              {c.status === "roadmap" && (
+                <span
+                  class="inline-flex items-center gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset bg-amber-100 text-amber-800 ring-amber-300 dark:bg-amber-900/40 dark:text-amber-200 dark:ring-amber-700/50"
+                  title="This control's Rego policy exists but findings are held back by the engine's bench gate. It is not active in the current release."
+                >
+                  ⏳ Roadmap
+                </span>
+              )}
+              <span
+                class="inline-flex items-center rounded-md bg-muted px-2.5 h-[28px] text-sm text-muted-foreground ring-1 ring-border"
+                title="Category of the control that raised this issue"
+              >
+                {c.category}
+              </span>
+            </div>
+            <h1 class="docs-h1 docs-text-gradient mb-2">{c.title}</h1>
+            <p class="mt-2 text-sm text-muted-foreground">
+              Control: <span class="text-foreground">{c.controlName}</span>
+              · Config key: <code class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground"
+                >{c.controlConfigKey}</code
+              >
+            </p>
+          </header>
 
-  <!-- Navigation -->
-  <nav
-    class="flex items-center justify-between border-t border-border pt-6"
-    aria-label="Issues navigation"
-  >
-    {
-      prevCode ? (
-        <a
-          href={`/docs/use-plumber/issues/${prevCode}`}
-          class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <span>←</span>
-          <span class="font-mono">{prevCode}</span>
-        </a>
-      ) : (
-        <span />
-      )
-    }
-    <a
-      href="/docs/use-plumber/controls"
-      class="text-sm text-primary hover:text-primary/80 transition-colors"
-    >
-      All Controls →
-    </a>
-    {
-      nextCode ? (
-        <a
-          href={`/docs/use-plumber/issues/${nextCode}`}
-          class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <span class="font-mono">{nextCode}</span>
-          <span>→</span>
-        </a>
-      ) : (
-        <span />
-      )
-    }
-  </nav>
+          <section id={`what-is-this-${p.id}`} class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+            <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+              <span>📋</span> What is this?
+            </h2>
+            <p class="text-foreground/80 leading-relaxed" set:html={inlineCodeToHtml(c.description)} />
+          </section>
+
+          <section id={`impact-${p.id}`} class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+            <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+              <span>⚠️</span> Impact
+            </h2>
+            <div
+              class={`rounded-lg border p-4 ${
+                c.severity === "critical"
+                  ? "border-red-300 dark:border-red-800/50 bg-red-50 dark:bg-red-950/20"
+                  : "border-yellow-300 dark:border-yellow-800/50 bg-yellow-50 dark:bg-yellow-950/20"
+              }`}
+            >
+              <p class="text-foreground/80 leading-relaxed" set:html={inlineCodeToHtml(c.impact)} />
+            </div>
+          </section>
+
+          <section id={`how-to-fix-${p.id}`} class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+            <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+              <span>🔧</span> How to fix
+            </h2>
+            <p class="text-foreground/80 leading-relaxed mb-6" set:html={inlineCodeToHtml(c.remediation)} />
+
+            <div class="mb-6">
+              <div class="inline-block ">
+                <span
+                  class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 ring-1 ring-red-300 dark:ring-red-800/50"
+                  >✗ Before</span
+                >
+                <span class="text-sm text-muted-foreground">{c.badExampleCaption}</span>
+              </div>
+              <ExpressiveCode
+                code={c.badExample}
+                lang="yaml"
+                class="overflow-x-auto rounded-lg text-sm leading-relaxed"
+              />
+            </div>
+
+            <div class="mb-6">
+              <div class="inline-block">
+                <span
+                  class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-800/50"
+                  >✓ After</span
+                >
+                <span class="text-sm text-muted-foreground">{c.goodExampleCaption}</span>
+              </div>
+              <ExpressiveCode
+                code={c.goodExample}
+                lang="yaml"
+                class="overflow-x-auto rounded-lg text-sm leading-relaxed"
+              />
+            </div>
+          </section>
+
+          {c.tips.length > 0 && (
+            <section id={`tips-${p.id}`} class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+              <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+                <span>💡</span> Tips
+              </h2>
+              <ul class="space-y-2 list-none pl-0">
+                {c.tips.map((tip) => (
+                  <li class="flex items-start gap-2 text-foreground/80">
+                    <span class="mt-[10px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
+                    <span class="flex-1 min-w-0" set:html={inlineCodeToHtml(tip)} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {panelShowConfig && (
+            <section id={`configuration-${p.id}`} class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
+              <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+                <span>⚙️</span> Configuration
+              </h2>
+              <p class="text-foreground/80 mb-3">
+                This control is configured in{" "}
+                <code class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground">.plumber.yaml</code>{" "}
+                under the {p.id === "github" ? "github" : "gitlab"} section:
+              </p>
+              <pre
+                class="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm ring-1 ring-zinc-800"
+                ><code class="text-zinc-300">{configKeyExample(p.id, c.controlConfigKey)}</code></pre>
+              <p class="mt-3 text-sm text-muted-foreground">
+                See the <a href="/docs/cli" class="underline">CLI documentation</a> for the full configuration
+                reference.
+                {c.productScope !== "cli" && (
+                  <>
+                    {" "}
+                    On Plumber Platform, the same key is used in your policy configuration.
+                  </>
+                )}
+              </p>
+            </section>
+          )}
+
+          {c.relatedCodes.length > 0 && (
+            <section id={`related-issues-${p.id}`} class="mb-10 scroll-mt-[calc(var(--nav-height)+1rem)]">
+              <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
+                <span>🔗</span> Related issues
+              </h2>
+              <div class="flex flex-col gap-2">
+                {c.relatedCodes.map((rc) => {
+                  const related = issues[rc];
+                  // Prefer the same provider's content for the related issue;
+                  // fall back to whatever provider has content so we still
+                  // render something usable for cross-provider links.
+                  const relContent = related?.[p.id] ?? related?.gitlab ?? related?.github;
+                  if (!related || !relContent) return null;
+                  const relSev = relContent.severity;
+                  const relFix = relContent.fixDuration;
+                  return (
+                    <a
+                      href={`/docs/use-plumber/issues/${rc}?p=${p.id}`}
+                      class="inline-flex items-center gap-2 rounded-lg bg-muted px-3 text-sm ring-1 ring-border hover:ring-emerald-500/50 hover:bg-muted/80 transition-all h-10"
+                    >
+                      <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">{rc}</span>
+                      <span class="text-muted-foreground">{relContent.title}</span>
+                      <div class="flex items-center gap-1.5 shrink-0 ml-auto">
+                        <span
+                          class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[relSev]}`}
+                          title="How severe the impact is if this issue is not fixed"
+                        >
+                          <Icon size="15px" name="tabler/alert-triangle" color="currentColor" class="h-3 w-3" />
+                          {relSev.charAt(0).toUpperCase() + relSev.slice(1)}
+                        </span>
+                        <span
+                          class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${
+                            fixDurationBadge[relFix] ?? "bg-muted text-muted-foreground ring-border"
+                          }`}
+                          title="Approximate time needed to fix this issue"
+                        >
+                          <Icon size="15px" name="tabler/clock" color="currentColor" class="h-3 w-3" />
+                          {(relFix.charAt(0).toUpperCase() + relFix.slice(1)).replace("quick", "Quick")}
+                        </span>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          <nav
+            class="flex items-center justify-between border-t border-border pt-6"
+            aria-label="Issues navigation"
+          >
+            {pn.prev ? (
+              <a
+                href={`/docs/use-plumber/issues/${pn.prev}?p=${p.id}`}
+                class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <span>←</span>
+                <span class="font-mono">{pn.prev}</span>
+              </a>
+            ) : (
+              <span />
+            )}
+            <a
+              href={`/docs/use-plumber/controls?p=${p.id}`}
+              class="text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              All Controls →
+            </a>
+            {pn.next ? (
+              <a
+                href={`/docs/use-plumber/issues/${pn.next}?p=${p.id}`}
+                class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <span class="font-mono">{pn.next}</span>
+                <span>→</span>
+              </a>
+            ) : (
+              <span />
+            )}
+          </nav>
+        </div>
+      );
+    })
+  }
 </DocsLayoutStandalone>
+
+<script is:inline define:vars={{ defaultProvider }}>
+  (function () {
+    const STORAGE_KEY = "plumber:docs:provider";
+    const TOC_SLUGS = [
+      "what-is-this",
+      "impact",
+      "how-to-fix",
+      "tips",
+      "configuration",
+      "related-issues",
+    ];
+
+    function panelExists(p) {
+      return !!document.querySelector(`[data-provider-panel="${p}"]`);
+    }
+
+    function setProvider(p) {
+      if (!panelExists(p)) return;
+      document.querySelectorAll("[data-provider-panel]").forEach((panel) => {
+        const active = panel.getAttribute("data-provider-panel") === p;
+        panel.classList.toggle("hidden", !active);
+      });
+      document.querySelectorAll("[data-provider-tab]").forEach((tab) => {
+        const active = tab.getAttribute("data-provider-tab") === p;
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+        if (active) {
+          tab.classList.add("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
+          tab.classList.remove("text-muted-foreground");
+        } else {
+          tab.classList.remove("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
+          tab.classList.add("text-muted-foreground");
+        }
+      });
+      // Rewrite right-sidebar TOC hrefs (`#what-is-this-gitlab` → `#what-is-this-github`).
+      document.querySelectorAll('a[href^="#"]').forEach((a) => {
+        const href = a.getAttribute("href") || "";
+        const m = href.match(/^#([a-z-]+)-(gitlab|github)$/);
+        if (m && TOC_SLUGS.includes(m[1])) {
+          a.setAttribute("href", `#${m[1]}-${p}`);
+        }
+      });
+      try {
+        localStorage.setItem(STORAGE_KEY, p);
+      } catch {
+        /* localStorage unavailable (private mode, etc.); silently ignore. */
+      }
+      const url = new URL(window.location.href);
+      url.searchParams.set("p", p);
+      window.history.replaceState({}, "", url.toString());
+    }
+
+    function initialProvider() {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get("p");
+      if ((fromUrl === "gitlab" || fromUrl === "github") && panelExists(fromUrl)) {
+        return fromUrl;
+      }
+      let fromStorage = null;
+      try {
+        fromStorage = localStorage.getItem(STORAGE_KEY);
+      } catch {
+        /* localStorage unavailable (private mode, etc.); silently ignore. */
+      }
+      if ((fromStorage === "gitlab" || fromStorage === "github") && panelExists(fromStorage)) {
+        return fromStorage;
+      }
+      return defaultProvider;
+    }
+
+    setProvider(initialProvider());
+
+    document.querySelectorAll("[data-provider-tab]").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const p = tab.getAttribute("data-provider-tab");
+        if (p === "gitlab" || p === "github") setProvider(p);
+      });
+    });
+  })();
+</script>
