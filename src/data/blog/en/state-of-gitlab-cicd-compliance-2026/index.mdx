@@ -22,7 +22,7 @@ categories:
 
 To answer that, we pointed the open-source [Plumber CLI](https://github.com/getplumber/plumber) at **242 public GitLab projects**, ran a reproducible compliance scan on each one, and aggregated the results. The same analysis (charts, cohort, drill-down) lives on **[Plumber Radar](/radar)**, refreshed continuously, so the live numbers may differ slightly from the snapshot we publish here. This post is the 2026 edition of that study, with the full methodology, the raw numbers, and what they mean if you ship on GitLab.
 
-The tooling and the scan driver are themselves open source, so every figure below is re-runnable. If you want to spot-check any data point, the [GitLab repository](https://gitlab.com/r2devops/plumber-gitlab-ecosystem-scan) has the cohort file, the Plumber policy, and the exact scripts used.
+The tooling and the scan driver are themselves open source, so every figure below is re-runnable.
 
 ## TL;DR
 
@@ -32,39 +32,6 @@ The tooling and the scan driver are themselves open source, so every figure belo
 - **98.3%** of pipelines rely on **hardcoded jobs** instead of reusable components or templates.
 - **55.4%** of pipelines still use **mutable container image tags** (`latest`, `main`, version floaters).
 - **19.8%** of pipelines embed **Docker-in-Docker**, the single most powerful sandbox escape in CI.
-
-{/* ## How the study was run
-
-### The cohort
-
-We pulled public projects from `gitlab.com` through the REST API with a pinned query, then filtered on three rules to isolate "real, active" projects:
-
-1. At least **35 stars**.
-2. Activity in the **last 6 months** (`last_activity_at`).
-3. A **CI config file present on the default branch** (`repository/files` lookup on `ci_config_path`, usually `.gitlab-ci.yml`).
-
-After dropping a small list of duplicates, meta-repos and Plumber's own first-party `gitlab-org/*` and `gitlab-com/*` namespaces (their CI is structurally different from the long-tail we want to study), 242 of those candidates ended up with an analyzable pipeline. The cohort JSON, along with the exact API query and filter stats, is committed in [`artifacts/cohort.json`](https://gitlab.com/r2devops/plumber-gitlab-ecosystem-scan/-/blob/main/artifacts/cohort.json) so anyone can reproduce it.
-
-### Why we _forked_ every project
-
-Plumber relies on GitLab's GraphQL [`ciConfig` resolver](https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/graphql/resolvers/ci/config_resolver.rb) to get the **merged** CI config (with all `include:` resolved and `extends:` expanded). That resolver requires the `create_pipeline` permission, which means, on a public project you don't belong to, an `api`-scoped Personal Access Token is **not enough**. You get a `"does not exist or you don't have permission"` error even though the YAML is perfectly readable in the UI.
-
-So for each cohort project we do the same thing a human would: **fork → analyze the fork → delete the fork**. Forking gives us Maintainer rights on our copy without touching upstream, and the scan runs against the same `.gitlab-ci.yml` as the original. The full script is [`run_batch_forked.py`](https://gitlab.com/r2devops/plumber-gitlab-ecosystem-scan/-/blob/main/scripts/run_batch_forked.py).
-
-### The policy
-
-Every project was measured against [`config/study.plumber.yaml`](https://gitlab.com/r2devops/plumber-gitlab-ecosystem-scan/-/blob/main/config/study.plumber.yaml), an intentionally **realistic** policy for unrelated OSS, not a maximalist one:
-
-- **Digest pinning:** _not required_ (we allow tagged images, just not mutable ones). A stricter second pass with digest pinning enabled is on our roadmap.
-- **Pipeline must include component / template:** _off_ (those controls assume an org-specific catalog).
-- **Allow-failure on security jobs:** _permitted_ (GitLab's own templates often do this).
-- **Trusted registries:** expanded to include common public OSS hosts (`ghcr.io`, `quay.io`, `public.ecr.aws`, …).
-
-Controls that are more organizational than universal (required components/templates) are therefore **skipped** in the aggregate, so the score you see below is driven by **portable, cross-project** signals only.
-
-![From the cohort to 242 analyzable pipelines: study cohort funnel](./chart-1-cohort-funnel.png)
-
-A handful of projects were dropped before scoring: some had no `.gitlab-ci.yml` on the default branch (the API returned a `ci_config_path` but the file had moved or been deleted), some had a CI YAML that could not be merged (unresolved `include:` imports, invalid syntax after the fork), and a few could not be forked. We drop those from every chart below — a pipeline that cannot be compiled cannot be fairly scored. */}
 
 ## The headline: an industry that sits at **C**
 
@@ -165,13 +132,12 @@ If you want to scan your own portfolio:
 
 4. **Compare against the cohort**: the JSON artifact Plumber writes is fully machine-readable and ships its own letter grade.
 
-For the full study pipeline (cohort building, fork-and-analyze loop, retries, dashboard), the [GitLab repository](https://gitlab.com/r2devops/plumber-gitlab-ecosystem-scan) is the source of truth. **[Plumber Radar](/radar)** is the public dashboard for this run. The [`STUDY.md`](https://gitlab.com/r2devops/plumber-gitlab-ecosystem-scan/-/blob/main/STUDY.md) file documents every policy choice we made and why.
 
 ## What's next
 
 This is the first edition. A second pass is planned with **digest pinning enabled**, to quantify the gap between "we use tagged images" (today's baseline) and "we use cryptographically pinned images" (the hardened baseline). We're also preparing a cross-platform comparison with GitHub Actions.
 
-If you'd like to be notified when the next edition drops, or to contribute [join the Plumber Discord](/discord) or open an issue on the [scan repository](https://gitlab.com/r2devops/plumber-gitlab-ecosystem-scan/-/issues).
+If you'd like to be notified when the next edition drops, or to contribute [join the Plumber Discord](/discord).
 
 <Admonition variant="info">
 Study metadata
@@ -189,6 +155,5 @@ Study metadata
 - [GitLab CI component catalog](https://gitlab.com/explore/catalog/getplumber/plumber)
 - [Plumber documentation](/docs/cli/)
 - [Scoring specification (A–E)](https://github.com/getplumber/plumber/blob/main/docs/scoring.md)
-- [Study repository](https://gitlab.com/r2devops/plumber-gitlab-ecosystem-scan)
 - [Plumber Radar (study dashboard)](/radar)
 - [Discord community](/discord)
