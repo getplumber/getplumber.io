@@ -1,10 +1,14 @@
 ---
+import { resolveBlogTocIcon } from "@/js/blogTocIcons";
+
 interface Props {
   headings: import("astro").MarkdownHeading[];
   levels?: 1 | 2 | 3; // how many levels of headers you want to show in TOC.
+  /** Map of heading slug -> astro-icon name (e.g. tabler/brand-github) */
+  headingIcons?: Record<string, string>;
 }
 
-const { headings, levels = 2 } = Astro.props as Props;
+const { headings, levels = 2, headingIcons } = Astro.props as Props;
 
 // filter out all tags above depth level specified
 const filteredHeadings = headings.filter((heading) => heading.depth <= levels + 1);
@@ -17,24 +21,30 @@ const filteredHeadings = headings.filter((heading) => heading.depth <= levels + 
 >
   <ul class="flex flex-col gap-2">
     {
-      filteredHeadings.map((heading) => (
-        <li
-          class:list={{
-            "pl-3": heading.depth === 3,
-            "pl-6": heading.depth === 4,
-          }}
-        >
-          <a
-            href={`#${heading.slug}`}
-            class:list={[
-              "toc-link hover:text-primary-600 dark:hover:text-primary-400 transition",
-              "data-[active=true]:text-primary-600 data-[active=true]:dark:text-primary-400",
-            ]}
+      filteredHeadings.map((heading) => {
+        const iconName = headingIcons?.[heading.slug] ?? headingIcons?.[heading.text];
+        const TocIcon = resolveBlogTocIcon(iconName);
+
+        return (
+          <li
+            class:list={{
+              "pl-3": heading.depth === 3,
+              "pl-6": heading.depth === 4,
+            }}
           >
-            {heading.text}
-          </a>
-        </li>
-      ))
+            <a
+              href={`#${heading.slug}`}
+              class:list={[
+                "toc-link hover:text-primary-600 dark:hover:text-primary-400 inline-flex items-center gap-1.5 transition",
+                "data-[active=true]:text-primary-600 data-[active=true]:dark:text-primary-400",
+              ]}
+            >
+              {TocIcon && <TocIcon class="h-4 w-4 shrink-0" aria-hidden="true" />}
+              {heading.text}
+            </a>
+          </li>
+        );
+      })
     }
   </ul>
 </div>

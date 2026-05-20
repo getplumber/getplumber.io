@@ -1,0 +1,106 @@
+---
+title: "Plumber CLI 0.3 Release - What's New"
+description: "Plumber CLI 0.3 adds GitHub Actions scanning, 14 GitHub controls, schema v2 configuration, and the same compliance workflow you already use on GitLab"
+draft: false
+authors:
+  - plumber
+pubDate: 2026-05-20
+heroImage: ./heroImage.png
+categories:
+  - "releases-cli"
+tocHeadingIcons:
+  github-actions-compatibility: tabler/brand-github
+  "GitHub Actions compatibility": tabler/brand-github
+---
+
+import { Icon } from "astro-icon/components";
+import githubPlumberBanner from "./github-plumber-banner.png";
+
+# Plumber CLI 0.3
+
+<img
+  src={githubPlumberBanner.src}
+  alt="GitHub and Plumber"
+  class="not-content mb-6 block w-full max-w-md"
+  width={githubPlumberBanner.width}
+  height={githubPlumberBanner.height}
+/>
+
+**Plumber CLI 0.3 is here, and GitHub Actions is now a first-class target alongside GitLab CI/CD:**
+
+> **One policy file, two providers: scan GitHub workflows with the same controls mindset you already trust on GitLab**
+
+**Until now, the open-source [Plumber CLI](https://github.com/getplumber/plumber) focused on GitLab pipelines. Teams on GitHub had to stitch together other scanners or run parallel policies. With 0.3 you can point Plumber at `.github/workflows/`, get the same letter-grade report, JSON/PBOM output, and CI exit codes, and keep a single `.plumber.yaml` for mixed estates.**
+
+## <span class="inline-flex items-center gap-2.5 not-content "><Icon name="tabler/brand-github" class="h-7 w-7 shrink-0" aria-hidden="true" />GitHub Actions compatibility</span>
+
+Plumber auto-detects `github.com` (or GitHub Enterprise Server) from your git remote, or you can scan upstream without a local clone:
+
+```bash
+gh auth login
+plumber analyze
+
+# Or scan a remote repo
+plumber analyze --github-url github.com --project myorg/myrepo
+```
+
+Authentication follows what GitHub users already have: `gh auth login`, `GH_TOKEN`, or `GITHUB_TOKEN`. When a token cannot evaluate branch protection (missing `Administration: Read`), Plumber records a **`partialControls`** entry instead of pretending the branch passed. That keeps CI gates honest: "100%" only means what the token could actually see.
+
+<div class="not-content text-foreground mt-6 mb-4 text-xl font-medium md:text-2xl" role="heading" aria-level="3">
+  What GitHub teams gain
+</div>
+
+| Pain you feel today | What Plumber 0.3 checks |
+| --- | --- |
+| **Supply-chain surprises** (mutable action tags, archived actions, known CVEs like tj-actions) | Pin third-party actions by commit SHA, flag archived upstream repos, cross-check the GitHub Advisory Database for pinned actions |
+| **Secret theft via workflow design** (`pull_request_target`, `workflow_run`, template injection in `run:`) | Dangerous triggers, `${{ github.event.* }}` inlined into shell, `secrets: inherit` on reusable workflows |
+| **Over-powered `GITHUB_TOKEN`** | Missing `permissions:` blocks and `permissions: write-all` shortcuts |
+| **Security scans that look green but do nothing** | CodeQL / dependency-review / gitleaks-style jobs weakened with `continue-on-error`, manual-only `when`, or redefined rules |
+| **Runner and image hygiene** | Debug trace toggles that dump secrets into logs, Docker-in-Docker with insecure daemon settings, mutable container tags |
+| **Branch protection gaps** | Default and release branches: force-push disabled, code-owner approval (classic Branch Protection **and** Repository / Organization Rulesets) |
+
+**14 controls** ship for GitHub (13 on by default, plus opt-in required-action checks). They share the same OPA/Rego engine, scoring model, and issue codes (`ISSUE-701`, `ISSUE-802`, …) as GitLab, so security and platform teams can align language across both providers.
+
+Full control list, configuration examples, and issue pages: [GitHub CLI docs](/docs/cli/github).
+
+## 📋 One policy file for both providers
+
+`.plumber.yaml` schema **v2** splits settings into `gitlab.controls:` and `github.controls:` while keeping one file for orgs that run both platforms.
+
+- **`plumber config migrate`**: Upgrade v1 configs safely (writes `.plumber.yaml.v2` by default; `--in-place` keeps a `.bak`).
+- **`plumber config validate`**: Catch typos in control names before they silently skip checks in CI.
+- **`plumber config view`**: See the effective policy without wading through comments.
+
+v1 files still load with an in-memory conversion and a deprecation warning; migrate before Plumber 1.0 removes v1 support.
+
+## 🔧 Minor updates
+
+- **Provider-agnostic `analyze`**: `--github-url` / `--gitlab-url` plus `--project` (`owner/repo` or `group/project`); mutually exclusive, auto-detected from `origin` when omitted.
+- **Selective runs**: `--controls` and `--skip-controls` use the YAML control keys (handy for fixing one class of findings at a time).
+- **Stable JSON contract**: Documented top-level keys including `plumberScore`, `partialControls`, and per-control `*Result` blocks for scripting and gates.
+- **Verify release binaries with SLSA attestations when you deploy to production**:
+
+```bash
+gh release download v0.3.0 --repo getplumber/plumber --pattern 'plumber-linux-amd64'
+gh attestation verify plumber-linux-amd64 --repo getplumber/plumber
+```
+
+## ⬆️ How to update
+
+- **CLI**: `brew update && brew upgrade plumber`, or install [v0.3.0](/docs/cli/github#installation) via mise, release binaries, or Docker.
+- **GitHub repos**: Add or extend `github.controls:` in `.plumber.yaml` (start from `plumber config init` or `plumber config generate`), run `plumber analyze` in CI with `GH_TOKEN`.
+- **GitLab repos**: No workflow change required; bump the CLI. For the drop-in pipeline, use the latest [GitLab CI component](/docs/cli/gitlab#gitlab-ci-component) catalog entry when you refresh templates.
+- **Mixed estates**: Run `plumber config migrate`, then tune `gitlab.controls:` and `github.controls:` in one file.
+
+
+
+
+
+---
+
+<Admonition variant="info">
+Versions
+- Plumber CLI: `v0.3.0`
+- GitLab component: latest [catalog](https://gitlab.com/explore/catalog/getplumber/plumber)
+- Platform note: GitHub Actions scanning is **CLI-only** in this release; Plumber Platform for GitHub follows later.
+</Admonition>

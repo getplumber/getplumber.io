@@ -29,6 +29,8 @@ const blogCollection = defineCollection({
       mappingKey: z.string().optional(),
       // blog posts will be excluded from build if draft is "true"
       draft: z.boolean().optional(),
+      // Optional map of heading slug -> astro-icon name for sidebar TOC (per-post only)
+      tocHeadingIcons: z.record(z.string(), z.string()).optional(),
     }),
 });
 

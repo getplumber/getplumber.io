@@ -50,7 +50,7 @@ const authorsData = await getEntries(authors);
           )
         }
         <div class="lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)]">
-          <TableOfContents headings={headings} />
+          <TableOfContents headings={headings} headingIcons={post.data.tocHeadingIcons} />
         </div>
       </aside>
 
