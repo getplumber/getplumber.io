@@ -178,20 +178,20 @@ const defaultProvider: Provider = "gitlab";
                 {entries.map((entry) => (
                   <a
                     href={`${docsBase}/issues/${entry.code}?p=${p.id}`}
-                    class="group flex items-center gap-3 rounded-md border border-border bg-muted/30 px-3 py-2 hover:border-muted-foreground/40 hover:bg-muted/70 transition-all"
+                    class="group flex flex-col gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 hover:border-muted-foreground/40 hover:bg-muted/70 transition-all md:flex-row md:items-center md:gap-3"
                   >
-                    <span
-                      class="shrink-0 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 w-[5rem]"
-                      title="Unique identifier for this issue"
-                    >
-                      {entry.code}
-                    </span>
-                    <span class="flex-1 min-w-0">
-                      <span class="block text-xs md:text-sm text-foreground/80 group-hover:text-foreground transition-colors leading-snug">
+                    <div class="flex min-w-0 items-center gap-3 md:flex-1">
+                      <span
+                        class="shrink-0 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 w-[5rem]"
+                        title="Unique identifier for this issue"
+                      >
+                        {entry.code}
+                      </span>
+                      <span class="flex-1 min-w-0 text-xs md:text-sm text-foreground/80 group-hover:text-foreground transition-colors leading-snug">
                         {entry.title}
                       </span>
-                    </span>
-                    <div class="flex items-center gap-1.5 shrink-0">
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 md:shrink-0">
                       <ProductScopeBadge
                         scope={
                           entry.content.productScope === "cli"
