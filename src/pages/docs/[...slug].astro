@@ -16,9 +16,14 @@ import CustomH6Copy from "@/docs/components/markdown-overrides/CustomH6Copy.astr
 import ExternalLink from "@/docs/components/markdown-overrides/ExternalLink.astro";
 import ScrollableTable from "@/docs/components/markdown-overrides/ScrollableTable.astro";
 import { defaultLocale, siteSettings } from "@/docs/config/siteSettings.json";
-import { docsRoute } from "@/docs/js/docsUtils";
+import {
+  CLI_DOCS_TAB_ID,
+  docsRoute,
+  hrefToContentId,
+  PLATFORM_DOCS_PREFIX,
+} from "@/docs/js/docsUtils";
 import { filterCollectionByLanguage } from "@/docs/js/localeUtils";
-import { getLocalizedRoute, getTranslatedData } from "@/docs/js/translationUtils";
+import { getTranslatedData } from "@/docs/js/translationUtils";
 import DocsLayout from "@/docs/layouts/DocsLayout.astro";
 
 export async function getStaticPaths() {
@@ -76,6 +81,27 @@ export async function getStaticPaths() {
       // Generate paths for this tab's docs
       const tabPaths = tabDocs.flatMap((doc) => generatePathsForDoc(doc, tab.id));
       paths.push(...tabPaths);
+
+      // Alias shared Platform content under the CLI tab (e.g. /docs/cli/controls)
+      if (tab.id === CLI_DOCS_TAB_ID) {
+        for (const section of tabSections) {
+          for (const navLink of section.navLinks ?? []) {
+            const contentId = hrefToContentId(navLink.href);
+            if (!contentId?.startsWith(`${PLATFORM_DOCS_PREFIX}/`)) continue;
+
+            const doc = filteredDocs.find((d) => d.id === contentId);
+            if (!doc) continue;
+
+            const suffix = contentId.slice(PLATFORM_DOCS_PREFIX.length + 1);
+            const aliasSlug = `${section.id}/${suffix}`;
+
+            paths.push({
+              params: { slug: aliasSlug },
+              props: { doc, sectionId: tab.id },
+            });
+          }
+        }
+      }
     }
 
     // If no paths were generated, fall back to generating all docs

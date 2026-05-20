@@ -7,33 +7,11 @@ sidebar:
   indent: true
 ---
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/starwind/breadcrumb";
+import ControlsIssuesBreadcrumb from "@/docs/components/mdx-components/ControlsIssuesBreadcrumb.astro";
+import ProviderTabsScript from "@/docs/components/mdx-components/ProviderTabsScript.astro";
 import { Icon } from "astro-icon/components";
 
-<div class="not-content">
-  <Breadcrumb class="mb-4 text-xs md:text-sm">
-    <BreadcrumbList class="list-none gap-0!">
-      <BreadcrumbItem class="pl-0! pr-3">
-        <BreadcrumbLink href="/docs/use-plumber/controls" class="text-[var(--docs-link)] font-semibold hover:text-[var(--docs-link-hover)]!">
-          Controls
-        </BreadcrumbLink>
-      </BreadcrumbItem>
-      <BreadcrumbSeparator />
-      <BreadcrumbItem class="pl-3">
-        <BreadcrumbPage class="rounded-md bg-muted px-2 py-0.5 text-foreground">
-          Issues
-        </BreadcrumbPage>
-      </BreadcrumbItem>
-    </BreadcrumbList>
-  </Breadcrumb>
-</div>
+<ControlsIssuesBreadcrumb />
 
 ## Issues list
 
@@ -42,6 +20,8 @@ When a control detects a violation in your project, Plumber creates an **Issue**
 **All** means the control applies to Plumber Platform and the Open Source CLI. **Platform** means Plumber Platform only (the Open Source CLI does not report this issue). **CLI** means the Open Source CLI reports this issue only (it is not enforced as a Platform control). See [Compliance Controls](/docs/use-plumber/controls) for the full table.
 
 Click any issue to see the full description, impact, before/after configuration examples, and remediation steps.
+
+<ProviderTabs />
 
 <div class="not-content my-5 rounded-md bg-muted/40 px-3 py-2.5  leading-snug md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-1">
   <div class="mb-4 md:mb-0">
@@ -76,7 +56,9 @@ Click any issue to see the full description, impact, before/after configuration 
   </div>
 </div>
 
-<IssuesList />
+<IssuesList showProviderTabs={false} />
+
+<ProviderTabsScript />
 
 ## Issues status
 An issue status can be:

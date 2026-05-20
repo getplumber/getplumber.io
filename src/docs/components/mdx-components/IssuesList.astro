@@ -11,14 +11,28 @@
  */
 import { Icon } from "astro-icon/components";
 
+import ProviderTabs from "@/docs/components/mdx-components/ProviderTabs.astro";
+import { categoryOrderRank, issueCodeRank } from "@/data/issueCategoryOrder";
 import {
   type IssueProviderContent,
+  issueDisplayTitle,
   issues,
+  isVisibleProviderContent,
   type Provider,
+  SHOW_ROADMAP,
 } from "@/data/issues";
 import ProductScopeBadge from "@/docs/components/mdx-components/ProductScopeBadge.astro";
+import Aside from "@/docs/components/mdx-components/Aside.astro";
+import { isCliDocsPath } from "@/docs/js/docsUtils";
 
-const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+interface Props {
+  /** When false, render only issue panels (tabs live elsewhere on the page). */
+  showProviderTabs?: boolean;
+}
+
+const { showProviderTabs = true } = Astro.props;
+
+const docsBase = isCliDocsPath(Astro.url.pathname) ? "/docs/cli" : "/docs/use-plumber";
 
 export const severityBadge: Record<string, string> = {
   critical:
@@ -44,7 +58,14 @@ export const fixDurationBadge: Record<string, string> = {
     "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 ring-red-300/70 dark:ring-red-700/60",
 };
 
-type Row = { code: string; content: IssueProviderContent };
+type Row = { code: string; content: IssueProviderContent; title: string };
+
+function sortCategoryEntries(entries: [string, Row[]][]): [string, Row[]][] {
+  return [...entries].sort(([a], [b]) => {
+    const diff = categoryOrderRank(a) - categoryOrderRank(b);
+    return diff !== 0 ? diff : a.localeCompare(b);
+  });
+}
 
 function groupByCategory(rows: Row[]): Map<string, Row[]> {
   const grouped = new Map<string, Row[]>();
@@ -54,11 +75,7 @@ function groupByCategory(rows: Row[]): Map<string, Row[]> {
     grouped.get(cat)!.push(row);
   }
   for (const list of grouped.values()) {
-    list.sort((a, b) => {
-      const sevDiff =
-        (severityOrder[a.content.severity] ?? 99) - (severityOrder[b.content.severity] ?? 99);
-      return sevDiff !== 0 ? sevDiff : a.code.localeCompare(b.code);
-    });
+    list.sort((a, b) => issueCodeRank(a.code) - issueCodeRank(b.code));
   }
   return grouped;
 }
@@ -79,8 +96,11 @@ function splitByStatus(rows: Row[]): ProviderGroups {
   const shipping: Row[] = [];
   const roadmap: Row[] = [];
   for (const row of rows) {
-    if (row.content.status === "roadmap") roadmap.push(row);
-    else shipping.push(row);
+    if (SHOW_ROADMAP && row.content.status === "roadmap") {
+      roadmap.push(row);
+    } else if (row.content.status !== "roadmap") {
+      shipping.push(row);
+    }
   }
   return { shipping: groupByCategory(shipping), roadmap: groupByCategory(roadmap) };
 }
@@ -88,13 +108,21 @@ function splitByStatus(rows: Row[]): ProviderGroups {
 const groupedByProvider: Record<Provider, ProviderGroups> = {
   gitlab: splitByStatus(
     Object.entries(issues)
-      .filter(([, doc]) => doc.gitlab != null)
-      .map(([code, doc]) => ({ code, content: doc.gitlab! })),
+      .filter(([, doc]) => doc.gitlab != null && isVisibleProviderContent(doc.gitlab))
+      .map(([code, doc]) => ({
+        code,
+        content: doc.gitlab!,
+        title: issueDisplayTitle(doc, "gitlab")!,
+      })),
   ),
   github: splitByStatus(
     Object.entries(issues)
-      .filter(([, doc]) => doc.github != null)
-      .map(([code, doc]) => ({ code, content: doc.github! })),
+      .filter(([, doc]) => doc.github != null && isVisibleProviderContent(doc.github))
+      .map(([code, doc]) => ({
+        code,
+        content: doc.github!,
+        title: issueDisplayTitle(doc, "github")!,
+      })),
   ),
 };
 
@@ -102,32 +130,7 @@ const groupedByProvider: Record<Provider, ProviderGroups> = {
 const defaultProvider: Provider = "gitlab";
 ---
 
-<div
-  class="not-content not-prose mb-4 inline-flex items-center gap-1 rounded-lg bg-muted/50 p-1 ring-1 ring-border"
-  role="tablist"
-  aria-label="Provider"
-  data-issues-list-tabs
->
-  {
-    providers.map((p) => (
-      <button
-        type="button"
-        role="tab"
-        data-provider-tab={p.id}
-        aria-selected={p.id === defaultProvider ? "true" : "false"}
-        class:list={[
-          "provider-tab inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-all",
-          p.id === defaultProvider
-            ? "bg-background text-foreground ring-1 ring-border shadow-sm"
-            : "text-muted-foreground hover:text-foreground",
-        ]}
-      >
-        <Icon name={p.icon} size="18px" />
-        {p.label}
-      </button>
-    ))
-  }
-</div>
+{showProviderTabs && <ProviderTabs defaultProvider={defaultProvider} />}
 
 {
   providers.map((p) => {
@@ -140,13 +143,22 @@ const defaultProvider: Provider = "gitlab";
         data-provider-panel={p.id}
         class:list={["provider-panel not-prose mt-6", p.id === defaultProvider ? "" : "hidden"]}
       >
+        {p.id === "github" && (
+          <Aside variant="info" title="Open Source CLI only">
+            <p>
+              GitHub Actions issues are reported by the Open Source CLI only. Plumber Platform
+              does not scan GitHub Actions workflows yet.
+            </p>
+          </Aside>
+        )}
+
         {!hasContent && (
           <p class="text-sm text-muted-foreground">
             No {p.label} issues yet.
           </p>
         )}
 
-        {hasShipping && hasRoadmap && (
+        {SHOW_ROADMAP && hasShipping && hasRoadmap && p.id === "gitlab" && (
           <div class="mb-6 flex items-center gap-2 text-base font-semibold text-foreground">
             <span class="text-amber-600 dark:text-amber-400">★</span>
             <span>Currently shipping</span>
@@ -165,7 +177,7 @@ const defaultProvider: Provider = "gitlab";
               <div class="flex flex-col">
                 {entries.map((entry) => (
                   <a
-                    href={`/docs/use-plumber/issues/${entry.code}?p=${p.id}`}
+                    href={`${docsBase}/issues/${entry.code}?p=${p.id}`}
                     class="group flex items-center gap-3 rounded-md border border-border bg-muted/30 px-3 py-2 hover:border-muted-foreground/40 hover:bg-muted/70 transition-all"
                   >
                     <span
@@ -176,7 +188,7 @@ const defaultProvider: Provider = "gitlab";
                     </span>
                     <span class="flex-1 min-w-0">
                       <span class="block text-xs md:text-sm text-foreground/80 group-hover:text-foreground transition-colors leading-snug">
-                        {entry.content.title}
+                        {entry.title}
                       </span>
                     </span>
                     <div class="flex items-center gap-1.5 shrink-0">
@@ -189,7 +201,7 @@ const defaultProvider: Provider = "gitlab";
                               : "all"
                         }
                       />
-                      {entry.content.status === "roadmap" && (
+                      {SHOW_ROADMAP && entry.content.status === "roadmap" && (
                         <span
                           class="inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 ring-amber-300 dark:ring-amber-700/50"
                           title="On the roadmap — Rego exists but findings are held back by the engine's bench gate."
@@ -223,10 +235,12 @@ const defaultProvider: Provider = "gitlab";
           return (
             <>
               <div class="space-y-10">
-                {[...groups.shipping.entries()].map(([cat, entries]) => renderCategory(cat, entries))}
+                {sortCategoryEntries([...groups.shipping.entries()]).map(([cat, entries]) =>
+                  renderCategory(cat, entries),
+                )}
               </div>
 
-              {hasRoadmap && (
+              {SHOW_ROADMAP && hasRoadmap && (
                 <>
                   <div class="mt-12 mb-6 border-t border-border pt-6 flex flex-wrap items-center gap-3">
                     <span class="text-base font-semibold text-foreground">
@@ -245,7 +259,9 @@ const defaultProvider: Provider = "gitlab";
                     <code class="bg-muted px-1.5 py-0.5 rounded text-foreground">.plumber.yaml</code> today has no effect.
                   </p>
                   <div class="space-y-10">
-                    {[...groups.roadmap.entries()].map(([cat, entries]) => renderCategory(cat, entries))}
+                    {sortCategoryEntries([...groups.roadmap.entries()]).map(([cat, entries]) =>
+                      renderCategory(cat, entries),
+                    )}
                   </div>
                 </>
               )}
@@ -256,79 +272,3 @@ const defaultProvider: Provider = "gitlab";
     );
   })
 }
-
-<script is:inline>
-  (function () {
-    const STORAGE_KEY = "plumber:docs:provider";
-
-    function panelExists(p) {
-      return !!document.querySelector(`[data-provider-panel="${p}"]`);
-    }
-
-    function rewriteIssueLinks(p) {
-      // Update detail-page links inside the active panel to carry ?p=
-      document.querySelectorAll('a[href^="/docs/use-plumber/issues/"]').forEach((a) => {
-        const href = a.getAttribute("href") || "";
-        const m = href.match(/^(\/docs\/use-plumber\/issues\/ISSUE-\d+)(\?.*)?$/);
-        if (m) {
-          a.setAttribute("href", `${m[1]}?p=${p}`);
-        }
-      });
-    }
-
-    function setProvider(p) {
-      if (!panelExists(p)) return;
-      document.querySelectorAll("[data-provider-panel]").forEach((panel) => {
-        const active = panel.getAttribute("data-provider-panel") === p;
-        panel.classList.toggle("hidden", !active);
-      });
-      document.querySelectorAll("[data-provider-tab]").forEach((tab) => {
-        const active = tab.getAttribute("data-provider-tab") === p;
-        tab.setAttribute("aria-selected", active ? "true" : "false");
-        if (active) {
-          tab.classList.add("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
-          tab.classList.remove("text-muted-foreground");
-        } else {
-          tab.classList.remove("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
-          tab.classList.add("text-muted-foreground");
-        }
-      });
-      rewriteIssueLinks(p);
-      try {
-        localStorage.setItem(STORAGE_KEY, p);
-      } catch {
-        /* localStorage unavailable (private mode, etc.); silently ignore. */
-      }
-      const url = new URL(window.location.href);
-      url.searchParams.set("p", p);
-      window.history.replaceState({}, "", url.toString());
-    }
-
-    function initialProvider() {
-      const params = new URLSearchParams(window.location.search);
-      const fromUrl = params.get("p");
-      if ((fromUrl === "gitlab" || fromUrl === "github") && panelExists(fromUrl)) {
-        return fromUrl;
-      }
-      let fromStorage = null;
-      try {
-        fromStorage = localStorage.getItem(STORAGE_KEY);
-      } catch {
-        /* localStorage unavailable (private mode, etc.); silently ignore. */
-      }
-      if ((fromStorage === "gitlab" || fromStorage === "github") && panelExists(fromStorage)) {
-        return fromStorage;
-      }
-      return "gitlab";
-    }
-
-    setProvider(initialProvider());
-
-    document.querySelectorAll("[data-provider-tab]").forEach((tab) => {
-      tab.addEventListener("click", () => {
-        const p = tab.getAttribute("data-provider-tab");
-        if (p === "gitlab" || p === "github") setProvider(p);
-      });
-    });
-  })();
-</script>

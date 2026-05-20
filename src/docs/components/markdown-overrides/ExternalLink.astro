@@ -7,8 +7,10 @@
  */
 
 import { getLocaleFromUrl } from "@/docs/js/localeUtils";
+import { resolveSharedDocsHrefFromPath } from "@/docs/js/docsUtils";
 
 const currLocale = getLocaleFromUrl(Astro.url);
+const pathname = Astro.url.pathname;
 
 const { href }: Record<string, any> = Astro.props;
 
@@ -27,8 +29,7 @@ let actualLink: string;
 if (isExternal) {
   actualLink = href;
 } else {
-  // internal link, so we need to add the locale to the link
-  actualLink = href;
+  actualLink = resolveSharedDocsHrefFromPath(href, pathname);
 }
 // remove trailing slash so IDs will work
 if (actualLink.endsWith("/") && actualLink !== "/") {

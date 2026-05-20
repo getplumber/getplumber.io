@@ -1,0 +1,50 @@
+---
+/**
+ * GitLab / GitHub provider switcher for controls, issues list, and issue detail pages.
+ * Uses Tailwind utilities (not a scoped <style> block) so MDX pages include layout correctly.
+ * Active state is driven by `aria-selected`; ProviderTabsScript toggles that attribute.
+ */
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  defaultProvider?: "gitlab" | "github";
+  class?: string;
+}
+
+const { defaultProvider = "gitlab" } = Astro.props;
+
+const providers = [
+  { id: "gitlab" as const, label: "GitLab", icon: "tabler/brand-gitlab" },
+  { id: "github" as const, label: "GitHub", icon: "tabler/brand-github" },
+];
+
+const tabClass =
+  "provider-tab inline-flex shrink-0 items-center gap-2.5 rounded-lg border px-5 py-2.5 text-[15px] font-semibold leading-tight transition-all border-transparent text-muted-foreground hover:border-border hover:bg-background/70 hover:text-foreground aria-selected:border-border aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-md aria-selected:ring-2 aria-selected:ring-emerald-500/50 aria-selected:ring-offset-2 aria-selected:ring-offset-background";
+---
+
+<div
+  class:list={[
+    "not-content not-prose mt-2 mb-6 flex flex-col gap-2.5 rounded-xl border border-border bg-muted/50 px-4 py-3 shadow-sm ring-1 ring-border/60",
+    Astro.props.class,
+  ]}
+>
+  <p class="m-0 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+    CI/CD provider
+  </p>
+  <div class="flex flex-wrap gap-2" role="tablist" aria-label="CI/CD provider">
+    {
+      providers.map((p) => (
+        <button
+          type="button"
+          role="tab"
+          data-provider-tab={p.id}
+          aria-selected={p.id === defaultProvider ? "true" : "false"}
+          class={tabClass}
+        >
+          <Icon name={p.icon} size="20px" aria-hidden="true" />
+          <span>{p.label}</span>
+        </button>
+      ))
+    }
+  </div>
+</div>

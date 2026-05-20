@@ -64,6 +64,31 @@ export interface IssueDoc {
   github?: IssueProviderContent;
 }
 
+/** Roadmap issues and the "On the roadmap" docs section are hidden until enabled. */
+export const SHOW_ROADMAP = false;
+
+/** Whether this provider block is shown in lists, tabs, and detail panels. */
+export function isVisibleProviderContent(content: IssueProviderContent): boolean {
+  return SHOW_ROADMAP || content.status !== "roadmap";
+}
+
+/** Shared codes that keep provider-specific titles (GitHub wording differs). */
+const PROVIDER_SPECIFIC_ISSUE_TITLES = new Set(["ISSUE-203"]);
+
+/**
+ * Docs title for a provider. When an issue exists on both GitLab and GitHub,
+ * both tabs use the GitLab title so the shared ISSUE-XXX identity stays consistent,
+ * except for codes listed in PROVIDER_SPECIFIC_ISSUE_TITLES.
+ */
+export function issueDisplayTitle(doc: IssueDoc, provider: Provider): string | null {
+  const content = doc[provider];
+  if (!content) return null;
+  if (doc.gitlab && doc.github && !PROVIDER_SPECIFIC_ISSUE_TITLES.has(doc.code)) {
+    return doc.gitlab.title;
+  }
+  return content.title;
+}
+
 export const issues: Record<string, IssueDoc> = {
 
   "ISSUE-101": {
@@ -120,8 +145,8 @@ sast:
       relatedCodes: ["ISSUE-102"],
     },
     github: {
-      title: "Untrusted container image source",
-      category: "GitHub Actions — Container images",
+      title: "Untrusted image source",
+      category: "CI/CD Container Images",
       severity: "high",
       fixDuration: "medium",
       controlName: "Container images must come from authorized sources",
@@ -183,7 +208,7 @@ github:
         "GitHub container references include `jobs.*.container`, `jobs.*.services.*`, and `uses: docker://...` action refs.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-102", "ISSUE-107"],
+      relatedCodes: ["ISSUE-102", "ISSUE-706"],
     },
   },
 
@@ -234,7 +259,7 @@ lint:
     },
     github: {
       title: "Forbidden container image tag",
-      category: "GitHub Actions — Container images",
+      category: "CI/CD Container Images",
       severity: "medium",
       fixDuration: "quick",
       controlName: "Container images must not use forbidden tags",
@@ -425,8 +450,8 @@ api-call:
       relatedCodes: ["ISSUE-201", "ISSUE-202"],
     },
     github: {
-      title: "Workflow dumps the secrets context",
-      category: "GitHub Actions — Secrets & permissions",
+      title: "Secret leak in pipeline configuration",
+      category: "CI/CD Secrets",
       severity: "critical",
       fixDuration: "quick",
       productScope: "cli",
@@ -767,8 +792,8 @@ branchMustBeProtected:
       relatedCodes: ["ISSUE-505"],
     },
     github: {
-      title: "Default branch is not protected",
-      category: "GitHub Actions — Repository hygiene",
+      title: "Branch protection missing",
+      category: "Access and Authorization",
       severity: "critical",
       fixDuration: "quick",
       controlName: "Branch must be protected",
@@ -858,9 +883,13 @@ github:
       ],
       relatedCodes: ["ISSUE-407"],
     },
+  },
+
+  "ISSUE-422": {
+    code: "ISSUE-422",
     github: {
       title: "Workflow has no explicit name",
-      category: "GitHub Actions — Runtime hygiene",
+      category: "Pipeline Composition",
       severity: "low",
       fixDuration: "quick",
       productScope: "cli",
@@ -1135,8 +1164,8 @@ branchMustBeProtected:
       relatedCodes: ["ISSUE-501"],
     },
     github: {
-      title: "Branch protection configuration is not compliant (GitHub)",
-      category: "GitHub Actions — Repository hygiene",
+      title: "Branch protection configuration not compliant",
+      category: "Access and Authorization",
       severity: "high",
       fixDuration: "quick",
       controlName: "Branch must be protected",
@@ -1447,7 +1476,7 @@ deploy:
     },
     github: {
       title: "Workflow enables runner debug logging",
-      category: "GitHub Actions — Triggers & permissions",
+      category: "CI/CD Variables",
       severity: "critical",
       fixDuration: "quick",
       productScope: "cli",
@@ -1692,8 +1721,8 @@ variables:
       relatedCodes: ["ISSUE-408", "ISSUE-409", "ISSUE-406"],
     },
     github: {
-      title: "Security job is weakened (GitHub)",
-      category: "GitHub Actions — Runtime hygiene",
+      title: "Security job weakened",
+      category: "Pipeline Composition",
       severity: "critical",
       fixDuration: "quick",
       productScope: "cli",
@@ -1735,7 +1764,7 @@ github:
         "Customise `securityJobPatterns` for your stack. The defaults ship wildcard-wrapped (`*codeql*`, `*-sast`, `*scan*`, ...) so they catch project-specific prefixes; you can drop the wildcards once you know your workflow-file layout.",
         "`continue-on-error: true` on the workflow level is fine; on a security scan job it isn't.",
       ],
-      relatedCodes: ["ISSUE-211", "ISSUE-609"],
+      relatedCodes: ["ISSUE-211", "ISSUE-904"],
     },
   },
 
@@ -1857,8 +1886,8 @@ build-image:
       relatedCodes: ["ISSUE-413", "ISSUE-101"],
     },
     github: {
-      title: "Docker-in-Docker service on GitHub Actions",
-      category: "GitHub Actions — Runtime hygiene",
+      title: "Docker-in-Docker service detected",
+      category: "Pipeline Composition",
       severity: "high",
       fixDuration: "medium",
       productScope: "cli",
@@ -1965,8 +1994,8 @@ build-image:
       relatedCodes: ["ISSUE-412", "ISSUE-101"],
     },
     github: {
-      title: "Docker-in-Docker with insecure daemon configuration (GitHub)",
-      category: "GitHub Actions — Runtime hygiene",
+      title: "Docker-in-Docker with insecure daemon configuration",
+      category: "Pipeline Composition",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -2050,11 +2079,11 @@ jobs:
       relatedCodes: ["ISSUE-507"],
     },
   },
-  "ISSUE-104": {
-    code: "ISSUE-104",
+  "ISSUE-701": {
+    code: "ISSUE-701",
     github: {
       title: "Third-party action is not pinned by commit SHA",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "high",
       fixDuration: "medium",
       productScope: "cli",
@@ -2094,17 +2123,17 @@ github:
       tips: [
         "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions.",
         "Local actions (`uses: ./.github/actions/foo`) are always exempt — they live in the same repo.",
-        "Pair with ISSUE-108–115 for a complete supply-chain ruleset (archived repos, impostor SHAs, stale pins, etc.).",
+        "Pair with ISSUE-702–115 for a complete supply-chain ruleset (archived repos, impostor SHAs, stale pins, etc.).",
       ],
-      relatedCodes: ["ISSUE-108", "ISSUE-109", "ISSUE-110", "ISSUE-111", "ISSUE-114"],
+      relatedCodes: ["ISSUE-702", "ISSUE-707", "ISSUE-708", "ISSUE-709", "ISSUE-703"],
     },
   },
 
-  "ISSUE-108": {
-    code: "ISSUE-108",
+  "ISSUE-702": {
+    code: "ISSUE-702",
     github: {
       title: "Action is hosted in an archived repository",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "high",
       fixDuration: "medium",
       productScope: "cli",
@@ -2143,15 +2172,15 @@ github:
         "The PBOM tags each archived include with `archived: true` (JSON) / `plumber:archived` (CycloneDX) so dashboards can dedupe across multiple callers of the same abandoned action.",
       ],
       status: "shipping",
-      relatedCodes: ["ISSUE-104", "ISSUE-114"],
+      relatedCodes: ["ISSUE-701", "ISSUE-703"],
     },
   },
 
-  "ISSUE-109": {
-    code: "ISSUE-109",
+  "ISSUE-707": {
+    code: "ISSUE-707",
     github: {
       title: "Pinned SHA does not exist in upstream repository",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "high",
       fixDuration: "medium",
       productScope: "cli",
@@ -2183,15 +2212,15 @@ jobs:
         "This rule needs upstream lookup — running offline or against a private upstream where the token has no access will report `partialControls` (abstain).",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-104", "ISSUE-110"],
+      relatedCodes: ["ISSUE-701", "ISSUE-708"],
     },
   },
 
-  "ISSUE-110": {
-    code: "ISSUE-110",
+  "ISSUE-708": {
+    code: "ISSUE-708",
     github: {
       title: "Action version comment does not match the resolved SHA",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "medium",
       fixDuration: "quick",
       productScope: "cli",
@@ -2223,15 +2252,15 @@ jobs:
         "If you write the comment by hand, run `gh api repos/OWNER/REPO/commits/<sha>` and check the `committer.date` / surrounding tag.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-104", "ISSUE-109", "ISSUE-111"],
+      relatedCodes: ["ISSUE-701", "ISSUE-707", "ISSUE-709"],
     },
   },
 
-  "ISSUE-111": {
-    code: "ISSUE-111",
+  "ISSUE-709": {
+    code: "ISSUE-709",
     github: {
       title: "Pinned action is stale relative to the latest release",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "low",
       fixDuration: "medium",
       productScope: "cli",
@@ -2263,15 +2292,15 @@ jobs:
         "The stale-window threshold is configurable via `actionsMustBePinnedByCommitSha.staleAfterReleases`.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-104", "ISSUE-110"],
+      relatedCodes: ["ISSUE-701", "ISSUE-708"],
     },
   },
 
-  "ISSUE-113": {
-    code: "ISSUE-113",
+  "ISSUE-710": {
+    code: "ISSUE-710",
     github: {
       title: "Action ref collides with both a tag and a branch upstream",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "medium",
       fixDuration: "quick",
       productScope: "cli",
@@ -2282,7 +2311,7 @@ jobs:
       impact:
         "GitHub's ref-resolution order makes the outcome implementation-defined and timing-dependent. An attacker who can push to a branch named `v1` upstream may be able to have CI pick the branch over the tag under specific conditions, swapping a release for arbitrary code.",
       remediation:
-        "Pin the action by commit SHA (ISSUE-104). If you must use a symbolic ref, ensure the upstream repository's tags don't share names with branches.",
+        "Pin the action by commit SHA (ISSUE-701). If you must use a symbolic ref, ensure the upstream repository's tags don't share names with branches.",
       badExample: `# .github/workflows/test.yml — ❌ Ambiguous ref
 jobs:
   test:
@@ -2303,15 +2332,15 @@ jobs:
         "Upstream maintainers should delete the branch (or rename the tag) to clear the collision for all consumers.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-104"],
+      relatedCodes: ["ISSUE-701"],
     },
   },
 
-  "ISSUE-114": {
-    code: "ISSUE-114",
+  "ISSUE-703": {
+    code: "ISSUE-703",
     github: {
       title: "Action version carries a published security advisory",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "critical",
       fixDuration: "medium",
       productScope: "cli",
@@ -2345,20 +2374,20 @@ github:
       goodExampleCaption: "Patched release pinned by SHA.",
       tips: [
         "Tag pins (e.g. `@v45`) are semver-checked against each advisory's affected range. SHA pins without a resolvable release tag may flag if any advisory exists for that `owner/repo`.",
-        "Same scope limits as ISSUE-108: step `uses:` only, static YAML, no nested composite internals, no reusable-workflow callee files unless they live in this repo's `.github/workflows/`.",
+        "Same scope limits as ISSUE-702: step `uses:` only, static YAML, no nested composite internals, no reusable-workflow callee files unless they live in this repo's `.github/workflows/`.",
         "Without API auth the rule abstains (not a pass). Pair with Dependabot `package-ecosystem: github-actions` for ongoing alerts.",
         "The PBOM tags affected includes with `hasCve: true` plus `advisories: [GHSA-…]` (JSON) / `plumber:has-cve` plus `plumber:advisories` properties (CycloneDX).",
       ],
       status: "shipping",
-      relatedCodes: ["ISSUE-104", "ISSUE-108", "ISSUE-111"],
+      relatedCodes: ["ISSUE-701", "ISSUE-702", "ISSUE-709"],
     },
   },
 
-  "ISSUE-115": {
-    code: "ISSUE-115",
+  "ISSUE-711": {
+    code: "ISSUE-711",
     github: {
       title: "Action duplicates a runner built-in",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "low",
       fixDuration: "quick",
       productScope: "cli",
@@ -2396,15 +2425,15 @@ jobs:
         "Self-hosted runners can vary — check what's on yours before disabling the rule.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-104"],
+      relatedCodes: ["ISSUE-701"],
     },
   },
 
-  "ISSUE-105": {
-    code: "ISSUE-105",
+  "ISSUE-704": {
+    code: "ISSUE-704",
     github: {
       title: "Container registry credentials are hardcoded",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "critical",
       fixDuration: "quick",
       productScope: "cli",
@@ -2453,11 +2482,11 @@ github:
     },
   },
 
-  "ISSUE-106": {
-    code: "ISSUE-106",
+  "ISSUE-705": {
+    code: "ISSUE-705",
     github: {
       title: "Release workflow primes cache from attacker-controlled artefacts",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "high",
       fixDuration: "long",
       productScope: "cli",
@@ -2495,15 +2524,15 @@ jobs:
         "If reuse is necessary, sign the cache contents and verify the signature before restoring.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-414", "ISSUE-415"],
+      relatedCodes: ["ISSUE-802", "ISSUE-804"],
     },
   },
 
-  "ISSUE-107": {
-    code: "ISSUE-107",
+  "ISSUE-706": {
+    code: "ISSUE-706",
     github: {
       title: "Dockerfile FROM reference is not pinned by digest",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "medium",
       fixDuration: "medium",
       productScope: "cli",
@@ -2542,11 +2571,11 @@ github:
     },
   },
 
-  "ISSUE-206": {
-    code: "ISSUE-206",
+  "ISSUE-207": {
+    code: "ISSUE-207",
     github: {
       title: "Workflow inlines user input into a shell script",
-      category: "GitHub Actions — Template injection",
+      category: "CI/CD Variables",
       severity: "critical",
       fixDuration: "quick",
       productScope: "cli",
@@ -2585,9 +2614,9 @@ github:
       tips: [
         "The dangerous fields are `github.event.pull_request.*`, `github.event.issue.*`, `github.event.comment.*`, `github.head_ref`, and `github.event.commits[*].message`.",
         "`github.repository`, `github.sha`, and `github.ref_name` are derived from server-trusted state — safer but still worth scoping.",
-        "Pair with ISSUE-414 to also catch the trigger side of the same attack.",
+        "Pair with ISSUE-802 to also catch the trigger side of the same attack.",
       ],
-      relatedCodes: ["ISSUE-215", "ISSUE-213", "ISSUE-414"],
+      relatedCodes: ["ISSUE-215", "ISSUE-213", "ISSUE-802"],
     },
   },
 
@@ -2595,7 +2624,7 @@ github:
     code: "ISSUE-208",
     github: {
       title: "Workflow re-enables deprecated workflow commands",
-      category: "GitHub Actions — Template injection",
+      category: "CI/CD Variables",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -2628,7 +2657,7 @@ jobs:
         "If you need this flag for a legacy action, fix the action instead — the alternative APIs have been available for five years.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-206", "ISSUE-209"],
+      relatedCodes: ["ISSUE-207", "ISSUE-209"],
     },
   },
 
@@ -2636,7 +2665,7 @@ jobs:
     code: "ISSUE-209",
     github: {
       title: "Workflow writes untrusted content to $GITHUB_ENV",
-      category: "GitHub Actions — Template injection",
+      category: "CI/CD Variables",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -2673,7 +2702,7 @@ jobs:
         "If you only need the value within one step, env: is enough — don't write to $GITHUB_ENV at all.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-206", "ISSUE-208"],
+      relatedCodes: ["ISSUE-207", "ISSUE-208"],
     },
   },
 
@@ -2681,7 +2710,7 @@ jobs:
     code: "ISSUE-210",
     github: {
       title: "Workflow gates on a spoofable actor check",
-      category: "GitHub Actions — Template injection",
+      category: "CI/CD Variables",
       severity: "medium",
       fixDuration: "quick",
       productScope: "cli",
@@ -2715,7 +2744,7 @@ jobs:
         "For Dependabot specifically, use `github.event.pull_request.user.login == 'dependabot[bot]'` *and* `github.actor == 'dependabot[bot]'` *and* check that the PR was opened from `dependabot/` branches.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-414"],
+      relatedCodes: ["ISSUE-802"],
     },
   },
 
@@ -2723,7 +2752,7 @@ jobs:
     code: "ISSUE-211",
     github: {
       title: "Workflow `if:` condition is logically unsound",
-      category: "GitHub Actions — Template injection",
+      category: "CI/CD Variables",
       severity: "medium",
       fixDuration: "quick",
       productScope: "cli",
@@ -2763,7 +2792,7 @@ jobs:
     code: "ISSUE-212",
     github: {
       title: "Workflow misuses the contains() built-in",
-      category: "GitHub Actions — Template injection",
+      category: "CI/CD Variables",
       severity: "medium",
       fixDuration: "quick",
       productScope: "cli",
@@ -2803,7 +2832,7 @@ jobs:
     code: "ISSUE-213",
     github: {
       title: "Workflow dumps the github context",
-      category: "GitHub Actions — Template injection",
+      category: "CI/CD Variables",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -2836,10 +2865,10 @@ jobs:
       goodExampleCaption: "Pick the fields you need; bind through env.",
       tips: [
         "`toJson(secrets)` is a separate, even worse rule — see ISSUE-301.",
-        "Use this rule in tandem with ISSUE-206 for full coverage of template-injection paths.",
+        "Use this rule in tandem with ISSUE-207 for full coverage of template-injection paths.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-206", "ISSUE-301", "ISSUE-215"],
+      relatedCodes: ["ISSUE-207", "ISSUE-301", "ISSUE-215"],
     },
   },
 
@@ -2847,7 +2876,7 @@ jobs:
     code: "ISSUE-214",
     github: {
       title: "Workflow installs a package without pinning",
-      category: "GitHub Actions — Template injection",
+      category: "CI/CD Variables",
       severity: "medium",
       fixDuration: "medium",
       productScope: "cli",
@@ -2881,7 +2910,7 @@ jobs:
         "Use `--frozen-lockfile` with Yarn / `npm ci` with npm to fail the build on lockfile drift.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-104", "ISSUE-606", "ISSUE-607"],
+      relatedCodes: ["ISSUE-701", "ISSUE-901", "ISSUE-902"],
     },
   },
 
@@ -2889,7 +2918,7 @@ jobs:
     code: "ISSUE-215",
     github: {
       title: "Workflow expands `vars.*` template into shell",
-      category: "GitHub Actions — Template injection",
+      category: "CI/CD Variables",
       severity: "medium",
       fixDuration: "quick",
       productScope: "cli",
@@ -2900,7 +2929,7 @@ jobs:
       impact:
         "A compromised maintainer or a misconfigured org variable becomes a shell-injection sink with no PR-side review. For reusable workflows, an `inputs.*` value passed from `${{ github.event.* }}` is attacker-controlled even though it looks 'safer'.",
       remediation:
-        "Bind the variable through `env:` and reference the env var from the shell — same fix as ISSUE-206.",
+        "Bind the variable through `env:` and reference the env var from the shell — same fix as ISSUE-207.",
       badExample: `# .github/workflows/reusable.yml — ❌ vars.* inlined
 on:
   workflow_call:
@@ -2926,18 +2955,18 @@ jobs:
         run: gh pr comment "$PR_TITLE" `,
       goodExampleCaption: "Env-bound value reaches the shell with shell quoting intact.",
       tips: [
-        "Same remediation as ISSUE-206 — they're variants of the same root cause.",
+        "Same remediation as ISSUE-207 — they're variants of the same root cause.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-206", "ISSUE-213"],
+      relatedCodes: ["ISSUE-207", "ISSUE-213"],
     },
   },
 
-  "ISSUE-112": {
-    code: "ISSUE-112",
+  "ISSUE-712": {
+    code: "ISSUE-712",
     github: {
       title: "Release workflow produces unsigned artefacts",
-      category: "GitHub Actions — Supply chain",
+      category: "Third-party actions",
       severity: "high",
       fixDuration: "long",
       productScope: "cli",
@@ -2986,7 +3015,7 @@ jobs:
         "Pair with SLSA L3 build provenance via `slsa-github-generator` for the highest assurance.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-104", "ISSUE-605"],
+      relatedCodes: ["ISSUE-701", "ISSUE-421"],
     },
   },
 
@@ -2994,7 +3023,7 @@ jobs:
     code: "ISSUE-302",
     github: {
       title: "Reusable workflow called with `secrets: inherit`",
-      category: "GitHub Actions — Secrets & permissions",
+      category: "CI/CD Secrets",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -3023,7 +3052,7 @@ jobs:
         "Look at the callee's `on: workflow_call: secrets:` block to know exactly what to pass.",
         "If you author the reusable workflow, list each `secrets:` block explicitly — never accept `inherit` unconditionally.",
       ],
-      relatedCodes: ["ISSUE-301", "ISSUE-304"],
+      relatedCodes: ["ISSUE-301", "ISSUE-801"],
     },
   },
 
@@ -3031,7 +3060,7 @@ jobs:
     code: "ISSUE-303",
     github: {
       title: "Secret dereferenced via fromJSON bypasses redaction",
-      category: "GitHub Actions — Secrets & permissions",
+      category: "CI/CD Secrets",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -3068,11 +3097,11 @@ jobs:
     },
   },
 
-  "ISSUE-304": {
-    code: "ISSUE-304",
+  "ISSUE-801": {
+    code: "ISSUE-801",
     github: {
       title: "Workflow does not declare permissions",
-      category: "GitHub Actions — Secrets & permissions",
+      category: "Workflow triggers and permissions",
       severity: "medium",
       fixDuration: "quick",
       productScope: "cli",
@@ -3115,9 +3144,9 @@ github:
       tips: [
         "Override per-job when a specific job needs more (e.g. `release` needing `contents: write`).",
         "Org admins can also enforce `permissions: read-all` as the org default — a useful safety net.",
-        "Pair with ISSUE-509 to catch the over-broad case explicitly.",
+        "Pair with ISSUE-803 to catch the over-broad case explicitly.",
       ],
-      relatedCodes: ["ISSUE-509", "ISSUE-302"],
+      relatedCodes: ["ISSUE-803", "ISSUE-302"],
     },
   },
 
@@ -3125,7 +3154,7 @@ github:
     code: "ISSUE-305",
     github: {
       title: "Secret used without an environment gate",
-      category: "GitHub Actions — Secrets & permissions",
+      category: "CI/CD Secrets",
       severity: "medium",
       fixDuration: "medium",
       productScope: "cli",
@@ -3161,7 +3190,7 @@ jobs:
         "Branch / tag restrictions on the environment make the gate tamper-proof from PR-author code.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-414", "ISSUE-301"],
+      relatedCodes: ["ISSUE-802", "ISSUE-301"],
     },
   },
 
@@ -3169,7 +3198,7 @@ jobs:
     code: "ISSUE-306",
     github: {
       title: "GitHub App token issued with revocation disabled",
-      category: "GitHub Actions — Secrets & permissions",
+      category: "CI/CD Secrets",
       severity: "medium",
       fixDuration: "quick",
       productScope: "cli",
@@ -3216,7 +3245,7 @@ jobs:
     code: "ISSUE-307",
     github: {
       title: "Checkout persists credentials in .git/config",
-      category: "GitHub Actions — Secrets & permissions",
+      category: "CI/CD Secrets",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -3257,7 +3286,7 @@ jobs:
         "Never upload the entire workspace as an artifact — always narrow the path.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-304", "ISSUE-301"],
+      relatedCodes: ["ISSUE-801", "ISSUE-301"],
     },
   },
 
@@ -3265,7 +3294,7 @@ jobs:
     code: "ISSUE-308",
     github: {
       title: "Secret read via dynamic index",
-      category: "GitHub Actions — Secrets & permissions",
+      category: "CI/CD Secrets",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -3315,11 +3344,11 @@ jobs:
     },
   },
 
-  "ISSUE-414": {
-    code: "ISSUE-414",
+  "ISSUE-802": {
+    code: "ISSUE-802",
     github: {
       title: "Workflow subscribes to a dangerous trigger",
-      category: "GitHub Actions — Triggers & permissions",
+      category: "Workflow triggers and permissions",
       severity: "critical",
       fixDuration: "medium",
       productScope: "cli",
@@ -3330,7 +3359,7 @@ jobs:
       impact:
         "These triggers are the root cause behind the highest-impact GitHub Actions CVEs of the past two years — tj-actions, reviewdog, Ultralytics. A single template-injection or PR-head checkout in a workflow on one of these triggers exfiltrates every secret the workflow can reach.",
       remediation:
-        "Use the safer `pull_request` trigger where possible — it runs without secret access on fork PRs. If `pull_request_target` is necessary, restrict to non-code activities (label, comment, etc.) and never check out the PR's head (see ISSUE-415).",
+        "Use the safer `pull_request` trigger where possible — it runs without secret access on fork PRs. If `pull_request_target` is necessary, restrict to non-code activities (label, comment, etc.) and never check out the PR's head (see ISSUE-804).",
       badExample: `# .github/workflows/welcome.yml — ❌ pull_request_target with full repo access
 on: pull_request_target
 jobs:
@@ -3339,7 +3368,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: \${{ github.event.pull_request.head.sha }}   # ISSUE-415
+          ref: \${{ github.event.pull_request.head.sha }}   # ISSUE-804
       - run: ./run-tests.sh   # PR-author code with base secrets`,
       badExampleCaption: "PR-author code executes with the base repo's secrets and GITHUB_TOKEN.",
       goodExample: `# .github/workflows/welcome.yml — ✅ pull_request (no secrets on forks)
@@ -3362,17 +3391,17 @@ github:
       goodExampleCaption: "Forks see read-only access; no secret exfiltration path.",
       tips: [
         "If you genuinely need PR-comment automation, split the work: a `pull_request` workflow uploads artifacts; a separate `workflow_run` (with a restrictive permissions block) consumes them.",
-        "Pair with ISSUE-415 for the explicit head-checkout anti-pattern and ISSUE-305 for the environment-gate side.",
+        "Pair with ISSUE-804 for the explicit head-checkout anti-pattern and ISSUE-305 for the environment-gate side.",
       ],
-      relatedCodes: ["ISSUE-415", "ISSUE-305", "ISSUE-206"],
+      relatedCodes: ["ISSUE-804", "ISSUE-305", "ISSUE-207"],
     },
   },
 
-  "ISSUE-415": {
-    code: "ISSUE-415",
+  "ISSUE-804": {
+    code: "ISSUE-804",
     github: {
       title: "pull_request_target workflow checks out the PR head",
-      category: "GitHub Actions — Triggers & permissions",
+      category: "Workflow triggers and permissions",
       severity: "critical",
       fixDuration: "quick",
       productScope: "cli",
@@ -3409,18 +3438,18 @@ jobs:
       goodExampleCaption: "`pull_request` runs without secret access on fork PRs — head checkout is safe.",
       tips: [
         "If a workflow truly needs both PR code AND secrets, the right pattern is: PR workflow uploads diff artefact → trusted workflow_run consumes it (no checkout).",
-        "Plumber's default-on `actionsMustBePinnedByCommitSha` + ISSUE-414 + this rule cover the tj-actions class of vulnerabilities end-to-end.",
+        "Plumber's default-on `actionsMustBePinnedByCommitSha` + ISSUE-802 + this rule cover the tj-actions class of vulnerabilities end-to-end.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-414", "ISSUE-104"],
+      relatedCodes: ["ISSUE-802", "ISSUE-701"],
     },
   },
 
-  "ISSUE-416": {
-    code: "ISSUE-416",
+  "ISSUE-417": {
+    code: "ISSUE-417",
     github: {
       title: "Required action or reusable workflow is missing",
-      category: "GitHub Actions — Workflow composition",
+      category: "Pipeline Composition",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -3477,18 +3506,18 @@ jobs:
     },
   },
 
-  "ISSUE-509": {
-    code: "ISSUE-509",
+  "ISSUE-803": {
+    code: "ISSUE-803",
     github: {
       title: "Job runs with overly broad (write-all) permissions",
-      category: "GitHub Actions — Triggers & permissions",
+      category: "Workflow triggers and permissions",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
       controlName: "Job must not run with write-all permissions",
       controlConfigKey: "workflowMustNotGrantPermissionsWriteAll",
       description:
-        "A workflow or job in committed YAML declares the literal `permissions: write-all` shortcut, which grants `GITHUB_TOKEN` every scope GitHub supports at once. Workflow-level `write-all` is propagated to every job without its own block. Plumber does not flag scope maps (`contents: write`, …), `read-all`, missing `permissions:` blocks (ISSUE-304), or `${{ }}` expressions.",
+        "A workflow or job in committed YAML declares the literal `permissions: write-all` shortcut, which grants `GITHUB_TOKEN` every scope GitHub supports at once. Workflow-level `write-all` is propagated to every job without its own block. Plumber does not flag scope maps (`contents: write`, …), `read-all`, missing `permissions:` blocks (ISSUE-801), or `${{ }}` expressions.",
       impact:
         "Over-broad GITHUB_TOKEN scopes magnify the impact of any other vulnerability. A template-injection in a `write-all` job lets the attacker push to the repo, create releases, modify branch protection, etc.",
       remediation:
@@ -3513,20 +3542,20 @@ jobs:
       goodExampleCaption: "Just enough to publish; nothing more.",
       tips: [
         "Scope is static `permissions:` keys in `.github/workflows/` only. Broad but explicit maps are intentionally out of scope for this control.",
-        "Pair with ISSUE-304 to catch jobs that omit a `permissions:` block and inherit the repository default.",
+        "Pair with ISSUE-801 to catch jobs that omit a `permissions:` block and inherit the repository default.",
         "Permissions inside callee reusable workflows are not scanned unless those files are in the analyzed repository.",
         "Toggle via `github.controls.workflowMustNotGrantPermissionsWriteAll.enabled`.",
       ],
       status: "shipping",
-      relatedCodes: ["ISSUE-304"],
+      relatedCodes: ["ISSUE-801"],
     },
   },
 
-  "ISSUE-602": {
-    code: "ISSUE-602",
+  "ISSUE-418": {
+    code: "ISSUE-418",
     github: {
       title: "Workflow has no concurrency block",
-      category: "GitHub Actions — Runtime hygiene",
+      category: "Pipeline Composition",
       severity: "low",
       fixDuration: "quick",
       productScope: "cli",
@@ -3568,11 +3597,11 @@ jobs:
     },
   },
 
-  "ISSUE-603": {
-    code: "ISSUE-603",
+  "ISSUE-419": {
+    code: "ISSUE-419",
     github: {
       title: "Workflow uses a known misfeature pattern",
-      category: "GitHub Actions — Runtime hygiene",
+      category: "Pipeline Composition",
       severity: "medium",
       fixDuration: "medium",
       productScope: "cli",
@@ -3621,11 +3650,11 @@ jobs:
     },
   },
 
-  "ISSUE-604": {
-    code: "ISSUE-604",
+  "ISSUE-420": {
+    code: "ISSUE-420",
     github: {
       title: "Workflow contains obfuscated content",
-      category: "GitHub Actions — Runtime hygiene",
+      category: "Pipeline Composition",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -3666,11 +3695,11 @@ jobs:
     },
   },
 
-  "ISSUE-605": {
-    code: "ISSUE-605",
+  "ISSUE-421": {
+    code: "ISSUE-421",
     github: {
       title: "Publish workflow uses a static token instead of OIDC trusted publishing",
-      category: "GitHub Actions — Runtime hygiene",
+      category: "Pipeline Composition",
       severity: "medium",
       fixDuration: "long",
       productScope: "cli",
@@ -3707,15 +3736,15 @@ jobs:
         "npm: enable trusted publishers under the package's Settings > OIDC.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-112", "ISSUE-302"],
+      relatedCodes: ["ISSUE-712", "ISSUE-302"],
     },
   },
 
-  "ISSUE-606": {
-    code: "ISSUE-606",
+  "ISSUE-901": {
+    code: "ISSUE-901",
     github: {
       title: "dependabot.yml re-enables insecure external execution",
-      category: "GitHub Actions — Repository hygiene",
+      category: "Repository hygiene",
       severity: "high",
       fixDuration: "quick",
       productScope: "cli",
@@ -3746,18 +3775,18 @@ updates:
     # insecure-external-code-execution omitted (defaults to deny)`,
       goodExampleCaption: "Dependency resolution stays sandboxed.",
       tips: [
-        "Pair with ISSUE-607 to keep the cooldown window short and ISSUE-608 to keep the tool present at all.",
+        "Pair with ISSUE-902 to keep the cooldown window short and ISSUE-903 to keep the tool present at all.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-607", "ISSUE-608", "ISSUE-214"],
+      relatedCodes: ["ISSUE-902", "ISSUE-903", "ISSUE-214"],
     },
   },
 
-  "ISSUE-607": {
-    code: "ISSUE-607",
+  "ISSUE-902": {
+    code: "ISSUE-902",
     github: {
       title: "dependabot.yml update ecosystem has no cooldown",
-      category: "GitHub Actions — Repository hygiene",
+      category: "Repository hygiene",
       severity: "low",
       fixDuration: "quick",
       productScope: "cli",
@@ -3792,15 +3821,15 @@ updates:
         "Renovate has the same feature under `minimumReleaseAge` — comparable defense.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-606", "ISSUE-608", "ISSUE-214"],
+      relatedCodes: ["ISSUE-901", "ISSUE-903", "ISSUE-214"],
     },
   },
 
-  "ISSUE-608": {
-    code: "ISSUE-608",
+  "ISSUE-903": {
+    code: "ISSUE-903",
     github: {
       title: "Repository has workflows but no dependency update tool",
-      category: "GitHub Actions — Repository hygiene",
+      category: "Repository hygiene",
       severity: "medium",
       fixDuration: "medium",
       productScope: "cli",
@@ -3809,7 +3838,7 @@ updates:
       description:
         "The repository runs workflows but has no `.github/dependabot.yml`, no Renovate configuration, and no third-party equivalent.",
       impact:
-        "Manual upgrade flows leave known-vulnerable dependencies in CI for the longest possible time. Plumber's other rules surface vulnerable actions (ISSUE-114) and stale pins (ISSUE-111) — without an updater, you have no path to apply those updates routinely.",
+        "Manual upgrade flows leave known-vulnerable dependencies in CI for the longest possible time. Plumber's other rules surface vulnerable actions (ISSUE-703) and stale pins (ISSUE-709) — without an updater, you have no path to apply those updates routinely.",
       remediation:
         "Add `.github/dependabot.yml` with at least the `github-actions` ecosystem (cheap, high-signal). Add language ecosystems (`pip`, `npm`, `bundler`) as the repo's languages.",
       badExample: `# .github/dependabot.yml — ❌ File missing entirely
@@ -3833,18 +3862,18 @@ updates:
       goodExampleCaption: "GitHub Actions + npm covered; weekly cadence with cooldown.",
       tips: [
         "If you prefer Renovate, configure it via `renovate.json` — Plumber recognises both.",
-        "`github-actions` ecosystem auto-bumps SHA pins (ISSUE-111) and version comments (ISSUE-110) for you.",
+        "`github-actions` ecosystem auto-bumps SHA pins (ISSUE-709) and version comments (ISSUE-708) for you.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-104", "ISSUE-111", "ISSUE-606", "ISSUE-607"],
+      relatedCodes: ["ISSUE-701", "ISSUE-709", "ISSUE-901", "ISSUE-902"],
     },
   },
 
-  "ISSUE-609": {
-    code: "ISSUE-609",
+  "ISSUE-904": {
+    code: "ISSUE-904",
     github: {
       title: "Repository has workflows but no SAST scanner",
-      category: "GitHub Actions — Repository hygiene",
+      category: "Repository hygiene",
       severity: "medium",
       fixDuration: "medium",
       productScope: "cli",
@@ -3888,15 +3917,15 @@ jobs:
         "Plumber recognises `github/codeql-action`, `returntocorp/semgrep-action`, `snyk/actions/python`, etc. — extensible via config.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-410", "ISSUE-610"],
+      relatedCodes: ["ISSUE-410", "ISSUE-905"],
     },
   },
 
-  "ISSUE-610": {
-    code: "ISSUE-610",
+  "ISSUE-905": {
+    code: "ISSUE-905",
     github: {
       title: "Repository has no SECURITY.md",
-      category: "GitHub Actions — Repository hygiene",
+      category: "Repository hygiene",
       severity: "low",
       fixDuration: "quick",
       productScope: "cli",
@@ -3934,7 +3963,7 @@ or email security@my-org.example. We aim to acknowledge within 48 hours.
         "Plumber accepts `SECURITY.md` in repo root, `.github/`, or `docs/`.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-609"],
+      relatedCodes: ["ISSUE-904"],
     },
   },
 

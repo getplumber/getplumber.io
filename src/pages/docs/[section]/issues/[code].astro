@@ -10,7 +10,9 @@
  * localStorage and reflected as a `?p=` query parameter so links
  * across the issues / controls pages preserve the choice.
  *
- * URL: https://getplumber.io/docs/use-plumber/issues/ISSUE-101
+ * URLs:
+ *   /docs/use-plumber/issues/ISSUE-101  (Platform tab)
+ *   /docs/cli/issues/ISSUE-101         (Open Source CLI tab)
  */
 import { Code as ExpressiveCode } from "astro-expressive-code/components";
 import { Icon } from "astro-icon/components";
@@ -23,10 +25,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/starwind/breadcrumb";
+import { issueCodeRedirects } from "@/data/issueCodeRedirects";
 import {
   type IssueDoc,
   type IssueProviderContent,
+  issueDisplayTitle,
   issues,
+  isVisibleProviderContent,
   type Provider,
 } from "@/data/issues";
 import {
@@ -34,18 +39,51 @@ import {
   severityBadge,
 } from "@/docs/components/mdx-components/IssuesList.astro";
 import ProductScopeBadge from "@/docs/components/mdx-components/ProductScopeBadge.astro";
+import ProviderTabs from "@/docs/components/mdx-components/ProviderTabs.astro";
+import {
+  CLI_DOCS_PREFIX,
+  CLI_DOCS_TAB_ID,
+  getSharedDocsBasePath,
+  PLATFORM_DOCS_PREFIX,
+} from "@/docs/js/docsUtils";
 import DocsLayoutStandalone from "@/docs/layouts/DocsLayoutStandalone.astro";
 
 export function getStaticPaths() {
-  return Object.entries(issues).map(([code, doc]) => ({
-    params: { code },
-    props: doc,
-  }));
+  const sections = [PLATFORM_DOCS_PREFIX, CLI_DOCS_PREFIX] as const;
+  const canonical = sections.flatMap((section) =>
+    Object.entries(issues).map(([code, doc]) => ({
+      params: { section, code },
+      props: { ...doc, redirectTo: null as string | null },
+    })),
+  );
+  const legacy = sections.flatMap((section) =>
+    Object.entries(issueCodeRedirects).map(([oldCode, newCode]) => ({
+      params: { section, code: oldCode },
+      props: { redirectTo: newCode },
+    })),
+  );
+  return [...canonical, ...legacy];
 }
 
-type Props = IssueDoc;
+type Props = IssueDoc & { redirectTo?: string | null };
 
-const props = Astro.props;
+const section = Astro.params.section as string;
+const isSharedSection =
+  section === PLATFORM_DOCS_PREFIX || section === CLI_DOCS_PREFIX;
+if (!isSharedSection) {
+  return Astro.redirect("/404");
+}
+
+const tabId = section === CLI_DOCS_PREFIX ? CLI_DOCS_TAB_ID : "main";
+const docsBase = getSharedDocsBasePath(tabId);
+
+const props = Astro.props as Props;
+const redirectTo = props.redirectTo ?? issueCodeRedirects[Astro.params.code ?? ""];
+if (redirectTo) {
+  const search = Astro.url.search;
+  return Astro.redirect(`${docsBase}/issues/${redirectTo}${search}`);
+}
+
 const { code, gitlab, github } = props;
 
 type PanelDescriptor = {
@@ -56,15 +94,31 @@ type PanelDescriptor = {
 };
 
 const panels: PanelDescriptor[] = [];
-if (gitlab) panels.push({ id: "gitlab", label: "GitLab", icon: "tabler/brand-gitlab", content: gitlab });
-if (github) panels.push({ id: "github", label: "GitHub", icon: "tabler/brand-github", content: github });
+if (gitlab && isVisibleProviderContent(gitlab)) {
+  panels.push({ id: "gitlab", label: "GitLab", icon: "tabler/brand-gitlab", content: gitlab });
+}
+if (github && isVisibleProviderContent(github)) {
+  panels.push({ id: "github", label: "GitHub", icon: "tabler/brand-github", content: github });
+}
 
 if (panels.length === 0) {
-  throw new Error(`Issue ${code} has no provider content (gitlab/github both undefined).`);
+  return Astro.redirect(`${docsBase}/issues`);
+}
+
+const requestedProvider = Astro.url.searchParams.get("p");
+if (
+  (requestedProvider === "gitlab" || requestedProvider === "github") &&
+  !panels.some((p) => p.id === requestedProvider)
+) {
+  const url = new URL(Astro.url);
+  url.searchParams.set("p", panels[0].id);
+  return Astro.redirect(url.pathname + url.search);
 }
 
 const defaultProvider: Provider = panels[0].id;
 const defaultContent = panels[0].content;
+const issueDoc: IssueDoc = { code, gitlab, github };
+const defaultPageTitle = issueDisplayTitle(issueDoc, defaultProvider) ?? defaultContent.title;
 
 const severityColors: Record<string, { bg: string; text: string; ring: string; label: string }> = {
   critical: {
@@ -145,8 +199,12 @@ const fixFallback = {
 // Prev/next is scoped per provider — navigating within a provider should
 // only walk through codes that actually have that provider's content.
 const codesByProvider: Record<Provider, string[]> = {
-  gitlab: Object.keys(issues).filter((c) => issues[c].gitlab != null),
-  github: Object.keys(issues).filter((c) => issues[c].github != null),
+  gitlab: Object.keys(issues).filter(
+    (c) => issues[c].gitlab != null && isVisibleProviderContent(issues[c].gitlab!),
+  ),
+  github: Object.keys(issues).filter(
+    (c) => issues[c].github != null && isVisibleProviderContent(issues[c].github!),
+  ),
 };
 
 function prevNextFor(provider: Provider): { prev: string | null; next: string | null } {
@@ -205,20 +263,20 @@ function configKeyExample(provider: Provider, configKey: string): string {
 ---
 
 <DocsLayoutStandalone
-  title={`${code} — ${defaultContent.title} | Plumber Issues`}
+  title={`${code} — ${defaultPageTitle} | Plumber Issues`}
   description={defaultContent.description}
-  sectionId="main"
+  sectionId={tabId}
   headings={pageHeadings}
 >
   <!-- Breadcrumb (shared across providers) -->
   <Breadcrumb class="mb-4 text-xs md:text-sm">
     <BreadcrumbList >
       <BreadcrumbItem class="pl-0!">
-        <BreadcrumbLink href="/docs/use-plumber/controls" class={"mt-2"}>Controls</BreadcrumbLink>
+        <BreadcrumbLink href={`${docsBase}/controls`} class={"mt-2"}>Controls</BreadcrumbLink>
       </BreadcrumbItem>
       <BreadcrumbSeparator />
       <BreadcrumbItem>
-        <BreadcrumbLink href="/docs/use-plumber/issues">Issues</BreadcrumbLink>
+        <BreadcrumbLink href={`${docsBase}/issues`}>Issues</BreadcrumbLink>
       </BreadcrumbItem>
       <BreadcrumbSeparator />
       <BreadcrumbItem>
@@ -231,31 +289,7 @@ function configKeyExample(provider: Provider, configKey: string): string {
 
   <!-- Provider tabs: only rendered when this issue exists on both providers. -->
   {
-    panels.length > 1 && (
-      <div
-        class="not-content mb-6 inline-flex items-center gap-1 rounded-lg bg-muted/50 p-1 ring-1 ring-border"
-        role="tablist"
-        aria-label="Provider"
-      >
-        {panels.map((p) => (
-          <button
-            type="button"
-            role="tab"
-            data-provider-tab={p.id}
-            aria-selected={p.id === defaultProvider ? "true" : "false"}
-            class:list={[
-              "provider-tab inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-all",
-              p.id === defaultProvider
-                ? "bg-background text-foreground ring-1 ring-border shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            ]}
-          >
-            <Icon name={p.icon} size="18px" />
-            {p.label}
-          </button>
-        ))}
-      </div>
-    )
+    panels.length > 1 && <ProviderTabs defaultProvider={defaultProvider} class="mb-8" />
   }
 
   <!-- One panel per provider. Inactive panel is hidden via class. -->
@@ -311,7 +345,9 @@ function configKeyExample(provider: Provider, configKey: string): string {
                 {c.category}
               </span>
             </div>
-            <h1 class="docs-h1 docs-text-gradient mb-2">{c.title}</h1>
+            <h1 class="docs-h1 docs-text-gradient mb-2">
+              {issueDisplayTitle(issueDoc, p.id) ?? c.title}
+            </h1>
             <p class="mt-2 text-sm text-muted-foreground">
               Control: <span class="text-foreground">{c.controlName}</span>
               · Config key: <code class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground"
@@ -429,20 +465,27 @@ function configKeyExample(provider: Provider, configKey: string): string {
               <div class="flex flex-col gap-2">
                 {c.relatedCodes.map((rc) => {
                   const related = issues[rc];
-                  // Prefer the same provider's content for the related issue;
-                  // fall back to whatever provider has content so we still
-                  // render something usable for cross-provider links.
-                  const relContent = related?.[p.id] ?? related?.gitlab ?? related?.github;
-                  if (!related || !relContent) return null;
+                  const relProvider: Provider | null =
+                    related?.[p.id] && isVisibleProviderContent(related[p.id]!)
+                      ? p.id
+                      : related?.gitlab && isVisibleProviderContent(related.gitlab)
+                        ? "gitlab"
+                        : related?.github && isVisibleProviderContent(related.github)
+                          ? "github"
+                          : null;
+                  const relContent = relProvider ? related?.[relProvider] : undefined;
+                  if (!related || !relProvider || !relContent) return null;
                   const relSev = relContent.severity;
                   const relFix = relContent.fixDuration;
                   return (
                     <a
-                      href={`/docs/use-plumber/issues/${rc}?p=${p.id}`}
+                      href={`${docsBase}/issues/${rc}?p=${relProvider}`}
                       class="inline-flex items-center gap-2 rounded-lg bg-muted px-3 text-sm ring-1 ring-border hover:ring-emerald-500/50 hover:bg-muted/80 transition-all h-10"
                     >
                       <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">{rc}</span>
-                      <span class="text-muted-foreground">{relContent.title}</span>
+                      <span class="text-muted-foreground">
+                        {issueDisplayTitle(related, relProvider) ?? relContent.title}
+                      </span>
                       <div class="flex items-center gap-1.5 shrink-0 ml-auto">
                         <span
                           class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[relSev]}`}
@@ -474,7 +517,7 @@ function configKeyExample(provider: Provider, configKey: string): string {
           >
             {pn.prev ? (
               <a
-                href={`/docs/use-plumber/issues/${pn.prev}?p=${p.id}`}
+                href={`${docsBase}/issues/${pn.prev}?p=${p.id}`}
                 class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <span>←</span>
@@ -484,14 +527,14 @@ function configKeyExample(provider: Provider, configKey: string): string {
               <span />
             )}
             <a
-              href={`/docs/use-plumber/controls?p=${p.id}`}
+              href={`${docsBase}/controls?p=${p.id}`}
               class="text-sm text-primary hover:text-primary/80 transition-colors"
             >
               All Controls →
             </a>
             {pn.next ? (
               <a
-                href={`/docs/use-plumber/issues/${pn.next}?p=${p.id}`}
+                href={`${docsBase}/issues/${pn.next}?p=${p.id}`}
                 class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <span class="font-mono">{pn.next}</span>
@@ -532,13 +575,6 @@ function configKeyExample(provider: Provider, configKey: string): string {
       document.querySelectorAll("[data-provider-tab]").forEach((tab) => {
         const active = tab.getAttribute("data-provider-tab") === p;
         tab.setAttribute("aria-selected", active ? "true" : "false");
-        if (active) {
-          tab.classList.add("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
-          tab.classList.remove("text-muted-foreground");
-        } else {
-          tab.classList.remove("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
-          tab.classList.add("text-muted-foreground");
-        }
       });
       // Rewrite right-sidebar TOC hrefs (`#what-is-this-gitlab` → `#what-is-this-github`).
       document.querySelectorAll('a[href^="#"]').forEach((a) => {

@@ -20,6 +20,16 @@
   ],
   "redirects": [
     {
+      "source": "/docs/cli/gitlab-component",
+      "destination": "/docs/cli/gitlab#gitlab-ci-component",
+      "permanent": true
+    },
+    {
+      "source": "/docs/cli/gitlab-component/",
+      "destination": "/docs/cli/gitlab#gitlab-ci-component",
+      "permanent": true
+    },
+    {
       "source": "/admin",
       "destination": "/keystatic",
       "permanent": true

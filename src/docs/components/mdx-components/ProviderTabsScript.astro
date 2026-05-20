@@ -22,13 +22,56 @@
     }
 
     function rewriteIssueLinks(p) {
-      document.querySelectorAll('a[href^="/docs/use-plumber/issues/"]').forEach(function (a) {
+      document.querySelectorAll('a[href*="/issues/ISSUE-"]').forEach(function (a) {
         const href = a.getAttribute("href") || "";
-        const m = href.match(/^(\/docs\/use-plumber\/issues\/ISSUE-\d+)(\?.*)?$/);
+        const m = href.match(/^(\/(?:docs\/(?:use-plumber|cli))\/issues\/ISSUE-\d+)(\?.*)?$/);
         if (m) {
           a.setAttribute("href", m[1] + "?p=" + p);
         }
       });
+    }
+
+    /** Keep the right sidebar TOC in sync with the active provider panel. */
+    function syncTableOfContents(provider) {
+      const content = document.querySelector(".docs-markdown-content");
+      const toc = document.getElementById("docs-page-toc");
+      if (!content || !toc) return;
+
+      const visibleIds = new Set();
+
+      content.querySelectorAll(":scope > h2, :scope > h3, :scope > h4").forEach(function (h) {
+        if (h.id) visibleIds.add(h.id);
+      });
+
+      const panel = document.querySelector('[data-provider-panel="' + provider + '"]');
+      if (panel) {
+        panel.querySelectorAll("h1, h2, h3, h4").forEach(function (h) {
+          if (!h.id) return;
+          if (h.closest("[data-exclude-from-toc]")) return;
+          visibleIds.add(h.id);
+        });
+      }
+
+      toc.querySelectorAll(".toc-link").forEach(function (link) {
+        const href = link.getAttribute("href") || "";
+        const id = href.charAt(0) === "#" ? href.slice(1) : href;
+        const show = visibleIds.has(id);
+        link.style.display = show ? "" : "none";
+        link.setAttribute("aria-hidden", show ? "false" : "true");
+      });
+    }
+
+    function scheduleTableOfContentsSync(provider) {
+      function run() {
+        syncTableOfContents(provider);
+      }
+      if (document.getElementById("docs-page-toc")) {
+        requestAnimationFrame(run);
+      } else if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", run, { once: true });
+      } else {
+        requestAnimationFrame(run);
+      }
     }
 
     function setProvider(p) {
@@ -40,15 +83,9 @@
       document.querySelectorAll("[data-provider-tab]").forEach(function (tab) {
         const active = tab.getAttribute("data-provider-tab") === p;
         tab.setAttribute("aria-selected", active ? "true" : "false");
-        if (active) {
-          tab.classList.add("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
-          tab.classList.remove("text-muted-foreground");
-        } else {
-          tab.classList.remove("bg-background", "text-foreground", "ring-1", "ring-border", "shadow-sm");
-          tab.classList.add("text-muted-foreground");
-        }
       });
       rewriteIssueLinks(p);
+      scheduleTableOfContentsSync(p);
       try {
         localStorage.setItem(STORAGE_KEY, p);
       } catch (e) {
@@ -78,6 +115,10 @@
     }
 
     setProvider(initialProvider());
+
+    document.addEventListener("astro:page-load", function () {
+      setProvider(initialProvider());
+    });
 
     document.querySelectorAll("[data-provider-tab]").forEach(function (tab) {
       tab.addEventListener("click", function () {

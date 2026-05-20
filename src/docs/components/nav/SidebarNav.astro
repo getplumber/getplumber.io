@@ -12,6 +12,8 @@ import {
   getSectionTitle,
   getTabById,
   getTabSections,
+  hrefToContentId,
+  resolveSharedDocsHref,
 } from "@/docs/js/docsUtils";
 import { filterCollectionByLanguage } from "@/docs/js/localeUtils";
 import { getLocaleFromUrl } from "@/docs/js/localeUtils";
@@ -34,6 +36,36 @@ function resolveSidebarIndent(doc: {
   const raw = doc.data.sidebar?.indent;
   if (raw === true || raw === "true") return true;
   return isIndentedUsePlumberChild(section, doc.id);
+}
+
+function normalizeContentId(contentId: string): string {
+  return contentId.replace(/\/index$/, "");
+}
+
+/** Open Source CLI provider pages: GitLab before GitHub (overrides title sort). */
+const CLI_PROVIDER_SIDEBAR_RANK: Record<string, number> = {
+  "cli/gitlab": 2,
+  "cli/github": 3,
+};
+
+function sidebarSortRank(item: { contentId: string; order?: number }): number {
+  const id = normalizeContentId(item.contentId);
+  if (id in CLI_PROVIDER_SIDEBAR_RANK) return CLI_PROVIDER_SIDEBAR_RANK[id];
+  if (item.order !== undefined) return item.order;
+  return 10_000;
+}
+
+function compareSidebarItems(
+  a: { contentId: string; order?: number; text: string },
+  b: { contentId: string; order?: number; text: string },
+  locale: string,
+): number {
+  const diff = sidebarSortRank(a) - sidebarSortRank(b);
+  if (diff !== 0) return diff;
+  return a.text.localeCompare(b.text, locale, {
+    sensitivity: "base",
+    numeric: true,
+  });
 }
 
 interface Props {
@@ -258,22 +290,7 @@ const sections = Object.keys(docsBySection).sort((a, b) => {
 
 // Sort docs within each section
 for (const section of sections) {
-  docsBySection[section].sort((a, b) => {
-    // If both items have an order, sort by order
-    if (a.order !== undefined && b.order !== undefined) {
-      return a.order - b.order;
-    }
-
-    // If only one has an order, it should come first
-    if (a.order !== undefined) return -1;
-    if (b.order !== undefined) return 1;
-
-    // If neither has an order, sort alphabetically
-    return a.text.localeCompare(b.text, currLocale, {
-      sensitivity: "base",
-      numeric: true,
-    });
-  });
+  docsBySection[section].sort((a, b) => compareSidebarItems(a, b, currLocale));
 }
 ---
 
@@ -335,16 +352,23 @@ for (const section of sections) {
                 highlightDescendants={doc.contentId === "use-plumber/issues"}
               />
             ))}
-            {getSectionById(section, sectionId, currLocale)?.navLinks?.map((item) => (
-              <SidebarLink
-                link={getLocalizedRoute(currLocale, item.href)}
-                text={item.text}
-                indent={item.indent}
-                highlightDescendants={
-                  item.href.replace(/\/$/, "") === "/docs/use-plumber/issues"
-                }
-              />
-            ))}
+            {getSectionById(section, sectionId, currLocale)?.navLinks?.map((item) => {
+              const link = getLocalizedRoute(
+                currLocale,
+                resolveSharedDocsHref(item.href, sectionId),
+              );
+              const issuesContentId = `${hrefToContentId(item.href)?.replace(/\/index$/, "")}`;
+              const isIssuesNavLink = issuesContentId?.endsWith("/issues");
+
+              return (
+                <SidebarLink
+                  link={link}
+                  text={item.text}
+                  indent={item.indent}
+                  highlightDescendants={isIssuesNavLink}
+                />
+              );
+            })}
           </ul>
         </div>
       ))

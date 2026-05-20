@@ -10,6 +10,93 @@ type LocaleType = (typeof locales)[number];
 
 export const docsRoute = (siteSettings.docsRoute || "docs").replace(/^\/|\/$/g, "");
 
+/** Canonical content folder for controls/issues shared across Platform and CLI tabs */
+export const PLATFORM_DOCS_PREFIX = "use-plumber";
+
+/** URL prefix for Open Source CLI tab aliases of shared content */
+export const CLI_DOCS_PREFIX = "cli";
+
+export const CLI_DOCS_TAB_ID = "api";
+
+/** Convert a docs href (e.g. /docs/use-plumber/controls) to a content collection id */
+export function hrefToContentId(href: string): string | null {
+  const prefix = `/${docsRoute}/`;
+  if (!href.startsWith(prefix)) return null;
+  return href.slice(prefix.length).replace(/\/$/, "");
+}
+
+/** Content ids linked via navLinks for a tab (shared pages outside that tab's folders) */
+export function getNavLinkContentIds(tabId: string, locale: LocaleType): string[] {
+  const tab = getTabById(tabId, locale);
+  if (!tab) return [];
+
+  const ids: string[] = [];
+  for (const section of tab.sections) {
+    for (const link of section.navLinks ?? []) {
+      const contentId = hrefToContentId(link.href);
+      if (contentId) ids.push(contentId);
+    }
+  }
+  return ids;
+}
+
+/** Whether the current docs tab uses CLI-prefixed URLs for shared content */
+export function isCliDocsTab(tabId: string): boolean {
+  return tabId === CLI_DOCS_TAB_ID;
+}
+
+/** Whether a pathname is under the CLI docs section (e.g. /docs/cli/controls) */
+export function isCliDocsPath(pathname: string): boolean {
+  const cliSegment = `/${docsRoute}/${CLI_DOCS_PREFIX}/`;
+  const cliRoot = `/${docsRoute}/${CLI_DOCS_PREFIX}`;
+  return pathname.includes(cliSegment) || pathname.endsWith(cliRoot);
+}
+
+/**
+ * Rewrite Platform shared-content hrefs to CLI aliases when viewing the Open Source CLI tab.
+ * /docs/use-plumber/controls -> /docs/cli/controls
+ */
+export function resolveSharedDocsHref(href: string, tabId: string): string {
+  const platformPrefix = `/${docsRoute}/${PLATFORM_DOCS_PREFIX}`;
+  if (isCliDocsTab(tabId) && href.startsWith(platformPrefix)) {
+    const suffix = href.slice(platformPrefix.length);
+    return `/${docsRoute}/${CLI_DOCS_PREFIX}${suffix}`;
+  }
+  return href;
+}
+
+/** Resolve shared hrefs using the current page pathname (for MDX link overrides) */
+export function resolveSharedDocsHrefFromPath(href: string, pathname: string): string {
+  if (isCliDocsPath(pathname)) {
+    return resolveSharedDocsHref(href, CLI_DOCS_TAB_ID);
+  }
+  return href;
+}
+
+/**
+ * Map a content collection id to the URL slug for a given tab.
+ * use-plumber/controls -> cli/controls on the CLI tab; unchanged on Platform.
+ */
+export function contentIdToTabSlug(contentId: string, tabId: string): string {
+  if (isCliDocsTab(tabId) && contentId.startsWith(`${PLATFORM_DOCS_PREFIX}/`)) {
+    const suffix = contentId.slice(PLATFORM_DOCS_PREFIX.length + 1);
+    return `${CLI_DOCS_PREFIX}/${suffix}`;
+  }
+  return contentId;
+}
+
+/** Build a full docs path for a content id within a tab */
+export function getDocsPathForContent(contentId: string, tabId: string): string {
+  return `/${docsRoute}/${contentIdToTabSlug(contentId, tabId)}`;
+}
+
+/** Docs base path (/docs/use-plumber or /docs/cli) from a tab id */
+export function getSharedDocsBasePath(tabId: string): string {
+  return isCliDocsTab(tabId)
+    ? `/${docsRoute}/${CLI_DOCS_PREFIX}`
+    : `/${docsRoute}/${PLATFORM_DOCS_PREFIX}`;
+}
+
 // Cache for translated tab data to avoid repeated data fetching
 const tabCache = new Map<LocaleType, DocsTab[]>();
 
@@ -82,26 +169,31 @@ export const getAdjacentPages = async (currentId: string, locale: LocaleType, ta
   // Filter docs by locale
   let filteredDocs = filterCollectionByLanguage(allDocs, locale);
 
-  // Filter by tab if tabId is provided
-  if (tabId) {
-    filteredDocs = filteredDocs.filter((doc) => doc.data.section === tabId);
-  }
-
-  // Get tab details
-  const tab = getTabById(tabId, locale);
-
-  // Get ordered section IDs for this tab and create a Map for faster lookups
+  // Filter by tab folder structure (and navLinks shared content)
+  const tab = tabId ? getTabById(tabId, locale) : undefined;
   const orderedSectionIds = tab ? getOrderedSectionIds(tabId, locale) : [];
   const sectionIndexMap = new Map(orderedSectionIds.map((id, index) => [id, index]));
+
+  if (tabId && orderedSectionIds.length > 0) {
+    const tabSectionIds = new Set(orderedSectionIds);
+    const navLinkIds = new Set(getNavLinkContentIds(tabId, locale));
+
+    filteredDocs = filteredDocs.filter((doc) => {
+      const firstSegment = doc.id.split("/")[0];
+      return tabSectionIds.has(firstSegment) || navLinkIds.has(doc.id);
+    });
+  }
+
+  const navLinkSectionIndex = orderedSectionIds.length;
 
   // Sort docs by section order and then by sidebar order
   const sortedDocs = filteredDocs.sort((a, b) => {
     const [aSection] = a.id.split("/");
     const [bSection] = b.id.split("/");
 
-    // Get section indices
-    const aSectionIndex = sectionIndexMap.get(aSection) ?? -1;
-    const bSectionIndex = sectionIndexMap.get(bSection) ?? -1;
+    // Nav-linked shared content (e.g. controls/issues on CLI tab) follows tab sections
+    const aSectionIndex = sectionIndexMap.get(aSection) ?? navLinkSectionIndex;
+    const bSectionIndex = sectionIndexMap.get(bSection) ?? navLinkSectionIndex;
 
     // If sections are different, sort by section order
     if (aSectionIndex !== bSectionIndex) {
@@ -131,7 +223,7 @@ export const getAdjacentPages = async (currentId: string, locale: LocaleType, ta
     prev:
       currentIndex > 0
         ? {
-            slug: sortedDocs[currentIndex - 1].id,
+            slug: contentIdToTabSlug(sortedDocs[currentIndex - 1].id, tabId),
             title:
               sortedDocs[currentIndex - 1].data.sidebar?.label ||
               sortedDocs[currentIndex - 1].data.title,
@@ -140,7 +232,7 @@ export const getAdjacentPages = async (currentId: string, locale: LocaleType, ta
     next:
       currentIndex < sortedDocs.length - 1
         ? {
-            slug: sortedDocs[currentIndex + 1].id,
+            slug: contentIdToTabSlug(sortedDocs[currentIndex + 1].id, tabId),
             title:
               sortedDocs[currentIndex + 1].data.sidebar?.label ||
               sortedDocs[currentIndex + 1].data.title,
