@@ -3,6 +3,9 @@ export interface SiteDataProps {
   name: string;
   title: string;
   description: string;
+  /** Homepage (`/`) meta; falls back to `title` / `description` when omitted */
+  homepageTitle?: string;
+  homepageDescription?: string;
   author: {
     // used for blog post purposes
     name: string;

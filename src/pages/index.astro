@@ -10,12 +10,12 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const siteData = getTranslatedData("siteData", currLocale);
+
+const pageTitle = siteData.homepageTitle ?? siteData.title;
+const pageDescription = siteData.homepageDescription ?? siteData.description;
 ---
 
-<BaseLayout
-  title="Plumber - Open Source compliance CLI for GitLab CI/CD"
-  description="Analyze your GitLab CI/CD pipelines for security and compliance issues. Scan for mutable image tags, untrusted registries, and branch protection compliance."
->
+<BaseLayout title={pageTitle} description={pageDescription}>
   <PlumberHero />
   <SectionDivider />
   <PlumberFeatures />

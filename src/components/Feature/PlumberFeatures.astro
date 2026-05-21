@@ -1,9 +1,18 @@
 ---
 /**
  * * Feature cards: three categories of what Plumber brings (aligned with CLI controls).
+ *
+ * The section hosts a provider toggle (GitLab / GitHub) that flips the
+ * [data-provider] attribute on the BeforeAfterPipeline animation below it,
+ * letting visitors preview the same workflow on either CI/CD platform.
  */
 import BeforeAfterPipeline from "@components/BeforeAfter/BeforeAfterPipeline.astro";
 import FeatureCard from "@components/FeatureCard/FeatureCardLarge.astro";
+import githubBlackLogo from "@images/github-black.svg";
+import githubWhiteLogo from "@images/github-white.svg";
+import gitlabDarkLogo from "@images/gitlab-dark.svg";
+import gitlabWhiteLogo from "@images/gilab-white.svg";
+import { Image } from "astro:assets";
 
 interface FeatureData {
   icon: string;
@@ -30,7 +39,11 @@ const featureData: FeatureData[] = [
 ];
 ---
 
-<section id="plumber-features" class="mt-16 mb-12 md:mt-28 md:mb-24">
+<section
+  id="plumber-features"
+  class="mt-16 mb-12 md:mt-28 md:mb-24"
+  data-provider="gitlab"
+>
   <div class="site-container">
     <div class="mb-12 text-center">
       <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#plumber-features">
@@ -42,7 +55,9 @@ const featureData: FeatureData[] = [
         data-mos-delay="0.1"
         data-mos-anchor="#plumber-features"
       >
-        Plumber scans your GitLab CI/CD configuration
+        Plumber scans your
+        <span data-provider-show="gitlab" class="inline">GitLab CI/CD configuration</span>
+        <span data-provider-show="github" class="inline">GitHub Actions workflows</span>
       </h2>
       <p
         class="text-base-500 dark:text-base-400 description mx-auto mt-4 max-w-2xl"
@@ -50,9 +65,78 @@ const featureData: FeatureData[] = [
         data-mos-delay="0.2"
         data-mos-anchor="#plumber-features"
       >
-        Analyze your pipelines for security and compliance issues with automated checks.
+        <span data-provider-show="gitlab">
+          Analyze your pipelines for security and compliance issues with automated checks.
+        </span>
+        <span data-provider-show="github">
+          Analyze your workflows for security and compliance issues with automated checks.
+        </span>
       </p>
     </div>
+
+    <!-- Provider toggle: switches between GitLab and GitHub examples in the
+         animation below. Persists choice across visits via localStorage. -->
+    <div
+      class="mb-6 flex justify-center md:mb-8"
+      data-mos="fade-up"
+      data-mos-delay="0.25"
+      data-mos-anchor="#plumber-features"
+    >
+      <div
+        role="tablist"
+        aria-label="Choose CI/CD provider"
+        class="border-base-300 dark:border-base-600/60 dark:bg-base-900/40 inline-flex items-center gap-1 rounded-full border bg-white/60 p-1 shadow-sm backdrop-blur"
+        data-provider-toggle
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected="true"
+          data-provider-target="gitlab"
+          class="provider-tab"
+        >
+          <Image
+            src={gitlabDarkLogo}
+            alt=""
+            class="tab-logo block h-4 w-auto dark:hidden"
+            aria-hidden="true"
+            loading="eager"
+          />
+          <Image
+            src={gitlabWhiteLogo}
+            alt=""
+            class="tab-logo hidden h-4 w-auto dark:block"
+            aria-hidden="true"
+            loading="eager"
+          />
+          <span class="sr-only">GitLab CI/CD</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          data-provider-target="github"
+          class="provider-tab"
+        >
+          <Image
+            src={githubBlackLogo}
+            alt=""
+            class="tab-logo block h-4 w-auto dark:hidden"
+            aria-hidden="true"
+            loading="eager"
+          />
+          <Image
+            src={githubWhiteLogo}
+            alt=""
+            class="tab-logo hidden h-4 w-auto dark:block"
+            aria-hidden="true"
+            loading="eager"
+          />
+          <span class="sr-only">GitHub Actions</span>
+        </button>
+      </div>
+    </div>
+
     <div class="mb-8 md:mb-10">
       <BeforeAfterPipeline variant="cli" />
     </div>
@@ -82,12 +166,22 @@ const featureData: FeatureData[] = [
         data-mos-anchor="#plumber-features"
       >
         <span slot="description">
-          Detects hardcoded jobs in the{" "}
-          <code class="bg-base-300/80 dark:bg-base-600/80 rounded px-1.5 py-0.5 font-mono text-sm"
-            >.gitlab-ci.yml</code
-          >{" "}
-          and verifies that all required template and component modules are included, up to date and do
-          not follow unauthorized patterns (latest, main, etc.)
+          <span data-provider-show="gitlab">
+            Detects hardcoded jobs in the{" "}
+            <code class="bg-base-300/80 dark:bg-base-600/80 rounded px-1.5 py-0.5 font-mono text-sm"
+              >.gitlab-ci.yml</code
+            >{" "}
+            and verifies that all required template and component modules are included, up to
+            date and do not follow unauthorized patterns (latest, main, etc.)
+          </span>
+          <span data-provider-show="github">
+            Detects unpinned and risky steps in{" "}
+            <code class="bg-base-300/80 dark:bg-base-600/80 rounded px-1.5 py-0.5 font-mono text-sm"
+              >.github/workflows/*.yml</code
+            >{" "}
+            and verifies that third-party actions are pinned by commit SHA, not archived, and
+            free of known CVEs.
+          </span>
         </span>
       </FeatureCard>
       {
@@ -123,3 +217,129 @@ const featureData: FeatureData[] = [
     </div>
   </div>
 </section>
+
+<style>
+  /* Hide the inactive provider's text/copy within this section. The animation
+     handles its own [data-provider] swap via .hiw-anim. */
+  section[data-provider="gitlab"] [data-provider-show="github"] {
+    display: none !important;
+  }
+
+  section[data-provider="github"] [data-provider-show="gitlab"] {
+    display: none !important;
+  }
+
+  /* Segmented control: GitLab / GitHub */
+  .provider-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+    color: var(--color-base-600, #475569);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  :global(.dark) .provider-tab {
+    color: var(--color-base-300, #cbd5e1);
+  }
+
+  .provider-tab:hover {
+    color: var(--color-base-900, #0f172a);
+  }
+
+  :global(.dark) .provider-tab:hover {
+    color: var(--color-base-100, #f1f5f9);
+  }
+
+  .provider-tab[aria-selected="true"] {
+    background: var(--color-primary-500, #16a34a);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+
+  .provider-tab :global(.tab-logo) {
+    transition: filter 0.2s ease;
+    filter: grayscale(0.15);
+  }
+
+  .provider-tab[aria-selected="true"] :global(.tab-logo) {
+    /* Force the active wordmark to white so the official-mark stays legible
+       on the green pill background, regardless of theme. */
+    filter: brightness(0) invert(1);
+  }
+
+  .provider-tab:focus-visible {
+    outline: 2px solid var(--color-primary-400, #4ade80);
+    outline-offset: 2px;
+  }
+</style>
+
+<script>
+  function syncProviderUi(section: HTMLElement, provider: "gitlab" | "github") {
+    section.setAttribute("data-provider", provider);
+
+    section
+      .querySelectorAll<HTMLButtonElement>("[data-provider-target]")
+      .forEach((btn) => {
+        const isActive = btn.dataset.providerTarget === provider;
+        btn.setAttribute("aria-selected", isActive ? "true" : "false");
+      });
+
+    // Propagate to any BeforeAfterPipeline animations rendered inside the
+    // section so the example cards swap in lockstep with the toggle.
+    section
+      .querySelectorAll<HTMLElement>(".hiw-anim")
+      .forEach((anim) => anim.setAttribute("data-provider", provider));
+  }
+
+  function initProviderToggle() {
+    document
+      .querySelectorAll<HTMLElement>("#plumber-features[data-provider]")
+      .forEach((section) => {
+        if (section.dataset.providerInit === "true") return;
+        section.dataset.providerInit = "true";
+
+        let initial: "gitlab" | "github" =
+          (section.getAttribute("data-provider") as "gitlab" | "github") || "gitlab";
+
+        try {
+          const stored = localStorage.getItem("plumber:hero-provider");
+          if (stored === "gitlab" || stored === "github") {
+            initial = stored;
+          }
+        } catch {
+          // localStorage unavailable; fall back to default
+        }
+
+        syncProviderUi(section, initial);
+
+        section
+          .querySelectorAll<HTMLButtonElement>("[data-provider-target]")
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const next = btn.dataset.providerTarget as "gitlab" | "github";
+              if (next !== "gitlab" && next !== "github") return;
+              syncProviderUi(section, next);
+              try {
+                localStorage.setItem("plumber:hero-provider", next);
+              } catch {
+                // ignore storage errors
+              }
+            });
+          });
+      });
+  }
+
+  initProviderToggle();
+  document.addEventListener("astro:after-swap", initProviderToggle);
+</script>

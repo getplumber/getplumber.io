@@ -3,8 +3,22 @@
  * * Quick Start CTA section with 3 steps
  * Based on Cta3.astro design; steps use FeatureCardLarge like PlumberFeatures
  */
-import Button from "@components/Button/Button.astro";
 import FeatureCard from "@components/FeatureCard/FeatureCardLarge.astro";
+import githubIconBlack from "@images/github-icon-black.svg";
+import githubIconWhite from "@images/github-icon-white.svg";
+import gitlabIcon from "@images/gitlab-icon.svg";
+import { Icon } from "astro-icon/components";
+import { Image } from "astro:assets";
+
+interface ProviderCta {
+  href: string;
+  title: string;
+}
+
+const providerCtas: ProviderCta[] = [
+  { href: "/docs/cli/gitlab", title: "Get started with GitLab" },
+  { href: "/docs/cli/github", title: "Get started with GitHub" },
+];
 
 interface StepData {
   icon: string;
@@ -15,13 +29,13 @@ interface StepData {
 const steps: StepData[] = [
   {
     icon: "tabler/terminal-2",
-    title: "Setup Plumber in your GitLab project",
-    text: "Add the Plumber component to your pipeline and configure controls (registries, branch protection, etc.).",
+    title: "Set up Plumber in your repository",
+    text: "Add the Plumber component to your GitLab pipeline (or call the CLI from your GitHub Actions workflow) and configure controls (registries, action pinning, branch protection, etc.).",
   },
   {
     icon: "tabler/player-play",
     title: "Run your CI/CD pipeline",
-    text: "Plumber runs as part of your pipeline and scans your CI configuration and job definitions.",
+    text: "Plumber runs as part of your pipeline and scans your CI configuration and job or workflow definitions.",
   },
   {
     icon: "tabler/file-text",
@@ -51,16 +65,18 @@ const steps: StepData[] = [
         data-mos-delay="0.2"
         data-mos-anchor="#plumber-cta"
       >
-        Set up Plumber in your GitLab CI/CD pipeline with just a few simple steps.
+        Set up Plumber in your GitLab CI/CD pipeline or GitHub Actions workflow with just a
+        few simple steps.
       </p>
 
-      <div class="mt-12 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <div class="mt-12 grid gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-4">
         {
           steps.map((step, idx) => (
             <FeatureCard
               title={step.title}
               text={step.text}
               icon={step.icon}
+              compact
               data-mos="fade-up"
               data-mos-delay={`${idx * 0.15 + 0.25}`}
               data-mos-anchor="#plumber-cta"
@@ -69,13 +85,79 @@ const steps: StepData[] = [
         }
       </div>
 
+      <!-- Platform docs: horizontal action bar (not step cards) -->
       <div
-        class="mt-12 flex justify-start"
+        class="mt-10 md:mt-12"
         data-mos="fade-up"
         data-mos-delay="0.7"
         data-mos-anchor="#plumber-cta"
       >
-        <Button variant="outline" href="/docs/cli" arrow="right"> View CLI Documentation </Button>
+        <p
+          class="text-base-500 dark:text-base-400 mb-3 text-center text-xs font-medium tracking-wider uppercase md:text-left"
+        >
+          Platform guides
+        </p>
+        <div
+          class="border-base-300 dark:border-base-600/50 dark:bg-base-900/30 divide-base-300 dark:divide-base-600/50 flex flex-col divide-y overflow-hidden rounded-xl border bg-base-100/40 sm:flex-row sm:divide-x sm:divide-y-0"
+        >
+          {
+            providerCtas.map((cta) => {
+              const isGitlab = cta.href.includes("gitlab");
+              return (
+                <a
+                  href={cta.href}
+                  class="group hover:bg-primary-500/[0.06] dark:hover:bg-primary-500/[0.08] focus-visible:ring-primary-500 dark:focus-visible:ring-primary-400 flex min-h-0 flex-1 items-center justify-between gap-4 px-5 py-4 no-underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset sm:px-6 sm:py-5"
+                >
+                  <span class="flex min-w-0 items-center gap-3.5">
+                    <span class="bg-base-200/80 dark:bg-base-800/80 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-base-300/60 dark:border-base-600/50">
+                      {isGitlab ? (
+                        <Image
+                          src={gitlabIcon}
+                          alt=""
+                          class="h-6 w-6"
+                          aria-hidden="true"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <>
+                          <Image
+                            src={githubIconBlack}
+                            alt=""
+                            class="block h-6 w-6 dark:hidden"
+                            aria-hidden="true"
+                            loading="lazy"
+                          />
+                          <Image
+                            src={githubIconWhite}
+                            alt=""
+                            class="hidden h-6 w-6 dark:block"
+                            aria-hidden="true"
+                            loading="lazy"
+                          />
+                        </>
+                      )}
+                    </span>
+                    <span class="min-w-0 text-left">
+                      <span class="text-base-900 dark:text-base-100 block text-sm font-semibold leading-snug sm:text-base">
+                        {cta.title}
+                      </span>
+                      <span class="text-base-500 dark:text-base-400 mt-0.5 block text-xs leading-snug">
+                        {isGitlab
+                          ? "CI component, controls, and GitLab-specific setup"
+                          : "Workflow scanning, auth, and GitHub controls"}
+                      </span>
+                    </span>
+                  </span>
+                  <Icon
+                    name="tabler/arrow-narrow-right"
+                    class="text-base-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 h-5 w-5 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                </a>
+              );
+            })
+          }
+        </div>
       </div>
     </div>
   </div>

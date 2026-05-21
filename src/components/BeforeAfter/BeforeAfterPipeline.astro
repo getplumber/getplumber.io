@@ -5,18 +5,27 @@
  * Step 2: Plumber CLI/Platform scans & analyzes
  * Step 3: Config is compliant, secure, audit-ready
  *
- * variant="cli"      → single file, CLI branding
- * variant="platform" → stacked files, Platform branding
+ * variant="cli"      → single file, CLI branding (supports `provider` toggle)
+ * variant="platform" → stacked files, Platform branding (GitLab only)
+ *
+ * For variant="cli", both the GitLab and GitHub example cards are rendered
+ * into the DOM. Visibility is driven by the [data-provider] attribute on the
+ * `.hiw-anim` root, which lets a parent section flip the active provider
+ * without re-mounting the animation.
  */
 import logo from "@images/site-logo.svg";
 import logoDark from "@images/site-logo-dark.svg";
 import { Image } from "astro:assets";
 
+type Provider = "gitlab" | "github";
+
 interface Props {
   variant: "cli" | "platform";
+  /** Initial provider for variant="cli". Defaults to "gitlab". */
+  provider?: Provider;
 }
 
-const { variant } = Astro.props;
+const { variant, provider = "gitlab" } = Astro.props;
 const isPlatform = variant === "platform";
 
 const labelColor = isPlatform
@@ -27,7 +36,11 @@ const subColor = isPlatform
   : "text-base-600 dark:text-base-400";
 ---
 
-<div class="hiw-anim mx-auto w-full" data-variant={variant}>
+<div
+  class="hiw-anim mx-auto w-full"
+  data-variant={variant}
+  data-provider={isPlatform ? "gitlab" : provider}
+>
   <div class="hiw-flow">
     <!-- Desktop: horizontal segments between step numbers (timing matches .c1 / .c2 connectors) -->
     <div class="hiw-num-rail" aria-hidden="true">
@@ -41,7 +54,7 @@ const subColor = isPlatform
 
       <div class="s-mid">
         <div class="s-visual">
-        <div class="cfg-card cfg-warn">
+        <div class="cfg-card cfg-warn" data-provider-show="gitlab">
           <div class="cfg-bar">
             <span class="cfg-dots"><span /><span /><span /></span>
             <span class="cfg-name">.gitlab-ci.yml</span>
@@ -122,12 +135,104 @@ const subColor = isPlatform
             </div>
           </div>
         </div>
+
+        {!isPlatform && (
+          <div class="cfg-card cfg-warn" data-provider-show="github">
+            <div class="cfg-bar">
+              <span class="cfg-dots"><span /><span /><span /></span>
+              <span class="cfg-name">.github/workflows/ci.yml</span>
+            </div>
+            <div class="cfg-body">
+              <div class="cl">
+                <span class="cn">1</span>
+                <code><b>on</b>:</code>
+              </div>
+              <div class="cl cl-comment">
+                <span class="cn">2</span>
+                <code class="indent">## External-contributor trigger</code>
+              </div>
+              <div class="cl cl-bad pill-seq-1">
+                <span class="cn">3</span>
+                <code class="indent"
+                  >- <span class="yaml-str">pull_request_target</span></code
+                >
+                <span class="pill pill-w">dangerous</span>
+              </div>
+              <div class="cl cl-bad pill-seq-2">
+                <span class="cn">4</span>
+                <code
+                  ><b>permissions</b>: <span class="yaml-str">write-all</span></code
+                >
+                <span class="pill pill-w">write-all</span>
+              </div>
+              <div class="cl">
+                <span class="cn">5</span>
+                <code><b>jobs</b>:</code>
+              </div>
+              <div class="cl">
+                <span class="cn">6</span>
+                <code class="indent"><b>build</b>:</code>
+              </div>
+              <div class="cl">
+                <span class="cn">7</span>
+                <code class="indent2"><b>env</b>:</code>
+              </div>
+              <div class="cl cl-bad pill-seq-3">
+                <span class="cn">8</span>
+                <code class="indent2"
+                  ><b>ACTIONS_STEP_DEBUG</b>:
+                  <span class="yaml-str">&quot;true&quot;</span></code
+                >
+                <span class="pill pill-w">debug</span>
+              </div>
+              <div class="cl">
+                <span class="cn">9</span>
+                <code class="indent2"><b>steps</b>:</code>
+              </div>
+              <div class="cl cl-bad pill-seq-4">
+                <span class="cn">10</span>
+                <code class="indent2"
+                  >- <b>uses</b>:
+                  <span class="yaml-str">tj-actions/changed-files@main</span></code
+                >
+                <span class="pill pill-w">mutable</span>
+              </div>
+              <div class="cl cl-bad pill-seq-5">
+                <span class="cn">11</span>
+                <code class="indent2"
+                  >- <b>uses</b>:
+                  <span class="yaml-str">archived-org/setup@v1</span></code
+                >
+                <span class="pill pill-w">archived</span>
+              </div>
+              <div class="cl cl-bad pill-seq-6">
+                <span class="cn">12</span>
+                <code class="indent2"
+                  >- <b>run</b>:
+                  <span class="yaml-str"
+                    >echo &quot;$&#123;&#123; github.event.title &#125;&#125;&quot;</span
+                  ></code
+                >
+                <span class="pill pill-w">injection</span>
+              </div>
+            </div>
+          </div>
+        )}
         </div>
       </div>
 
       <div class="s-caption">
         <p class:list={["s-label", labelColor]}>
-          {isPlatform ? "Your organization's pipelines" : "Your .gitlab-ci.yml"}
+          {
+            isPlatform ? (
+              "Your organization's pipelines"
+            ) : (
+              <>
+                <span data-provider-show="gitlab">Your .gitlab-ci.yml</span>
+                <span data-provider-show="github">Your GitHub Actions workflow</span>
+              </>
+            )
+          }
         </p>
         <p class:list={["s-sub", subColor]}>
           {isPlatform ? "across all projects" : "with compliance issues"}
@@ -251,7 +356,7 @@ const subColor = isPlatform
           </div>
         ) : (
           <>
-            <div class="cfg-card cfg-ok">
+            <div class="cfg-card cfg-ok" data-provider-show="gitlab">
               <div class="cfg-bar">
                 <span class="cfg-dots"><span /><span /><span /></span>
                 <span class="cfg-name">.gitlab-ci.yml</span>
@@ -325,6 +430,81 @@ const subColor = isPlatform
                 </div>
               </div>
             </div>
+
+            <div class="cfg-card cfg-ok" data-provider-show="github">
+              <div class="cfg-bar">
+                <span class="cfg-dots"><span /><span /><span /></span>
+                <span class="cfg-name">.github/workflows/ci.yml</span>
+              </div>
+              <div class="cfg-body">
+                <div class="cl">
+                  <span class="cn">1</span>
+                  <code><b>on</b>:</code>
+                </div>
+                <div class="cl cl-comment">
+                  <span class="cn">2</span>
+                  <code class="indent">## Safe trigger</code>
+                </div>
+                <div class="cl cl-good pill-seq-1">
+                  <span class="cn">3</span>
+                  <code class="indent"
+                    >- <span class="yaml-str">pull_request</span></code
+                  >
+                  <span class="pill pill-g">safe</span>
+                </div>
+                <div class="cl">
+                  <span class="cn">4</span>
+                  <code><b>permissions</b>:</code>
+                </div>
+                <div class="cl cl-good pill-seq-2">
+                  <span class="cn">5</span>
+                  <code class="indent"
+                    ><b>contents</b>: <span class="yaml-str">read</span></code
+                  >
+                  <span class="pill pill-g">least-priv</span>
+                </div>
+                <div class="cl">
+                  <span class="cn">6</span>
+                  <code><b>jobs</b>:</code>
+                </div>
+                <div class="cl">
+                  <span class="cn">7</span>
+                  <code class="indent"><b>build</b>:</code>
+                </div>
+                <div class="cl">
+                  <span class="cn">8</span>
+                  <code class="indent2"><b>steps</b>:</code>
+                </div>
+                <div class="cl cl-good pill-seq-3">
+                  <span class="cn">9</span>
+                  <code class="indent2"
+                    >- <b>uses</b>:
+                    <span class="yaml-str"
+                      >actions/checkout@a1b2c3d4e5f6a7b8c9d0…</span
+                    ></code
+                  >
+                  <span class="pill pill-g">pinned</span>
+                </div>
+                <div class="cl cl-good pill-seq-4">
+                  <span class="cn">10</span>
+                  <code class="indent2"
+                    >- <b>env</b>:
+                    <span class="yaml-str"
+                      >TITLE: $&#123;&#123; github.event.title &#125;&#125;</span
+                    ></code
+                  >
+                  <span class="pill pill-g">bound</span>
+                </div>
+                <div class="cl cl-good pill-seq-5">
+                  <span class="cn">11</span>
+                  <code class="indent2"
+                    ><b>run</b>:
+                    <span class="yaml-str">echo &quot;$TITLE&quot;</span></code
+                  >
+                  <span class="pill pill-g">safe</span>
+                </div>
+              </div>
+            </div>
           </>
         )}
         </div>
@@ -335,7 +515,16 @@ const subColor = isPlatform
           {isPlatform ? "Full visibility" : "Compliant & secure"}
         </p>
         <p class:list={["s-sub", subColor]}>
-          {isPlatform ? "track, fix & remediate" : "audit-ready pipeline"}
+          {
+            isPlatform ? (
+              "track, fix & remediate"
+            ) : (
+              <>
+                <span data-provider-show="gitlab">audit-ready pipeline</span>
+                <span data-provider-show="github">audit-ready workflow</span>
+              </>
+            )
+          }
         </p>
       </div>
     </div>
@@ -353,6 +542,20 @@ const subColor = isPlatform
     overflow-x: clip;
     overflow-y: visible;
     box-sizing: border-box;
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║       PROVIDER SWITCH (cli variant)      ║
+     ╚══════════════════════════════════════════╝
+     Both GitLab and GitHub example cards render to the DOM. The active provider
+     is set on .hiw-anim via [data-provider]; the inactive one is removed from
+     flow so connector geometry stays untouched. */
+  .hiw-anim[data-provider="gitlab"] [data-provider-show="github"] {
+    display: none !important;
+  }
+
+  .hiw-anim[data-provider="github"] [data-provider-show="gitlab"] {
+    display: none !important;
   }
 
   @media (min-width: 768px) {

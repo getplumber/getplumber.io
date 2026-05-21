@@ -2,8 +2,13 @@
 import PipelineAnimation from "@components/Animation/PipelineAnimation.astro";
 import Button from "@components/Button/Button.astro";
 import GitHubHeroStatsBadge from "@components/Hero/GitHubHeroStatsBadge.astro";
+import githubBlackLogo from "@images/github-black.svg";
+import githubWhiteLogo from "@images/github-white.svg";
+import gitlabDarkLogo from "@images/gitlab-dark.svg";
+import gitlabWhiteLogo from "@images/gilab-white.svg";
 import { PLUMBER_GITHUB_REPO_URL } from "@js/plumberGithubRepo";
 import { Icon } from "astro-icon/components";
+import { Image } from "astro:assets";
 ---
 
 <section
@@ -65,16 +70,64 @@ import { Icon } from "astro-icon/components";
         Open Source compliance CLI <br /> for <span
           class="text-primary-500 text-shadow-base-700 text-shadow-xs">GitLab CI/CD</span
         >
+        <span class="text-base-500 dark:text-base-400 font-light">&amp;</span>
+        <span class="text-primary-500 text-shadow-base-700 text-shadow-xs whitespace-nowrap"
+          >GitHub Actions</span
+        >
       </h1>
+
+      <!-- Provider logos: official wordmarks for GitLab and GitHub -->
+      <div
+        class="text-base-500 dark:text-base-400 mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs font-medium tracking-wider uppercase"
+        data-mos="fade-up"
+        data-mos-delay="0.15"
+        data-mos-anchor="#plumber-hero"
+        aria-label="Supported CI/CD providers"
+      >
+        <span aria-hidden="true">Works with</span>
+        <span class="inline-flex items-center gap-5">
+          <!-- GitLab wordmark -->
+          <Image
+            src={gitlabDarkLogo}
+            alt="GitLab"
+            class="block h-5 w-auto opacity-80 dark:hidden"
+            loading="eager"
+          />
+          <Image
+            src={gitlabWhiteLogo}
+            alt="GitLab"
+            class="hidden h-5 w-auto opacity-80 dark:block"
+            loading="eager"
+          />
+          <span
+            class="bg-base-600 dark:bg-base-500 inline-block h-6 w-px"
+            aria-hidden="true"></span>
+          <!-- GitHub wordmark -->
+          <Image
+            src={githubBlackLogo}
+            alt="GitHub"
+            class="block h-5 w-auto opacity-90 dark:hidden"
+            loading="eager"
+          />
+          <Image
+            src={githubWhiteLogo}
+            alt="GitHub"
+            class="hidden h-5 w-auto opacity-90 dark:block"
+            loading="eager"
+          />
+        </span>
+      </div>
+
       <p
-        class="description mx-auto mt-4 max-w-2xl"
+        class="description mx-auto mt-6 max-w-2xl"
         data-mos="fade-up"
         data-mos-delay="0.2"
         data-mos-anchor="#plumber-hero"
       >
-        Analyze your GitLab CI/CD pipelines for security and compliance: pipeline composition
-        (templates, components, version constraints), container images (mutable tags, trusted
-        registries), and branch protection settings.
+        Analyze your GitLab CI/CD pipelines and GitHub Actions workflows for security and
+        compliance: pipeline composition (templates, components, pinned action SHAs),
+        container images (mutable tags, trusted registries), dangerous triggers and
+        permissions, and branch protection settings.
       </p>
 
       <!-- CTA Buttons -->
