@@ -42,10 +42,11 @@ function normalizeContentId(contentId: string): string {
   return contentId.replace(/\/index$/, "");
 }
 
-/** Open Source CLI provider pages: GitLab before GitHub (overrides title sort). */
+/** Open Source CLI pages: installation before providers, GitLab before GitHub (overrides title sort). */
 const CLI_PROVIDER_SIDEBAR_RANK: Record<string, number> = {
-  "cli/gitlab": 2,
-  "cli/github": 3,
+  "cli/installation": 2,
+  "cli/gitlab": 3,
+  "cli/github": 4,
 };
 
 function sidebarSortRank(item: { contentId: string; order?: number }): number {

@@ -3,13 +3,13 @@ title: "GitLab"
 description: "Scanning GitLab CI/CD pipelines with the Plumber CLI: authentication, controls, issues, configuration, and MR/badge integration"
 sidebar:
   label: "GitLab"
-  order: 2
+  order: 3
   indent: true
 section: "api"
 ---
 import { Icon } from "astro-icon/components";
 
-This page covers the **GitLab CI/CD** particulars of the Plumber CLI: how to authenticate, the controls that ship for GitLab, the issues they emit, a complete `gitlab.controls:` configuration block, and the merge-request / badge integration. For installation and the provider-agnostic command reference, see the [main CLI page](/docs/cli).
+This page covers the **GitLab CI/CD** particulars of the Plumber CLI: how to authenticate, the controls that ship for GitLab, the issues they emit, a complete `gitlab.controls:` configuration block, and the merge-request / badge integration. For installation, see the [Installation](/docs/cli/installation) page. For the provider-agnostic command reference, see the [main CLI page](/docs/cli).
 
 On GitLab, Plumber flags issues like:
 
@@ -25,7 +25,7 @@ On GitLab, Plumber flags issues like:
 ## Quick Start
 
 <Steps>
-1. **Install Plumber** ([Installation](#installation) below): Homebrew, mise, a prebuilt binary, Docker, or from source.
+1. **Install Plumber** ([Installation](/docs/cli/installation)): Homebrew, mise, a prebuilt binary, Docker, or from source.
 
 2. **Authenticate**: create a `GITLAB_TOKEN` with `read_api` + `read_repository` scopes (see [Authentication](#authentication) below).
 
@@ -41,118 +41,7 @@ On GitLab, Plumber flags issues like:
 
 ## Installation
 
-
-<Aside variant="info">
-  Requires `git` on `PATH` for local-clone auto-detection. Already present in GitLab Runner, the Docker image, and standard macOS / Linux installs.
-</Aside>
-
-<Tabs defaultValue="homebrew">
-  <TabsList>
-    <TabsTrigger value="homebrew">Homebrew</TabsTrigger>
-    <TabsTrigger value="mise">Mise</TabsTrigger>
-    <TabsTrigger value="binary">Binary</TabsTrigger>
-    <TabsTrigger value="docker">Docker</TabsTrigger>
-    <TabsTrigger value="source">Source</TabsTrigger>
-  </TabsList>
-
-  <TabsContent value="homebrew">
-    ```bash
-    brew tap getplumber/plumber
-    brew install plumber
-    ```
-
-    **Install a specific version:**
-
-    ```bash
-    brew install getplumber/plumber/plumber@v0.3.27
-    ```
-
-    <Aside variant="info">
-      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@v0.3.27/bin/plumber`) or run `brew link plumber@v0.3.27` to add it to your PATH.
-    </Aside>
-  </TabsContent>
-
-  <TabsContent value="mise">
-    ```bash
-    mise use -g github:getplumber/plumber
-    ```
-
-    <Aside variant="info">
-      Requires [mise activation](https://mise.jdx.dev/getting-started.html#activate-mise) in your shell, or run with `mise exec -- plumber`.
-    </Aside>
-  </TabsContent>
-
-  <TabsContent value="binary">
-    **Linux (amd64)**
-    ```bash
-    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-linux-amd64
-    chmod +x plumber-linux-amd64
-    sudo mv plumber-linux-amd64 /usr/local/bin/plumber
-    ```
-
-    **Linux (arm64)**
-    ```bash
-    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-linux-arm64
-    chmod +x plumber-linux-arm64
-    sudo mv plumber-linux-arm64 /usr/local/bin/plumber
-    ```
-
-    **macOS (Apple Silicon)**
-    ```bash
-    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-darwin-arm64
-    chmod +x plumber-darwin-arm64
-    sudo mv plumber-darwin-arm64 /usr/local/bin/plumber
-    ```
-
-    **macOS (Intel)**
-    ```bash
-    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-darwin-amd64
-    chmod +x plumber-darwin-amd64
-    sudo mv plumber-darwin-amd64 /usr/local/bin/plumber
-    ```
-
-    **Windows (PowerShell)**
-    ```powershell
-    Invoke-WebRequest -Uri https://github.com/getplumber/plumber/releases/latest/download/plumber-windows-amd64.exe -OutFile plumber.exe
-    ```
-
-    **Verify checksum** (optional):
-    ```bash
-    curl -LO https://github.com/getplumber/plumber/releases/latest/download/checksums.txt
-    sha256sum -c checksums.txt --ignore-missing
-    ```
-  </TabsContent>
-
-  <TabsContent value="docker">
-    ```bash
-    docker pull getplumber/plumber:latest
-    ```
-
-    Run analysis directly with Docker:
-
-    ```bash
-    docker run --rm \
-      -e GITLAB_TOKEN=glpat-xxxx \
-      getplumber/plumber:latest analyze \
-      --gitlab-url https://gitlab.com \
-      --project mygroup/myproject
-    ```
-  </TabsContent>
-
-  <TabsContent value="source">
-    ```bash
-    git clone https://github.com/getplumber/plumber.git
-    cd plumber
-    make build
-    # or: make install (builds and copies to /usr/local/bin/)
-    ```
-
-    <Aside variant="info">
-      Requires Go 1.24+ and Make.
-    </Aside>
-  </TabsContent>
-</Tabs>
-
+See the dedicated [Installation](/docs/cli/installation) page for all installation methods: Homebrew, mise, prebuilt binary, Docker, and building from source.
 
 ## Authentication
 
@@ -724,7 +613,7 @@ include:
   **Token requirement:** The `api` scope is required (not `read_api`) and Maintainer role to manage project badges.
 </Aside>
 
-The Plumber GitLab CI/CD component (drop-in pipeline integration) is documented in the [GitLab CI Component](#gitlab-ci-component) section below. For installation and the provider-agnostic commands, see the [main CLI page](/docs/cli).
+The Plumber GitLab CI/CD component (drop-in pipeline integration) is documented in the [GitLab CI Component](#gitlab-ci-component) section below. For installation, see the [Installation](/docs/cli/installation) page. For the provider-agnostic commands, see the [main CLI page](/docs/cli).
 
 
 ## Selective Control Execution

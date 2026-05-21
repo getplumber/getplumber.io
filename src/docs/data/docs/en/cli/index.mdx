@@ -10,9 +10,20 @@ import { Icon } from "astro-icon/components";
 
 The Plumber CLI analyzes **GitLab CI/CD pipelines** and **GitHub Actions workflows** from the command line, checking them against a single `.plumber.yaml` policy. Both providers share the same engine (OPA / Rego), the same output format, and the same exit codes: write a policy once, scan both.
 
-Pick the page for the platform you scan. Each is a complete, self-contained guide (installation, authentication, running a scan, the control catalog, the issues, and configuration):
+Install the CLI first, then pick the page for the platform you scan. Each provider page is a complete, self-contained guide (authentication, running a scan, the control catalog, the issues, and configuration):
 
-<div class="not-content grid gap-6 sm:grid-cols-2 my-8">
+<div class="not-content grid gap-6 sm:grid-cols-3 my-8">
+  <a href="/docs/cli/installation" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-xl font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/download" size="24px" />
+        Installation
+      </div>
+      <div class="text-muted-foreground text-sm">Homebrew, mise, prebuilt binary, Docker, or build from source.</div>
+      <div class="pt-2 text-primary text-sm font-medium group-hover:underline">Install →</div>
+    </div>
+  </a>
+
   <a href="/docs/cli/gitlab" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
     <div class="flex flex-col space-y-2 p-6">
       <div class="flex items-center gap-2 text-xl font-semibold tracking-tight text-card-foreground">
