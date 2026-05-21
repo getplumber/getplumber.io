@@ -19,7 +19,10 @@ const innerShellClass =
     : "dark border-base-600/60 relative z-10 w-full overflow-clip rounded-xl border bg-[var(--astro-code-background)] md:rounded-lg";
 ---
 
-<div class="pipeline-animation-container relative w-full lg:w-[800px]" data-pipeline-animation-root>
+<div
+  class="pipeline-animation-container relative mx-auto w-full max-w-full min-w-0 lg:w-[800px]"
+  data-pipeline-animation-root
+>
   <div class={shellClass}>
     <div class={innerShellClass}>
       <!-- Code Typing Stage -->
@@ -1026,6 +1029,9 @@ const innerShellClass =
   @import "@/styles/tailwind-theme.css" theme(reference);
 
   .pipeline-animation-container {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
     pointer-events: none;
     user-select: none;
   }

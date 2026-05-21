@@ -39,7 +39,7 @@ import { Image } from "astro:assets";
   </div>
 
   <!-- hero items -->
-  <div class="site-container mx-auto max-w-6xl gap-8">
+  <div class="site-container mx-auto max-w-6xl min-w-0 gap-8">
     <!-- notification -->
     <!-- <div
       class="mb-4 flex w-full items-center justify-center"
@@ -60,10 +60,10 @@ import { Image } from "astro:assets";
       >
     </div> -->
     <!-- Hero text -->
-    <div class="mb-12 text-center">
+    <div class="mb-12 min-w-0 px-1 text-center sm:px-0">
       <GitHubHeroStatsBadge />
       <h1
-        class="from-base-900 to-base-600/90 dark:from-base-100 dark:to-base-400/90 bg-gradient-to-r bg-clip-text pb-4 text-5xl font-medium text-transparent md:text-6xl"
+        class="from-base-900 to-base-600/90 dark:from-base-100 dark:to-base-400/90 text-pretty bg-gradient-to-r bg-clip-text pb-4 text-3xl leading-tight font-medium text-transparent sm:text-4xl md:text-5xl lg:text-6xl"
         data-mos="fade-up"
         data-mos-anchor="#plumber-hero"
       >
@@ -71,9 +71,7 @@ import { Image } from "astro:assets";
           class="text-primary-500 text-shadow-base-700 text-shadow-xs">GitLab CI/CD</span
         >
         <span class="text-base-500 dark:text-base-400 font-light">&amp;</span>
-        <span class="text-primary-500 text-shadow-base-700 text-shadow-xs whitespace-nowrap"
-          >GitHub Actions</span
-        >
+        <span class="text-primary-500 text-shadow-base-700 text-shadow-xs">GitHub Actions</span>
       </h1>
 
       <!-- Provider logos: official wordmarks for GitLab and GitHub -->
@@ -146,7 +144,7 @@ import { Image } from "astro:assets";
 
     <!-- Pipeline Animation Section -->
     <div
-      class="relative mt-8 flex w-full items-center justify-center"
+      class="relative mt-8 flex w-full min-w-0 max-w-full items-center justify-center overflow-x-clip"
       data-mos="fade-up"
       data-mos-delay="0.6"
       data-mos-anchor="#plumber-hero"
