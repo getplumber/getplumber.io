@@ -1,0 +1,130 @@
+---
+title: "Installation"
+description: "Install the Plumber CLI via Homebrew, mise, prebuilt binary, Docker, or from source"
+sidebar:
+  label: "Installation"
+  order: 2
+  indent: true
+section: "api"
+---
+
+<Aside variant="info">
+  Trying a beta? Homebrew, mise, and Docker Hub follow stable releases only. Beta binaries and checksums live on the [GitHub Releases page](https://github.com/getplumber/plumber/releases); each beta's release notes carry the verified download + checksum steps for that specific build.
+</Aside>
+
+<Tabs defaultValue="homebrew">
+  <TabsList>
+    <TabsTrigger value="homebrew">Homebrew</TabsTrigger>
+    <TabsTrigger value="mise">Mise</TabsTrigger>
+    <TabsTrigger value="binary">Binary</TabsTrigger>
+    <TabsTrigger value="docker">Docker</TabsTrigger>
+    <TabsTrigger value="source">Source</TabsTrigger>
+  </TabsList>
+
+  <TabsContent value="homebrew">
+    ```bash
+    brew tap getplumber/plumber
+    brew install plumber
+    ```
+
+    **Install a specific version:**
+
+    ```bash
+    brew install getplumber/plumber/plumber@v0.3.0
+    ```
+
+    <Aside variant="info">
+      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@v0.3.0/bin/plumber`) or run `brew link plumber@v0.3.0` to add it to your PATH.
+    </Aside>
+  </TabsContent>
+
+  <TabsContent value="mise">
+    ```bash
+    mise use -g github:getplumber/plumber
+    ```
+
+    <Aside variant="info">
+      Requires [mise activation](https://mise.jdx.dev/getting-started.html#activate-mise) in your shell, or run with `mise exec -- plumber`.
+    </Aside>
+  </TabsContent>
+
+  <TabsContent value="binary">
+    **Linux (amd64)**
+    ```bash
+    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-linux-amd64
+    chmod +x plumber-linux-amd64
+    sudo mv plumber-linux-amd64 /usr/local/bin/plumber
+    ```
+
+    **Linux (arm64)**
+    ```bash
+    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-linux-arm64
+    chmod +x plumber-linux-arm64
+    sudo mv plumber-linux-arm64 /usr/local/bin/plumber
+    ```
+
+    **macOS (Apple Silicon)**
+    ```bash
+    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-darwin-arm64
+    chmod +x plumber-darwin-arm64
+    sudo mv plumber-darwin-arm64 /usr/local/bin/plumber
+    ```
+
+    **macOS (Intel)**
+    ```bash
+    curl -LO https://github.com/getplumber/plumber/releases/latest/download/plumber-darwin-amd64
+    chmod +x plumber-darwin-amd64
+    sudo mv plumber-darwin-amd64 /usr/local/bin/plumber
+    ```
+
+    **Windows (PowerShell)**
+    ```powershell
+    Invoke-WebRequest -Uri https://github.com/getplumber/plumber/releases/latest/download/plumber-windows-amd64.exe -OutFile plumber.exe
+    ```
+
+    **Verify checksum** (optional):
+    ```bash
+    curl -LO https://github.com/getplumber/plumber/releases/latest/download/checksums.txt
+    sha256sum -c checksums.txt --ignore-missing
+    ```
+  </TabsContent>
+
+  <TabsContent value="docker">
+    ```bash
+    docker pull getplumber/plumber:latest
+    ```
+
+    **GitLab example:**
+
+    ```bash
+    docker run --rm \
+      -e GITLAB_TOKEN=glpat-xxxx \
+      getplumber/plumber:latest analyze \
+      --gitlab-url https://gitlab.com \
+      --project mygroup/myproject
+    ```
+
+    **GitHub example:**
+
+    ```bash
+    docker run --rm \
+      -e GH_TOKEN=ghp_xxxx \
+      getplumber/plumber:latest analyze \
+      --github-url github.com \
+      --project myorg/myrepo
+    ```
+  </TabsContent>
+
+  <TabsContent value="source">
+    ```bash
+    git clone https://github.com/getplumber/plumber.git
+    cd plumber
+    make build
+    # or: make install (builds and copies to /usr/local/bin/)
+    ```
+
+    <Aside variant="info">
+      Requires Go 1.24+ and Make.
+    </Aside>
+  </TabsContent>
+</Tabs>
