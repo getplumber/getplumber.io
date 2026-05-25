@@ -81,13 +81,13 @@ v1 files still load with an in-memory conversion and a deprecation warning; migr
 - **Verify release binaries with SLSA attestations when you deploy to production**:
 
 ```bash
-gh release download v0.3.0 --repo getplumber/plumber --pattern 'plumber-linux-amd64'
+gh release download v0.3.19 --repo getplumber/plumber --pattern 'plumber-linux-amd64'
 gh attestation verify plumber-linux-amd64 --repo getplumber/plumber
 ```
 
 ## ⬆️ How to update
 
-- **CLI**: `brew update && brew upgrade plumber`, or install [v0.3.0](/docs/cli/github#installation) via mise, release binaries, or Docker.
+- **CLI**: `brew update && brew upgrade plumber`, or install [v0.3.19](/docs/cli/github#installation) via mise, release binaries, or Docker.
 - **GitHub repos**: Add or extend `github.controls:` in `.plumber.yaml` (start from `plumber config init` or `plumber config generate`), run `plumber analyze` in CI with `GH_TOKEN`.
 - **GitLab repos**: No workflow change required; bump the CLI. For the drop-in pipeline, use the latest [GitLab CI component](/docs/cli/gitlab#gitlab-ci-component) catalog entry when you refresh templates.
 - **Mixed estates**: Run `plumber config migrate`, then tune `gitlab.controls:` and `github.controls:` in one file.
@@ -100,7 +100,7 @@ gh attestation verify plumber-linux-amd64 --repo getplumber/plumber
 
 <Admonition variant="info">
 Versions
-- Plumber CLI: `v0.3.0`
+- Plumber CLI: `v0.3.19`
 - GitLab component: latest [catalog](https://gitlab.com/explore/catalog/getplumber/plumber)
 - Platform note: GitHub Actions scanning is **CLI-only** in this release; Plumber Platform for GitHub follows later.
 </Admonition>

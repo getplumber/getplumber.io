@@ -1,6 +1,6 @@
 ---
 title: "GitHub"
-description: "Scanning GitHub Actions workflows with the Plumber CLI: authentication, controls, issues, and configuration"
+description: "Scanning GitHub Actions workflows with the Plumber CLI and GitHub Action: authentication, controls, issues, SARIF and Code Scanning"
 sidebar:
   label: "GitHub"
   order: 3
@@ -9,7 +9,7 @@ section: "api"
 ---
 import { Icon } from "astro-icon/components";
 
-This page covers the **GitHub Actions** particulars of the Plumber CLI: how to authenticate, the controls that ship for GitHub, the issues they emit, and a complete `github.controls:` configuration block. For installation and the provider-agnostic command reference, see the [main CLI page](/docs/cli).
+This page covers the **GitHub Actions** particulars of the Plumber CLI: how to authenticate, the controls that ship for GitHub, the issues they emit, a complete `github.controls:` configuration block, and the **drop-in [GitHub Action](#github-action)** for automated compliance scanning with SARIF upload. For installation and the provider-agnostic command reference, see the [main CLI page](/docs/cli).
 
 On GitHub Actions, Plumber flags issues like:
 
@@ -23,6 +23,12 @@ On GitHub Actions, Plumber flags issues like:
 - Docker-in-Docker services and weakened security jobs
 
 ## Quick Start
+
+Two ways to scan a GitHub repository. Pick the path that matches how you work: [Local CLI](#run-the-cli-locally) or [GitHub Action](#github-action).
+
+### Run the CLI locally
+
+Best for trying Plumber on one repo, checks before you push, security-team audits, or scanning upstream repos without changing CI.
 
 <Steps>
 1. **Install Plumber** ([Installation](#installation) below): Homebrew, mise, a prebuilt binary, Docker, or from source.
@@ -63,11 +69,11 @@ On GitHub Actions, Plumber flags issues like:
     **Install a specific version:**
 
     ```bash
-    brew install getplumber/plumber/plumber@v0.3.0
+    brew install getplumber/plumber/plumber@v0.3.19
     ```
 
     <Aside variant="info">
-      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@v0.3.0/bin/plumber`) or run `brew link plumber@v0.3.0` to add it to your PATH.
+      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@v0.3.19/bin/plumber`) or run `brew link plumber@v0.3.19` to add it to your PATH.
     </Aside>
   </TabsContent>
 
@@ -290,7 +296,6 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
   When using `--output`, results are saved as JSON for programmatic access and CI/CD integration.
 </Aside>
 
-{/* TODO: refresh screenshot. The CLI now banners "GitLab & GitHub Actions" and prints a "Points breakdown (beta)" block. See release-announcement-0.3.0-beta.md for the current output shape. */}
 ![Plumber CLI output showing compliance results](../img/cli-gh-output.png)
 
 ## Available Controls
@@ -583,6 +588,171 @@ Controls not selected are reported as **skipped** in the output. The `--controls
 
 </details>
 
+## GitHub Action
+
+Use this path for automated compliance on every push or pull request, SARIF in **Code Scanning**, and no Plumber install on developer machines. Plumber ships as the [Plumber Compliance Scanner](https://github.com/marketplace/actions/plumber-compliance-scanner) on the GitHub Marketplace: a `uses:` step that runs the same engine, the same `.plumber.yaml`, and the same [controls](#available-controls) and [issues](#issues) as the CLI.
+
+The action automatically:
+- Downloads and **checksum-verifies** the Plumber binary (with optional **SLSA attestation** verification)
+- Runs `plumber analyze` with your chosen inputs
+- Uploads findings to **GitHub Code Scanning** via SARIF
+- Uploads the JSON report, PBOM, and CycloneDX SBOM as **workflow artifacts**
+- Posts a **job summary** with compliance percentage, Plumber score, and severity counts
+
+### Quick Start
+
+<Steps>
+1. **Ensure a `.plumber.yaml` exists** in your repo root. Generate one with the [CLI](#installation) if you have it installed, or download the default:
+
+   ```bash
+   plumber config generate
+   # or:
+   curl -fsSL https://raw.githubusercontent.com/getplumber/plumber/main/.plumber.yaml -o .plumber.yaml
+   ```
+
+2. **Add the action to your workflow** (e.g. `.github/workflows/plumber.yml`):
+
+   ```yaml
+   name: Plumber compliance
+
+   on:
+     push:
+       branches: [main]
+     pull_request: null
+
+   permissions:
+     contents: read
+     security-events: write
+
+   jobs:
+     plumber:
+       runs-on: ubuntu-24.04
+       steps:
+         - uses: actions/checkout@v6
+         - uses: getplumber/plumber@COMMIT_SHA
+   ```
+
+3. **Push and check results**: findings appear in the **Code Scanning** tab, the job summary, and the downloadable artifact bundle.
+</Steps>
+
+<Aside variant="tip">
+  **Pin by commit SHA, not a tag.** Copy the ready-to-paste SHA-pinned `uses:` line from the [GitHub Action section of the README](https://github.com/getplumber/plumber#option-3-github-action). This is automatically updated on new releases.
+</Aside>
+
+<Aside variant="caution">
+  The job needs `security-events: write` permission for SARIF upload to Code Scanning. Without it the upload step is skipped.
+</Aside>
+
+### Customizing the action
+
+Override any input to fit your needs:
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  with:
+    threshold: "80"
+    config-file: configs/strict.plumber.yaml
+    controls: actionsMustBePinnedByCommitSha,branchMustBeProtected
+    score: "true"
+    soft-fail: "true"
+    upload-sarif: "true"
+    upload-artifacts: "true"
+```
+
+### All inputs
+
+| Input | Default | Description |
+|-------|---------|-------------|
+| `version` | _(pinned in action.yml)_ | Plumber release tag to install. Downloaded from GitHub Releases and verified against `checksums.txt` |
+| `verify-attestation` | `true` | Verify the binary's SLSA build-provenance attestation via `gh attestation verify`. Disable for air-gapped or GHES setups |
+| `github-token` | `${{ github.token }}` | Token for the GitHub API and SARIF upload. Needs `Administration:read` for full `branchMustBeProtected`, and `security-events:write` for SARIF |
+| `project` | _(current repo)_ | `owner/repo` to scan remotely (upstream-fetch, no checkout needed) |
+| `github-url` | _(github.com)_ | GitHub Enterprise Server host (e.g. `ghes.example.com`) |
+| `threshold` | `100` | Minimum compliance percentage to pass (0-100) |
+| `config-file` | _(auto-detect)_ | Path to `.plumber.yaml`. Defaults to repo root; the run fails if absent |
+| `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
+| `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
+| `score` | `true` | Show the Plumber letter score, points, and breakdown |
+| `fail-warnings` | `false` | Treat configuration warnings (unknown keys) as errors |
+| `soft-fail` | `false` | Do not fail the job when compliance is below the threshold. Findings are still produced and uploaded |
+| `upload-sarif` | `true` | Upload the SARIF report to GitHub Code Scanning |
+| `upload-artifacts` | `true` | Upload JSON report, PBOM, and CycloneDX SBOM as a workflow artifact |
+| `artifact-name` | `plumber-compliance` | Name of the uploaded artifact bundle |
+| `output` | `plumber-report.json` | JSON report output path. Empty to skip |
+| `pbom` | `plumber-pbom.json` | PBOM output path. Empty to skip |
+| `pbom-cyclonedx` | `plumber-cyclonedx-sbom.json` | CycloneDX SBOM output path. Empty to skip |
+| `sarif` | `plumber.sarif` | SARIF 2.1.0 output path. Empty to skip |
+
+### Outputs
+
+| Output | Description |
+|--------|-------------|
+| `compliance` | Overall compliance percentage from the run |
+| `passed` | `true` when compliance is at or above the threshold |
+| `report` | Path to the JSON report |
+| `sarif` | Path to the SARIF report |
+
+Use outputs in downstream steps:
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  id: plumber
+- run: echo "Compliance is ${{ steps.plumber.outputs.compliance }}%"
+```
+
+### Code Scanning integration
+
+When `upload-sarif` is `true` (the default), the action uploads a SARIF 2.1.0 report to [GitHub Code Scanning](https://docs.github.com/en/code-security/code-scanning). Each Plumber finding becomes an alert in the **Security** tab with:
+
+- The issue code as the rule ID (e.g. `ISSUE-701`)
+- Severity mapped to SARIF level (`error`, `warning`, `note`) and a numeric `security-severity` for triage
+- File location pointing at the workflow YAML line
+- A `helpUri` linking to the issue's documentation page on getplumber.io
+
+<Aside variant="info">
+  Code Scanning requires GitHub Advanced Security on private repos. On public repos it is free.
+</Aside>
+
+### GitHub Enterprise Server
+
+For GHES, pass the host via `github-url`:
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  with:
+    github-url: ghes.example.com
+    verify-attestation: "false"
+```
+
+Set `verify-attestation: "false"` if the runner cannot reach the sigstore transparency log or your GHES instance does not support `gh attestation verify`.
+
+### Examples
+
+**Scan a remote repo without cloning:**
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  with:
+    project: my-org/other-repo
+    github-token: ${{ secrets.PLUMBER_PAT }}
+```
+
+**Run only SHA-pinning and permissions checks:**
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  with:
+    controls: actionsMustBePinnedByCommitSha,workflowsMustDeclarePermissions
+```
+
+**Soft-fail in PRs, hard-fail on main:**
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  with:
+    soft-fail: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}
+```
+
 ## Troubleshooting
 
 | Issue | Solution |
@@ -594,6 +764,8 @@ Controls not selected are reported as **skipped** in the output. The `--controls
 | `404 Not Found` | Verify `--project owner/repo` and, for GHES, that `--github-url` points at the right host |
 | Branch protection rule not detected | Plumber reads classic Branch Protection AND Rulesets; confirm the rule is enabled (not in evaluate mode) on a branch matching your `namePatterns` |
 | Configuration file not found | Ensure `--config` points at the real file (use an absolute path in Docker). Create one with `plumber config generate` or `plumber config init` |
+| SARIF upload fails with 403 | The job needs `security-events: write` permission. Add it under the workflow or job-level `permissions:` block |
+| Attestation verification fails | The runner cannot reach sigstore or `gh` CLI is not installed. Set `verify-attestation: "false"` to skip |
 
 <Aside variant="info">
   **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](/discord).
