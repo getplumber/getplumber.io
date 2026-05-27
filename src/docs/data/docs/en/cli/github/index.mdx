@@ -304,20 +304,20 @@ Plumber ships **14 default-on GitHub controls** (13 default-on plus the opt-in `
 
 | Control | Issues | Description |
 |---------|--------|-------------|
-| **Container images must not use forbidden tags** | [ISSUE-102](/docs/cli/issues/ISSUE-102) [ISSUE-103](/docs/cli/issues/ISSUE-103) | Flags mutable tags (`latest`, `dev`, …); can require all images be pinned by digest |
+| **Container images must not use forbidden tags** | [ISSUE-102](/docs/cli/issues/ISSUE-102) | Flags mutable tags (`latest`, `dev`, …); can require all images be pinned by digest |
 | **Pipeline must not enable debug trace** | [ISSUE-203](/docs/cli/issues/ISSUE-203) | Flags truthy `ACTIONS_STEP_DEBUG` / `ACTIONS_RUNNER_DEBUG` in literal `env:`, `${{ }}` expression bindings, and runtime `>> $GITHUB_ENV` script writes |
-| **Workflow must not inject user input in scripts** | [ISSUE-207](/docs/cli/issues/ISSUE-207) | Flags `${{ github.event.* }}`, `${{ github.head_ref }}`, `${{ github.actor }}` interpolated directly into a `run:` shell (OWASP CICD-SEC-1) |
-| **Reusable workflows must not inherit secrets** | [ISSUE-302](/docs/cli/issues/ISSUE-302) | Flags `jobs.<name>.secrets: inherit`, which forwards every caller secret to the reusable workflow. Use an explicit secrets map |
+| **Workflow must not inline user input into shell scripts** | [ISSUE-207](/docs/cli/issues/ISSUE-207) | Flags `${{ github.event.* }}`, `${{ github.head_ref }}`, `${{ github.actor }}` interpolated directly into a `run:` shell (OWASP CICD-SEC-1) |
+| **Reusable workflow must not use `secrets: inherit`** | [ISSUE-302](/docs/cli/issues/ISSUE-302) | Flags `jobs.<name>.secrets: inherit`, which forwards every caller secret to the reusable workflow. Use an explicit secrets map |
 | **Security jobs must not be weakened** | [ISSUE-410](/docs/cli/issues/ISSUE-410) | Flags CodeQL / dependency-review / gitleaks / trufflehog / OSV-Scanner jobs neutralized via `continue-on-error: true` or manual-only dispatch (OWASP CICD-SEC-4) |
-| **Pipeline must not use Docker-in-Docker** | [ISSUE-412](/docs/cli/issues/ISSUE-412) [ISSUE-413](/docs/cli/issues/ISSUE-413) | Flags `docker:dind` services and insecure daemon configuration (TLS disabled, plaintext port 2375) |
-| **Required actions or reusable workflows must be present** | [ISSUE-417](/docs/cli/issues/ISSUE-417) | Opt-in. Asserts every workflow includes the action(s) your org requires (DNF: outer OR, inner AND), resolving against step-level and reusable-workflow `uses:` |
+| **Workflow must not use Docker-in-Docker** | [ISSUE-412](/docs/cli/issues/ISSUE-412) [ISSUE-413](/docs/cli/issues/ISSUE-413) | Flags `docker:dind` services and insecure daemon configuration (TLS disabled, plaintext port 2375) |
+| **Workflows must include required actions** | [ISSUE-417](/docs/cli/issues/ISSUE-417) | Opt-in. Asserts every workflow includes the action(s) your org requires (DNF: outer OR, inner AND), resolving against step-level and reusable-workflow `uses:` |
 | **Branch must be protected** | [ISSUE-501](/docs/cli/issues/ISSUE-501) [ISSUE-505](/docs/cli/issues/ISSUE-505) | Verifies default / named branches have force-push disabled and code-owner approval. Reads classic Branch Protection AND Repository / Organization Rulesets |
 | **Third-party actions must be pinned by commit SHA** | [ISSUE-701](/docs/cli/issues/ISSUE-701) | Requires `uses: owner/repo@<sha>` (40-char commit SHA) instead of a mutable tag or branch ref. `trustedOwners` exempts first-party `actions/*` and `github/*` |
 | **Actions must not reference archived repositories** | [ISSUE-702](/docs/cli/issues/ISSUE-702) | Flags `uses:` refs whose upstream GitHub repository has been archived (no security patches coming). One cached API call per unique ref |
 | **Actions must not carry known CVEs** | [ISSUE-703](/docs/cli/issues/ISSUE-703) | Cross-references every pinned action against the GitHub Advisory Database (`actions` ecosystem), semver-filtered so refs past the fix stay silent |
-| **Workflows must declare permissions** | [ISSUE-801](/docs/cli/issues/ISSUE-801) | Flags workflows missing an explicit `permissions:` block (falls back to the repo-wide `GITHUB_TOKEN` default) |
-| **Workflow uses dangerous triggers** | [ISSUE-802](/docs/cli/issues/ISSUE-802) | Flags `pull_request_target` and `workflow_run`, which run with base-repo secrets while being influenceable by an unprivileged caller |
-| **Workflow must not grant write-all permissions** | [ISSUE-803](/docs/cli/issues/ISSUE-803) | Flags `permissions: write-all` at workflow or job scope. Pairs with `workflowsMustDeclarePermissions` to close the least-privilege loop |
+| **Workflow permissions must be declared** | [ISSUE-801](/docs/cli/issues/ISSUE-801) | Flags workflows missing an explicit `permissions:` block (falls back to the repo-wide `GITHUB_TOKEN` default) |
+| **Workflow must not use dangerous triggers** | [ISSUE-802](/docs/cli/issues/ISSUE-802) | Flags `pull_request_target` and `workflow_run`, which run with base-repo secrets while being influenceable by an unprivileged caller |
+| **Job must not run with write-all permissions** | [ISSUE-803](/docs/cli/issues/ISSUE-803) | Flags `permissions: write-all` at workflow or job scope. Pairs with `workflowsMustDeclarePermissions` to close the least-privilege loop |
 
 <details>
 <summary>**Security Job Weakening Detection (GitHub)**</summary>

@@ -289,11 +289,11 @@ Plumber ships **14 GitLab controls**. Each can be enabled / disabled and customi
 | **Pipeline must not enable debug trace** | [ISSUE-203](/docs/cli/issues/ISSUE-203) | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
 | **Pipeline must not use unsafe variable expansion** | [ISSUE-204](/docs/cli/issues/ISSUE-204) | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
 | **Pipeline must not override job variables** | [ISSUE-205](/docs/cli/issues/ISSUE-205) | Detects controlled CI/CD variables redefined in `.gitlab-ci.yml` that should only be set in GitLab CI/CD Settings |
-| **Pipeline must not include hardcoded jobs** | [ISSUE-401](/docs/cli/issues/ISSUE-401) | Detects jobs defined directly instead of from includes |
-| **Includes must be up to date** | [ISSUE-403](/docs/cli/issues/ISSUE-403) | Checks if included templates have newer versions |
-| **Includes must not use forbidden versions** | [ISSUE-404](/docs/cli/issues/ISSUE-404) | Prevents mutable version references like `main`, `HEAD` |
-| **Pipeline must include template** | [ISSUE-405](/docs/cli/issues/ISSUE-405) [ISSUE-406](/docs/cli/issues/ISSUE-406) | Ensures required templates are included; detects overridden jobs |
-| **Pipeline must include component** | [ISSUE-408](/docs/cli/issues/ISSUE-408) [ISSUE-409](/docs/cli/issues/ISSUE-409) | Ensures required CI/CD components are included; detects overridden jobs |
+| **Pipeline must not contains hardcoded jobs** | [ISSUE-401](/docs/cli/issues/ISSUE-401) | Detects jobs defined directly instead of from includes |
+| **Pipeline must use only up-to-date includes** | [ISSUE-403](/docs/cli/issues/ISSUE-403) | Checks if included templates have newer versions |
+| **Pipeline must not use forbidden ref in includes** | [ISSUE-404](/docs/cli/issues/ISSUE-404) | Prevents mutable version references like `main`, `HEAD` |
+| **Pipelines must include templates** | [ISSUE-405](/docs/cli/issues/ISSUE-405) [ISSUE-406](/docs/cli/issues/ISSUE-406) | Ensures required templates are included; detects overridden jobs |
+| **Pipelines must include components** | [ISSUE-408](/docs/cli/issues/ISSUE-408) [ISSUE-409](/docs/cli/issues/ISSUE-409) | Ensures required CI/CD components are included; detects overridden jobs |
 | **Security jobs must not be weakened** | [ISSUE-410](/docs/cli/issues/ISSUE-410) | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
 | **Pipeline must not execute unverified scripts** | [ISSUE-411](/docs/cli/issues/ISSUE-411) | Detects `curl \| bash`, `wget \| sh`, and download-then-execute patterns without integrity verification (OWASP CICD-SEC-3) |
 | **Pipeline must not use Docker-in-Docker** | [ISSUE-412](/docs/cli/issues/ISSUE-412) [ISSUE-413](/docs/cli/issues/ISSUE-413) | Detects `docker:dind` services and insecure Docker daemon configuration (for example TLS disabled) |

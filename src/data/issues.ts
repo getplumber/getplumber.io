@@ -504,7 +504,7 @@ github:
       category: "Pipeline Composition",
       severity: "medium",
       fixDuration: "medium",
-      controlName: "Pipeline must not contain hardcoded jobs",
+      controlName: "Pipeline must not contains hardcoded jobs",
       controlConfigKey: "pipelineMustNotIncludeHardcodedJobs",
       description:
         "A job in the pipeline configuration is hardcoded, increasing maintainability costs and introducing a compliance risk.",
