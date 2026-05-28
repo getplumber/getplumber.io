@@ -1935,7 +1935,6 @@ jobs:
         "Pipe-to-shell substrings inside a quoted string (`echo \"Install with curl … | bash\"`) are documentation, not execution — they do not fire.",
         "Heredoc-to-shell with no download on the line (`cat <<EOF | bash`) is operator-authored, in-tree content. Any unsafe download inside the heredoc body still fires on its own script line.",
         "Inline payloads on `pull_request_target` workflows are especially dangerous — combine ISSUE-411 with ISSUE-802 (dangerous-triggers) for the full Megalodon defence.",
-        "GitHub Actions support for this control is tracked in getplumber/plumber issue #201.",
       ],
       relatedCodes: ["ISSUE-207", "ISSUE-802", "ISSUE-703"],
     },

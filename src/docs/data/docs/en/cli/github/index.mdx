@@ -378,7 +378,7 @@ github:
 <details>
 <summary>**Unverified Script Execution Detection (GitHub)**</summary>
 
-Detects workflow `run:` steps that download and immediately execute scripts from the internet without integrity verification. This is the GitHub Actions counterpart of the GitLab control and targets the Megalodon attack pattern: obfuscated base64 payloads piped to a shell (`echo "…" | base64 -d | bash`) as well as classic `curl | bash` / `wget | sh` chains. Maps to [OWASP CICD-SEC-3](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services). Tracked in [getplumber/plumber#201](https://github.com/getplumber/plumber/issues/201).
+Detects workflow `run:` steps that download and immediately execute scripts from the internet without integrity verification. This is the GitHub Actions counterpart of the GitLab control and targets the Megalodon attack pattern: obfuscated base64 payloads piped to a shell (`echo "…" | base64 -d | bash`) as well as classic `curl | bash` / `wget | sh` chains. Maps to [OWASP CICD-SEC-3](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).
 
 **Detected patterns:**
 - Direct pipe to shell: `curl ... | bash`, `wget ... | sh`, `curl ... | python`, and any `<command> | <shell>` chain
@@ -389,10 +389,12 @@ Detects workflow `run:` steps that download and immediately execute scripts from
 Lines that include checksum or signature verification (`sha256sum`, `gpg --verify`, `cosign verify`, and similar) on the same line as the download are excluded.
 
 ```yaml
-pipelineMustNotExecuteUnverifiedScripts:
-  enabled: true
-  trustedUrls: []
-    # - https://internal-artifacts.example.com/*
+github:
+  controls:
+    pipelineMustNotExecuteUnverifiedScripts:
+      enabled: true
+      trustedUrls: []
+        # - https://internal-artifacts.example.com/*
 ```
 
 Add trusted URL patterns to `trustedUrls` (host-precise globs) to suppress findings for known-good sources.
