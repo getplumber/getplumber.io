@@ -300,7 +300,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ## Available Controls
 
-Plumber ships **14 default-on GitHub controls** (13 default-on plus the opt-in `workflowMustIncludeRequiredActions`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-701`) with a direct link to its documentation page.
+Plumber ships **15 default-on GitHub controls** (14 default-on plus the opt-in `workflowMustIncludeRequiredActions`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-701`) with a direct link to its documentation page.
 
 | Control | Issues | Description |
 |---------|--------|-------------|
@@ -309,6 +309,7 @@ Plumber ships **14 default-on GitHub controls** (13 default-on plus the opt-in `
 | **Workflow must not inline user input into shell scripts** | [ISSUE-207](/docs/cli/issues/ISSUE-207) | Flags `${{ github.event.* }}`, `${{ github.head_ref }}`, `${{ github.actor }}` interpolated directly into a `run:` shell (OWASP CICD-SEC-1) |
 | **Reusable workflow must not use `secrets: inherit`** | [ISSUE-302](/docs/cli/issues/ISSUE-302) | Flags `jobs.<name>.secrets: inherit`, which forwards every caller secret to the reusable workflow. Use an explicit secrets map |
 | **Security jobs must not be weakened** | [ISSUE-410](/docs/cli/issues/ISSUE-410) | Flags CodeQL / dependency-review / gitleaks / trufflehog / OSV-Scanner jobs neutralized via `continue-on-error: true` or manual-only dispatch (OWASP CICD-SEC-4) |
+| **Workflow must not execute unverified scripts** | [ISSUE-411](/docs/cli/issues/ISSUE-411) | Detects `curl \| bash`, `wget \| sh`, download-then-execute, redirect-then-execute, and base64 pipe-to-shell patterns in `run:` steps without integrity verification (OWASP CICD-SEC-3) |
 | **Workflow must not use Docker-in-Docker** | [ISSUE-412](/docs/cli/issues/ISSUE-412) [ISSUE-413](/docs/cli/issues/ISSUE-413) | Flags `docker:dind` services and insecure daemon configuration (TLS disabled, plaintext port 2375) |
 | **Workflows must include required actions** | [ISSUE-417](/docs/cli/issues/ISSUE-417) | Opt-in. Asserts every workflow includes the action(s) your org requires (DNF: outer OR, inner AND), resolving against step-level and reusable-workflow `uses:` |
 | **Branch must be protected** | [ISSUE-501](/docs/cli/issues/ISSUE-501) [ISSUE-505](/docs/cli/issues/ISSUE-505) | Verifies default / named branches have force-push disabled and code-owner approval. Reads classic Branch Protection AND Repository / Organization Rulesets |
@@ -375,6 +376,30 @@ github:
 </details>
 
 <details>
+<summary>**Unverified Script Execution Detection (GitHub)**</summary>
+
+Detects workflow `run:` steps that download and immediately execute scripts from the internet without integrity verification. This is the GitHub Actions counterpart of the GitLab control and targets the Megalodon attack pattern: obfuscated base64 payloads piped to a shell (`echo "…" | base64 -d | bash`) as well as classic `curl | bash` / `wget | sh` chains. Maps to [OWASP CICD-SEC-3](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services). Tracked in [getplumber/plumber#201](https://github.com/getplumber/plumber/issues/201).
+
+**Detected patterns:**
+- Direct pipe to shell: `curl ... | bash`, `wget ... | sh`, `curl ... | python`, and any `<command> | <shell>` chain
+- Download-and-execute: `curl -o script.sh ... && bash script.sh`
+- Download-redirect-execute: `curl ... > install.sh; sh install.sh`
+- Inline obfuscation: `echo "..." | base64 -d | sh`
+
+Lines that include checksum or signature verification (`sha256sum`, `gpg --verify`, `cosign verify`, and similar) on the same line as the download are excluded.
+
+```yaml
+pipelineMustNotExecuteUnverifiedScripts:
+  enabled: true
+  trustedUrls: []
+    # - https://internal-artifacts.example.com/*
+```
+
+Add trusted URL patterns to `trustedUrls` (host-precise globs) to suppress findings for known-good sources.
+
+</details>
+
+<details>
 <summary>**Docker-in-Docker Detection (GitHub)**</summary>
 
 Flags jobs that spin up a `docker:dind` service. A Docker daemon inside a CI container on a shared runner in privileged mode enables container escape, lateral movement, and access to secrets from other jobs on the same runner.
@@ -409,6 +434,7 @@ plumber explain 703
 | [ISSUE-207](/docs/cli/issues/ISSUE-207?p=github) | Workflow inlines user input into shell scripts |
 | [ISSUE-302](/docs/cli/issues/ISSUE-302?p=github) | Reusable workflow called with `secrets: inherit` |
 | [ISSUE-410](/docs/cli/issues/ISSUE-410?p=github) | Security job weakened |
+| [ISSUE-411](/docs/cli/issues/ISSUE-411?p=github) | Unverified script execution |
 | [ISSUE-412](/docs/cli/issues/ISSUE-412?p=github) | Docker-in-Docker service detected |
 | [ISSUE-413](/docs/cli/issues/ISSUE-413?p=github) | Docker-in-Docker with insecure daemon configuration |
 | [ISSUE-417](/docs/cli/issues/ISSUE-417?p=github) | Required action or reusable workflow is missing |
@@ -507,6 +533,12 @@ github:
       whenMustNotBeManual:
         enabled: true
 
+    # curl | bash, wget | sh, download-then-execute, base64 pipe-to-shell.
+    pipelineMustNotExecuteUnverifiedScripts:
+      enabled: true
+      trustedUrls: []
+        # - https://internal-artifacts.example.com/*
+
     # `${{ github.event.* }}`, `${{ github.head_ref }}` or `${{ github.actor }}`
     # interpolated directly into a `run:` shell. Bind through env: first.
     workflowMustNotInjectUserInputInScripts:
@@ -577,6 +609,7 @@ Controls not selected are reported as **skipped** in the output. The `--controls
 | `branchMustBeProtected` |
 | `containerImageMustNotUseForbiddenTags` |
 | `pipelineMustNotEnableDebugTrace` |
+| `pipelineMustNotExecuteUnverifiedScripts` |
 | `pipelineMustNotUseDockerInDocker` |
 | `reusableWorkflowsMustNotInheritSecrets` |
 | `securityJobsMustNotBeWeakened` |

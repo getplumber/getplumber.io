@@ -645,6 +645,18 @@ github:
         enabled: true
 
     # ===========================================
+    # Workflow must not execute unverified scripts
+    # ===========================================
+    # Detects workflow run: steps that download and immediately execute
+    # scripts without integrity verification (curl | bash, wget | sh,
+    # download-then-execute, base64 pipe-to-shell). Same supply-chain
+    # surface as the GitLab control; see getplumber/plumber#201.
+    pipelineMustNotExecuteUnverifiedScripts:
+      enabled: true
+      trustedUrls: []
+      # - https://internal-artifacts.example.com/*
+
+    # ===========================================
     # Workflow must not inject user input in scripts
     # ===========================================
     # Catches the canonical script-injection class: `${{ github.event.* }}`

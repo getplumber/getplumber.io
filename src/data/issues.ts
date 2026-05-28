@@ -1858,11 +1858,11 @@ signature_verified:
       category: "Pipeline Composition",
       severity: "high",
       fixDuration: "medium",
-      controlName: "Pipeline must not execute unverified scripts",
+      controlName: "Workflow must not execute unverified scripts",
       controlConfigKey: "pipelineMustNotExecuteUnverifiedScripts",
       productScope: "cli",
       description:
-        "A workflow `run:` step downloads or inline-executes code without any integrity check. Detects classic supply-chain patterns (`curl | bash`, download-then-exec, redirect-then-exec) plus the Megalodon-style obfuscated payload (`echo \"<base64>\" | base64 -d | bash`) used in the October 2025 mass-backdooring campaign reported by SafeDep. Maps to OWASP CICD-SEC-3 (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).",
+        "A workflow `run:` step downloads or inline-executes code without any integrity check. Flags direct pipe-to-shell chains (`curl | bash`, `wget | sh`, `curl | python`, and any `<command> | <shell>` pattern), download-then-execute (`curl -o script.sh … && bash script.sh`), redirect-then-execute (`curl … > install.sh; sh install.sh`), and Megalodon-style obfuscated payloads (`echo \"<base64>\" | base64 -d | bash`) written directly in the workflow. Maps to OWASP CICD-SEC-3 (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).",
       impact:
         "An attacker who compromises the remote URL — or who can inject an obfuscated inline payload into a workflow — runs arbitrary code with the job's `GITHUB_TOKEN`, every secret the workflow can read, OIDC trust relationships, deploy keys, package-registry credentials. The Megalodon vector specifically targets GitHub Actions because the privileged context is uniform across thousands of repos.",
       remediation:
@@ -1935,6 +1935,7 @@ jobs:
         "Pipe-to-shell substrings inside a quoted string (`echo \"Install with curl … | bash\"`) are documentation, not execution — they do not fire.",
         "Heredoc-to-shell with no download on the line (`cat <<EOF | bash`) is operator-authored, in-tree content. Any unsafe download inside the heredoc body still fires on its own script line.",
         "Inline payloads on `pull_request_target` workflows are especially dangerous — combine ISSUE-411 with ISSUE-802 (dangerous-triggers) for the full Megalodon defence.",
+        "GitHub Actions support for this control is tracked in getplumber/plumber issue #201.",
       ],
       relatedCodes: ["ISSUE-207", "ISSUE-802", "ISSUE-703"],
     },
