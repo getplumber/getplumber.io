@@ -1,0 +1,156 @@
+---
+/**
+ * Renders the controls catalog table for a given provider, driven by
+ * the structured data in `src/data/issues.ts`.
+ *
+ * One table row per unique `controlConfigKey` within a category.  When
+ * several ISSUE codes share the same control key, their links are
+ * concatenated in the "Control" cell — matching the existing hand-authored
+ * layout in controls.mdx.
+ *
+ * Usage in MDX:
+ *   <ControlsTable provider="gitlab" />
+ *   <ControlsTable provider="github" />
+ */
+import {
+  issues,
+  isVisibleProviderContent,
+  getControlCatalogEntry,
+  type Provider,
+} from "@/data/issues";
+import { categoryOrderRank, issueCodeRank } from "@/data/issueCategoryOrder";
+import ProductScopeBadge from "@/docs/components/mdx-components/ProductScopeBadge.astro";
+
+interface Props {
+  provider: Provider;
+}
+
+const { provider } = Astro.props;
+
+const docsBase = "/docs/use-plumber";
+
+type ControlRow = {
+  category: string;
+  controlName: string;
+  controlConfigKey: string;
+  controlDescription: string;
+  controlWhyItMatters: string;
+  productScope: "all" | "cli" | "platform";
+  /** All ISSUE codes that share this control, sorted by numeric code. */
+  issueCodes: string[];
+  /** Lowest numeric code — used for sort-within-category. */
+  minCode: number;
+};
+
+// Aggregate by category + controlConfigKey so shared controls get one row.
+// Descriptions come from controlCatalog — never duplicated per issue.
+const controlMap = new Map<string, ControlRow>();
+
+for (const [code, doc] of Object.entries(issues)) {
+  const content = doc[provider];
+  if (!content) continue;
+  if (!isVisibleProviderContent(content)) continue;
+
+  const catalogEntry = getControlCatalogEntry(content.controlConfigKey, provider);
+  if (!catalogEntry) continue;
+
+  const key = `${content.category}::${content.controlConfigKey}`;
+  if (!controlMap.has(key)) {
+    controlMap.set(key, {
+      category: content.category,
+      controlName: content.controlName,
+      controlConfigKey: content.controlConfigKey,
+      controlDescription: catalogEntry.controlDescription,
+      controlWhyItMatters: catalogEntry.controlWhyItMatters,
+      productScope: content.productScope ?? "all",
+      issueCodes: [code],
+      minCode: issueCodeRank(code),
+    });
+  } else {
+    const row = controlMap.get(key)!;
+    if (!row.issueCodes.includes(code)) {
+      row.issueCodes.push(code);
+    }
+    row.minCode = Math.min(row.minCode, issueCodeRank(code));
+  }
+}
+
+// Group by category, sort rows within each by min issue code.
+const categoryMap = new Map<string, ControlRow[]>();
+for (const row of controlMap.values()) {
+  if (!categoryMap.has(row.category)) categoryMap.set(row.category, []);
+  categoryMap.get(row.category)!.push(row);
+}
+for (const rows of categoryMap.values()) {
+  rows.sort((a, b) => a.minCode - b.minCode);
+  for (const row of rows) {
+    row.issueCodes.sort((a, b) => issueCodeRank(a) - issueCodeRank(b));
+  }
+}
+
+// Sort categories by canonical order.
+const sortedCategories = [...categoryMap.entries()].sort(
+  ([a], [b]) => categoryOrderRank(a) - categoryOrderRank(b),
+);
+
+/**
+ * Render inline markdown: `code` → <code>, [label](url) → <a>.
+ * Safe because the source data comes entirely from our controlled issues.ts.
+ */
+function renderInline(text: string): string {
+  return text
+    .replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-emerald-600 dark:text-emerald-400 underline underline-offset-2">$1</a>',
+    )
+    .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-[0.8em] font-mono">$1</code>');
+}
+---
+
+{
+  sortedCategories.map(([category, rows]) => (
+    <>
+      <h2>{category}</h2>
+      <div class="not-content overflow-x-auto my-4">
+        <table class="w-full border-collapse text-sm">
+          <thead>
+            <tr class="border-b border-border">
+              <th class="text-left py-2 px-3 font-semibold text-muted-foreground w-[90px]">Scope</th>
+              <th class="text-left py-2 px-3 font-semibold text-muted-foreground w-[28%]">Control</th>
+              <th class="text-left py-2 px-3 font-semibold text-muted-foreground">What it checks</th>
+              <th class="text-left py-2 px-3 font-semibold text-muted-foreground">Why it matters</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr class="border-b border-border/60 hover:bg-muted/30 transition-colors">
+                <td class="py-2.5 px-3 align-top">
+                  <ProductScopeBadge scope={row.productScope} />
+                </td>
+                <td class="py-2.5 px-3 align-top">
+                  <span class="text-foreground/90">{row.controlName}</span>{" "}
+                  <span class="inline-flex flex-wrap gap-1 mt-1">
+                    {row.issueCodes.map((code) => (
+                      <a
+                        href={`${docsBase}/issues/${code}?p=${provider}`}
+                        class="font-mono text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                      >
+                        {code}
+                      </a>
+                    ))}
+                  </span>
+                </td>
+                <td class="py-2.5 px-3 align-top text-[0.85em] text-foreground/80 leading-snug">
+                  <span set:html={renderInline(row.controlDescription)} />
+                </td>
+                <td class="py-2.5 px-3 align-top text-[0.85em] text-foreground/80 leading-snug">
+                  <span set:html={renderInline(row.controlWhyItMatters)} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  ))
+}

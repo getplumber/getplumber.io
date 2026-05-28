@@ -10,6 +10,8 @@ import AutoImport from "astro-auto-import";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
 
+import { isDuplicatePlatformDocsSitemapUrl } from "./src/docs/js/sitemapUtils.ts";
+
 // https://astro.build/config
 export default defineConfig({
   site: "https://getplumber.io",
@@ -72,7 +74,8 @@ export default defineConfig({
     icon(),
     keystatic(),
     sitemap({
-      filter: (page) => !page.includes("/animation-preview"),
+      filter: (page) =>
+        !page.includes("/animation-preview") && !isDuplicatePlatformDocsSitemapUrl(page),
     }),
     compress({
       HTML: true,

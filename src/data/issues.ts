@@ -72,6 +72,352 @@ export function isVisibleProviderContent(content: IssueProviderContent): boolean
   return SHOW_ROADMAP || content.status !== "roadmap";
 }
 
+// ---------------------------------------------------------------------------
+// Control catalog — single source of truth for "What it checks" and
+// "Why it matters" copy.  Keyed by controlConfigKey; each entry holds one
+// or two provider blocks depending on whether the wording differs per
+// provider.  Issues reference a control via their controlConfigKey field;
+// the catalog is the only place the descriptions live.
+// ---------------------------------------------------------------------------
+
+export type ControlCatalogEntry = {
+  /** "What it checks" — shown in the Controls catalog table and on the
+   *  dashboard control card. */
+  controlDescription: string;
+  /** "Why it matters" — consequence context shown alongside the description. */
+  controlWhyItMatters: string;
+};
+
+export const controlCatalog: Record<
+  string,
+  { gitlab?: ControlCatalogEntry; github?: ControlCatalogEntry }
+> = {
+  containerImageMustComeFromAuthorizedSources: {
+    gitlab: {
+      controlDescription:
+        "Verifies that container images used to run your CI/CD pipelines come from authorized and trusted sources.",
+      controlWhyItMatters:
+        "Helps mitigate security risks introduced by the use of malicious, compromised, or vulnerable images.",
+    },
+  },
+  containerImageMustNotUseForbiddenTags: {
+    gitlab: {
+      controlDescription:
+        "Verifies that container images used to run your CI/CD pipelines rely on authorized tags.",
+      controlWhyItMatters:
+        "Helps mitigate both security and functional risks introduced by the use of unverified, outdated, or compromised image versions.",
+    },
+    github: {
+      controlDescription:
+        "Same forbidden-tag policy (`latest`, `dev`, \u2026), applied to GitHub Actions container references. With the embedded option `containerImagesMustBePinnedByDigest: true`, any non-digest reference also fails.",
+      controlWhyItMatters:
+        "Mutable tags create non-reproducible builds and a path for surprise upgrades.",
+    },
+  },
+  containerImagesMustBePinnedByDigest: {
+    gitlab: {
+      controlDescription:
+        "Verifies that container images are referenced by their SHA256 digest rather than a mutable tag.",
+      controlWhyItMatters:
+        "Prevents supply chain attacks where a tag is overwritten with a compromised image, guaranteeing exact image content in every pipeline run.",
+    },
+  },
+  cicdVariablesMustBeProtected: {
+    gitlab: {
+      controlDescription:
+        "Verifies that CI/CD variables used in a project have the protected field enabled.",
+      controlWhyItMatters:
+        "Ensures sensitive values are restricted to protected branches or tags, reducing unauthorized exposure.",
+    },
+  },
+  cicdVariablesMustBeMasked: {
+    gitlab: {
+      controlDescription:
+        "Verifies that CI/CD variables used in a project have the masked field enabled.",
+      controlWhyItMatters:
+        "Prevents variable values from being exposed in pipeline logs, reducing the risk of leaks.",
+    },
+  },
+  pipelineMustNotLeakSecretsInConfig: {
+    gitlab: {
+      controlDescription:
+        "Pipes the resolved `.gitlab-ci.yml` (with all `include:`s merged) through [gitleaks](https://gitleaks.io). Any high-confidence match against the built-in or a custom rule set surfaces as a Critical finding with the secret value redacted to first/last 4 chars.",
+      controlWhyItMatters:
+        "Catches the most common credential-leak path (someone pastes a token into the YAML \u201cjust to test\u201d). Detection is opt-in because gitleaks must be installed separately; once enabled, redaction guarantees the raw secret never reaches the JSON report.",
+    },
+  },
+  pipelineMustNotIncludeHardcodedJobs: {
+    gitlab: {
+      controlDescription:
+        "Verifies that no hardcoded job is used in CI/CD pipelines.",
+      controlWhyItMatters:
+        "Improves maintainability and ensures compliance with best practices.",
+    },
+  },
+  includesMustBeUpToDate: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the included pipelines are up-to-date compared to their source.",
+      controlWhyItMatters:
+        "Reduces risks from outdated or vulnerable templates.",
+    },
+  },
+  includesMustNotUseForbiddenVersions: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the included refs are using specified tags.",
+      controlWhyItMatters:
+        "Prevents reliance on insecure or non-compliant references.",
+    },
+  },
+  pipelineMustIncludeTemplate: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the projects contain specific templates. This control can also allow overriding certain variables in the included templates.",
+      controlWhyItMatters:
+        "Ensures pipelines comply with required security and compliance practices.",
+    },
+  },
+  pipelineMustIncludeComponent: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the projects contain specific GitLab components. This control can also allow overriding certain variables in the included components.",
+      controlWhyItMatters:
+        "Ensures pipelines integrate mandatory security and compliance steps.",
+    },
+  },
+  pipelineMustIncludeRequiredPhases: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the CI/CD pipeline includes a group of job types.",
+      controlWhyItMatters:
+        "Ensures completeness and compliance of the pipeline execution flow.",
+    },
+  },
+  pipelineMustNotEnableDebugTrace: {
+    gitlab: {
+      controlDescription:
+        "Verifies that `CI_DEBUG_TRACE` and `CI_DEBUG_SERVICES` are not enabled in the pipeline configuration.",
+      controlWhyItMatters:
+        "Prevents exposure of all CI/CD variable values in job logs, including secrets and tokens.",
+    },
+    github: {
+      controlDescription:
+        "Static `env:` (workflow/job/step, merged per job): truthy literals plus GitHub expressions on forbidden names. Also `run:` lines that write forbidden names to `$GITHUB_ENV`.",
+      controlWhyItMatters:
+        "Debug toggles dump masked secrets into logs. Org/repo Variables with no YAML reference and UI \u201cRe-run with debug logging\u201d remain out of scope.",
+    },
+  },
+  pipelineMustNotUseUnsafeVariableExpansion: {
+    gitlab: {
+      controlDescription:
+        "Detects user-controlled CI variables expanded in shell re-interpretation contexts (`eval`, `sh -c`, `bash -c`, `source`).",
+      controlWhyItMatters:
+        "Prevents command injection via crafted branch names, MR titles, or commit messages (OWASP CICD-SEC-1).",
+    },
+  },
+  pipelineMustNotOverrideJobVariables: {
+    gitlab: {
+      controlDescription:
+        "Detects controlled CI/CD variables redefined in `.gitlab-ci.yml` that should only be set in GitLab CI/CD Settings.",
+      controlWhyItMatters:
+        "Reduces risk of tampering with scanner settings or other governed variables via pipeline YAML.",
+    },
+  },
+  securityJobsMustNotBeWeakened: {
+    gitlab: {
+      controlDescription:
+        "Detects security scanning jobs (SAST, Secret Detection, Container Scanning, etc.) weakened by `allow_failure: true`, `rules:` overrides with `when: never` / `when: manual`, or `when: manual` at job level.",
+      controlWhyItMatters:
+        "Prevents silently neutralized security scans that give a false sense of compliance (OWASP CICD-SEC-4).",
+    },
+    github: {
+      controlDescription:
+        "Detects security scanning jobs neutralized by `continue-on-error: true`, narrow `if:` conditions, or always-skip triggers.",
+      controlWhyItMatters:
+        "Same OWASP CICD-SEC-4 pattern as on GitLab \u2014 a green pipeline that secretly skipped its security scan is worse than no scan.",
+    },
+  },
+  pipelineMustNotExecuteUnverifiedScripts: {
+    gitlab: {
+      controlDescription:
+        "Detects jobs that download and immediately execute scripts from the internet (`curl | bash`, `wget | sh`, download-then-execute) without integrity verification.",
+      controlWhyItMatters:
+        "Prevents supply chain attacks where a compromised URL serves a modified script that exfiltrates secrets (OWASP CICD-SEC-3, CICD-SEC-8).",
+    },
+    github: {
+      controlDescription:
+        "Detects workflow steps that download and immediately execute scripts (`curl | bash`, `wget | sh`, download-then-execute, base64 pipe-to-shell) without integrity verification.",
+      controlWhyItMatters:
+        "Blocks Megalodon-style supply-chain execution in GitHub Actions: a compromised URL or obfuscated inline payload runs with the job's `GITHUB_TOKEN` and secrets (OWASP CICD-SEC-3, CICD-SEC-8).",
+    },
+  },
+  pipelineMustNotUseDockerInDocker: {
+    gitlab: {
+      controlDescription:
+        "Detects Docker-in-Docker (`docker:dind`) services and insecure daemon configuration (for example plaintext Docker API).",
+      controlWhyItMatters:
+        "Reduces container escape and lateral movement risk on shared runners; prefer Kaniko or Buildah for image builds.",
+    },
+    github: {
+      controlDescription:
+        "Detects DinD service usage and insecure daemon configuration in workflow jobs.",
+      controlWhyItMatters:
+        "Container escape and lateral movement risk applies to self-hosted runners the same way it does to GitLab shared runners.",
+    },
+  },
+  branchMustBeProtected: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the project configuration respects the protection, push, merge and owner approval on included branch names.",
+      controlWhyItMatters:
+        "Prevents unauthorized modifications and enforces branch protection standards.",
+    },
+    github: {
+      controlDescription:
+        "Reads both classic Branch Protection and any Repository or Organization Ruleset covering the branch. Verifies required reviews, force-push prevention, code-owner approval, and status checks against the merged effective configuration (stricter wins).",
+      controlWhyItMatters:
+        "Prevents direct push and force-push attacks on protected refs even when half the protection lives in classic Branch Protection and the other half in a Ruleset.",
+    },
+  },
+  mrApprovalRulesMustHaveAtLeastNApprovals: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the project merge request approval rules that cover all protected branches have a minimum number of approval requirements.",
+      controlWhyItMatters:
+        "Prevents unreviewed code from being merged, reducing security risks.",
+    },
+  },
+  mrApprovalSettingsMustBeCompliant: {
+    gitlab: {
+      controlDescription:
+        "Verifies that MR approval settings are properly configured.",
+      controlWhyItMatters:
+        "Ensures compliance with review and security requirements.",
+    },
+  },
+  mrApprovalRuleMustCoverAllProtectedBranches: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the protected branches have at least one approval rule.",
+      controlWhyItMatters:
+        "Ensures protected branches cannot bypass review processes.",
+    },
+  },
+  mrSettingsMustBeCompliant: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the project's merge request settings are correct in terms of merge method, resolving differences, squashing, etc.",
+      controlWhyItMatters:
+        "Reduces risk of unauthorized or insecure code changes.",
+    },
+  },
+  numberOfProjectMembersMustRespectQuota: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the project configuration respects the owner, maintainer and developer quotas.",
+      controlWhyItMatters:
+        "Prevents uncontrolled access that could weaken project security.",
+    },
+  },
+  numberOfGroupMembersMustRespectQuota: {
+    gitlab: {
+      controlDescription:
+        "Verifies that the group configuration respects the owner, maintainer and developer quotas.",
+      controlWhyItMatters:
+        "Prevents uncontrolled access at group level, strengthening governance.",
+    },
+  },
+  projectMustHaveSecurityPolicySource: {
+    gitlab: {
+      controlDescription:
+        "Verifies if the projects have a specific project as their source of security policy.",
+      controlWhyItMatters:
+        "Ensures compliance with security policy and reduces risk of unmanaged vulnerabilities.",
+    },
+  },
+  actionsMustBePinnedByCommitSha: {
+    github: {
+      controlDescription:
+        "Verifies every `uses: owner/repo@ref` is pinned by a 40-character commit SHA, not a mutable tag or branch.",
+      controlWhyItMatters:
+        "Defends against the March 2025 tj-actions / reviewdog supply chain compromise pattern (CVE-2025-30066), where attackers retag actions to point at malicious code that then runs with the caller's secrets.",
+    },
+  },
+  actionsMustNotBeArchived: {
+    github: {
+      controlDescription:
+        "Step-level `uses: owner/repo@ref` in committed workflows. Queries GitHub for `archived: true` (one cached API call per `owner/repo`). Requires `gh` / `GH_TOKEN`; abstains without auth.",
+      controlWhyItMatters:
+        "Archived repos stop receiving patches. Does not inspect reusable-workflow callees, local actions, or runtime installs. PBOM: `archived: true`.",
+    },
+  },
+  actionsMustNotCarryKnownCVEs: {
+    github: {
+      controlDescription:
+        "Same step-level `uses:` scope as ISSUE-702. Queries GitHub Advisory Database (`actions` ecosystem); semver-filters by `vulnerable_version_range` when the ref is a tag. SHA pins without a resolvable tag may match conservatively.",
+      controlWhyItMatters:
+        "Catches known-vulnerable action versions (e.g. tj-actions CVE-2025-30066). Requires API auth; abstains without it. PBOM: `hasCve` + `advisories: [GHSA-\u2026]`.",
+    },
+  },
+  workflowMustNotInjectUserInputInScripts: {
+    github: {
+      controlDescription:
+        "Detects `${{ github.event.* }}` expressions inlined directly into `run:` shell scripts.",
+      controlWhyItMatters:
+        "Workflow template-injection is the GitHub Actions equivalent of SQL injection: the PR title or branch name becomes part of the executed shell command.",
+    },
+  },
+  reusableWorkflowsMustNotInheritSecrets: {
+    github: {
+      controlDescription:
+        "Flags callers that pass `secrets: inherit` instead of declaring the secrets the callee needs.",
+      controlWhyItMatters:
+        "Inheriting hands every caller secret to the reusable workflow \u2014 a third-party reusable workflow then sees secrets it should never see.",
+    },
+  },
+  workflowsMustDeclarePermissions: {
+    github: {
+      controlDescription:
+        "Flags workflows that omit a top-level `permissions:` block, relying on the repo's default GITHUB_TOKEN permissions.",
+      controlWhyItMatters:
+        "Implicit permissions default to whatever the repo / org allows, often write-all. Explicit minimum scopes shrink blast radius on a token leak.",
+    },
+  },
+  workflowMustNotUseDangerousTriggers: {
+    github: {
+      controlDescription:
+        "Flags workflows triggered by `pull_request_target` or `workflow_run`.",
+      controlWhyItMatters:
+        "These triggers grant secret access to PR-author-controlled code paths. They are the root cause behind the highest-impact GitHub Actions CVEs of the last two years.",
+    },
+  },
+  workflowMustNotGrantPermissionsWriteAll: {
+    github: {
+      controlDescription:
+        "Static `permissions:` in workflow YAML. Flags only the literal shortcut `write-all` (workflow-level propagates to every job). Not `read-all`, not scope maps like `contents: write`, not missing blocks (ISSUE-801).",
+      controlWhyItMatters:
+        "`write-all` grants every `GITHUB_TOKEN` scope at once. Pair with ISSUE-801 for jobs with no explicit block.",
+    },
+  },
+  workflowMustIncludeRequiredActions: {
+    github: {
+      controlDescription:
+        "Asserts that every workflow file under `.github/workflows/` collectively references a configured set of required actions or reusable workflows. Step-level `uses:` and job-level reusable-workflow `uses:` both count. Matching is ref-agnostic with a slash-guard against accidental prefix collisions.",
+      controlWhyItMatters:
+        "Closes the gap between an org-wide policy that says \"every repo runs the security suite\" and a per-repo workflow that quietly dropped the `uses:` line. Disabled by default; opt in once the required action set is settled.",
+    },
+  },
+};
+
+/** Look up catalog entry for a control + provider combination. */
+export function getControlCatalogEntry(
+  controlConfigKey: string,
+  provider: Provider,
+): ControlCatalogEntry | undefined {
+  return controlCatalog[controlConfigKey]?.[provider];
+}
+
 /** Shared codes that keep provider-specific titles (GitHub wording differs). */
 const PROVIDER_SPECIFIC_ISSUE_TITLES = new Set(["ISSUE-203"]);
 
