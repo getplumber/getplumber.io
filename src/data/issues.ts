@@ -1,11 +1,16 @@
 /**
  * Plumber issues registry for documentation pages.
  *
- * Each entry is keyed by its `ISSUE-XXX` code and holds per-provider
- * content under `gitlab` and/or `github`. Because the same code can
- * mean different things on each provider (e.g. ISSUE-301), severity,
- * title, category and config keys all live inside the provider block.
- * Only `code` is shared at the top level.
+ * One code, one concept — issue codes mirror the CLI's
+ * `control/codes.go` registry, where each `ErrorCode` carries a single
+ * title and description. Per-provider sub-blocks (`gitlab`, `github`)
+ * exist to differ only in (a) example YAML — `.gitlab-ci.yml` vs.
+ * `.github/workflows/*.yml` — and (b) whether the control applies at
+ * all (omit the sub-block when the CLI doesn't ship that side, e.g.
+ * ISSUE-309 is GitHub-only). The title, description, severity and
+ * remediation copy should stay identical across providers within a
+ * code; if they diverge the rule is conceptually two different things
+ * and needs two different codes.
  */
 
 export type Provider = "gitlab" | "github";
@@ -144,6 +149,12 @@ export const controlCatalog: Record<
         "Pipes the resolved `.gitlab-ci.yml` (with all `include:`s merged) through [gitleaks](https://gitleaks.io). Any high-confidence match against the built-in or a custom rule set surfaces as a Critical finding with the secret value redacted to first/last 4 chars.",
       controlWhyItMatters:
         "Catches the most common credential-leak path (someone pastes a token into the YAML \u201cjust to test\u201d). Detection is opt-in because gitleaks must be installed separately; once enabled, redaction guarantees the raw secret never reaches the JSON report.",
+    },
+    github: {
+      controlDescription:
+        "Scans every file under `.github/workflows/` with [gitleaks](https://gitleaks.io). Each high-confidence match becomes a Critical finding carrying only a redacted preview of the secret \u2014 the raw value is replaced in the collector before any output sees it.",
+      controlWhyItMatters:
+        "GitHub repositories are public-by-default for many open-source projects, and even private repos are visible to every collaborator and fork. A token committed to a workflow leaks the moment the file is pushed; rotation is the only fix. Opt-in because gitleaks is an external dependency.",
     },
   },
   pipelineMustNotIncludeHardcodedJobs: {
@@ -742,73 +753,22 @@ github:
     },
   },
 
-  "ISSUE-301": {
-    code: "ISSUE-301",
-    gitlab: {
-      title: "Secret leak in pipeline configuration",
-      category: "CI/CD Secrets",
-      severity: "critical",
-      fixDuration: "quick",
-      productScope: "cli",
-      controlName: "Pipeline must not leak secrets in configuration",
-      controlConfigKey: "pipelineMustNotLeakSecretsInConfig",
-      description:
-        "A secret (API key, private key, password, cloud credential) is hardcoded in `.gitlab-ci.yml` or any included file, making it visible to anyone with repository access. Plumber resolves the full merged pipeline YAML and pipes it through gitleaks at analyze time; any high-confidence match against the built-in rule catalog (or a custom `.gitleaks.toml` via `gitleaksConfigPath`) becomes an ISSUE-301 finding. The detected value never leaves the scanner — each finding's `preview` carries a redacted form with first/last 4 characters visible and the middle replaced with asterisks.",
-      impact:
-        "Hardcoded secrets increase the risk of unauthorized access to your systems, data leaks, and resource misuse. For example, if your API key is exposed, attackers could use it to access your cloud services, resulting in high costs or data theft.",
-      remediation:
-        "Revoke and rotate the exposed secret immediately, remove it from the configuration file, then inject it securely using GitLab CI/CD variables or an external secrets manager.",
-      badExample: `# .gitlab-ci.yml — ❌ Hardcoded secrets (CRITICAL)
-deploy:
-  stage: deploy
-  script:
-    - export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-    - export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-    - aws s3 sync . s3://my-bucket
-
-api-call:
-  variables:
-    API_TOKEN: "ghp_exampleTokenHardcodedHere123"
-  script:
-    - curl -H "Authorization: token $API_TOKEN" https://api.example.com`,
-      badExampleCaption: "Secrets hardcoded in .gitlab-ci.yml are visible in the repository to all members.",
-      goodExample: `# .gitlab-ci.yml — ✅ Secrets injected via CI/CD variables
-deploy:
-  stage: deploy
-  script:
-    # AWS credentials injected from protected CI/CD variables
-    - aws s3 sync . s3://my-bucket
-
-api-call:
-  script:
-    - curl -H "Authorization: token $API_TOKEN" https://api.example.com
-
-# In GitLab: Settings > CI/CD > Variables
-# Add: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN
-# Set Protected: true, Masked: true for each`,
-      goodExampleCaption: "Secrets are stored securely as CI/CD variables, not in the repository.",
-      tips: [
-        "If a secret was ever committed, treat it as compromised and rotate it immediately.",
-        "Use GitLab's secret detection feature to scan for leaked credentials in your repository history.",
-        "For production workloads, consider using an external secrets manager (HashiCorp Vault, AWS Secrets Manager, etc.).",
-        "Add secret patterns to `.gitignore` or use pre-commit hooks to prevent accidental commits.",
-      ],
-      relatedCodes: ["ISSUE-201", "ISSUE-202"],
-    },
+  "ISSUE-309": {
+    code: "ISSUE-309",
     github: {
-      title: "Secret leak in pipeline configuration",
+      title: "Entire secrets context exported via toJson(secrets)",
       category: "CI/CD Secrets",
       severity: "critical",
       fixDuration: "quick",
       productScope: "cli",
-      controlName: "Pipeline must not leak secrets in configuration",
-      controlConfigKey: "pipelineMustNotLeakSecretsInConfig",
+      controlName: "Workflows must not export the entire secrets context",
+      controlConfigKey: "workflowMustNotExportEntireSecretsContext",
       description:
-        "A workflow serialises every available secret in one go via `toJson(secrets)` or `env: $${{ toJson(secrets) }}`. The aggregated JSON bypasses GitHub's per-string log redaction.",
+        "A GitHub Actions workflow serialises the whole `secrets` context with `toJson(secrets)` or `toJSON(secrets)` and pipes the result into a step's environment, `run:` script, or `with:` input. The resulting string contains every secret the job has access to — repository, organisation and environment — and travels through whatever downstream consumer the step passes it to (a third-party action, a remote server, a log line). Even with GitHub's automatic log redaction, a single `echo` of the JSON payload has been enough to leak tokens in past supply-chain incidents; a compromised reusable action sees them directly regardless of logging.",
       impact:
-        "GitHub's redactor masks known secret *strings* in logs. A `toJson(secrets)` dump produces a single JSON value containing every secret as a substring of a larger string; the redactor does not recognise the wrapping and the secrets leak verbatim.",
+        "GitHub's redactor masks known secret *strings* in logs. A `toJson(secrets)` dump produces a single JSON value containing every secret as a substring of a larger string; the redactor does not recognise the wrapping and the secrets leak verbatim. The risk compounds when the dump is forwarded to anything outside GitHub's runtime — a curl, a docker run, a scratch file picked up by an artifact upload.",
       remediation:
-        "Reference each secret individually (`${{ secrets.AWS_ACCESS_KEY_ID }}`) and prefer scoping them to the smallest step that needs them.",
+        "Pass only the specific secrets the step needs, by name: `env: { TOKEN: ${{ secrets.NPM_TOKEN }} }`. If the step forwards credentials to a reusable workflow, name each one in the `secrets:` block of the call rather than using `toJson(secrets)` or `secrets: inherit`.",
       badExample: `# .github/workflows/deploy.yml — ❌ Aggregated secrets dump
 jobs:
   deploy:
@@ -831,7 +791,7 @@ jobs:
 # .plumber.yaml
 github:
   controls:
-    workflowMustNotDumpSecretsContext:
+    workflowMustNotExportEntireSecretsContext:
       enabled: true`,
       goodExampleCaption: "Each secret stays a separate, redactable string.",
       tips: [
@@ -840,6 +800,124 @@ github:
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-213", "ISSUE-302", "ISSUE-303"],
+    },
+  },
+
+  "ISSUE-301": {
+    code: "ISSUE-301",
+    gitlab: {
+      title: "Secret leak in pipeline configuration",
+      category: "CI/CD Secrets",
+      severity: "critical",
+      fixDuration: "quick",
+      productScope: "cli",
+      controlName: "Pipeline must not leak secrets in configuration",
+      controlConfigKey: "pipelineMustNotLeakSecretsInConfig",
+      description:
+        "The resolved pipeline configuration contains a pattern that matches a hardcoded secret (API token, private key, password, or other credential) embedded directly in the YAML. Plumber resolves the full merged `.gitlab-ci.yml` (with every `include:` followed) and pipes the result through [gitleaks](https://gitleaks.io); any high-confidence match against the built-in rule catalog — or a custom rule set provided via `gitleaksConfigPath` — surfaces as an ISSUE-301 finding. The detected value never leaves the scanner: each finding's `preview` carries a redacted form with the first and last four characters visible and the middle replaced with asterisks.",
+      impact:
+        "Secrets committed to pipeline configuration are exposed to everyone with read access to the repository, appear in version history forever (rotation is the only fix, not deletion), and are forwarded to every runner that executes the pipeline. A leaked API key can enable unauthorised access to cloud services, data exfiltration, billing abuse, or lateral movement into production systems.",
+      remediation:
+        "Revoke and rotate the exposed secret immediately. Remove it from the YAML, then inject it securely as a masked, protected CI/CD variable (`Settings > CI/CD > Variables`) and reference it as `$MY_SECRET` in the pipeline. For production workloads, prefer an external secrets manager (HashiCorp Vault, AWS Secrets Manager, Doppler) over GitLab-managed variables.",
+      badExample: `# .gitlab-ci.yml — ❌ Hardcoded secrets (CRITICAL)
+deploy:
+  stage: deploy
+  script:
+    - export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+    - export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    - aws s3 sync . s3://my-bucket
+
+api-call:
+  variables:
+    API_TOKEN: "ghp_exampleTokenHardcodedHere123"
+  script:
+    - curl -H "Authorization: token $API_TOKEN" https://api.example.com`,
+      badExampleCaption: "Secrets hardcoded in .gitlab-ci.yml are visible to every project member and live in the commit history forever.",
+      goodExample: `# .gitlab-ci.yml — ✅ Secrets injected via CI/CD variables
+deploy:
+  stage: deploy
+  script:
+    # AWS credentials injected from protected CI/CD variables
+    - aws s3 sync . s3://my-bucket
+
+api-call:
+  script:
+    - curl -H "Authorization: token $API_TOKEN" https://api.example.com
+
+# In GitLab: Settings > CI/CD > Variables
+# Add: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN
+# Set Protected: true, Masked: true for each
+
+# .plumber.yaml
+gitlab:
+  controls:
+    pipelineMustNotLeakSecretsInConfig:
+      enabled: true
+      # gitleaksPath: /usr/local/bin/gitleaks       # default: $PATH
+      # gitleaksConfigPath: .gitleaks.toml          # default: built-in rules`,
+      goodExampleCaption: "Secrets stay in protected variables; the YAML is safe to share.",
+      tips: [
+        "Detection is opt-in: the control requires [gitleaks](https://github.com/gitleaks/gitleaks) on `$PATH` (or set `gitleaksPath`). If the binary is missing, plumber emits a warning and the control routes through the SKIPPED lane rather than failing the run or silently passing.",
+        "If a secret was ever committed, treat it as compromised and rotate it immediately — deletion does not remove it from history.",
+        "Use a custom `.gitleaks.toml` via `gitleaksConfigPath` to narrow rules to your stack, or to allowlist legitimate matches (e.g. dummy values in test pipelines).",
+        "Pair with pre-commit hooks (`gitleaks protect --staged`) so the next leak is caught before it lands in git.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-201", "ISSUE-202"],
+    },
+    github: {
+      title: "Secret leak in workflow configuration",
+      category: "CI/CD Secrets",
+      severity: "critical",
+      fixDuration: "quick",
+      productScope: "cli",
+      controlName: "Workflow must not leak secrets in configuration",
+      controlConfigKey: "pipelineMustNotLeakSecretsInConfig",
+      description:
+        "A file under `.github/workflows/` contains a pattern that matches a hardcoded secret (API token, private key, password, or other credential) embedded directly in the YAML. Plumber pipes every workflow file through [gitleaks](https://gitleaks.io); any high-confidence match against the built-in rule catalog — or a custom rule set provided via `gitleaksConfigPath` — surfaces as an ISSUE-301 finding. The detected value never leaves the scanner: each finding's `preview` carries a redacted form with the first and last four characters visible and the middle replaced with asterisks.",
+      impact:
+        "Secrets committed to workflow files are exposed to every collaborator, every fork, and the entire commit history. Public repositories make the leak instantly indexable by attacker tooling; private repositories still expose it to every member of the org and every workflow that runs against the repo. Rotation is the only fix.",
+      remediation:
+        "Revoke and rotate the exposed secret immediately. Remove the literal from the workflow YAML, then inject it via repository or environment secrets and reference it as `${{ secrets.MY_SECRET }}`. Scope the reference to the smallest step that needs it; avoid passing it through job-level `env:` if a single step suffices.",
+      badExample: `# .github/workflows/release.yml — ❌ Hardcoded token (CRITICAL)
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK: xoxb-EXAMPLE-EXAMPLE-redactedfortestingonly
+      STRIPE_KEY: "sk_test_REDACTED_DOC_EXAMPLE_NOT_A_REAL_KEY"
+    steps:
+      - run: ./scripts/publish.sh`,
+      badExampleCaption: "The Slack and Stripe tokens are visible to every member, fork and CI run touching this workflow.",
+      goodExample: `# .github/workflows/release.yml — ✅ Repository / environment secrets
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          SLACK_WEBHOOK: \${{ secrets.SLACK_WEBHOOK }}
+          STRIPE_KEY: \${{ secrets.STRIPE_KEY }}
+        run: ./scripts/publish.sh
+
+# In GitHub: Settings > Secrets and variables > Actions
+# Add: SLACK_WEBHOOK, STRIPE_KEY (repository or environment-scoped)
+
+# .plumber.yaml
+github:
+  controls:
+    pipelineMustNotLeakSecretsInConfig:
+      enabled: true
+      # gitleaksPath: /usr/local/bin/gitleaks       # default: $PATH
+      # gitleaksConfigPath: .gitleaks.toml          # default: built-in rules`,
+      goodExampleCaption: "Each secret stays inside GitHub's vault and is masked in logs.",
+      tips: [
+        "Detection is opt-in: the control requires [gitleaks](https://github.com/gitleaks/gitleaks) on `$PATH` (or set `gitleaksPath`). When the binary is missing or the scan fails, plumber emits a warning and routes the control through the SKIPPED lane rather than silently passing.",
+        "Public repos are scanned by gitleaks-as-a-service on every push by GitHub itself, but that is detection-after-the-fact — this control catches the leak before it merges.",
+        "Use a custom `.gitleaks.toml` via `gitleaksConfigPath` to allowlist synthetic test values (the slack/stripe patterns in plumber's own scenario battery are deliberately allowed in a local scratch config).",
+        "Pair with pre-commit hooks (`gitleaks protect --staged`) and GitHub's push-protection rules so the next leak is caught before it lands on a branch.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-203"],
     },
   },
 
@@ -3320,11 +3398,11 @@ jobs:
         run: echo "PR #$PR_NUMBER at $PR_HEAD_SHA" `,
       goodExampleCaption: "Pick the fields you need; bind through env.",
       tips: [
-        "`toJson(secrets)` is a separate, even worse rule — see ISSUE-301.",
+        "`toJson(secrets)` is a separate, even worse rule — see ISSUE-309.",
         "Use this rule in tandem with ISSUE-207 for full coverage of template-injection paths.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-207", "ISSUE-301", "ISSUE-215"],
+      relatedCodes: ["ISSUE-207", "ISSUE-309", "ISSUE-215"],
     },
   },
 
@@ -3508,7 +3586,7 @@ jobs:
         "Look at the callee's `on: workflow_call: secrets:` block to know exactly what to pass.",
         "If you author the reusable workflow, list each `secrets:` block explicitly — never accept `inherit` unconditionally.",
       ],
-      relatedCodes: ["ISSUE-301", "ISSUE-801"],
+      relatedCodes: ["ISSUE-309", "ISSUE-801"],
     },
   },
 
@@ -3549,7 +3627,7 @@ jobs:
         "Any non-trivial transformation of a secret in YAML is a smell. Move the logic into a shell step where the redactor still applies.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-301"],
+      relatedCodes: ["ISSUE-309"],
     },
   },
 
@@ -3646,7 +3724,7 @@ jobs:
         "Branch / tag restrictions on the environment make the gate tamper-proof from PR-author code.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-802", "ISSUE-301"],
+      relatedCodes: ["ISSUE-802", "ISSUE-309"],
     },
   },
 
@@ -3742,7 +3820,7 @@ jobs:
         "Never upload the entire workspace as an artifact — always narrow the path.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-801", "ISSUE-301"],
+      relatedCodes: ["ISSUE-801", "ISSUE-309"],
     },
   },
 
@@ -3796,7 +3874,7 @@ jobs:
         "If you must use dynamic indexing, validate the index against an allowlist before the lookup.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-305", "ISSUE-301"],
+      relatedCodes: ["ISSUE-305", "ISSUE-309"],
     },
   },
 
@@ -3811,50 +3889,52 @@ jobs:
       controlName: "Workflow must not use dangerous triggers",
       controlConfigKey: "workflowMustNotUseDangerousTriggers",
       description:
-        "A job runs under a trigger that combines attacker-controlled input with the base repository's secrets — `pull_request_target`, `workflow_run`, `issue_comment`, `pull_request_review`, `pull_request_review_comment`, `discussion`, `discussion_comment`, `gollum`, `fork` — **and checks out fork-controlled code** (an `actions/checkout` whose `ref:` is the PR or workflow_run head). Untrusted code then executes with the base repo's secrets and GITHUB_TOKEN. Subscribing to such a trigger is **not** flagged on its own: labelling, milestone, comment and notification workflows legitimately need them and are safe without an untrusted checkout. The finding fires only on the exploitable combination, and abstains when a job-level `if:` restricts execution to same-repository pull requests.",
+        "A job runs under a trigger that combines attacker-controlled input with the base repository's secrets — `workflow_run`, `issue_comment`, `pull_request_review`, `pull_request_review_comment`, `discussion`, `discussion_comment`, `gollum`, `fork` — **and checks out fork-controlled code** (an `actions/checkout` whose `ref:` is the workflow_run head or a PR-controlled ref). Untrusted code then executes with the base repo's secrets and GITHUB_TOKEN. The `pull_request_target` case is owned by [ISSUE-804](./ISSUE-804) (`pullRequestTargetMustNotCheckoutHead`), so this rule never fires on it — same exploit class, dedicated rule, no double-firing. Subscribing to such a trigger is **not** flagged on its own: labelling, milestone, comment and notification workflows legitimately need them and are safe without an untrusted checkout. The finding fires only on the exploitable combination, and abstains when a job-level `if:` restricts execution to same-repository pull requests.",
       impact:
-        "This is the March 2025 tj-actions/changed-files vector (CVE-2025-30066) that exfiltrated secrets from hundreds of projects including aquasecurity/trivy. Once fork code runs with the base repo's secrets, every shell step is a direct exfiltration path — `npm install` (runs package scripts), `pytest` (loads conftest.py), even `cat README.md` (via attacker-supplied content). The blast radius is the union of the job's permissions and every secret the workflow can read.",
+        "This is the same exploit class as the March 2025 tj-actions/changed-files vector (CVE-2025-30066) that exfiltrated secrets from hundreds of projects including aquasecurity/trivy. Once fork code runs with the base repo's secrets, every shell step is a direct exfiltration path — `npm install` (runs package scripts), `pytest` (loads conftest.py), even `cat README.md` (via attacker-supplied content). The blast radius is the union of the job's permissions and every secret the workflow can read.",
       remediation:
-        "Three options, from strongest to most permissive: (1) drop the head checkout and let `pull_request_target` only operate on the base branch; (2) move the work to a plain `pull_request` trigger that runs without secret access; or (3) keep the head checkout but add a same-repository `if:` guard so fork PRs never reach the job. Option 3 is the right answer for trusted-maintainer-only preview/build flows.",
-      badExample: `# .github/workflows/preview.yml — ❌ pull_request_target checks out the PR head
+        "Three options, from strongest to most permissive: (1) drop the head checkout and let the job only operate on the base branch; (2) move the work to a plain `pull_request` trigger that runs without secret access; or (3) keep the head checkout but add a same-repository `if:` guard so fork-controlled runs never reach the job. Option 3 is the right answer for trusted-maintainer-only preview/build flows.",
+      badExample: `# .github/workflows/preview.yml — ❌ workflow_run chains off a fork-influenceable workflow
 on:
-  pull_request_target:
-    types: [opened, synchronize]
+  workflow_run:
+    workflows: ["lint"]
+    types: [completed]
 jobs:
   preview:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: \${{ github.event.pull_request.head.sha }}   # ← attacker code
-      - run: npm install && npm test                       # ← runs with base secrets`,
-      badExampleCaption: "The PR author's code now runs with `pull_request_target`'s secret-bearing GITHUB_TOKEN — the tj-actions / CVE-2025-30066 vector.",
+          ref: \${{ github.event.workflow_run.head_sha }}   # ← fork-controlled
+      - run: npm install && npm test                        # ← runs with base secrets`,
+      badExampleCaption: "The fork-controlled head SHA from the chained workflow runs with the secret-bearing GITHUB_TOKEN — same exploit class as the tj-actions / CVE-2025-30066 vector.",
       goodExample: `# .github/workflows/preview.yml — ✅ same-repository guard: fork code never runs
 on:
-  pull_request_target:
-    types: [opened, synchronize]
+  workflow_run:
+    workflows: ["lint"]
+    types: [completed]
 jobs:
   preview:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: \${{ github.event.pull_request.head.sha }}
+          ref: \${{ github.event.workflow_run.head_sha }}
       - run: npm install && npm test
 
-# Alternative: a plain pull_request trigger if you don't need base-repo secrets.
 # .plumber.yaml
 github:
   controls:
     workflowMustNotUseDangerousTriggers:
       enabled: true`,
-      goodExampleCaption: "The `if:` blocks fork PRs entirely; only same-repository (maintainer) PRs ever reach the checkout.",
+      goodExampleCaption: "The `if:` blocks fork-originated runs entirely; only same-repository commits ever reach the checkout.",
       tips: [
+        "The `pull_request_target` exploit pattern is owned by ISSUE-804 (pullRequestTargetMustNotCheckoutHead) — this rule excludes it to avoid double-firing on the same job.",
         "Recognised fork guards: `head.repo.full_name == github.repository`, `head.repo.fork == false`, `head.repo.fork != true`, `!github.event.pull_request.head.repo.fork`.",
         "Recognised untrusted refs: `github.event.pull_request.head.sha`, `head.ref`, `github.head_ref`, `github.event.workflow_run.head_sha`, `head_branch`.",
         "Metadata-only jobs (labelling, milestone, comment reactions) under these triggers are safe and intentionally not flagged.",
-        "Pair with ISSUE-804 for the explicit head-checkout anti-pattern and ISSUE-305 for the environment-gate side.",
+        "Pair with ISSUE-305 for the environment-gate side of the same risk surface.",
       ],
       relatedCodes: ["ISSUE-804", "ISSUE-305", "ISSUE-207"],
     },
@@ -3903,7 +3983,7 @@ jobs:
         "If a workflow truly needs both PR code AND secrets, the right pattern is: PR workflow uploads diff artefact → trusted workflow_run consumes it (no checkout).",
         "Plumber's default-on `actionsMustBePinnedByCommitSha` + ISSUE-802 + this rule cover the tj-actions class of vulnerabilities end-to-end.",
       ],
-      status: "roadmap",
+      status: "shipping",
       relatedCodes: ["ISSUE-802", "ISSUE-701"],
     },
   },

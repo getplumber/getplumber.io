@@ -179,7 +179,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ## Available Controls
 
-Plumber ships **14 GitLab controls**. Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-101`) with a direct link to its documentation page.
+Plumber ships **15 GitLab controls** (14 default-on plus the opt-in `pipelineMustNotLeakSecretsInConfig`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-101`) with a direct link to its documentation page.
 
 | Control | Issues | Description |
 |---------|--------|-------------|
@@ -189,6 +189,7 @@ Plumber ships **14 GitLab controls**. Each can be enabled / disabled and customi
 | **Pipeline must not enable debug trace** | [ISSUE-203](/docs/cli/issues/ISSUE-203) | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
 | **Pipeline must not use unsafe variable expansion** | [ISSUE-204](/docs/cli/issues/ISSUE-204) | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
 | **Pipeline must not override job variables** | [ISSUE-205](/docs/cli/issues/ISSUE-205) | Detects controlled CI/CD variables redefined in `.gitlab-ci.yml` that should only be set in GitLab CI/CD Settings |
+| **Pipeline must not leak secrets in configuration** | [ISSUE-301](/docs/cli/issues/ISSUE-301) | Opt-in. Pipes the resolved `.gitlab-ci.yml` (with every `include:` followed) through [gitleaks](https://github.com/gitleaks/gitleaks); flags hardcoded API tokens, private keys, and other credentials. Each finding carries only a redacted preview |
 | **Pipeline must not contains hardcoded jobs** | [ISSUE-401](/docs/cli/issues/ISSUE-401) | Detects jobs defined directly instead of from includes |
 | **Pipeline must use only up-to-date includes** | [ISSUE-403](/docs/cli/issues/ISSUE-403) | Checks if included templates have newer versions |
 | **Pipeline must not use forbidden ref in includes** | [ISSUE-404](/docs/cli/issues/ISSUE-404) | Prevents mutable version references like `main`, `HEAD` |
@@ -395,6 +396,7 @@ Codes shipping today for GitLab:
 | [ISSUE-203](/docs/cli/issues/ISSUE-203?p=gitlab) | Pipeline enables CI debug trace |
 | [ISSUE-204](/docs/cli/issues/ISSUE-204?p=gitlab) | Unsafe variable expansion |
 | [ISSUE-205](/docs/cli/issues/ISSUE-205?p=gitlab) | Job variable overrides controlled variable |
+| [ISSUE-301](/docs/cli/issues/ISSUE-301?p=gitlab) | Secret leak in pipeline configuration |
 | [ISSUE-401](/docs/cli/issues/ISSUE-401?p=gitlab) | Hardcoded job |
 | [ISSUE-403](/docs/cli/issues/ISSUE-403?p=gitlab) | Outdated template |
 | [ISSUE-404](/docs/cli/issues/ISSUE-404?p=gitlab) | Forbidden include version |

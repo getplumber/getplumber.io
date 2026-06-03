@@ -201,7 +201,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ## Available Controls
 
-Plumber ships **15 default-on GitHub controls** (14 default-on plus the opt-in `workflowMustIncludeRequiredActions`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-701`) with a direct link to its documentation page.
+Plumber ships **16 GitHub controls** (14 default-on plus the opt-in `workflowMustIncludeRequiredActions` and `pipelineMustNotLeakSecretsInConfig`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-701`) with a direct link to its documentation page.
 
 | Control | Issues | Description |
 |---------|--------|-------------|
@@ -209,6 +209,7 @@ Plumber ships **15 default-on GitHub controls** (14 default-on plus the opt-in `
 | **Pipeline must not enable debug trace** | [ISSUE-203](/docs/cli/issues/ISSUE-203) | Flags truthy `ACTIONS_STEP_DEBUG` / `ACTIONS_RUNNER_DEBUG` in literal `env:`, `${{ }}` expression bindings, and runtime `>> $GITHUB_ENV` script writes |
 | **Workflow must not inline user input into shell scripts** | [ISSUE-207](/docs/cli/issues/ISSUE-207) | Flags `${{ github.event.* }}`, `${{ github.head_ref }}`, `${{ github.actor }}` interpolated directly into a `run:` shell (OWASP CICD-SEC-1) |
 | **Reusable workflow must not use `secrets: inherit`** | [ISSUE-302](/docs/cli/issues/ISSUE-302) | Flags `jobs.<name>.secrets: inherit`, which forwards every caller secret to the reusable workflow. Use an explicit secrets map |
+| **Workflow must not leak secrets in configuration** | [ISSUE-301](/docs/cli/issues/ISSUE-301) | Opt-in. Pipes every file under `.github/workflows/` through [gitleaks](https://github.com/gitleaks/gitleaks); flags hardcoded API tokens, private keys, and other credentials. Each finding carries only a redacted preview |
 | **Security jobs must not be weakened** | [ISSUE-410](/docs/cli/issues/ISSUE-410) | Flags CodeQL / dependency-review / gitleaks / trufflehog / OSV-Scanner jobs neutralized via `continue-on-error: true` or manual-only dispatch (OWASP CICD-SEC-4) |
 | **Workflow must not execute unverified scripts** | [ISSUE-411](/docs/cli/issues/ISSUE-411) | Detects `curl \| bash`, `wget \| sh`, download-then-execute, redirect-then-execute, and base64 pipe-to-shell patterns in `run:` steps without integrity verification (OWASP CICD-SEC-3) |
 | **Workflow must not use Docker-in-Docker** | [ISSUE-412](/docs/cli/issues/ISSUE-412) [ISSUE-413](/docs/cli/issues/ISSUE-413) | Flags `docker:dind` services and insecure daemon configuration (TLS disabled, plaintext port 2375) |
@@ -336,6 +337,7 @@ plumber explain 703
 | [ISSUE-203](/docs/cli/issues/ISSUE-203?p=github) | Workflow enables runner debug logging |
 | [ISSUE-207](/docs/cli/issues/ISSUE-207?p=github) | Workflow inlines user input into shell scripts |
 | [ISSUE-302](/docs/cli/issues/ISSUE-302?p=github) | Reusable workflow called with `secrets: inherit` |
+| [ISSUE-301](/docs/cli/issues/ISSUE-301?p=github) | Secret leak in workflow configuration |
 | [ISSUE-410](/docs/cli/issues/ISSUE-410?p=github) | Security job weakened |
 | [ISSUE-411](/docs/cli/issues/ISSUE-411?p=github) | Unverified script execution |
 | [ISSUE-412](/docs/cli/issues/ISSUE-412?p=github) | Docker-in-Docker service detected |
