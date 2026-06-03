@@ -9,7 +9,7 @@ section: "api"
 ---
 
 <Aside variant="info">
-  Trying a beta? Homebrew, mise, and Docker Hub follow stable releases only. Beta binaries and checksums live on the [GitHub Releases page](https://github.com/getplumber/plumber/releases); each beta's release notes carry the verified download + checksum steps for that specific build.
+  Requires `git` on `PATH` for local-clone auto-detection. Already present in GitHub Actions runners, GitLab Runner, the Docker image, and standard macOS / Linux installs.
 </Aside>
 
 <Tabs defaultValue="homebrew">
@@ -30,11 +30,11 @@ section: "api"
     **Install a specific version:**
 
     ```bash
-    brew install getplumber/plumber/plumber@v0.3.0
+    brew install getplumber/plumber/plumber@v0.3.27
     ```
 
     <Aside variant="info">
-      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@v0.3.0/bin/plumber`) or run `brew link plumber@v0.3.0` to add it to your PATH.
+      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@v0.3.27/bin/plumber`) or run `brew link plumber@v0.3.27` to add it to your PATH.
     </Aside>
   </TabsContent>
 
@@ -94,7 +94,9 @@ section: "api"
     docker pull getplumber/plumber:latest
     ```
 
-    **GitLab example:**
+    Run analysis directly with Docker:
+
+    **GitLab:**
 
     ```bash
     docker run --rm \
@@ -104,7 +106,7 @@ section: "api"
       --project mygroup/myproject
     ```
 
-    **GitHub example:**
+    **GitHub:**
 
     ```bash
     docker run --rm \
