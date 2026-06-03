@@ -3586,7 +3586,7 @@ jobs:
         "Look at the callee's `on: workflow_call: secrets:` block to know exactly what to pass.",
         "If you author the reusable workflow, list each `secrets:` block explicitly — never accept `inherit` unconditionally.",
       ],
-      relatedCodes: ["ISSUE-309", "ISSUE-801"],
+      relatedCodes: ["ISSUE-309", "ISSUE-301", "ISSUE-801"],
     },
   },
 
@@ -3627,7 +3627,7 @@ jobs:
         "Any non-trivial transformation of a secret in YAML is a smell. Move the logic into a shell step where the redactor still applies.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-309"],
+      relatedCodes: ["ISSUE-309", "ISSUE-301"],
     },
   },
 
@@ -3724,7 +3724,7 @@ jobs:
         "Branch / tag restrictions on the environment make the gate tamper-proof from PR-author code.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-802", "ISSUE-309"],
+      relatedCodes: ["ISSUE-802", "ISSUE-309", "ISSUE-301"],
     },
   },
 
@@ -3820,7 +3820,7 @@ jobs:
         "Never upload the entire workspace as an artifact — always narrow the path.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-801", "ISSUE-309"],
+      relatedCodes: ["ISSUE-801", "ISSUE-309", "ISSUE-301"],
     },
   },
 
@@ -3874,7 +3874,7 @@ jobs:
         "If you must use dynamic indexing, validate the index against an allowlist before the lookup.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-305", "ISSUE-309"],
+      relatedCodes: ["ISSUE-305", "ISSUE-309", "ISSUE-301"],
     },
   },
 
