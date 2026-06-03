@@ -87,7 +87,7 @@ gh attestation verify plumber-linux-amd64 --repo getplumber/plumber
 
 ## ⬆️ How to update
 
-- **CLI**: `brew update && brew upgrade plumber`, or install [v0.3.42](/docs/cli/github#installation) via mise, release binaries, or Docker.
+- **CLI**: `brew update && brew upgrade plumber`, or install [v0.3.42](/docs/cli/installation) via mise, release binaries, or Docker.
 - **GitHub repos**: Add or extend `github.controls:` in `.plumber.yaml` (start from `plumber config init` or `plumber config generate`), run `plumber analyze` in CI with `GH_TOKEN`.
 - **GitLab repos**: No workflow change required; bump the CLI. For the drop-in pipeline, use the latest [GitLab CI component](/docs/cli/gitlab#gitlab-ci-component) catalog entry when you refresh templates.
 - **Mixed estates**: Run `plumber config migrate`, then tune `gitlab.controls:` and `github.controls:` in one file.
