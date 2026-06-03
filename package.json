@@ -28,7 +28,7 @@
     "@astrojs/vercel": "^10.0.4",
     "@fontsource-variable/inter": "5.2.8",
     "@fontsource/inter": "5.2.8",
-    "@keystatic/astro": "5.0.6",
+    "@keystatic/astro": "5.1.0",
     "@keystatic/core": "0.5.48",
     "@pagefind/default-ui": "1.4.0",
     "@tabler/icons": "3.35.0",
@@ -37,7 +37,7 @@
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "@vercel/analytics": "^2.0.1",
-    "astro": "^6.1.8",
+    "astro": "^6.4.3",
     "astro-auto-import": "0.5.1",
     "astro-expressive-code": "^0.41.7",
     "astro-icon": "1.1.5",
@@ -80,6 +80,10 @@
       "minimatch": "3.1.5"
     },
     "yaml": "2.8.3",
+    "devalue": "^5.8.1",
+    "fast-uri": "^3.1.2",
+    "fast-xml-builder": "^1.2.0",
+    "brace-expansion": "^5.0.6",
     "@keystatic/astro": {
       "astro": "$astro"
     }
