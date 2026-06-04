@@ -1,0 +1,60 @@
+---
+title: "Plumber 1.4 Release - What's New"
+description: "Introducing Plumber 1.4: bulk issue owner management with search, one-click auto-fix for merge request settings, and AWS Bedrock API key support."
+draft: false
+authors:
+  - plumber
+pubDate: 2026-06-10
+heroImage: ./heroImage.png
+categories:
+  - "releases-platform"
+---
+
+# Plumber 1.4
+
+**We're excited to announce Plumber 1.4:**
+
+> **⚡ Manage issues at scale, remediate in one click, connect your AI provider faster**
+
+**This release makes day-to-day issue management faster, brings auto-fix to merge request settings, and adds a simpler way to connect AWS Bedrock LLMs.**
+
+## 👥 Bulk Issue Owner Management
+
+Managing issue owners one by one was tedious. You can now assign or remove owners in bulk, and quickly find the right person.
+
+**What you get:**
+- **Bulk owner edit**: Select multiple issues and set (or clear) their owner in a single action
+- **Searchable owner filter**: Filter issues by owner with a search box, instead of scrolling through a long list of users
+
+## 🔧 One-Click Auto-Fix for Merge Request Settings
+
+The `merge request settings are not compliant` issue can now be fixed automatically, in one click. Bring a project into compliance without manually editing its merge request settings or waiting for the next analysis.
+
+**What you get:**
+- **Direct fix**: Plumber applies the compliant settings directly on the project
+- **Clear preview**: Before fixing, see exactly what will change
+- **Automatic refresh**: The compliance is updated right away
+
+## 🤖 AWS Bedrock API Key Support
+
+For organizations using AWS Bedrock as their AI provider (BYO-LLM), Plumber now supports the new Bedrock **API key** authentication. One credential to manage instead of an access-key pair, so it's quicker to set up and easier to rotate.
+
+**What you get:**
+- **API key authentication**: Use a Bedrock API key instead of an Access Key ID / Secret Access Key pair
+- **Both methods supported**: The Access Key ID / Secret Access Key option remains available
+
+## ⚙️ Minor Updates
+
+- **Policies**: Create a policy without selecting a project or portfolio, and attach its scope later
+- **Compatibility**: Support for the latest Claude models on Bedrock (e.g. Opus 4.8)
+- **Security**: Resolved package CVEs for enhanced security
+- **Fix**: Various bug fixes and stability improvements
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.41.1`
+- Frontend: `v2.35.0`
+- Helm chart: `v1.4.1`
+</Admonition>
