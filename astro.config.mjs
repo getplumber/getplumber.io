@@ -36,6 +36,8 @@ export default defineConfig({
     },
   },
   markdown: {
+    // Required for GFM tables when a custom markdown block is set (otherwise gfm defaults to off in MDX).
+    gfm: true,
     shikiConfig: {
       // Shiki Themes: https://shiki.style/themes
       theme: "css-variables",
