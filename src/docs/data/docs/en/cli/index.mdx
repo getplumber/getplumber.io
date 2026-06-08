@@ -83,7 +83,7 @@ plumber analyze [flags]
 | `--badge` | No | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
 | `--skip-controls` | No | - | Skip listed controls (comma-separated). Cannot be used with `--controls` |
-| `--fail-warnings` | No | `false` | Treat configuration warnings (unknown keys) as errors (exit 2) |
+| `--fail-warnings` | No | `false` | Fail on warnings: configuration warnings such as unknown keys (exit 2) and "could not verify" warnings such as a skipped known-CVE check (exit 3) |
 | `--ci-config-path` | No | auto-detect | Override CI configuration file path. Defaults to project CI config path from GitLab settings (usually `.gitlab-ci.yml`) |
 | `--verbose`, `-v` | No | `false` | Enable verbose/debug output |
 
@@ -98,6 +98,7 @@ plumber analyze [flags]
 |----------|----------|-------------|
 | `GITLAB_TOKEN` | GitLab only | GitLab API token with `read_api` + `read_repository` scopes (from a Maintainer or higher). Use `api` scope instead if `--mr-comment` or `--badge` is enabled. |
 | `GH_TOKEN` / `GITHUB_TOKEN` | GitHub only | GitHub API token. Fine-grained PAT needs `Contents: Read`, `Metadata: Read`, `Administration: Read`. Classic PAT needs `repo`. Alternatively, run `gh auth login` and Plumber will pick up the gh CLI credential. |
+| `PLUMBER_METADATA_TOKEN` | No (GitHub) | Token used only to resolve third-party action versions for the known-CVE check (ISSUE-703). Set it when an action is hosted in an org with an IP allow list that blocks the runner's `GITHUB_TOKEN`; a public-repository read scope is enough. Takes precedence over `GH_TOKEN` for that lookup and carries the higher authenticated rate limit. When unset, Plumber falls back to an anonymous read. |
 | `PLUMBER_NO_UPDATE_CHECK` | No | Set to any value (e.g., `1`) to disable the automatic version check. |
 
 ### `plumber config init`
@@ -292,6 +293,7 @@ Documentation: https://getplumber.io/docs/use-plumber/issues/ISSUE-412
 | `0` | Passed (compliance ≥ threshold) |
 | `1` | Compliance failure (compliance < threshold) |
 | `2` | Runtime error (config error, network failure, missing token, etc.) |
+| `3` | A check could not be verified and `--fail-warnings` is set (e.g. an action version that could not be resolved) |
 
 ### Automatic Version Check
 

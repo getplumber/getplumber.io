@@ -79,6 +79,8 @@ export GH_TOKEN=github_pat_xxxx
 export GH_TOKEN=ghp_xxxx
 ```
 
+If a workflow uses an action hosted in an org with an [IP allow list](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-allowed-ip-addresses-for-your-organization), a runner's `GITHUB_TOKEN` is blocked when Plumber resolves that action's version for the known-CVE check; Plumber falls back to an anonymous read, and skips the check rather than guessing if that is rate-limited too. To resolve those versions reliably, set `PLUMBER_METADATA_TOKEN` (or the action's `metadata-token` input) to a token with public-repository read.
+
 <Aside variant="caution">
   `Administration: Read` (fine-grained) or `repo` scope (classic) is needed for the `branchMustBeProtected` rule to evaluate force-push and code-owner-approval settings. Without it the rule abstains and Plumber reports the abstention explicitly in `partialControls` rather than claiming a false 100% pass.
 </Aside>
@@ -142,7 +144,7 @@ plumber analyze [flags]
 | `--badge` | No | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
 | `--skip-controls` | No | - | Skip listed controls (comma-separated). Cannot be used with `--controls` |
-| `--fail-warnings` | No | `false` | Treat configuration warnings (unknown keys) as errors (exit 2) |
+| `--fail-warnings` | No | `false` | Fail on warnings: configuration warnings such as unknown keys (exit 2) and "could not verify" warnings such as a skipped known-CVE check (exit 3) |
 | `--ci-config-path` | No | auto-detect | Override CI configuration file path. Defaults to project CI config path from GitLab settings (usually `.gitlab-ci.yml`) |
 | `--verbose`, `-v` | No | `false` | Enable verbose/debug output |
 
@@ -156,6 +158,7 @@ plumber analyze [flags]
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `GH_TOKEN` / `GITHUB_TOKEN` | GitHub only | GitHub API token. Fine-grained PAT needs `Contents: Read`, `Metadata: Read`, `Administration: Read`. Classic PAT needs `repo`. Alternatively, run `gh auth login` and Plumber will pick up the gh CLI credential. |
+| `PLUMBER_METADATA_TOKEN` | No | Token used only to resolve third-party action versions for the known-CVE check (ISSUE-703). Set it when an action is hosted in an org with an IP allow list that blocks the runner's `GITHUB_TOKEN`; a public-repository read scope is enough. Takes precedence over `GH_TOKEN` for that lookup. When unset, Plumber falls back to an anonymous read. |
 | `PLUMBER_NO_UPDATE_CHECK` | No | Set to any value (e.g., `1`) to disable the automatic version check. |
 
 For the configuration commands (`plumber config init` / `generate` / `migrate` / `view` / `validate`), `plumber explain`, and exit codes, see the [main CLI page](/docs/cli#command-reference). They behave identically for both providers.
@@ -604,6 +607,7 @@ Override any input to fit your needs:
 | `version` | _(pinned in action.yml)_ | Plumber release tag to install. Downloaded from GitHub Releases and verified against `checksums.txt` |
 | `verify-attestation` | `true` | Verify the binary's SLSA build-provenance attestation via `gh attestation verify`. Disable for air-gapped or GHES setups |
 | `github-token` | `${{ github.token }}` | Token for the GitHub API and SARIF upload. Needs `Administration:read` for full `branchMustBeProtected`, and `security-events:write` for SARIF |
+| `metadata-token` | - | Optional token (public-repo read) used only to resolve third-party action versions for the known-CVE check, when an action is hosted in an org with an IP allow list that blocks the runner's `GITHUB_TOKEN`. Falls back to an anonymous read when unset |
 | `project` | _(current repo)_ | `owner/repo` to scan remotely (upstream-fetch, no checkout needed) |
 | `github-url` | _(github.com)_ | GitHub Enterprise Server host (e.g. `ghes.example.com`) |
 | `threshold` | `100` | Minimum compliance percentage to pass (0-100) |
@@ -611,7 +615,7 @@ Override any input to fit your needs:
 | `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
 | `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
 | `score` | `true` | Show the Plumber letter score, points, and breakdown |
-| `fail-warnings` | `false` | Treat configuration warnings (unknown keys) as errors |
+| `fail-warnings` | `false` | Fail on warnings: unknown configuration keys (exit 2) and "could not verify" checks such as a skipped known-CVE lookup (exit 3). `soft-fail` does not mask exit 3 |
 | `soft-fail` | `false` | Do not fail the job when compliance is below the threshold. Findings are still produced and uploaded |
 | `upload-sarif` | `true` | Upload the SARIF report to GitHub Code Scanning |
 | `upload-artifacts` | `true` | Upload JSON report, PBOM, and CycloneDX SBOM as a workflow artifact |
@@ -699,6 +703,7 @@ Set `verify-attestation: "false"` if the runner cannot reach the sigstore transp
 | `401 Unauthorized` | Token is invalid or expired. Fine-grained PAT needs `Contents: Read` + `Metadata: Read`; classic PAT needs `repo` |
 | `branchMustBeProtected` shows in `partialControls` | Token lacks `Administration: Read` (fine-grained) or `repo` (classic). The rule abstains rather than claim a false pass |
 | `403` / rate-limit errors | Anonymous or under-scoped token. Authenticate with a PAT or `gh auth login` |
+| ISSUE-703 fires in CI but not locally, or "could not verify" an action's version | The action's org enforces an IP allow list that blocks the runner's `GITHUB_TOKEN`. Set `metadata-token` (action) or `PLUMBER_METADATA_TOKEN` (CLI) to a public-repo-read token |
 | `404 Not Found` | Verify `--project owner/repo` and, for GHES, that `--github-url` points at the right host |
 | Branch protection rule not detected | Plumber reads classic Branch Protection AND Rulesets; confirm the rule is enabled (not in evaluate mode) on a branch matching your `namePatterns` |
 | Configuration file not found | Ensure `--config` points at the real file (use an absolute path in Docker). Create one with `plumber config generate` or `plumber config init` |
