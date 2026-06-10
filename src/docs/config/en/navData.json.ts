@@ -11,13 +11,8 @@ const navConfig: navItem[] = [
     link: "/docs/getting-started/",
   },
   {
-    text: "Components",
-    link: "/docs/components/",
-  },
-  {
-    text: "Get Pathfinder",
-    link: "https://cosmicthemes.com/themes/pathfinder",
-    newTab: true,
+    text: "Open Source CLI",
+    link: "/docs/cli",
   },
 ];
 

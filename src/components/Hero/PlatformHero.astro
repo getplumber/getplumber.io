@@ -104,7 +104,8 @@ const currLocale = getLocaleFromUrl(Astro.url);
       max-width: 1388px;
 "
     >
-      <script src="https://js.howdygo.com/v1.2.1/index.js"></script>
+      <!-- HowdyGo embed is lazy-loaded (script + iframe injected on approach/click)
+           so the third-party demo doesn't block initial page load -->
       <div
         id="howdygo-wrapper"
         style="position: relative;
@@ -115,7 +116,7 @@ const currLocale = getLocaleFromUrl(Astro.url);
       >
         <iframe
           id="howdygo-frame"
-          src="https://app.howdygo.com/prescreen-embed/7229c52e-7c7d-40a9-9df8-98a6d1b72cde?mobileStrategy=inline&launchButton=Launch+interactive+demo"
+          data-src="https://app.howdygo.com/prescreen-embed/7229c52e-7c7d-40a9-9df8-98a6d1b72cde?mobileStrategy=inline&launchButton=Launch+interactive+demo"
           frameborder="0"
           scrolling="no"
           allow="autoplay"
@@ -127,3 +128,38 @@ const currLocale = getLocaleFromUrl(Astro.url);
     </div>
   </div>
 </section>
+
+<script>
+  // Lazy-load the HowdyGo demo: inject the iframe src and vendor script only
+  // when the embed is near the viewport or the demo CTA is clicked
+  function initHowdyGoLazyLoad() {
+    const frame = document.getElementById("howdygo-frame") as HTMLIFrameElement | null;
+    if (!frame || !frame.dataset.src) return;
+
+    let loaded = false;
+    const load = () => {
+      if (loaded || !frame.dataset.src) return;
+      loaded = true;
+      frame.src = frame.dataset.src;
+      delete frame.dataset.src;
+      const vendorScript = document.createElement("script");
+      vendorScript.src = "https://js.howdygo.com/v1.2.1/index.js";
+      document.head.appendChild(vendorScript);
+      observer.disconnect();
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => entries.some((entry) => entry.isIntersecting) && load(),
+      { rootMargin: "200px" },
+    );
+    observer.observe(frame);
+
+    // load immediately when the hero CTA anchors to the embed
+    document
+      .querySelectorAll('a[href="#howdygo-embed"]')
+      .forEach((anchor) => anchor.addEventListener("click", load));
+  }
+
+  initHowdyGoLazyLoad();
+  document.addEventListener("astro:after-swap", initHowdyGoLazyLoad);
+</script>

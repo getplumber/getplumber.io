@@ -93,6 +93,8 @@ const docsCollection = defineCollection({
   schema: () =>
     z.object({
       title: z.string(),
+      // Optional meta-title override for search engines; the visible H1 stays `title`
+      seoTitle: z.string().optional(),
       description: z.string().optional(),
       sidebar: z
         .object({

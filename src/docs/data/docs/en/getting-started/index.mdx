@@ -1,10 +1,16 @@
 ---
 title: Plumber Platform
-description: Audit, detect, and remediate drifts — continuously. Be ready for regulatory demands (ISO 27001, NIS2, DORA, SOC 2…).
+seoTitle: Get Started with Plumber - CI/CD Compliance Platform
+description: "Get started with the Plumber Platform: connect GitLab or GitHub, audit your CI/CD pipelines against ISO 27001, NIS2, DORA, and SOC 2 requirements, and remediate drift continuously."
 sidebar:
   order: 1
   label: Introduction
 ---
+import DocsFaq from "@/docs/components/mdx-components/DocsFaq.astro";
+
+Plumber is a CI/CD compliance platform that maps, audits, and remediates security
+and compliance gaps in your GitLab CI/CD pipelines and GitHub Actions workflows —
+continuously, so you stay ready for ISO 27001, NIS2, DORA, and SOC 2 audits.
 
 ## Ensure Compliance for your CI/CD Pipelines
 
@@ -73,6 +79,33 @@ task. Plumber automates this process for you.**
   </div>
 </div>
 
+
+## Frequently Asked Questions
+
+<DocsFaq
+  items={[
+    {
+      question: "Do I need the open-source CLI to use the Platform?",
+      answer: `No. The Platform connects directly to your GitLab or GitHub organization and
+        audits projects on its own. The <a href="/docs/cli">open-source CLI</a> uses the same
+        controls and is handy for scanning a single repository locally or in a CI job.`,
+    },
+    {
+      question: "Which providers does Plumber support?",
+      answer: `Plumber audits <a href="/docs/cli/gitlab">GitLab CI/CD pipelines</a> (self-managed
+        and gitlab.com) and <a href="/docs/cli/github">GitHub Actions workflows</a>, with a
+        shared catalog of <a href="/docs/use-plumber/controls">compliance controls</a> across
+        both providers.`,
+    },
+    {
+      question: "Where should I start?",
+      answer: `Pick an <a href="/docs/installation">installation method</a> (Docker Compose,
+        Kubernetes, or Podman), connect your first group or organization, and review the
+        issues raised by your first audit. Each issue links to a step-by-step remediation
+        guide.`,
+    },
+  ]}
+/>
 
 ## Community
 - We love talking with our users. Join our [Discord

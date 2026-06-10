@@ -1,0 +1,45 @@
+---
+/**
+ * FAQ block for docs MDX pages. Renders question/answer pairs using the
+ * surrounding docs markdown styles and emits matching schema.org FAQPage
+ * JSON-LD so the questions can be surfaced by search and answer engines.
+ *
+ * Usage in MDX:
+ *   <DocsFaq items={[{ question: "...", answer: "..." }]} />
+ */
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  items: FaqItem[];
+}
+
+const { items } = Astro.props as Props;
+
+// "<" is escaped so the embedded HTML can't break out of the <script> block
+const faqJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: items.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer.replace(/\s+/g, " ").trim(),
+    },
+  })),
+}).replace(/</g, "\\u003c");
+---
+
+{
+  items.map(({ question, answer }) => (
+    <>
+      <h3>{question}</h3>
+      <p set:html={answer} />
+    </>
+  ))
+}
+
+<script type="application/ld+json" set:html={faqJsonLd} is:inline />

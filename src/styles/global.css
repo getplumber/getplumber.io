@@ -131,7 +131,7 @@
     --astro-code-token-link: #79c0ff;
   }
 
-  /* starwind preflight merged with Cosmic Themes */
+  /* starwind preflight merged with site theme */
   * {
     @apply border-border;
   }

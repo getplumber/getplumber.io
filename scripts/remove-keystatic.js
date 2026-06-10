@@ -141,8 +141,8 @@ async function removeKeystatic() {
         console.log(" Successfully removed Keystatic from the project");
         console.log("=================================================\n");
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        // cheers from Cosmic Themes!
-        console.log("🚀 Thank you for using Cosmic Themes 🚀\n");
+        console.log("Done!
+");
         await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     catch (error) {

@@ -15,8 +15,6 @@ categories:
   - "Software Supply Chain"
 ---
 
-## Top 5 Software Supply Chain Security Incidents
-
 CI/CD (Continuous Integration and Continuous Deployment) pipelines have revolutionized software development, enabling rapid code integration, testing, and deployment. However, their growing complexity and reliance on automated processes have also introduced significant cybersecurity risks within the scope of the software supply chain. Below, we examine five of the highest-profile cybersecurity incidents involving CI/CD pipelines in the IT industry, highlighting the vulnerabilities and lessons learned.
 
 ---
@@ -125,7 +123,11 @@ The affected German firms had to conduct comprehensive audits of their software 
 
 These high-profile incidents serve as stark reminders of the critical need for robust security measures in CI/CD pipelines. Each breach exploited weaknesses that could have been mitigated through proactive security practices.
 
-By acknowledging the [OWASP's Top 10 CI/CD Security Risks](https://owasp.org/www-project-top-10-ci-cd-security-risks/), organizations can identify and address vulnerabilities before they are exploited. Implementing these best practices such as enforcing strict access controls, improving visibility, securing credentials, and validating artifacts can significantly reduce the risk of attacks and protect the integrity of your software supply chain. 
+By acknowledging the [OWASP's Top 10 CI/CD Security Risks](https://owasp.org/www-project-top-10-ci-cd-security-risks/), organizations can identify and address vulnerabilities before they are exploited. Implementing these best practices such as enforcing strict access controls, improving visibility, securing credentials, and validating artifacts can significantly reduce the risk of attacks and protect the integrity of your software supply chain.
+
+You can check your own pipelines against these risks with the open-source [Plumber CLI](/docs/cli), which audits [GitLab CI/CD](/docs/cli/gitlab) and [GitHub Actions](/docs/cli/github) configurations for the same weaknesses exploited in these incidents — see the full [compliance controls catalog](/docs/cli/controls). For organization-wide, continuous monitoring, there is the [Plumber Platform](/platform).
+
+For more recent incidents, read our analyses of the [Shai-Hulud 2.0 npm attack](/blog/shai-hulud) and the [tj-actions/changed-files compromise](/blog/tj-actions-compromised).
 
 Secure your software supply chain today to avoid becoming the next headline.
 

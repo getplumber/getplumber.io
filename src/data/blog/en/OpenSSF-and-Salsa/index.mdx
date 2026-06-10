@@ -15,8 +15,6 @@ categories:
 heroImage: ./heroImage.png
 ---
 
-# Hardening Plumber's Supply Chain: SLSA 3, OpenSSF Scorecard, and Best Practices
-
 Plumber helps you enforce compliance in your GitLab pipelines. But who watches the watcher? If an attacker compromised Plumber's own release process, every project relying on it would be at risk. That's why we invested in hardening our supply chain with three industry-standard frameworks: **SLSA Level 3 provenance**, **OpenSSF Scorecard**, and the **OpenSSF Best Practices** badge.
 
 This post walks through what each of these means, what we changed, and how the results look.
@@ -25,7 +23,7 @@ This post walks through what each of these means, what we changed, and how the r
 
 ## Why Supply Chain Security Matters
 
-In early 2026, the [hackerbot-claw supply chain attack](https://getplumber.io/blog/hackerbot-claw-cicd-governance) compromised `aquasecurity/trivy` and six other major repositories by exploiting weak CI/CD configurations: mutable action tags, overly permissive tokens, and workflows that trusted external pull requests with write access.
+In early 2026, the [hackerbot-claw supply chain attack](/blog/hackerbot-claw-cicd-governance) compromised `aquasecurity/trivy` and six other major repositories by exploiting weak CI/CD configurations: mutable action tags, overly permissive tokens, and workflows that trusted external pull requests with write access.
 
 That attack specifically exploited `pull_request_target` triggers and mutable GitHub Action tags to inject code into trusted CI pipelines. Our hardening steps below address some of the same underlying weaknesses (mutable references, excessive permissions, unsigned releases) but not the full attack chain. For example, defending against `pull_request_target` abuse requires careful workflow design beyond what's covered here.
 

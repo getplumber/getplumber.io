@@ -19,9 +19,6 @@ categories:
   - "Malware"
 ---
 
-# Shai-Hulud 2.0: When `npm install` Becomes a CI/CD Attack
-
-
 **Between November 21 and 23, 2025**, attackers compromised maintainer accounts to publish trojanized versions of popular npm packages. Unlike typical malware that might run quietly in the background, this variant is aggressively designed to harvest credentials and establish persistence within build environments.
 
 ## What is Shai-Hulud 2.0?
@@ -79,12 +76,15 @@ Rotate AWS/Azure/GCP credentials used in your pipelines.
 - Disable lifecycle scripts in CI when possible (--ignore-scripts for selected jobs)
 - Restrict runner egress to trusted domains
 - Audit GitHub workflows for unauthorized files (discussion.yaml)
+- Pin third-party actions by commit SHA ([ISSUE-701](/docs/cli/issues/ISSUE-701)) and avoid unpinned package installs in workflows ([ISSUE-214](/docs/cli/issues/ISSUE-214)) — both are detected automatically by the [Plumber CLI for GitHub Actions](/docs/cli/github)
+
+For a broader checklist, see our guide on [hardening your GitHub project's supply chain](/blog/harden-github-supply-chain).
 
 ## And for GitLab CI/CD Teams?
 
 Even though Shai-Hulud targets npm and GitHub, the lesson is universal: **Attackers go where pipelines download, execute, and publish.**
 
-For GitLab users, the same principles apply: lock down what runs during install jobs, scope CI tokens to the minimum, and continuously validate pipelines against your internal standards.
+For GitLab users, the same principles apply: lock down what runs during install jobs, scope CI tokens to the minimum, and continuously validate pipelines against your internal standards. The open-source [Plumber CLI scans GitLab CI/CD pipelines](/docs/cli/gitlab) for exactly these gaps — see our [5-minute hands-on walkthrough](/blog/hands-on-cli) to try it on your own project.
 
 
 
@@ -95,7 +95,7 @@ Preventing the next supply-chain incident starts where attackers now hit first: 
 
 Instead of relying on periodic audits or last-minute checklists, organizations need a real-time view of what pipelines actually execute, whether they still follow internal standards, and where drift or non-conformities appear.
 
-With [Plumber](https://getplumber.io) teams use the CI/CD Compliance Dashboard to instantly spot which projects are not compliant with security best practices—before those gaps quietly become open doors for the next attack.
+With the [Plumber Platform](/platform) teams use the CI/CD Compliance Dashboard to instantly spot which projects are not compliant with security best practices—before those gaps quietly become open doors for the next attack.
 
 If you want to see what continuous CI/CD compliance looks like in GitLab, you can try Plumber in minutes.
 

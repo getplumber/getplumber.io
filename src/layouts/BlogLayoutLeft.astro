@@ -1,6 +1,8 @@
 ---
 import Button from "@components/Button/Button.astro";
+import PostCard from "@components/PostCard/PostCard.astro";
 import TableOfContents from "@components/TableOfContents/TableOfContents.astro";
+import { getAllPosts } from "@js/blogUtils";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { formatDate, humanize, slugify } from "@js/textUtils";
 import { Image } from "astro:assets";
@@ -19,6 +21,26 @@ const { title, description, authors, pubDate, updatedDate, heroImage } = post.da
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const authorsData = await getEntries(authors);
+
+// Related posts: most shared categories first, newest first as tiebreaker
+// (internal circulation between posts helps both readers and SEO)
+const postCategories = post.data.categories?.filter(Boolean) ?? [];
+const allPosts = await getAllPosts(currLocale, true);
+const relatedPosts = allPosts
+  .filter((other) => other.id !== post.id)
+  .map((other) => ({
+    post: other,
+    shared: (other.data.categories?.filter(Boolean) ?? []).filter((category) =>
+      postCategories.includes(category),
+    ).length,
+  }))
+  .filter(({ shared }) => shared > 0)
+  .sort(
+    (a, b) =>
+      b.shared - a.shared || b.post.data.pubDate.getTime() - a.post.data.pubDate.getTime(),
+  )
+  .slice(0, 3)
+  .map(({ post: related }) => related);
 ---
 
 <BaseLayout
@@ -82,9 +104,25 @@ const authorsData = await getEntries(authors);
               </div>
             )
           }
+          <!-- Title rendered here (not in post markdown) so every post has exactly one H1 -->
+          <h1 class="text-foreground mb-4 text-3xl font-semibold md:text-4xl">{title}</h1>
           <section id="blog-post-content" class="markdown-content mx-auto max-w-2xl lg:max-w-none">
             <slot />
           </section>
+
+          <!-- related posts -->
+          {
+            relatedPosts.length > 0 && (
+              <div class="mt-16">
+                <h2 class="text-2xl font-semibold md:text-3xl">Related posts</h2>
+                <div class="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                  {relatedPosts.map((relatedPost) => (
+                    <PostCard post={relatedPost} />
+                  ))}
+                </div>
+              </div>
+            )
+          }
 
           <!-- button to go back to all posts -->
           <div class="mt-16 flex">

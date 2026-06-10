@@ -50,7 +50,8 @@ function displayCompletionMessage(multipleLanguages) {
     }
     // Add a small delay before showing the final message
     setTimeout(() => {
-        console.log("Thank you for using Cosmic Themes 🚀\n");
+        console.log("Done!
+");
     }, 2000);
 }
 // Run the configuration process

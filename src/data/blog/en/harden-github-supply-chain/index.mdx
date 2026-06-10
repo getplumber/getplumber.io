@@ -15,8 +15,6 @@ categories:
 heroImage: ./heroImage.png
 ---
 
-# 6 Practical Steps to Harden Your GitHub Project's Supply Chain
-
 Attacks like [hackerbot-claw](/blog/hackerbot-claw-cicd-governance) have shown that CI/CD misconfigurations are actively exploited. That attack specifically targeted GitHub Actions workflows by abusing `pull_request_target` triggers and mutable action tags to gain write access and exfiltrate secrets. Not every project is vulnerable to that exact chain, but the underlying weaknesses (mutable references, overly permissive tokens, unsigned releases) are widespread and apply broadly.
 
 The steps below won't prevent every attack vector used in hackerbot-claw. For example, protecting against `pull_request_target` abuse requires workflow design decisions beyond what's covered here. But they do address the foundational supply chain hygiene issues that make projects easier to compromise in the first place.

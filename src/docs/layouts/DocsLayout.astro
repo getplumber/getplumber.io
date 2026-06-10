@@ -1,7 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
 
-// import SidebarCta from "@/docs/components/cta/SidebarCta.astro";
 // Commented out - we might use this example later
 import DocsPagination from "@/docs/components/nav/DocsPagination.astro";
 import SidebarNav from "@/docs/components/nav/SidebarNav.astro";
@@ -22,7 +21,7 @@ interface Props {
 }
 
 const { doc, headings = [], sectionId = "main" } = Astro.props;
-const { title, description = "", sidebar, tableOfContents, pagefind = true } = doc.data;
+const { title, seoTitle, description = "", sidebar, tableOfContents, pagefind = true } = doc.data;
 
 const minHeadingLevel = tableOfContents?.minHeadingLevel ?? 2;
 const maxHeadingLevel = tableOfContents?.maxHeadingLevel ?? 3;
@@ -36,7 +35,7 @@ const filteredHeadings = headings.filter(
 const { prev, next } = await getAdjacentPages(doc.id, currLocale, sectionId);
 ---
 
-<BaseLayoutDocs title={title} description={description} sectionId={sectionId}>
+<BaseLayoutDocs title={seoTitle ?? title} description={description} sectionId={sectionId}>
   <div
     class="docs-site-container min-h-[calc(100vh-var(--nav-height))] flex-1 border-x md:grid md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[240px_minmax(0,1fr)_240px] lg:gap-10 2xl:grid-cols-[240px_minmax(0,1fr)_280px]"
   >
@@ -119,8 +118,7 @@ const { prev, next } = await getAdjacentPages(doc.id, currLocale, sectionId);
             )
           }
 
-          {/* <SidebarCta class="mt-10 mr-5 2xl:mr-12" /> */}
-          {/* Commented out - we might use this example later */}
+                    {/* Commented out - we might use this example later */}
         </div>
       </div>
     </aside>

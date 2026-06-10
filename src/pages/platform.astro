@@ -1,5 +1,6 @@
 ---
 import PlatformCTA from "@components/Cta/PlatformCTA.astro";
+import FaqSection from "@components/Faq/FaqSection.astro";
 import AtPlumber from "@components/Feature/AtPlumber.astro";
 import ComplianceIsHard from "@components/Feature/ComplianceIsHard.astro";
 import FeatureMetrics from "@components/Feature/FeatureMetrics.astro";
@@ -9,13 +10,15 @@ import LogoCloud2 from "@components/LogoCloud/LogoCloud2.astro";
 import PricingPlatform from "@components/Pricing/PricingPlatform.astro";
 import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
 import Testimonials2 from "@components/Testimonials/Testimonials2.astro";
-import { getLocaleFromUrl } from "@js/localeUtils";
-import { getTranslatedData } from "@js/translationUtils";
+import { platformFaqData } from "@config/en/faqData.json";
 import BaseLayout from "@layouts/BaseLayout.astro";
 
 
-const currLocale = getLocaleFromUrl(Astro.url);
-const siteData = getTranslatedData("siteData", currLocale);
+// Dedicated meta title/description (the global siteData.title is too generic
+// for this page to rank on platform/compliance queries)
+const pageTitle = "Plumber Platform - Continuous CI/CD Compliance Automation";
+const pageDescription =
+  "Plumber maps, audits, and remediates CI/CD compliance gaps across GitLab and GitHub — continuously. Be audit-ready for ISO 27001, NIS2, DORA, and SOC 2 without manual effort.";
 
 // Define page sections for sidebar navigation
 const pageSections = [
@@ -28,7 +31,7 @@ const pageSections = [
 ];
 ---
 
-<BaseLayout title={siteData.title} description={siteData.description}>
+<BaseLayout title={pageTitle} description={pageDescription}>
   <PlatformHero />
   <LogoCloud2 />
   <!-- <PipelineBlindSpot /> -->
@@ -42,7 +45,7 @@ const pageSections = [
   <SectionDivider />
 
   <PricingPlatform />
-  <!-- <Faq1 /> -->
+  <FaqSection items={platformFaqData} heading="CI/CD compliance, answered" id="faq" />
   <PlatformCTA />
 
   <!-- Floating sidebar navigation -->

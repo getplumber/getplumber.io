@@ -20,6 +20,16 @@
   ],
   "redirects": [
     {
+      "source": "/docs",
+      "destination": "/docs/getting-started",
+      "permanent": true
+    },
+    {
+      "source": "/docs/",
+      "destination": "/docs/getting-started",
+      "permanent": true
+    },
+    {
       "source": "/docs/cli/gitlab-component",
       "destination": "/docs/cli/gitlab#gitlab-ci-component",
       "permanent": true

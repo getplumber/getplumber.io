@@ -4,7 +4,7 @@
  * These are in a separate file so it can be imported into <style> tags in .astro components
  */
 @theme {
-  /* cosmic themes theme config */
+  /* site theme config */
   /* primary colors — based on #008700 */
   --color-primary-50: #e6f5e6;
   --color-primary-100: #b3deb3;
@@ -50,7 +50,7 @@
   --font-mono:
     "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace";
 
-  /* starwind and cosmic themes animations */
+  /* starwind and site animations */
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
   --animate-marquee: marquee 40s linear infinite;

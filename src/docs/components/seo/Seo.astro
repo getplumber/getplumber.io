@@ -3,6 +3,7 @@ import { getImage } from "astro:assets";
 import { type CollectionEntry } from "astro:content";
 import { SEO } from "astro-seo";
 
+import { getCanonicalDocsPathname } from "@/docs/js/docsUtils";
 import { getLocaleFromUrl } from "@/docs/js/localeUtils";
 import { getTranslatedData } from "@/docs/js/translationUtils";
 import jsonLDGenerator from "@/js/jsonLD";
@@ -35,7 +36,8 @@ function normalizeCanonicalPath(pathname: string): string {
   return pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
 }
 
-const normalizedPathname = normalizeCanonicalPath(Astro.url.pathname);
+// Shared Platform/CLI content canonicalizes to its CLI URL (the sitemap variant)
+const normalizedPathname = getCanonicalDocsPathname(normalizeCanonicalPath(Astro.url.pathname));
 const canonicalUrl = new URL(normalizedPathname, Astro.site);
 
 if (image) {

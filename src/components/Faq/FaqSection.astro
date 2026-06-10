@@ -1,0 +1,47 @@
+---
+/**
+ * * Reusable FAQ section with FAQPage structured data
+ * Renders the given FAQ items (same card design as Faq2) and emits the
+ * matching schema.org FAQPage JSON-LD so search and answer engines can
+ * surface the questions directly.
+ */
+import { type FaqItem } from "@config/types/configDataTypes";
+
+import FaqCard from "./FaqCard.astro";
+
+interface Props {
+  items: FaqItem[];
+  heading?: string;
+  id?: string;
+}
+
+const { items, heading = "Frequently asked questions", id = "faq" } = Astro.props as Props;
+
+// JSON-LD answers: collapse template-literal whitespace, keep the (limited) HTML —
+// schema.org allows simple markup like links inside acceptedAnswer text.
+// "<" is escaped so the embedded HTML can't break out of the <script> block.
+const faqJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: items.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer.replace(/\s+/g, " ").trim(),
+    },
+  })),
+}).replace(/</g, "\\u003c");
+---
+
+<section id={id} class="site-container my-24 md:my-36">
+  <div class="flex justify-center">
+    <p class="colored-title inline">FAQ</p>
+  </div>
+  <h2 class="h2 mt-8 text-center">{heading}</h2>
+  <div class="mx-auto mt-16 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+    {items.map(({ question, answer }) => <FaqCard {question} {answer} />)}
+  </div>
+</section>
+
+<script type="application/ld+json" set:html={faqJsonLd} is:inline />

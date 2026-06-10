@@ -90,6 +90,22 @@ export function getDocsPathForContent(contentId: string, tabId: string): string 
   return `/${docsRoute}/${contentIdToTabSlug(contentId, tabId)}`;
 }
 
+/**
+ * Canonical pathname for a docs page. Shared Platform content served under
+ * /docs/use-plumber/{controls,issues,issues/*} is also aliased at /docs/cli/*;
+ * the CLI URL is the one kept in the sitemap, so canonical tags must point
+ * there too (must stay in sync with isDuplicatePlatformDocsSitemapUrl).
+ */
+export function getCanonicalDocsPathname(pathname: string): string {
+  const platformPrefix = `/${docsRoute}/${PLATFORM_DOCS_PREFIX}/`;
+  if (!pathname.startsWith(platformPrefix)) return pathname;
+  const rest = pathname.slice(platformPrefix.length).replace(/\/$/, "");
+  if (rest === "controls" || rest === "issues" || rest.startsWith("issues/")) {
+    return `/${docsRoute}/${CLI_DOCS_PREFIX}/${rest}`;
+  }
+  return pathname;
+}
+
 /** Docs base path (/docs/use-plumber or /docs/cli) from a tab id */
 export function getSharedDocsBasePath(tabId: string): string {
   return isCliDocsTab(tabId)

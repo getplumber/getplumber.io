@@ -988,7 +988,7 @@ See license details at the main Plumber project repository.
 
 - **Technical Issues**: Open an issue in the repository
 - **Content Questions**: Contact via Discord or support email
-- **Theme/Styling**: Refer to Cosmic Themes documentation (original theme base)
+- **Theme/Styling**: See `src/styles/` for the theme configuration
 
 ---
 

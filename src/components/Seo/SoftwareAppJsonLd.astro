@@ -1,0 +1,34 @@
+---
+/**
+ * * SoftwareApplication structured data for the Plumber CLI (homepage)
+ * This is the markup search and answer engines use when recommending
+ * developer tools, so keep it in sync with the product positioning.
+ */
+import { PLUMBER_GITHUB_REPO_URL } from "@js/plumberGithubRepo";
+
+const baseUrl = import.meta.env.SITE?.replace(/\/$/, "") ?? "";
+
+const softwareAppJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "@id": `${baseUrl}/#software`,
+  name: "Plumber CLI",
+  description:
+    "Open-source CLI that audits GitLab CI/CD pipelines and GitHub Actions workflows for security and compliance: pipeline composition, container images, dangerous triggers and permissions, and branch protection settings.",
+  url: baseUrl,
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "macOS, Linux, Windows",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  license: `${PLUMBER_GITHUB_REPO_URL}/blob/main/LICENSE`,
+  softwareHelp: `${baseUrl}/docs/cli`,
+  downloadUrl: `${baseUrl}/docs/cli/installation`,
+  sameAs: [PLUMBER_GITHUB_REPO_URL],
+  author: { "@id": `${baseUrl}/#organization` },
+}).replace(/</g, "\\u003c");
+---
+
+<script type="application/ld+json" set:html={softwareAppJsonLd} is:inline />

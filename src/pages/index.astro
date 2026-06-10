@@ -1,9 +1,12 @@
 ---
+import FaqSection from "@components/Faq/FaqSection.astro";
 import PlumberFeatures from "@components/Feature/PlumberFeatures.astro";
 import PlumberQuickStart from "@components/Feature/PlumberQuickStart.astro";
 import PlumberRadar from "@components/Feature/PlumberRadar.astro";
 import PlumberHero from "@components/Hero/PlumberHero.astro";
 import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
+import SoftwareAppJsonLd from "@components/Seo/SoftwareAppJsonLd.astro";
+import { faqData } from "@config/en/faqData.json";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
@@ -16,9 +19,11 @@ const pageDescription = siteData.homepageDescription ?? siteData.description;
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
+  <SoftwareAppJsonLd />
   <PlumberHero />
   <SectionDivider />
   <PlumberFeatures />
   <PlumberQuickStart />
   <PlumberRadar />
+  <FaqSection items={faqData} heading="Frequently asked questions" id="faq" />
 </BaseLayout>

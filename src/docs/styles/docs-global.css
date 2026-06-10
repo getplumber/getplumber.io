@@ -4,8 +4,8 @@
  * Make sure this is imported in your base global.css file like so:
  * @import "@/docs/styles/docs-global.css";
  *
- * This infer color tokens from the base tailwind-theme.css file, which allows
- * you to match color theming from a base site (if adding this to an existing theme by Cosmic Themes)
+ * This infers color tokens from the base tailwind-theme.css file, which allows
+ * you to match color theming from the base site
  */
 
 @layer base {
@@ -126,7 +126,7 @@
     @apply scheme-dark;
   }
 
-  /* starwind preflight merged with Cosmic Themes */
+  /* starwind preflight merged with site theme */
   * {
     @apply border-border outline-outline/50;
   }

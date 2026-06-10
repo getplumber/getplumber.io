@@ -61,7 +61,7 @@ export default function jsonLDGenerator(props: JsonLDProps) {
       "description": postFrontmatter.description,
       "image": absoluteImage,
       "author": authorsJsonLd,
-      "publisher": { "@type": "Organization", "name": siteData.title, "url": baseUrl },
+      "publisher": { "@type": "Organization", "name": siteData.name, "url": baseUrl },
       "datePublished": datePublished,
     };
 
@@ -83,6 +83,12 @@ export default function jsonLDGenerator(props: JsonLDProps) {
       "@type": "ImageObject",
       url: `${baseUrl}${siteData.defaultImage.src.startsWith("/") ? "" : "/"}${siteData.defaultImage.src}`,
     },
+    // Entity consolidation for knowledge graphs / answer engines
+    sameAs: [
+      "https://github.com/getplumber",
+      "https://www.linkedin.com/company/getplumber",
+      "https://x.com/getplumber_io",
+    ],
   };
   const webSite = {
     "@type": "WebSite",
