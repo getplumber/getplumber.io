@@ -79,6 +79,7 @@ plumber analyze [flags]
 | `--pbom` | No | - | Write PBOM (Pipeline Bill of Materials) to file |
 | `--pbom-cyclonedx` | No | - | Write PBOM in CycloneDX SBOM format |
 | `--print` | No | `true` | Print text output to stdout |
+| `--score-point` | No | `false` | Add the full points breakdown table to stdout and the MR comment. The Plumber score banner is shown by default; this flag adds the per-issue-code detail |
 | `--mr-comment` | No | `false` | Post/update a compliance comment on the merge request (MR pipelines only; requires `api` scope) |
 | `--badge` | No | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |

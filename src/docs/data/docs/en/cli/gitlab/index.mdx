@@ -116,6 +116,7 @@ plumber analyze [flags]
 | `--pbom` | No | - | Write PBOM (Pipeline Bill of Materials) to file |
 | `--pbom-cyclonedx` | No | - | Write PBOM in CycloneDX SBOM format |
 | `--print` | No | `true` | Print text output to stdout |
+| `--score-point` | No | `false` | Add the full points breakdown table to stdout and the MR comment. The Plumber score banner is shown by default; this flag adds the per-issue-code detail |
 | `--mr-comment` | No | `false` | Post/update a compliance comment on the merge request (MR pipelines only; requires `api` scope) |
 | `--badge` | No | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
@@ -584,7 +585,7 @@ include:
 ![Merge request comment showing compliance results](../img/merge-request-comments.png)
 
 **Features:**
-- Shows compliance badge with pass/fail status
+- Shows the Plumber letter-score badge (A–E) and a short score line; with `score_point`, adds the full points breakdown
 - Lists all controls with individual compliance percentages
 - Details specific issues found with job names and image references
 - Automatically updates on each pipeline run (no duplicate comments)
@@ -595,7 +596,7 @@ include:
 
 ### Project Badges
 
-Display a live compliance badge on your project's overview page.
+Display a live Plumber letter-score badge on your project's overview page.
 
 ```bash
 plumber analyze --badge
@@ -612,13 +613,13 @@ include:
 
 <div style={{maxWidth: '500px'}}>
 
-![Project badge showing Plumber compliance percentage](../img/badge-comment.png)
+![Plumber score badge on the project overview page](../img/badge-comment.png)
 
 </div>
 
 **Features:**
-- Shows current compliance percentage
-- **Green** when compliance meets threshold, **red** when below
+- Shows the Plumber letter score (A–E)
+- Colored by grade: **A/B** green, **C** yellow, **D** orange, **E** red
 - Only updates on default branch pipelines (not on MRs or feature branches)
 - Badge appears in GitLab's "Project information" section
 
@@ -856,7 +857,9 @@ The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-co
 | `allow_failure` | `false` | Allow the job to fail without blocking |
 | `verbose` | `false` | Enable debug output |
 | `mr_comment` | `false` | Post/update a compliance comment on the merge request (requires `api` scope) |
-| `badge` | `false` | Create/update a compliance badge (requires `api` scope; default branch only) |
+| `badge` | `false` | Create/update a Plumber letter-score badge (requires `api` scope; default branch only) |
+| `score` | `false` | Deprecated no-op. The Plumber score is shown by default now; kept so pipelines that already set it do not break. Use `score_point` for the full points breakdown |
+| `score_point` | `false` | Add the full points breakdown to stdout and the MR comment (the score banner is shown by default) |
 | `controls` | - | Run only listed controls (comma-separated). Cannot be used with `skip_controls` |
 | `skip_controls` | - | Skip listed controls (comma-separated). Cannot be used with `controls` |
 | `fail_warnings` | `false` | Treat configuration warnings (unknown keys) as errors (exit 2) |

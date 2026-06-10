@@ -140,6 +140,7 @@ plumber analyze [flags]
 | `--pbom` | No | - | Write PBOM (Pipeline Bill of Materials) to file |
 | `--pbom-cyclonedx` | No | - | Write PBOM in CycloneDX SBOM format |
 | `--print` | No | `true` | Print text output to stdout |
+| `--score-point` | No | `false` | Add the full points breakdown table to stdout and the MR comment. The Plumber score banner is shown by default; this flag adds the per-issue-code detail |
 | `--mr-comment` | No | `false` | Post/update a compliance comment on the merge request (MR pipelines only; requires `api` scope) |
 | `--badge` | No | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
@@ -614,7 +615,7 @@ Override any input to fit your needs:
 | `config-file` | _(auto-detect)_ | Path to `.plumber.yaml`. Defaults to repo root; the run fails if absent |
 | `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
 | `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
-| `score` | `true` | Show the Plumber letter score, points, and breakdown |
+| `score` | `true` | Include the full points breakdown. The Plumber score is shown by default; set `false` for the banner without the per-issue-code breakdown |
 | `fail-warnings` | `false` | Fail on warnings: unknown configuration keys (exit 2) and "could not verify" checks such as a skipped known-CVE lookup (exit 3). `soft-fail` does not mask exit 3 |
 | `soft-fail` | `false` | Do not fail the job when compliance is below the threshold. Findings are still produced and uploaded |
 | `upload-sarif` | `true` | Upload the SARIF report to GitHub Code Scanning |
