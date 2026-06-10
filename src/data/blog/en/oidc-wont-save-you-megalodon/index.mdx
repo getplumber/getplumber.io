@@ -1,0 +1,197 @@
+---
+title: "Megalodon: Why OIDC Alone Won't Save You"
+description: "OIDC removes static cloud credentials, but not the temporary credentials exposed while the runner executes. Megalodon is a reminder of the layers to stack around it: a strict trust policy, protected environments, least-privilege permissions, egress control, and workflow governance."
+draft: false
+authors:
+  - stephane-robert
+pubDate: 2026-06-11
+heroImage: ./heroImage.png
+categories:
+  - "Security"
+  - "CI/CD"
+  - "Supply Chain"
+  - "DevSecOps"
+  - "OIDC"
+  - "GitHub Actions"
+---
+
+# Megalodon: Why OIDC Alone Won't Save You
+
+<Admonition variant="info">
+This article was originally published in French by **Stéphane Robert** on his blog: [Megalodon : pourquoi OIDC seul ne suffit pas](https://blog.stephane-robert.info/post/pourquoi-oidc-ne-vous-sauvera-pas-megalodon/). It is republished here in English with the author's permission.
+</Admonition>
+
+For two years now, I have been repeating the same sentence to the teams I work with: **"switch to OIDC, remove your `AWS_ACCESS_KEY_ID` from your GitHub secrets."** That has stayed true. But after the May 2026 attacks (`actions-cool/issues-helper`, then Megalodon and its 5,561 booby-trapped repositories), I no longer phrase the advice the same way.
+
+The problem is not OIDC. The problem is that OIDC has become an **end point** in the security conversation, when it should be a **starting point**. The two May attacks don't use exactly the same technique, but they exploit the same **forgotten boundary**: the CI/CD runner.
+
+With `actions-cool/issues-helper`, the attacker hijacks **action tags** and triggers the execution of an **imposter commit** capable of reading the memory of the `Runner.Worker` process. With **Megalodon**, the attacker directly injects malicious **GitHub Actions workflows** into public repositories and collects environment variables, credential files, kubeconfigs, SSH keys, and OIDC tokens.
+
+In both cases, the lesson is the same: OIDC removes **static cloud credentials**, but it does not neutralize the code that runs inside a job authorized to handle **temporary credentials**. This post is a correction to my own advice. I am not backing off from recommending OIDC; I am clarifying what needs to be stacked around it so the argument holds up in 2026.
+
+## What OIDC actually solves
+
+The classic scenario fits in one line: an `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` secret stored in **GitHub Secrets**, valid for months, copied by hand from one teammate to another, forgotten in a fork, exfiltrated the day a third-party workflow runs with too many privileges.
+
+**OIDC** breaks this pattern. GitHub signs a **JWT** describing the identity of the job (`repo`, `ref`, `workflow`, `job`, `environment`). The target cloud verifies that signature, applies its **trust policy**, and returns **temporary credentials** valid for 15 minutes to 1 hour. No more long-lived credentials to protect on the GitHub side.
+
+This is exactly what I document in the guide [OIDC GitHub Actions: secretless authentication](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/oidc/) and its cloud counterpart [OIDC AWS, Azure, GCP](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/oidc-cloud/). The implementation is simple, the improvement in posture is real, and I am not walking back that recommendation.
+
+## What OIDC does not solve
+
+The **temporary credential** obtained through OIDC is not a secret stored durably in GitHub, but it does become **exploitable data while the job is running**: an environment variable (`AWS_ACCESS_KEY_ID`, `AWS_SESSION_TOKEN` exported by default by `aws-actions/configure-aws-credentials`), a credentials file, a token requested by a step, or an artifact reachable from the runner context depending on the action used.
+
+Any **code that runs during that window** in the same runner sees this credential. A malicious third-party action, an injected workflow, a `post-install` script of an npm dependency, a read of `/proc/<PID>/environ` or `/proc/<PID>/mem`: all of them can extract this sensitive data.
+
+This is exactly **Megalodon**'s modus operandi: direct injection of a malicious workflow that collects the runner's environment variables, credential files, kubeconfigs, **and the OIDC tokens requested from the job**. A cloud token valid for 15 minutes is enough for an industrial-scale attacker. They have the tooling to exfiltrate it and reuse it within the validity window.
+
+So the illusion to correct is simple: **"OIDC = no stealable credentials"** is false. OIDC removes **persistent** credentials. It does not remove **ephemeral** credentials. Both families are stealable, but with very different risk windows.
+
+## The scenario I didn't see coming
+
+Picture a clean `deploy.yml` workflow, like dozens I have written. Default permissions read-only. `id-token: write` set only on the deployment job. An AWS trust policy that requires `repo:my-org/my-repo:ref:refs/heads/main`. The `aws-actions/configure-aws-credentials` action pinned by SHA. On paper, this is what you'd call a hardened workflow.
+
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@<SHA>
+      - uses: aws-actions/configure-aws-credentials@<SHA>
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/deploy
+          aws-region: eu-west-3
+      - run: ./scripts/deploy.sh
+```
+
+The problem doesn't show up as long as no foreign step is inserted. The day an attacker injects a step **before** or **after** `configure-aws-credentials` (through a malicious commit on `.github/workflows/`, a third-party action compromised by tag, or a dependency that runs during `./scripts/deploy.sh`), they get either the **GitHub JWT** (before the exchange) or the **temporary AWS credentials** (after the exchange).
+
+In either case, the attacker has a **15- to 60-minute** window to assume the `deploy` role from their own infrastructure. That is more than enough to automate exfiltration or plant a cloud backdoor.
+
+## The four layers to stack around OIDC
+
+OIDC is necessary but not sufficient. Here are the four layers I now consider **mandatory** in any GitHub Actions architecture that touches production.
+
+**A strict cloud trust policy.** The JWT's `sub` condition must be constrained as much as possible: precise repo, precise branch, or precise environment. Avoid broad `StringLike` patterns and organization-wide wildcards; prefer `StringEquals` on a precise sub when you can. This is the first barrier, and it is the one that prevents a forked workflow or a test branch from assuming the production role.
+
+**Minimal GitHub permissions.** `id-token: write` set only on the job that needs it, never at the workflow level. `contents: read` by default. See the guide [GitHub Actions GITHUB_TOKEN permissions](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/permissions/) for the details.
+
+**Egress control on the runner.** This is the most forgotten layer. If a malicious payload cannot reach the attacker's infrastructure, credential exfiltration fails. **Harden-Runner** in `block` mode or a **firewall allow-list** on a self-hosted runner do exactly this job. I cover the patterns in [Hardening the build environment](https://blog.stephane-robert.info/docs/securiser/supply-chain/pipeline/hardening-build-linux/).
+
+**Strong workflow governance.** The `.github/workflows/` directory must be treated as production code: `CODEOWNERS` enforcing a review by the security team, **SHA pinning** of third-party actions, strict branch protection. This is precisely the lesson of the attack on [`actions-cool/issues-helper`](https://blog.stephane-robert.info/post/actions-cool-tag-poisoning/), which preceded Megalodon by a few hours.
+
+None of these layers replaces the others. And none removes the need for OIDC. They stack.
+
+## Hardening an AWS trust policy after Megalodon
+
+This is the mistake I see most often during audits: an AWS trust policy written to "work everywhere in the organization," and therefore too broad to withstand a targeted attack.
+
+The pattern to avoid:
+
+```json
+{
+  "Condition": {
+    "StringLike": {
+      "token.actions.githubusercontent.com:sub": "repo:my-org/*"
+    }
+  }
+}
+```
+
+The `StringLike` with a wildcard allows **any repo in the organization** to assume the role. Any branch, any workflow, any environment. The day a secondary repo in the organization is compromised, the attacker assumes the production role without forcing anything.
+
+The pattern to aim for:
+
+```json
+{
+  "Condition": {
+    "StringEquals": {
+      "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+      "token.actions.githubusercontent.com:sub": "repo:my-org/my-repo:environment:production"
+    }
+  }
+}
+```
+
+`StringEquals` instead of `StringLike`. Sub limited to a **precise repo** and a **precise environment**, not a branch, because an attacker who pushes a commit to `main` remains legitimate, whereas an attacker who requests the assumption from the `production` environment must first pass that environment's **approval gate**. It is the chaining that hardens, not each link in isolation.
+
+`StringLike` is not forbidden in itself. GitHub's own documentation shows wildcard examples to allow several branches or environments of the same repo. The problem is the **overly broad wildcard** (`repo:my-org/*`). If `StringLike` is necessary, restrict it to a strict, documented, and tested pattern.
+
+The exact format of the `sub` claim depends on the trigger (branch, tag, environment, pull request). Check the documentation before pasting an example into your trust policy. A malformed sub blocks the deployment without a clear message.
+
+## The GitHub environments trap
+
+**GitHub Environments** remain underused. That's a shame, because they add exactly the piece that's missing in an OIDC workflow: a **human gate** before the token exchange.
+
+A `production` environment can require:
+
+- **required reviewers** (mandatory human approval before the job starts);
+- a **wait timer** (a forced delay before execution);
+- **allowed branches** (only `main` can deploy to `production`);
+- **secrets scoped** to the environment, invisible to other jobs.
+
+Coupled with an AWS trust policy that requires `environment:production` in the sub claim, this gives a coherent defensive chain: **no deployment without human approval, and no valid OIDC token without a validated environment**. A protected environment would not have made Megalodon impossible, but it would have changed the dynamic. The injected workflow could no longer silently obtain a production token without going through an **approval rule**, a **branch restriction**, or a **visible deployment control**.
+
+This is the layer I forgot the most in my recommendations. I don't forget it anymore.
+
+## What I changed in my advice
+
+Before May 2026, I said: **"switch to OIDC."** Full stop, as if the absence of a static credential settled the matter.
+
+Today, I say: **"switch to OIDC, AND enforce a protected environment, AND scope the trust policy to a precise sub, AND cut off the runner's egress, AND protect `.github/workflows/` with CODEOWNERS."** Five requirements instead of one.
+
+It's heavier to state. It's also more honest. OIDC remains the right foundation. But a foundation alone is not a house, and an attack like Megalodon is a reminder that an industrial-scale attacker does not stop at the most visible wall. They look for the open window.
+
+## Common mistakes I see during audits
+
+Four patterns come up in almost every GitHub Actions audit:
+
+- **`id-token: write` at the workflow level** instead of the job. All the workflow's jobs can then request an OIDC token, even the ones that don't need it. This is the first thing to fix.
+- **A `StringLike` trust policy `repo:my-org/*`**. To be replaced with `StringEquals` on a precise sub, ideally with an environment.
+- **No protected environment** on the deployment job. Without a human gate, any commit that passes CI deploys to production with the cloud credentials.
+- **No egress control on the runners**, neither `Harden-Runner` nor a firewall allow-list. A payload that steals the credentials can exfiltrate them without any network constraint.
+
+None of these mistakes is dramatic in isolation. The four together form exactly the playground that Megalodon-family attacks are waiting for.
+
+## What this post does not say
+
+This post does not say that **OIDC is a bad practice**.
+
+On the contrary: OIDC remains **preferable** to static cloud credentials stored in GitHub Secrets. It sharply reduces the **lifetime** of credentials and lets you constrain the workflow's identity through claims like `repo`, `ref`, `environment`, or `workflow`.
+
+But OIDC does not protect against a **malicious workflow** that is already authorized to request a token. So the right question is not "OIDC or not OIDC?". The right question is: **"what code can run in the job that has `id-token: write`?"**
+
+## Quick post-Megalodon checklist
+
+The audit pass I recommend running on every repository in the days following an incident like Megalodon. Short, operational, and well within reach of half a day per project.
+
+- Check every workflow that declares `id-token: write`.
+- Move `id-token: write` to the job level, never the global level.
+- Tie production jobs to a protected GitHub Environment.
+- Restrict the cloud trust policy to a precise `sub`.
+- Add `CODEOWNERS` on `.github/workflows/`.
+- Block or monitor the runners' **egress**.
+- Search for workflows named `SysDiag` and `Optimize-Build` (Megalodon IOCs).
+- Audit recent commits on `.github/workflows/` since May 18, 2026.
+
+## Key takeaways
+
+- **OIDC removes persistent cloud credentials**, not the ephemeral credentials that live in the runner during the job.
+- **Megalodon and actions-cool exploit this gray zone**: stealing the ephemeral token from the runner's memory is enough for the attacker.
+- **OIDC alone is no longer a complete answer** in 2026. It must be stacked with a strict trust policy, minimal permissions, egress control, and workflow governance.
+- **The trust policy must use `StringEquals`** on a precise sub including the environment, not `StringLike` on an organization-wide wildcard.
+- **GitHub Environments with required reviewers** are the most forgotten and most effective piece for blocking an injected workflow.
+- **`id-token: write` at the job level only**, never at the workflow level.
+- **The `.github/workflows/` directory is production code**: CODEOWNERS, mandatory review, SHA pinning of third-party actions.
+
+## Next steps
+
+- [OIDC GitHub Actions: secretless authentication](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/oidc/): the OIDC implementation guide, to be completed with the layers detailed here.
+- [OIDC AWS, Azure, GCP](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/oidc-cloud/): configuring the trust policy with each cloud provider.
+- [GitHub Actions GITHUB_TOKEN permissions](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/permissions/): least privilege at the workflow and job level, step by step.
+- [Hardening the build environment](https://blog.stephane-robert.info/docs/securiser/supply-chain/pipeline/hardening-build-linux/): ephemeral runners, network isolation, egress control (the forgotten layer).
+- [actions-cool/issues-helper: 53 booby-trapped tags](https://blog.stephane-robert.info/post/actions-cool-tag-poisoning/): the twin attack of May 2026, same blind spot, different vector.
+- [GitHub Actions workflow security checklist](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/checklist/): a full audit to run after the May 2026 incidents.
