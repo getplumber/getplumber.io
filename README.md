@@ -2,7 +2,22 @@
 
 ![Plumber logo](src/assets/images/plumber-banner.svg)
 
-**A modern website for Plumber (open-source CI/CD compliance CLI), built with Astro, Tailwind CSS, and React.**
+**The website for Plumber — the open-source CI/CD compliance CLI and platform for GitLab CI/CD and GitHub Actions — built with Astro, Tailwind CSS, and React.**
+
+[![Deploy Production](https://github.com/getplumber/getplumber.io/actions/workflows/production.yaml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/production.yaml)
+[![Lint](https://github.com/getplumber/getplumber.io/actions/workflows/lint.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/lint.yml)
+[![Security Scan](https://github.com/getplumber/getplumber.io/actions/workflows/security.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/security.yml)
+[![Compliance](https://github.com/getplumber/getplumber.io/actions/workflows/plumber.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/plumber.yml)
+[![SEO Audit](https://github.com/getplumber/getplumber.io/actions/workflows/seo-audit.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/seo-audit.yml)
+[![Last commit](https://img.shields.io/github/last-commit/getplumber/getplumber.io)](https://github.com/getplumber/getplumber.io/commits)
+
+**Plumber CLI** (the product this site documents):
+
+[![CLI release](https://img.shields.io/github/v/release/getplumber/plumber?label=Plumber%20CLI)](https://github.com/getplumber/plumber/releases/latest)
+[![GitHub stars](https://img.shields.io/github/stars/getplumber/plumber?style=flat)](https://github.com/getplumber/plumber)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/getplumber/plumber/badge)](https://scorecard.dev/viewer/?uri=github.com/getplumber/plumber)
+
+> Badge notes: **Security Scan** runs `npm audit` daily — it turns red as soon as a published CVE affects one of this site's dependencies. **Compliance** is Plumber dogfooding its own GitHub Action against this repository's workflows (threshold 80).
 
 ### Summary of this README
 
@@ -19,6 +34,7 @@
 | [Component Patterns](#-component-patterns)                               |
 | [Styling & Theming](#-styling--theming)                                  |
 | [Search Configuration](#-search-configuration)                           |
+| [SEO & AEO Conventions](#-seo--aeo-conventions)                          |
 | [Internationalization (i18n)](#-internationalization-i18n)               |
 | [Content Management (Keystatic CMS)](#-content-management-keystatic-cms) |
 | [Deployment](#-deployment)                                               |
@@ -35,7 +51,7 @@
 
 ## 📋 Summary
 
-This is a comprehensive documentation and website for **Plumber** - a tool for analyzing GitLab CI/CD pipelines for security and compliance issues. Plumber helps you:
+This is the documentation and marketing website for **Plumber** - a tool for analyzing GitLab CI/CD pipelines and GitHub Actions workflows for security and compliance issues. Plumber helps you:
 
 - Map out complex CI/CD landscapes
 - Detect CI/CD security issues
@@ -112,7 +128,7 @@ The website features:
 
 ### Core Technologies
 
-- **[Astro 5](https://astro.build)** - Static site generator with content collections
+- **[Astro 6](https://astro.build)** - Static site generator with content collections
 - **[Tailwind CSS 4](https://tailwindcss.com)** - Utility-first CSS framework
 - **[React 19](https://react.dev)** - UI components (via Astro integration)
 - **[TypeScript](https://www.typescriptlang.org)** - Type safety
@@ -190,19 +206,21 @@ The website features:
 │   │   ├── BaseHead.astro
 │   │   └── Blog*.astro    # Blog layouts
 │   ├── pages/             # Route-based pages
-│   │   ├── index.astro    # Homepage
+│   │   ├── index.astro    # Homepage (Open Source CLI)
 │   │   ├── platform.astro # Platform product page
 │   │   ├── blog/
 │   │   │   ├── index.astro       # Blog list
+│   │   │   ├── archive.astro     # Archived (R2Devops) release notes
 │   │   │   └── [...slug].astro   # Blog post
 │   │   ├── docs/
-│   │   │   ├── index.astro       # Docs home
-│   │   │   ├── [docsRoute]/index.astro
-│   │   │   └── [...slug].astro   # Docs pages
-│   │   ├── categories/    # Category pages
+│   │   │   ├── [...slug].astro   # Docs pages (/docs itself 301s to /docs/getting-started, see vercel.json)
+│   │   │   └── [section]/issues/[code].astro  # Issue pages (ISSUE-XXX)
 │   │   ├── contact.astro
+│   │   ├── discord.astro
 │   │   ├── [...page].astro # Other pages (privacy-policy, terms-of-use)
 │   │   ├── 404.astro
+│   │   ├── llms.txt.ts    # llms.txt index for AI crawlers
+│   │   ├── llms-full.txt.ts # Full docs content for AI crawlers
 │   │   └── rss.xml.ts     # RSS feed
 │   ├── styles/            # Global styles
 │   │   ├── global.css
@@ -269,6 +287,8 @@ Write in Markdown/MDX format.
 ![Alt text](./other-image.png)
 ```
 
+> ⚠️ **Do not start the body with a `# Title` heading.** The blog layout renders the frontmatter `title` as the page's single `<h1>` automatically — a markdown H1 would create a duplicate. Start your headings at `##`.
+
 #### 3. Frontmatter Fields
 
 | Field         | Type    | Required | Description                                          |
@@ -309,43 +329,44 @@ import CustomComponent from "@components/CustomComponent.astro";
 
 #### 6. Adding a new release blog post
 
-To announce a new product release (e.g. **1.0.0 Plumber**), add a post under the **`releases/`** directory. These posts appear on the main blog page and in the RSS feed.
+To announce a new product release, add a top-level post folder named **`release-[version]/`**. These posts appear on the main blog page and in the RSS feed.
 
-**Where to add it:** `src/data/blog/[locale]/releases/[version]/`
+**Where to add it:** `src/data/blog/[locale]/release-[version]/`
 
-Example for release "1.0.0 Plumber":
+Example for the Platform release "1.4.0":
 
 ```
-src/data/blog/en/releases/1.0.0/
+src/data/blog/en/release-1.4.0/
 ├── index.mdx          # Release notes content
 ├── heroImage.png      # Hero image (required)
 └── screenshot.png     # Optional screenshots
 ```
 
-Use the same frontmatter as any blog article. Include a `Releases` category so it’s easy to filter:
+Use the same frontmatter as any blog article. Use the **`releases-platform`** category for Platform releases or **`releases-cli`** for CLI releases — the blog page filter buttons match on those exact ids:
 
 ```mdx
 ---
-title: 1.0.0 Plumber Release
+title: "Plumber 1.4 Release - What's New"
 description: Short description for SEO and previews
 draft: false
 authors:
   - plumber
-pubDate: 2025-02-04
+pubDate: 2026-06-10
 heroImage: ./heroImage.png
 categories:
-  - "Releases"
+  - "releases-platform"
 ---
 ```
 
-**Note:** Posts in **`archive/`** are _archived_: they only appear on [/blog/archive](/blog/archive), not on the main blog list. Use **`releases/`** for new release announcements and keep **`archive/`** for old/historical release notes (e.g. legacy R2Devops releases).
+**Note:** Posts in **`archive/`** are _archived_: they only appear on [/blog/archive](/blog/archive), not on the main blog list. Keep **`archive/`** for old/historical release notes (e.g. legacy R2Devops releases).
 
 #### 7. Examples
 
 See existing blog posts in `src/data/blog/en/` for reference:
 
+- `release-1.4.0/index.mdx` - Platform release notes
+- `release-cli-0.3/index.mdx` - CLI release notes
 - `archive/2.17/index.mdx` - Archived release notes (R2Devops)
-- `releases/` - Add new Plumber release posts here
 - `tj-actions-compromised/index.mdx` - Article example
 - `top-5-cybersecurity-incidents-in-cicd/index.mdx` - Long-form article
 
@@ -436,7 +457,8 @@ Write your docs here in Markdown/MDX.
 
 | Field             | Type    | Required | Description                       |
 | ----------------- | ------- | -------- | --------------------------------- |
-| `title`           | string  | ✅       | Page title                        |
+| `title`           | string  | ✅       | Page title (also the visible H1)  |
+| `seoTitle`        | string  | ❌       | Meta `<title>` override — use for keyword-rich titles without changing the visible H1 |
 | `description`     | string  | ❌       | SEO description                   |
 | `sidebar.label`   | string  | ❌       | Sidebar text (defaults to title)  |
 | `sidebar.order`   | number  | ❌       | Sidebar position                  |
@@ -534,10 +556,12 @@ The sidebar is auto-generated from:
 
 See existing docs for reference:
 
-- `src/docs/data/docs/en/getting-started/index.mdx` - Overview
+- `src/docs/data/docs/en/getting-started/index.mdx` - Overview (Platform tab)
 - `src/docs/data/docs/en/installation/` - Multiple pages (docker-compose, kubernetes, podman, etc.)
-- `src/docs/data/docs/en/components/` - MDX components (Aside, Badge, Button, Steps, Tabs)
+- `src/docs/data/docs/en/cli/` - Open Source CLI tab (installation, gitlab, github)
 - `src/docs/data/docs/en/use-plumber/` - Controls, issues, register-templates, roles-permissions
+
+**Routing note:** only sections listed in `src/docs/config/en/sidebarNavData.json.ts` are built. Shared content under `use-plumber/` (controls, issues) is also served under `/docs/cli/*` aliases — those aliases are the canonical URLs (see [SEO & AEO Conventions](#-seo--aeo-conventions)).
 
 ---
 
@@ -705,6 +729,40 @@ npm run build  # Runs pagefind and copies index into Vercel output for deployed 
 
 ---
 
+## 🔎 SEO & AEO Conventions
+
+The site carries structured data and answer-engine endpoints. Keep these invariants when adding content:
+
+### Titles & headings
+
+- **Blog**: the layout renders the frontmatter `title` as the only `<h1>` — never start a post body with `# Title`. Titles get a `| Plumber` suffix automatically unless they already contain "Plumber".
+- **Docs**: `title` is both the meta title and the visible H1. Use the optional `seoTitle` frontmatter field when the search-engine title should be longer/keyword-richer than the page heading.
+
+### Canonical URLs & redirects
+
+- Shared Platform/CLI docs content (`use-plumber/controls`, `use-plumber/issues*`) is served at **both** `/docs/use-plumber/*` and `/docs/cli/*`. The **CLI URL is canonical**: `getCanonicalDocsPathname()` in `src/docs/js/docsUtils.ts` sets the canonical tag and must stay in sync with the sitemap filter in `src/docs/js/sitemapUtils.ts`.
+- **Never delete a public URL without adding a 301** in `vercel.json` (`redirects` array). Redirects live in `vercel.json` — not in `astro.config.mjs`, whose `redirects` option crashes the Vercel adapter.
+
+### Structured data (JSON-LD)
+
+- `src/js/jsonLD.ts` — Organization (+ `sameAs` social profiles) & WebSite on every page; BlogPosting on posts.
+- `src/components/Seo/SoftwareAppJsonLd.astro` — SoftwareApplication markup on the homepage; keep in sync with product positioning.
+- `src/components/Faq/FaqSection.astro` (landing pages) and `src/docs/components/mdx-components/DocsFaq.astro` (docs MDX) render FAQ content **and** emit FAQPage JSON-LD. FAQ copy lives in `src/config/en/faqData.json.ts`.
+- When emitting JSON-LD that contains HTML, escape `<` (`.replace(/</g, "\\u003c")`) — otherwise the HTML compressor fails on the page.
+
+### AI crawler endpoints (AEO)
+
+- `/llms.txt` — curated markdown index (key pages, docs, blog) generated from content collections.
+- `/llms-full.txt` — full docs content in one file.
+- Both are driven by `src/js/llmsTxtUtils.ts`; its `ROUTED_DOCS_SECTIONS` list must match the tabs in `sidebarNavData.json.ts` when docs sections are added or removed.
+- `robots.txt` allows all crawlers via `User-agent: *` — do not add per-bot groups (a bot matching a specific group ignores the `*` rules).
+
+### Auditing
+
+- `npm run seo-audit` runs the local audit; the **SEO Audit** workflow runs it weekly against production.
+
+---
+
 ## 🌐 Internationalization (i18n)
 
 ### Current Setup
@@ -823,10 +881,6 @@ npm run lint      # Check for issues
 npm run format    # Auto-fix issues
 ```
 
-### Code Tours
-
-Install the [CodeTour extension](https://marketplace.visualstudio.com/items?itemName=vsls-contrib.codetour) to view guided tours in `.tours/`.
-
 ---
 
 ## 📦 Content Collections API
@@ -902,12 +956,12 @@ Content collections schema:
 
 Dependencies and scripts. Key packages:
 
-- Astro 5.x
+- Astro 6.x
 - Tailwind CSS 4.x
 - React 19.x
 - Keystatic CMS
 - Pagefind (search)
-- Node 20+
+- Node 20+ (CI runs on Node 22)
 
 ### `tsconfig.json`
 
