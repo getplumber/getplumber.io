@@ -30,4 +30,4 @@ jobs:
 
       - uses: getplumber/plumber@e2ab0a859edf8ac868ffc726916ea5053c1bf356   # v0.3.56
         with:
-          threshold: 100
+          threshold: 90
