@@ -24,7 +24,11 @@ const softwareAppJsonLd = JSON.stringify({
     priceCurrency: "USD",
   },
   license: `${PLUMBER_GITHUB_REPO_URL}/blob/main/LICENSE`,
-  softwareHelp: `${baseUrl}/docs/cli`,
+  softwareHelp: {
+    "@type": "CreativeWork",
+    name: "Plumber CLI Documentation",
+    url: `${baseUrl}/docs/cli`,
+  },
   downloadUrl: `${baseUrl}/docs/cli/installation`,
   sameAs: [PLUMBER_GITHUB_REPO_URL],
   author: { "@id": `${baseUrl}/#organization` },

@@ -11,6 +11,10 @@ import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
 
 import { isDuplicatePlatformDocsSitemapUrl } from "./src/docs/js/sitemapUtils.ts";
+import { getBlogLastmodByPath } from "./src/js/blogLastmod.ts";
+
+// Truthful lastmod dates for blog posts (from frontmatter); other pages emit none
+const blogLastmodByPath = getBlogLastmodByPath();
 
 // https://astro.build/config
 export default defineConfig({
@@ -78,6 +82,11 @@ export default defineConfig({
     sitemap({
       filter: (page) =>
         !page.includes("/animation-preview") && !isDuplicatePlatformDocsSitemapUrl(page),
+      serialize: (item) => {
+        const pathname = new URL(item.url).pathname.replace(/\/$/, "");
+        const lastmod = blogLastmodByPath.get(pathname);
+        return lastmod ? { ...item, lastmod } : item;
+      },
     }),
     compress({
       HTML: true,
