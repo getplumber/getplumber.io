@@ -3288,9 +3288,10 @@ github:
       enabled: true`,
       goodExampleCaption: "The shell sees a single argument; quoting is automatic.",
       tips: [
-        "Flagged subfields (attacker-controlled free text): `*.title`, `*.body`, `head.ref`, `head.label`, `default_branch`, `*.message`, `*.description`, `*.homepage`, `author.name`, `author.email`, `committer.name`, `committer.email`, `page_name`, and `github.head_ref`.",
-        "Deliberately not flagged: `pull_request.number`, `*.commits`, `head.repo.fork`, `event_name`, `author_association`, `*.sha`, `github.repository` — these are integers, booleans, enums or SHAs that cannot carry shell metacharacters.",
+        "Flagged subfields (attacker-controlled free text): `*.title`, `*.body`, `head.ref`, `head.label`, `head.repo.default_branch` (and the `workflow_run` `head_repository.default_branch`), `*.message`, `*.description`, `*.homepage`, `author.name`, `author.email`, `committer.name`, `committer.email`, `page_name`, and `github.head_ref`.",
+        "Deliberately not flagged: `github.event.repository.default_branch` (the base repo's default branch is admin metadata, not attacker-controlled — only the fork's `head.repo.default_branch` is), `pull_request.number`, `*.commits`, `head.repo.fork`, `event_name`, `author_association`, `*.sha`, `github.repository` — integers, booleans, enums, SHAs or trusted metadata that cannot carry an injection payload.",
         "`github.repository`, `github.sha`, and `github.ref_name` are derived from server-trusted state — safer but still worth scoping.",
+        "Recognized safe sink: an expression wrapped in `toJSON(...)` AND consumed inside a quoted heredoc (`<<\"EOF\"` / `<<'EOF'`) is not flagged — `toJSON` escapes newlines (no heredoc-delimiter breakout) and the quoted heredoc disables `$()`/backtick expansion. Neither alone is enough: `echo \"${{ toJSON(x) }}\"` still runs `$()` inside the quotes, and a raw expression in a quoted heredoc can break out via a newline. The cleanest fix remains binding through `env:` and dereferencing `\"$VAR\"`.",
         "Pair with ISSUE-802 to also catch the trigger side of the same attack.",
       ],
       relatedCodes: ["ISSUE-215", "ISSUE-213", "ISSUE-802"],
