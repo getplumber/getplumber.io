@@ -361,6 +361,15 @@ function configKeyExample(provider: Provider, configKey: string): string {
               <span>📋</span> What is this?
             </h2>
             <p class="text-foreground/80 leading-relaxed" set:html={inlineCodeToHtml(c.description)} />
+            {
+              c.descriptionPoints && c.descriptionPoints.length > 0 && (
+                <ul class="mt-3 list-disc space-y-1 pl-6 text-foreground/80 leading-relaxed">
+                  {c.descriptionPoints.map((point) => (
+                    <li set:html={inlineCodeToHtml(point)} />
+                  ))}
+                </ul>
+              )
+            }
           </section>
 
           <section id={`impact-${p.id}`} class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">

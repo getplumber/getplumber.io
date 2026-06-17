@@ -34,6 +34,13 @@ export interface IssueProviderContent {
   controlName: string;
   controlConfigKey: string;
   description: string;
+  /**
+   * Optional bullet points rendered as a list directly under the
+   * description in the "What is this?" section. Each entry supports
+   * inline `code`. Use for enumerations that read better as a list than
+   * as inline "(a) … (b) …" prose.
+   */
+  descriptionPoints?: string[];
   impact: string;
   remediation: string;
   /** YAML/config example showing the problematic configuration */
@@ -361,6 +368,14 @@ export const controlCatalog: Record<
         "Step-level `uses: owner/repo@ref` in committed workflows. Queries GitHub for `archived: true` (one cached API call per `owner/repo`). Requires `gh` / `GH_TOKEN`; abstains without auth.",
       controlWhyItMatters:
         "Archived repos stop receiving patches. Does not inspect reusable-workflow callees, local actions, or runtime installs. PBOM: `archived: true`.",
+    },
+  },
+  githubActionMustComeFromAuthorizedSources: {
+    github: {
+      controlDescription:
+        "Restricts every step-level `uses:` and job-level reusable-workflow `uses:` to authorized sources: GitHub-official owners (`actions/*`, `github/*`), the scanned repo's own org (`trustSameOrgActions`, default on), a `trustedGithubActions` allowlist (exact `owner/repo` or `owner/*` wildcard), or a `minimumStars` popularity floor.",
+      controlWhyItMatters:
+        "Third-party actions run with the caller's `GITHUB_TOKEN` and secrets, so an unvetted owner is a direct supply-chain entry point. The star floor also catches rename/re-creation namespace squats. Local `./…` and `docker://` refs are exempt; `minimumStars` needs API auth and falls back to the allowlist without it.",
     },
   },
   actionsMustNotCarryKnownCVEs: {
@@ -2961,6 +2976,76 @@ jobs:
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-701"],
+    },
+  },
+
+  "ISSUE-713": {
+    code: "ISSUE-713",
+    github: {
+      title: "Action comes from an unauthorized source",
+      category: "Third-party actions",
+      severity: "high",
+      fixDuration: "medium",
+      productScope: "cli",
+      controlName: "Actions must come from authorized sources",
+      controlConfigKey: "githubActionMustComeFromAuthorizedSources",
+      description:
+        "A workflow references a GitHub Action whose source is not authorized. The control checks every step-level `uses: owner/repo@ref` and every job-level reusable-workflow `uses:`, and flags any reference that is not trusted by one of:",
+      descriptionPoints: [
+        "a GitHub-official owner (`actions/*`, `github/*`, trusted by default)",
+        "the same org/user as the scanned repository (`trustSameOrgActions`, trusted by default)",
+        "the `trustedGithubActions` allowlist (exact `owner/repo` or `owner/*` wildcard)",
+        "a `minimumStars` floor — when set, the action's upstream repository has at least that many stars",
+      ],
+      impact:
+        "Every third-party action runs inside the caller workflow with its `GITHUB_TOKEN` and secrets, so an unvetted owner is a direct supply-chain entry point — the vector behind the `tj-actions/changed-files` compromise (CVE-2025-30066). The `minimumStars` floor additionally catches the rename/re-creation squat, where an attacker re-registers a once-trusted repository name with no history.",
+      remediation:
+        "Use an action from an authorized source. Keep `trustGithubOfficialActions` on for `actions/*` and `github/*`, add trusted owners or actions to `trustedGithubActions` (exact `owner/repo` or `owner/*`), and optionally set `minimumStars` to require a popularity threshold. Vendoring the action into a local `./.github/actions/…` directory removes the external dependency entirely.",
+      badExample: `# .github/workflows/ci.yml — ❌ Actions from unvetted owners
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4              # official — trusted
+      - uses: random-dev/handy-action@v1       # unknown owner — flagged
+      - uses: tj-actions/changed-files@v45     # not on the allowlist — flagged
+  deploy:
+    # Job-level reusable workflow from an unauthorized owner — flagged.
+    uses: acme/shared-workflows/.github/workflows/deploy.yml@main`,
+      badExampleCaption:
+        "Only `actions/checkout` is trusted; the two third-party steps and the reusable-workflow call all come from unauthorized owners.",
+      goodExample: `# .github/workflows/ci.yml — ✅ Only authorized sources
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4              # official
+      - uses: mycompany/handy-action@v1        # allowed via mycompany/*
+      - uses: jdx/mise-action@v2               # allowed by exact entry
+
+# .plumber.yaml — opt in and define the trusted set
+github:
+  controls:
+    githubActionMustComeFromAuthorizedSources:
+      enabled: true
+      trustGithubOfficialActions: true   # trust actions/* and github/*
+      trustSameOrgActions: true          # trust your org's own actions
+      minimumStars: 0                    # > 0 to require a popularity floor (API)
+      trustedGithubActions:
+        - mycompany/*                    # whole-org wildcard
+        - jdx/mise-action               # exact owner/repo`,
+      goodExampleCaption:
+        "Every `uses:` resolves to an official owner, your own org, an allowlist match, or (when enabled) a starred repo.",
+      tips: [
+        "Trust is satisfied by ANY of: a GitHub-official owner (`actions/*`, `github/*`, on by default), the scanned repo's own org (`trustSameOrgActions`, on by default), a `trustedGithubActions` match, or — when `minimumStars > 0` — enough stars on the action repo.",
+        "`trustSameOrgActions` trusts actions whose owner matches the scanned repository's owner (case-insensitive). It abstains when the repo owner is unknown (e.g. no GitHub remote), so it never grants trust on missing data.",
+        "`trustedGithubActions` accepts an exact `owner/repo` (`jdx/mise-action`) or an `owner/*` whole-org wildcard (`mycompany/*`). Bare owners and arbitrary globs are not supported.",
+        "Job-level reusable-workflow calls (`jobs.<id>.uses`) are checked too, but only against the official-owner and allowlist rules — they carry no star metadata.",
+        "`minimumStars` reads star counts from the GitHub API and needs `gh` / `GH_TOKEN`. Without it, a reference falls back to the allowlist rather than being flagged on missing data.",
+        "Local actions (`uses: ./.github/actions/foo`) and `docker://` image steps are always exempt.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-701", "ISSUE-702", "ISSUE-703"],
     },
   },
 

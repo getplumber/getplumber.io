@@ -40,7 +40,10 @@ export default defineConfig({
     },
   },
   markdown: {
-    // Required for GFM tables when a custom markdown block is set (otherwise gfm defaults to off in MDX).
+    // gfm defaults to true, but astro 6.4.x stopped applying it through the
+    // (now-deprecated) markdown remark-plugin path that an integration wires
+    // up, which silently dropped GFM tables site-wide. Setting it explicitly
+    // restores table rendering.
     gfm: true,
     shikiConfig: {
       // Shiki Themes: https://shiki.style/themes

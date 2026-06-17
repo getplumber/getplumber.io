@@ -206,7 +206,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ## Available Controls
 
-Plumber ships **16 GitHub controls** (14 default-on plus the opt-in `workflowMustIncludeRequiredActions` and `pipelineMustNotLeakSecretsInConfig`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-701`) with a direct link to its documentation page.
+Plumber ships **17 GitHub controls** (15 default-on plus the opt-in `workflowMustIncludeRequiredActions` and `pipelineMustNotLeakSecretsInConfig`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-701`) with a direct link to its documentation page.
 
 | Control | Issues | Description |
 |---------|--------|-------------|
@@ -223,6 +223,7 @@ Plumber ships **16 GitHub controls** (14 default-on plus the opt-in `workflowMus
 | **Third-party actions must be pinned by commit SHA** | [ISSUE-701](/docs/cli/issues/ISSUE-701) | Requires `uses: owner/repo@<sha>` (40-char commit SHA) instead of a mutable tag or branch ref. `trustedOwners` exempts first-party `actions/*` and `github/*` |
 | **Actions must not reference archived repositories** | [ISSUE-702](/docs/cli/issues/ISSUE-702) | Flags `uses:` refs whose upstream GitHub repository has been archived (no security patches coming). One cached API call per unique ref |
 | **Actions must not carry known CVEs** | [ISSUE-703](/docs/cli/issues/ISSUE-703) | Cross-references every pinned action against the GitHub Advisory Database (`actions` ecosystem), semver-filtered so refs past the fix stay silent |
+| **Actions must come from authorized sources** | [ISSUE-713](/docs/cli/issues/ISSUE-713) | Restricts step and reusable-workflow `uses:` to GitHub-official owners (`actions/*`, `github/*`), the scanned repo's own org, a `trustedGithubActions` allowlist (exact or `owner/*`), or a `minimumStars` floor |
 | **Workflow permissions must be declared** | [ISSUE-801](/docs/cli/issues/ISSUE-801) | Flags workflows missing an explicit `permissions:` block (falls back to the repo-wide `GITHUB_TOKEN` default) |
 | **Workflow must not use dangerous triggers** | [ISSUE-802](/docs/cli/issues/ISSUE-802) | Flags `pull_request_target` and `workflow_run`, which run with base-repo secrets while being influenceable by an unprivileged caller |
 | **Job must not run with write-all permissions** | [ISSUE-803](/docs/cli/issues/ISSUE-803) | Flags `permissions: write-all` at workflow or job scope. Pairs with `workflowsMustDeclarePermissions` to close the least-privilege loop |
@@ -353,6 +354,7 @@ plumber explain 703
 | [ISSUE-701](/docs/cli/issues/ISSUE-701?p=github) | Third-party action not pinned by commit SHA |
 | [ISSUE-702](/docs/cli/issues/ISSUE-702?p=github) | Action hosted in an archived repository |
 | [ISSUE-703](/docs/cli/issues/ISSUE-703?p=github) | Action carries a known security advisory (CVE) |
+| [ISSUE-713](/docs/cli/issues/ISSUE-713?p=github) | Action comes from an unauthorized source |
 | [ISSUE-801](/docs/cli/issues/ISSUE-801?p=github) | Workflow permissions not declared |
 | [ISSUE-802](/docs/cli/issues/ISSUE-802?p=github) | Workflow uses a dangerous trigger |
 | [ISSUE-803](/docs/cli/issues/ISSUE-803?p=github) | Workflow grants `write-all` permissions |
@@ -385,6 +387,19 @@ github:
     # Database under the `actions` ecosystem.
     actionsMustNotCarryKnownCVEs:
       enabled: true
+
+    # Restrict step and reusable-workflow `uses:` to authorized sources.
+    # Trust = official owners (actions/*, github/*), your own org
+    # (trustSameOrgActions), the allowlist below (exact owner/repo or
+    # owner/* wildcard), or a minimum-stars floor.
+    githubActionMustComeFromAuthorizedSources:
+      enabled: true
+      trustGithubOfficialActions: true
+      trustSameOrgActions: true
+      minimumStars: 0
+      trustedGithubActions:
+        - jdx/mise-action
+        # - mycompany/*
 
     # Same forbidden-tag list as GitLab plus a digest-pinning sub-option.
     containerImageMustNotUseForbiddenTags:
@@ -516,6 +531,7 @@ Controls not selected are reported as **skipped** in the output. The `--controls
 | `actionsMustBePinnedByCommitSha` |
 | `actionsMustNotBeArchived` |
 | `actionsMustNotCarryKnownCVEs` |
+| `githubActionMustComeFromAuthorizedSources` |
 | `branchMustBeProtected` |
 | `containerImageMustNotUseForbiddenTags` |
 | `pipelineMustNotEnableDebugTrace` |
