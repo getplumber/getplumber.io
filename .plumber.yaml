@@ -47,6 +47,32 @@ github:
         - github
 
     # ===========================================
+    # Actions must come from authorized sources (ISSUE-713)
+    # ===========================================
+    # Complements actionsMustBePinnedByCommitSha: pinning proves the code
+    # cannot change under a ref, but says nothing about whether the source
+    # should be trusted at all. Every third-party action runs inside the
+    # caller workflow with its GITHUB_TOKEN and secrets, so each new
+    # `uses:` owner is a fresh supply-chain trust decision. This control
+    # flags any action whose source is not explicitly authorized.
+    #
+    # This repo only references actions/* (GitHub-official) and
+    # getplumber/plumber (same org), so the two trust toggles below cover
+    # the entire surface and no explicit allowlist is needed yet.
+    # minimumStars is left at 0 because trust here is by source, not
+    # popularity; raise it if you want a popularity floor on any future
+    # third-party action.
+    githubActionMustComeFromAuthorizedSources:
+      enabled: true
+      trustGithubOfficialActions: true
+      trustSameOrgActions: true
+      minimumStars: 0
+      # Allowlist of additional authorized actions (owner/repo or owner/*).
+      # Add an entry here before introducing a third-party action that is
+      # neither GitHub-official nor same-org.
+      trustedGithubActions: []
+
+    # ===========================================
     # Container images must not use forbidden tags
     # ===========================================
     # Same control as GitLab; values are GitHub-side. Pinning by digest
