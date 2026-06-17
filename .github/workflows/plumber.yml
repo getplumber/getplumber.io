@@ -28,6 +28,6 @@ jobs:
           sudo install gitleaks /usr/local/bin/gitleaks
           rm gitleaks gitleaks.tar.gz
 
-      - uses: getplumber/plumber@e2ab0a859edf8ac868ffc726916ea5053c1bf356   # v0.3.56
+      - uses: getplumber/plumber@ee262c066548fdcf878b593020d78411582e987c   # v0.3.61
         with:
           threshold: 90
