@@ -661,9 +661,9 @@ const innerShellClass =
       o += longDivider + "\n";
       o += " " + bd("Plumber Score") + "\n\n";
 
-      const scoreE = (s: string) => cl(s, "text-green-400");
+      const scoreE = (s: string) => cl(s, "text-red-400");
       o += " " + scoreE("███████╗") + "\n";
-      o += " " + scoreE("██╔════╝") + "  " + cl("0 / 100 pts", "text-orange-400") + "\n";
+      o += " " + scoreE("██╔════╝") + "  " + cl("0 / 100 pts", "text-red-400") + "\n";
       o += " " + scoreE("█████╗  ") + "  " + dm("░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░") + "\n";
       o += " " + scoreE("██╔══╝  ") + "  " + cl("Critical", "text-red-400") + " - at least one Critical issue or heavy accumulated losses\n";
       o += " " + scoreE("███████╗") + "\n";
@@ -687,80 +687,6 @@ const innerShellClass =
         dm("(final points capped at 30 while any Critical remains)") +
         "\n\n";
       o += longDivider + "\n\n";
-
-      // Points breakdown section
-      o += dm("────────────────────") + "\n";
-      o += bd("Points breakdown (beta)") + "\n";
-      o += dm("────────────────────") + "\n\n";
-      o += "  Profile: scoring-v3\n\n";
-
-      const pb = cy;
-      o += "  " + pb("┌─────────────┬────────────┬───────┬────────┬───────┬──────────┐") + "\n";
-      o += "  " + pb("│") + " Code        " + pb("│") + " Severity   " + pb("│") + " Count " + pb("│") + " Weight " + pb("│") + "   Cap " + pb("│") + "     Loss " + pb("│") + "\n";
-      o += "  " + pb("├─────────────┼────────────┼───────┼────────┼───────┼──────────┤") + "\n";
-
-      const pointsRows: [string, string, number, number, string, string][] = [
-        ["ISSUE-102", "medium", 1, 6, "20", "-6.0"],
-        ["ISSUE-204", "medium", 1, 6, "20", "-6.0"],
-        ["ISSUE-205", "high", 1, 15, "60", "-15.0"],
-        ["ISSUE-401", "medium", 5, 6, "20", "-13.0"],
-        ["ISSUE-403", "low", 2, 3, "10", "-4.5"],
-        ["ISSUE-411", "high", 1, 15, "60", "-15.0"],
-        ["ISSUE-412", "high", 2, 15, "60", "-22.5"],
-        ["ISSUE-413", "high", 1, 15, "60", "-15.0"],
-        ["ISSUE-501", "critical", 3, 25, "inf", "-44.8"],
-        ["ISSUE-505", "high", 1, 15, "60", "-15.0"],
-      ];
-
-      pointsRows.forEach(([code, sev, count, weight, cap, loss]) => {
-        o +=
-          "  " +
-          pb("│") +
-          ` ${code.padEnd(12)}` +
-          pb("│") +
-          ` ${sev.padEnd(11)}` +
-          pb("│") +
-          ` ${String(count).padStart(5)} ` +
-          pb("│") +
-          ` ${String(weight).padStart(6)} ` +
-          pb("│") +
-          ` ${cap.padStart(5)} ` +
-          pb("│") +
-          ` ${cl(loss.padStart(8), "text-red-400")} ` +
-          pb("│") +
-          "\n";
-      });
-
-      o += "  " + pb("├─────────────┴────────────┴───────┴────────┴───────┼──────────┤") + "\n";
-      o += "  " + pb("│") + ` ${"Total loss".padEnd(50)}` + pb("│") + ` ${cl("  -156.8", "text-red-400")} ` + pb("│") + "\n";
-      o += "  " + pb("└─────────────┴────────────┴───────┴────────┴───────┴──────────┘") + "\n\n";
-
-      o += "  Base points: 100\n";
-      o += `  Total loss:  ${cl("-156.8", "text-red-400")}\n`;
-      o += "  Raw points:  0.0\n";
-      o += "  Critical malus: final points capped at 30\n";
-      o += `  Final points: ${cl("0.0", "text-red-400")} / 100\n`;
-      o += `  Score:       ${cl("E", "text-red-400")}\n\n`;
-      o +=
-        "  Letter score (from points):  " +
-        cl("A", "text-green-400") +
-        " >=90  " +
-        cy("│") +
-        "  " +
-        cl("B", "text-green-400") +
-        " >=71  " +
-        cy("│") +
-        "  " +
-        cl("C", "text-yellow-400") +
-        " >=51  " +
-        cy("│") +
-        "  " +
-        cl("D", "text-yellow-400") +
-        " >=31  " +
-        cy("│") +
-        "  " +
-        cl("E", "text-red-400") +
-        " &lt;31\n\n";
 
       o += cl("Error: compliance 27.3% is below threshold 100.0%", "text-red-400") + "\n";
 
@@ -883,9 +809,9 @@ const innerShellClass =
           '<div class="pt-2 border-t border-base-600/30">' +
           '<h3 class="text-base-400 font-semibold mb-2">Plumber Score</h3>' +
           '<div class="flex items-center gap-3">' +
-          '<span class="text-green-400 font-mono text-lg font-bold leading-none">E</span>' +
+          '<span class="text-red-400 font-mono text-6xl font-bold leading-none">E</span>' +
           "<div>" +
-          '<div class="text-orange-400 text-xs font-semibold">0 / 100 pts</div>' +
+          '<div class="text-red-400 text-xs font-semibold">0 / 100 pts</div>' +
           '<div class="text-red-400 text-xs">Critical - at least one Critical issue</div>' +
           "</div>" +
           "</div>" +
