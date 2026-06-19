@@ -104,6 +104,14 @@ export const controlCatalog: Record<
   string,
   { gitlab?: ControlCatalogEntry; github?: ControlCatalogEntry }
 > = {
+  pullRequestTargetMustNotCheckoutHead: {
+    github: {
+      controlDescription:
+        "Flags any workflow on the `pull_request_target` trigger that explicitly checks out the PR head (`github.event.pull_request.head.sha` or `head_ref`). That job runs the PR author's code while holding the base repository's secrets and a write-scoped `GITHUB_TOKEN`.",
+      controlWhyItMatters:
+        "This is the exact pattern behind the March 2025 tj-actions / reviewdog compromise: any step after the head checkout — `npm install`, `pytest`, even reading attacker-supplied files — becomes a direct secret-exfiltration path. Prefer the `pull_request` trigger (no secret access on fork PRs), or hand untrusted code to a separate `workflow_run` job that never checks it out.",
+    },
+  },
   containerImageMustComeFromAuthorizedSources: {
     gitlab: {
       controlDescription:
