@@ -13,6 +13,7 @@ export const issueCodeRedirects: Record<string, string> = {
   "ISSUE-110": "ISSUE-708",
   "ISSUE-111": "ISSUE-709",
   "ISSUE-113": "ISSUE-710",
+  "ISSUE-710": "ISSUE-402",
   "ISSUE-115": "ISSUE-711",
   "ISSUE-112": "ISSUE-712",
   "ISSUE-206": "ISSUE-207",

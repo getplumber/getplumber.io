@@ -360,6 +360,10 @@ github:
       trustedGithubActions:
         - jdx/mise-action
         # - mycompany/*
+    # uses: owner/repo@ref where the same name exists upstream as BOTH a
+    # tag and a branch (ref-confusion). Pin by commit SHA to disambiguate.
+    externalRefsMustNotCollide:
+      enabled: true
 
     # Same forbidden-tag list as GitLab plus a digest-pinning sub-option.
     containerImageMustNotUseForbiddenTags:
