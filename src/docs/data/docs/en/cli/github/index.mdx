@@ -224,6 +224,7 @@ Plumber ships **17 GitHub controls** (15 default-on plus the opt-in `workflowMus
 | **Actions must not reference archived repositories** | [ISSUE-702](/docs/cli/issues/ISSUE-702) | Flags `uses:` refs whose upstream GitHub repository has been archived (no security patches coming). One cached API call per unique ref |
 | **Actions must not carry known CVEs** | [ISSUE-703](/docs/cli/issues/ISSUE-703) | Cross-references every pinned action against the GitHub Advisory Database (`actions` ecosystem), semver-filtered so refs past the fix stay silent |
 | **Actions must come from authorized sources** | [ISSUE-713](/docs/cli/issues/ISSUE-713) | Restricts step and reusable-workflow `uses:` to GitHub-official owners (`actions/*`, `github/*`), the scanned repo's own org, a `trustedGithubActions` allowlist (exact or `owner/*`), or a `minimumStars` floor |
+| **Actions must not use ambiguous tag/branch refs** | [ISSUE-710](/docs/cli/issues/ISSUE-710) | Flags `uses:` refs that resolve as both a tag and a branch upstream — GitHub picks the tag, but a tag deletion silently switches to the mutable branch. Pin by commit SHA |
 | **Workflow permissions must be declared** | [ISSUE-801](/docs/cli/issues/ISSUE-801) | Flags workflows missing an explicit `permissions:` block (falls back to the repo-wide `GITHUB_TOKEN` default) |
 | **Workflow must not use dangerous triggers** | [ISSUE-802](/docs/cli/issues/ISSUE-802) | Flags `pull_request_target` and `workflow_run`, which run with base-repo secrets while being influenceable by an unprivileged caller |
 | **Job must not run with write-all permissions** | [ISSUE-803](/docs/cli/issues/ISSUE-803) | Flags `permissions: write-all` at workflow or job scope. Pairs with `workflowsMustDeclarePermissions` to close the least-privilege loop |
@@ -400,6 +401,10 @@ github:
       trustedGithubActions:
         - jdx/mise-action
         # - mycompany/*
+    # uses: owner/repo@ref where the same name exists upstream as BOTH a
+    # tag and a branch (ref-confusion). Pin by commit SHA to disambiguate.
+    externalRefsMustNotCollide:
+      enabled: true
 
     # Same forbidden-tag list as GitLab plus a digest-pinning sub-option.
     containerImageMustNotUseForbiddenTags:
@@ -534,6 +539,7 @@ Controls not selected are reported as **skipped** in the output. The `--controls
 | `githubActionMustComeFromAuthorizedSources` |
 | `branchMustBeProtected` |
 | `containerImageMustNotUseForbiddenTags` |
+| `externalRefsMustNotCollide` |
 | `pipelineMustNotEnableDebugTrace` |
 | `pipelineMustNotExecuteUnverifiedScripts` |
 | `pipelineMustNotUseDockerInDocker` |

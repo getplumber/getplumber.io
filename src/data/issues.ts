@@ -2853,8 +2853,8 @@ jobs:
       severity: "medium",
       fixDuration: "quick",
       productScope: "cli",
-      controlName: "Action ref must not be ambiguous",
-      controlConfigKey: "actionRefsMustNotCollide",
+      controlName: "Actions must not use ambiguous tag/branch refs",
+      controlConfigKey: "externalRefsMustNotCollide",
       description:
         "A workflow uses a symbolic action ref (e.g. `uses: owner/repo@v1`) where the same name exists upstream as both a tag and a branch.",
       impact:
@@ -2880,8 +2880,41 @@ jobs:
         "This rule fires regardless of the `actionsMustBePinnedByCommitSha` opt-in — collisions are a clear bug.",
         "Upstream maintainers should delete the branch (or rename the tag) to clear the collision for all consumers.",
       ],
-      status: "roadmap",
+      status: "shipping",
       relatedCodes: ["ISSUE-701"],
+    },
+    gitlab: {
+      title: "Include ref collides with both a tag and a branch upstream",
+      category: "Pipeline Composition",
+      severity: "medium",
+      fixDuration: "quick",
+      controlName: "Includes must not use ambiguous tag/branch refs",
+      controlConfigKey: "externalRefsMustNotCollide",
+      description:
+        "A pipeline `include:` pins a symbolic ref — an `include:project` with `ref: v1`, or a CI/CD component `@v1` — where the same name exists upstream as both a tag and a branch.",
+      impact:
+        "GitLab resolves the tag first, so the pipeline pulls the tagged revision today — but a tag deletion, a rename, or a typo can switch the binding to the mutable branch, which tracks every push. The included template runs in your pipeline with your CI/CD variables and tokens, so the ambiguity is a supply-chain landmine: a reviewer cannot tell from the YAML which of the two revisions will run.",
+      remediation:
+        "Pin the include to a 40-character commit SHA, which is unambiguous (a commit SHA also takes precedence over a same-named tag). Alternatively, ask the upstream maintainer to remove one of the two colliding refs.",
+      badExample: `# .gitlab-ci.yml — ❌ Ambiguous ref
+include:
+  - project: my-group/ci-templates
+    ref: v1
+    file: /templates/build.yml
+    # ^ \`v1\` exists as both a tag AND a branch upstream`,
+      badExampleCaption: "The include ref resolves to either the tag or the branch depending on GitLab's resolution order.",
+      goodExample: `# .gitlab-ci.yml — ✅ SHA-pinned removes the ambiguity
+include:
+  - project: my-group/ci-templates
+    ref: a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
+    file: /templates/build.yml`,
+      goodExampleCaption: "Pin by commit SHA — a tag/branch collision no longer matters.",
+      tips: [
+        "API-backed: the collector probes the source project's tag and branch namespaces and fires only on a confirmed double-hit. Without a token (or on a failed probe) the control abstains — no false positives.",
+        "Applies to CI/CD component `@version` refs too — components resolve the version against the same tag and branch namespaces.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-404"],
     },
   },
 

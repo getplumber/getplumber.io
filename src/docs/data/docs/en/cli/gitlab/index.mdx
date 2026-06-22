@@ -181,7 +181,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ## Available Controls
 
-Plumber ships **15 GitLab controls** (14 default-on plus the opt-in `pipelineMustNotLeakSecretsInConfig`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-101`) with a direct link to its documentation page.
+Plumber ships **16 GitLab controls** (15 default-on plus the opt-in `pipelineMustNotLeakSecretsInConfig`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-101`) with a direct link to its documentation page.
 
 | Control | Issues | Description |
 |---------|--------|-------------|
@@ -195,6 +195,7 @@ Plumber ships **15 GitLab controls** (14 default-on plus the opt-in `pipelineMus
 | **Pipeline must not contains hardcoded jobs** | [ISSUE-401](/docs/cli/issues/ISSUE-401) | Detects jobs defined directly instead of from includes |
 | **Pipeline must use only up-to-date includes** | [ISSUE-403](/docs/cli/issues/ISSUE-403) | Checks if included templates have newer versions |
 | **Pipeline must not use forbidden ref in includes** | [ISSUE-404](/docs/cli/issues/ISSUE-404) | Prevents mutable version references like `main`, `HEAD` |
+| **Includes must not use ambiguous tag/branch refs** | [ISSUE-710](/docs/cli/issues/ISSUE-710) | Flags `include:` refs (project `ref:` or component `@version`) that resolve as both a tag and a branch upstream |
 | **Pipelines must include templates** | [ISSUE-405](/docs/cli/issues/ISSUE-405) [ISSUE-406](/docs/cli/issues/ISSUE-406) | Ensures required templates are included; detects overridden jobs |
 | **Pipelines must include components** | [ISSUE-408](/docs/cli/issues/ISSUE-408) [ISSUE-409](/docs/cli/issues/ISSUE-409) | Ensures required CI/CD components are included; detects overridden jobs |
 | **Security jobs must not be weakened** | [ISSUE-410](/docs/cli/issues/ISSUE-410) | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
@@ -454,6 +455,9 @@ gitlab:
     pipelineMustNotIncludeHardcodedJobs:
       enabled: true
 
+    externalRefsMustNotCollide:
+      enabled: true
+
     includesMustBeUpToDate:
       enabled: true
 
@@ -653,6 +657,7 @@ Controls not selected are reported as **skipped** in the output. The `--controls
 | `branchMustBeProtected` |
 | `containerImageMustComeFromAuthorizedSources` |
 | `containerImageMustNotUseForbiddenTags` |
+| `externalRefsMustNotCollide` |
 | `includesMustBeUpToDate` |
 | `includesMustNotUseForbiddenVersions` |
 | `pipelineMustIncludeComponent` |
