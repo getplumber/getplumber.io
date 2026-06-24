@@ -9,6 +9,7 @@ import type { MarkdownHeading } from "astro";
 import SidebarNav from "@/docs/components/nav/SidebarNav.astro";
 import TableOfContents from "@/docs/components/table-of-contents/TableOfContents.astro";
 import TocLink from "@/docs/components/table-of-contents/TocLink.astro";
+import type { BreadcrumbItem } from "@/js/jsonLD";
 
 import BaseLayoutDocs from "./BaseLayoutDocs.astro";
 
@@ -19,6 +20,10 @@ interface Props {
   headings?: MarkdownHeading[];
   minHeadingLevel?: number;
   maxHeadingLevel?: number;
+  structuredData?: {
+    headline?: string;
+    breadcrumbs?: BreadcrumbItem[];
+  };
 }
 
 const {
@@ -28,6 +33,7 @@ const {
   headings = [],
   minHeadingLevel = 2,
   maxHeadingLevel = 3,
+  structuredData,
 } = Astro.props;
 
 const filteredHeadings = headings.filter(
@@ -35,7 +41,12 @@ const filteredHeadings = headings.filter(
 );
 ---
 
-<BaseLayoutDocs title={title} description={description} sectionId={sectionId}>
+<BaseLayoutDocs
+  title={title}
+  description={description}
+  sectionId={sectionId}
+  structuredData={structuredData}
+>
   <div
     class="docs-site-container min-h-[calc(100vh-var(--nav-height))] flex-1 border-x md:grid md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[240px_minmax(0,1fr)_240px] lg:gap-10 2xl:grid-cols-[240px_minmax(0,1fr)_280px]"
   >

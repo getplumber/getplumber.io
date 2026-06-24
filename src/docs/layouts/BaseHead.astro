@@ -4,15 +4,20 @@ import { ClientRouter } from "astro:transitions";
 
 import Seo from "@/docs/components/seo/Seo.astro";
 import siteSettings from "@/docs/config/siteSettings.json";
+import type { BreadcrumbItem } from "@/js/jsonLD";
 
 export interface Props {
   title: string;
   description: string;
   image?: ImageMetadata;
   noindex?: boolean;
+  structuredData?: {
+    headline?: string;
+    breadcrumbs?: BreadcrumbItem[];
+  };
 }
 
-const { title, description, image, noindex = false } = Astro.props as Props;
+const { title, description, image, noindex = false, structuredData } = Astro.props as Props;
 
 import InterVariable from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2";
 ---
@@ -69,7 +74,13 @@ import InterVariable from "@fontsource-variable/inter/files/inter-latin-wght-nor
   document.addEventListener("astro:after-swap", initTheme);
 </script>
 
-<Seo title={title} description={description} image={image} noindex={noindex} />
+<Seo
+  title={title}
+  description={description}
+  image={image}
+  noindex={noindex}
+  structuredData={structuredData}
+/>
 
 <!-- Plausible Analytics (cookieless; proxy per https://plausible.io/docs/proxy/guides/vercel) -->
 <script async src="/js/script.js"></script>

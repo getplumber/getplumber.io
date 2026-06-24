@@ -18,7 +18,56 @@ export interface BlogProps {
   canonicalUrl: URL;
 }
 
-export type JsonLDProps = BlogProps | GeneralProps;
+/** One entry in a BreadcrumbList. The final (current page) crumb may omit `item`. */
+export interface BreadcrumbItem {
+  name: string;
+  item?: string;
+}
+
+export interface DocsProps {
+  type: "docs";
+  headline: string; // should match the page's visible H1
+  description?: string;
+  canonicalUrl: URL;
+  breadcrumbs: BreadcrumbItem[];
+}
+
+export type JsonLDProps = BlogProps | GeneralProps | DocsProps;
+
+const getBaseUrl = () => import.meta.env.SITE?.replace(/\/$/, "") ?? "";
+
+/** Organization entity reused across the site graphs (publisher / author ref) */
+function buildOrganization(baseUrl: string) {
+  return {
+    "@type": "Organization",
+    "@id": `${baseUrl}/#organization`,
+    name: siteData.name,
+    url: baseUrl,
+    description: siteData.description,
+    logo: {
+      "@type": "ImageObject",
+      url: `${baseUrl}${siteData.defaultImage.src.startsWith("/") ? "" : "/"}${siteData.defaultImage.src}`,
+    },
+    // Entity consolidation for knowledge graphs / answer engines
+    sameAs: [
+      "https://github.com/getplumber",
+      "https://www.linkedin.com/company/getplumber",
+      "https://x.com/getplumber_io",
+    ],
+  };
+}
+
+/** WebSite entity reused across the site graphs */
+function buildWebSite(baseUrl: string, organizationId: string) {
+  return {
+    "@type": "WebSite",
+    "@id": `${baseUrl}/#website`,
+    name: siteData.title,
+    url: baseUrl,
+    description: siteData.description,
+    publisher: { "@id": organizationId },
+  };
+}
 
 export default function jsonLDGenerator(props: JsonLDProps) {
   const { type } = props;
@@ -71,33 +120,58 @@ export default function jsonLDGenerator(props: JsonLDProps) {
 
     return `<script type="application/ld+json">${JSON.stringify(blogPosting)}</script>`;
   }
+
+  if (type === "docs") {
+    // Per-page TechArticle + BreadcrumbList for documentation pages, bundled
+    // into one @graph with the site Organization/WebSite so the entities
+    // cross-reference (publisher, isPartOf). Big ranking signal for tool docs.
+    const { headline, description, canonicalUrl, breadcrumbs } = props as DocsProps;
+    const baseUrl = getBaseUrl();
+    const organization = buildOrganization(baseUrl);
+    const webSite = buildWebSite(baseUrl, organization["@id"] as string);
+    const pageUrl = canonicalUrl.toString();
+
+    const techArticle: Record<string, unknown> = {
+      "@type": "TechArticle",
+      "@id": `${pageUrl}#article`,
+      headline,
+      inLanguage: "en",
+      url: pageUrl,
+      mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
+      isPartOf: { "@id": webSite["@id"] },
+      author: { "@id": organization["@id"] },
+      publisher: { "@id": organization["@id"] },
+    };
+    if (description) {
+      techArticle["description"] = description;
+    }
+
+    const breadcrumbList = {
+      "@type": "BreadcrumbList",
+      "@id": `${pageUrl}#breadcrumb`,
+      // Each non-final crumb must carry a resolvable `item` URL (Google
+      // flags missing items); the current page is the final crumb.
+      itemListElement: breadcrumbs.map((crumb, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: crumb.name,
+        ...(crumb.item ? { item: crumb.item } : {}),
+      })),
+    };
+
+    const docsGraph = [organization, webSite, techArticle, breadcrumbList];
+    // Escape "<" so embedded text can't break the <script> block and so
+    // @playform/compress can process the output (see SoftwareAppJsonLd).
+    return `<script type="application/ld+json">${JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": docsGraph,
+    }).replace(/</g, "\\u003c")}</script>`;
+  }
+
   // Organization + WebSite for SEO and AEO (answer engines use entity markup)
-  const baseUrl = import.meta.env.SITE?.replace(/\/$/, "") ?? "";
-  const organization = {
-    "@type": "Organization",
-    "@id": `${baseUrl}/#organization`,
-    name: siteData.name,
-    url: baseUrl,
-    description: siteData.description,
-    logo: {
-      "@type": "ImageObject",
-      url: `${baseUrl}${siteData.defaultImage.src.startsWith("/") ? "" : "/"}${siteData.defaultImage.src}`,
-    },
-    // Entity consolidation for knowledge graphs / answer engines
-    sameAs: [
-      "https://github.com/getplumber",
-      "https://www.linkedin.com/company/getplumber",
-      "https://x.com/getplumber_io",
-    ],
-  };
-  const webSite = {
-    "@type": "WebSite",
-    "@id": `${baseUrl}/#website`,
-    name: siteData.title,
-    url: baseUrl,
-    description: siteData.description,
-    publisher: { "@id": organization["@id"] },
-  };
+  const baseUrl = getBaseUrl();
+  const organization = buildOrganization(baseUrl);
+  const webSite = buildWebSite(baseUrl, organization["@id"] as string);
   const graph = [organization, webSite];
   return `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph })}</script>`;
 }

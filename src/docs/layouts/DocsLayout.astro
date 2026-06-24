@@ -7,7 +7,7 @@ import SidebarNav from "@/docs/components/nav/SidebarNav.astro";
 import TableOfContents from "@/docs/components/table-of-contents/TableOfContents.astro";
 import TocLink from "@/docs/components/table-of-contents/TocLink.astro";
 import { siteSettings } from "@/docs/config/siteSettings.json";
-import { getAdjacentPages } from "@/docs/js/docsUtils";
+import { getAdjacentPages, getDocsBreadcrumbs } from "@/docs/js/docsUtils";
 import { getLocaleFromUrl } from "@/docs/js/localeUtils";
 
 import BaseLayoutDocs from "./BaseLayoutDocs.astro";
@@ -33,9 +33,24 @@ const filteredHeadings = headings.filter(
 
 // Get adjacent pages - only from the current section
 const { prev, next } = await getAdjacentPages(doc.id, currLocale, sectionId);
+
+// Per-page structured data: TechArticle headline matches the visible H1
+// (`title`, not the suffixed meta title), plus a validated breadcrumb trail.
+const breadcrumbs = await getDocsBreadcrumbs(
+  doc,
+  sectionId,
+  currLocale,
+  Astro.site?.toString() ?? "",
+);
+const structuredData = { headline: title, breadcrumbs };
 ---
 
-<BaseLayoutDocs title={seoTitle ?? title} description={description} sectionId={sectionId}>
+<BaseLayoutDocs
+  title={seoTitle ?? title}
+  description={description}
+  sectionId={sectionId}
+  structuredData={structuredData}
+>
   <div
     class="docs-site-container min-h-[calc(100vh-var(--nav-height))] flex-1 border-x md:grid md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[240px_minmax(0,1fr)_240px] lg:gap-10 2xl:grid-cols-[240px_minmax(0,1fr)_280px]"
   >
