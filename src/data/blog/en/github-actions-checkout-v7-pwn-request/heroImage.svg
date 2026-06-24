@@ -49,49 +49,45 @@
   </g>
 
   <!-- Left column -->
-  <text x="64" y="168" font-family="Segoe UI, Arial, sans-serif" font-size="14" letter-spacing="2" font-weight="600" fill="#7C8C82">GITHUB ACTIONS · SUPPLY CHAIN · CI/CD</text>
+  <text x="64" y="168" font-family="Segoe UI, Arial, sans-serif" font-size="13.5" letter-spacing="1.8" font-weight="600" fill="#7C8C82">GITHUB ACTIONS · PULL_REQUEST_TARGET · SUPPLY CHAIN</text>
 
-  <text x="62" y="232" font-family="Segoe UI, Arial, sans-serif" font-size="50" font-weight="800" fill="#FFFFFF">The GitHub Actions</text>
-  <text x="62" y="288" font-family="Segoe UI, Arial, sans-serif" font-size="50" font-weight="800" fill="#FFFFFF">2026 Security Roadmap</text>
+  <text x="62" y="232" font-family="Consolas, 'Courier New', monospace" font-size="46" font-weight="800" fill="#FFFFFF">actions/checkout v7</text>
+  <text x="62" y="288" font-family="Segoe UI, Arial, sans-serif" font-size="50" font-weight="800" fill="#FFFFFF">Blocks the pwn request</text>
 
-  <text x="64" y="344" font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="700" fill="#19E019">Toward deterministic, governed, observable CI/CD</text>
+  <text x="64" y="344" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#19E019">A secure default against fork-checkout secret theft</text>
 
-  <text x="64" y="388" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#97A39B">GitHub now treats workflows as a critical execution surface,</text>
-  <text x="64" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#97A39B">not just automation.</text>
+  <text x="64" y="388" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#97A39B">checkout refuses a fork's ref under pull_request_target.</text>
+  <text x="64" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#97A39B">Backported to all majors on July 16, 2026.</text>
 
   <!-- Right card -->
   <rect x="648" y="92" width="488" height="470" rx="16" fill="#0E1411" stroke="#1E2B22" stroke-width="1.5"/>
-  <text x="672" y="134" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#FFFFFF">Six shifts in the roadmap</text>
+  <text x="672" y="136" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#FFFFFF">What changes in v7</text>
   
-  <rect x="672" y="162" width="440" height="40" rx="9" fill="#121A15" stroke="#1E2B22"/>
-  <circle cx="692" cy="182" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
-  <path d="M 687 182 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="714" y="188" font-family="Segoe UI, Arial, sans-serif" font-size="16.5" fill="#D7DED8">Dependency locking (deterministic)</text>
-  <rect x="672" y="212" width="440" height="40" rx="9" fill="#121A15" stroke="#1E2B22"/>
-  <circle cx="692" cy="232" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
-  <path d="M 687 232 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="714" y="238" font-family="Segoe UI, Arial, sans-serif" font-size="16.5" fill="#D7DED8">Safer Action publishing</text>
-  <rect x="672" y="262" width="440" height="40" rx="9" fill="#121A15" stroke="#1E2B22"/>
-  <circle cx="692" cy="282" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
-  <path d="M 687 282 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="714" y="288" font-family="Segoe UI, Arial, sans-serif" font-size="16.5" fill="#D7DED8">Policy-driven execution</text>
-  <rect x="672" y="312" width="440" height="40" rx="9" fill="#121A15" stroke="#1E2B22"/>
-  <circle cx="692" cy="332" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
-  <path d="M 687 332 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="714" y="338" font-family="Segoe UI, Arial, sans-serif" font-size="16.5" fill="#D7DED8">Scoped secrets</text>
-  <rect x="672" y="362" width="440" height="40" rx="9" fill="#121A15" stroke="#1E2B22"/>
-  <circle cx="692" cy="382" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
-  <path d="M 687 382 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="714" y="388" font-family="Segoe UI, Arial, sans-serif" font-size="16.5" fill="#D7DED8">Actions Data Stream (observability)</text>
-  <rect x="672" y="412" width="440" height="40" rx="9" fill="#121A15" stroke="#1E2B22"/>
-  <circle cx="692" cy="432" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
-  <path d="M 687 432 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="714" y="438" font-family="Segoe UI, Arial, sans-serif" font-size="16.5" fill="#D7DED8">Native egress firewall</text>
+  <rect x="672" y="166" width="440" height="42" rx="9" fill="#121A15" stroke="#1E2B22"/>
+  <circle cx="692" cy="187" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
+  <path d="M 687 187 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="714" y="193" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" fill="#D7DED8">Fork ref checkout refused by default</text>
+  <rect x="672" y="220" width="440" height="42" rx="9" fill="#121A15" stroke="#1E2B22"/>
+  <circle cx="692" cy="241" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
+  <path d="M 687 241 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="714" y="247" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" fill="#D7DED8">Dangerous pattern fails, not silent</text>
+  <rect x="672" y="274" width="440" height="42" rx="9" fill="#121A15" stroke="#1E2B22"/>
+  <circle cx="692" cy="295" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
+  <path d="M 687 295 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="714" y="301" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" fill="#D7DED8">allow-unsafe-pr-checkout: sensitive exception</text>
+  <rect x="672" y="328" width="440" height="42" rx="9" fill="#121A15" stroke="#1E2B22"/>
+  <circle cx="692" cy="349" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
+  <path d="M 687 349 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="714" y="355" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" fill="#D7DED8">Backported to all majors (July 16)</text>
+  <rect x="672" y="382" width="440" height="42" rx="9" fill="#121A15" stroke="#1E2B22"/>
+  <circle cx="692" cy="403" r="11" fill="none" stroke="#00C900" stroke-width="2"/>
+  <path d="M 687 403 l 3.5 3.5 l 6.5 -7" fill="none" stroke="#00C900" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="714" y="409" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" fill="#D7DED8">Floating tags inherit it for free</text>
 
   <!-- Goal box -->
-  <rect x="672" y="468" width="440" height="62" rx="11" fill="#0C1A11" stroke="#00D400" stroke-width="1.5"/>
-  <text x="692" y="494" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" letter-spacing="1.5" font-weight="700" fill="#00D400">GOAL</text>
-  <text x="692" y="516" font-family="Segoe UI, Arial, sans-serif" font-size="17.5" font-weight="700" fill="#FFFFFF">Reduce implicit trust in CI/CD</text>
+  <rect x="672" y="444" width="440" height="62" rx="11" fill="#0C1A11" stroke="#00D400" stroke-width="1.5"/>
+  <text x="692" y="470" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" letter-spacing="1.5" font-weight="700" fill="#00D400">NEW DEFAULT</text>
+  <text x="692" y="492" font-family="Segoe UI, Arial, sans-serif" font-size="16.5" font-weight="700" fill="#FFFFFF">Refuse fork checkout, refusal by default</text>
 
   <!-- Footer left -->
   <text x="64" y="628" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" letter-spacing="1.4" font-weight="600" fill="#7C8C82">REPUBLISHED IN ENGLISH WITH THE AUTHOR'S PERMISSION</text>

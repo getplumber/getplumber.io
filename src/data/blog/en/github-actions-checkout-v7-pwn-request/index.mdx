@@ -1,0 +1,116 @@
+---
+title: "actions/checkout v7: A Default Guardrail Against the pwn Request"
+description: "checkout v7 refuses, by default, to fetch a fork's ref under pull_request_target, blocking the pwn request natively. The protection is backported to all supported majors on July 16, 2026, so floating tags inherit it automatically. Here is what changes, the allow-unsafe-pr-checkout exception to watch, and why almost every repository is affected."
+draft: false
+authors:
+  - stephane-robert
+pubDate: 2026-06-24
+heroImage: ./heroImage.png
+categories:
+  - "Security"
+  - "CI/CD"
+  - "Supply Chain"
+  - "DevSecOps"
+  - "GitHub Actions"
+---
+
+<Admonition variant="info">
+This article was originally published in French by **Stéphane Robert** on his blog: [actions/checkout v7 : un garde-fou par défaut contre la pwn request](https://blog.stephane-robert.info/post/github-actions-checkout-v7-pwn-request/). It is republished here in English with the author's permission.
+</Admonition>
+
+**For weeks now, I have been repeating the same warning** in my audits and my guides: a `pull_request_target` workflow that **checks out a fork's code** is an open door to **secret theft**. This attack has a name, the **pwn request**, and it has caused very real damage. The good news this June 2026: **GitHub is finally adding a default guardrail** in `actions/checkout@v7`. Here is what it changes in practice, the **exception** you should not let slip through, and why **almost every repository** will be affected by mid-July.
+
+## The pwn request, in two sentences
+
+`pull_request_target` runs the **target repository's workflow definition** (yours), with **access to secrets**, even for a PR coming from a **fork**. The trap: if a step then **checks out the PR's code** (`ref: github.event.pull_request.head.sha`) and **runs it** (an `npm install`, a build script), it is **the attacker's code** running with **your credentials**. For the details and safe patterns, I have a dedicated guide: [Securing pull_request_target](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/pull-request-target/).
+
+## What checkout v7 changes
+
+Until now, nothing technically prevented this **dangerous checkout**: the responsibility rested entirely on the maintainer. With **`actions/checkout@v7`**, the default behavior is reversed: when a `pull_request_target` workflow (or certain `workflow_run` workflows) tries to **fetch a fork's ref** (the PR's branch or SHA), **checkout refuses the operation**. The **dangerous pattern fails** instead of silently pulling untrusted code into a privileged runner.
+
+This is a real **shift in philosophy**: the guardrail moves from "good luck, be careful" to a **refusal by default**. The right default, at last.
+
+## allow-unsafe-pr-checkout: the exception to watch
+
+Some legitimate workflows need the PR's code (a linter that comments on the PR, for example). For those cases, checkout v7 adds an input **`allow-unsafe-pr-checkout`** that **explicitly re-enables** the old behavior.
+
+<Aside variant="caution" title="Treat this flag like a production secret">
+
+`allow-unsafe-pr-checkout: true` reopens exactly the door that v7 just closed. It must be **justified**, **isolated** in a minimal workflow, and **reviewed** like a sensitive exception. If you see it show up in a PR with no explanation, that is a **red flag**, not a configuration detail.
+
+</Aside>
+
+My advice: **grep your repositories** for `allow-unsafe-pr-checkout` and require a written justification for every occurrence.
+
+## The July 16 backport: why almost every repository is affected
+
+The point many will miss: this is **not reserved for those who move to v7**. According to [Socket's analysis](https://socket.dev/blog/github-actions-checkout-blocks-pull-request-target-checkouts), the protection is **backported on July 16, 2026** to **all supported major versions**. Since the overwhelming majority of workflows pin checkout to a **floating tag** (`actions/checkout@v4`, `@v3`), they will **automatically inherit** the new behavior on that date.
+
+Concrete consequence: if one of your pipelines relies **today** on a fork checkout under `pull_request_target` (knowingly or not), it may **break on July 16**. Better to **audit it now** than discover it in production.
+
+This backport illustrates a **pinning trade-off**: a **floating tag** (`@v4`) gets this change **for free** (here, a good surprise), but it also exposes you to **unwanted** changes; [pinning by SHA](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/pinner-sha/) makes you **master of the schedule**, at the cost of having to **adopt checkout v7 yourself** to get this protection. Both are defensible, as long as you **choose deliberately**.
+
+## What checkout v7 does not fix
+
+A guardrail is not a pass on rigor. This change **reduces** one class of attack, it does not secure your workflows for you:
+
+- **Template injection** (`${{ github.event.issue.title }}` inside a `run:`) remains entirely possible.
+- **Overly broad permissions** on the `GITHUB_TOKEN` remain a problem if you do not reduce them explicitly.
+- The **two-workflow pattern** (an unprivileged `pull_request` that builds, a privileged `workflow_run` that publishes) remains the right architecture for handling fork PRs cleanly.
+
+All of this is covered in the guide [Supply chain attacks on GitHub Actions](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/attaques-supply-chain/).
+
+## My advice: avoid it when you can
+
+Let me be clear about my opinion: **by default, I advise against `pull_request_target`.** The checkout v7 guardrail is good news, but this trigger remains **the most dangerous** in GitHub Actions, and most needs can be met another way:
+
+- to **test or build** a fork PR: `pull_request` (without secrets) is enough;
+- for a **privileged** step (deploy a preview, post a comment): the **two-workflow pattern** connected by `workflow_run`, or an **API-only** action without checking out the fork's code.
+
+I reserve it for the **rare** cases that **never** run the fork's code (labeling, commenting via the API), and even then, by genuinely weighing the need. **A trigger you do not use is a trigger you do not have to secure.**
+
+## What I would do quickly
+
+<Steps>
+
+1. **Find the risky workflows**
+
+   ```bash
+   grep -r "pull_request_target" .github/workflows/
+   ```
+
+   Then check the ones that check out `github.event.pull_request.head` and run that code.
+
+2. **Fix the root cause, without waiting for v7**
+
+   Remove the fork checkout, or move to the **two-workflow pattern**. This is the only real protection, independent of the checkout version.
+
+3. **Anticipate July 16 based on your pinning**
+
+   - **Floating tag** (`@v4`): the protection arrives **on its own**, but a pipeline that depended on the dangerous behavior **will break** that day. Test before.
+   - **Pinned by SHA**: you will **not** get it automatically, you will have to **move explicitly to checkout v7**.
+
+4. **Keep `allow-unsafe-pr-checkout` for the exception**
+
+   Enable it only on a justified case, and **track its appearance** in PR review.
+
+5. **Put detection on autopilot**
+
+   [Plumber](/docs/cli/github) ([ISSUE-802](/docs/cli/issues/ISSUE-802)), [zizmor](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/zizmor/), and [poutine](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/poutine/) catch these dangerous checkouts, so you do not regress.
+
+</Steps>
+
+## Key takeaways
+
+- **My default instinct: avoid `pull_request_target`.** The v7 guardrail reduces the risk, it does not make the trigger desirable.
+- `actions/checkout@v7` **refuses by default** to check out a fork's ref under `pull_request_target`: the **pwn request** is blocked natively.
+- The **`allow-unsafe-pr-checkout`** input reopens the door: treat it as a **sensitive exception**, never as a convenience.
+- **Backport on July 16, 2026** to the supported major versions: **floating tags** (`@v4`, `@v3`) will inherit the protection, and some pipelines **will break** if they depended on the dangerous behavior.
+- The guardrail replaces neither **minimal permissions**, nor the fight against **injection**, nor the **two-workflow pattern**.
+- It is one more **good default**: audit now, do not just absorb it later.
+
+## Next steps
+
+- [Scan your GitHub Actions workflows with the open-source Plumber CLI](/docs/cli/github): dangerous triggers ([ISSUE-802](/docs/cli/issues/ISSUE-802)), template injection ([ISSUE-207](/docs/cli/issues/ISSUE-207)), and unpinned actions ([ISSUE-701](/docs/cli/issues/ISSUE-701)) are detected automatically.
+- [Securing pull_request_target](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/pull-request-target/): the safe patterns and the two-workflow architecture.
+- [GitHub Actions checkout blocks pull_request_target checkouts](https://socket.dev/blog/github-actions-checkout-blocks-pull-request-target-checkouts), Socket: the analysis behind the July 16, 2026 backport.
