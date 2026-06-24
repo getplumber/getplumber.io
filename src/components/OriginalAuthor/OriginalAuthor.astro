@@ -1,0 +1,63 @@
+---
+import { Image } from "astro:assets";
+import avatar from "@/data/authors/stephane-robert/avatar.png";
+
+interface Props {
+  /** URL of the original (French) article on the author's blog. */
+  href: string;
+  /** Author display name. */
+  name?: string;
+  /** Human-readable site label shown under the name. */
+  site?: string;
+}
+
+const {
+  href,
+  name = "Stéphane Robert",
+  site = "blog.stephane-robert.info",
+} = Astro.props as Props;
+---
+
+<a
+  href={href}
+  target="_blank"
+  rel="noopener noreferrer"
+  class="original-author not-prose group my-6 flex items-center gap-4 rounded-xl border border-border bg-card p-4 no-underline transition-colors hover:border-primary"
+>
+  <Image
+    src={avatar}
+    alt={name}
+    width={112}
+    height={112}
+    loading="eager"
+    class="h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-primary"
+  />
+  <div class="min-w-0">
+    <p class="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+      Originally written in French by
+    </p>
+    <p class="text-foreground text-base font-bold">{name}</p>
+    <p class="text-muted-foreground group-hover:text-primary flex items-center gap-1 text-sm transition-colors">
+      Read the original on {site}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-4 w-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M11 7H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4"></path>
+        <path d="M14 4h6v6"></path>
+        <path d="M10 14 20 4"></path>
+      </svg>
+    </p>
+  </div>
+</a>
+<p class="text-muted-foreground -mt-3 mb-6 text-sm italic">
+  Republished in English with the author's permission. Throughout this article, the
+  first-person voice ("I") is {name}'s.
+</p>
