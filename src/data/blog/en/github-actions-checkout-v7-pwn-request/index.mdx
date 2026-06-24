@@ -1,5 +1,5 @@
 ---
-title: "actions/checkout v7: A Default Guardrail Against the pwn Request"
+title: "GitHub Actions: checkout v7 finally blocks pwn requests"
 description: "checkout v7 refuses, by default, to fetch a fork's ref under pull_request_target, blocking the pwn request natively. The protection is backported to all supported majors on July 16, 2026, so floating tags inherit it automatically. Here is what changes, the allow-unsafe-pr-checkout exception to watch, and why almost every repository is affected."
 draft: false
 authors:
@@ -14,9 +14,7 @@ categories:
   - "GitHub Actions"
 ---
 
-<Admonition variant="info">
-This article was originally published in French by **Stéphane Robert** on his blog: [actions/checkout v7 : un garde-fou par défaut contre la pwn request](https://blog.stephane-robert.info/post/github-actions-checkout-v7-pwn-request/). It is republished here in English with the author's permission.
-</Admonition>
+<OriginalAuthor href="https://blog.stephane-robert.info/post/github-actions-checkout-v7-pwn-request/" />
 
 **For weeks now, I have been repeating the same warning** in my audits and my guides: a `pull_request_target` workflow that **checks out a fork's code** is an open door to **secret theft**. This attack has a name, the **pwn request**, and it has caused very real damage. The good news this June 2026: **GitHub is finally adding a default guardrail** in `actions/checkout@v7`. Here is what it changes in practice, the **exception** you should not let slip through, and why **almost every repository** will be affected by mid-July.
 

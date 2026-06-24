@@ -57,6 +57,7 @@ export default defineConfig({
       imports: [
         // https://github.com/delucis/astro-auto-import
         "@components/Admonition/Admonition.astro",
+        "@components/OriginalAuthor/OriginalAuthor.astro",
         "@/docs/components/mdx-components/Aside.astro",
         "@/docs/components/mdx-components/Badge.astro",
         "@/docs/components/mdx-components/Button.astro",
