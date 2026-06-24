@@ -6,7 +6,7 @@ import { SEO } from "astro-seo";
 import { getCanonicalDocsPathname } from "@/docs/js/docsUtils";
 import { getLocaleFromUrl } from "@/docs/js/localeUtils";
 import { getTranslatedData } from "@/docs/js/translationUtils";
-import jsonLDGenerator from "@/js/jsonLD";
+import jsonLDGenerator, { type BreadcrumbItem } from "@/js/jsonLD";
 
 import HrefLang from "./HrefLang.astro";
 
@@ -18,15 +18,23 @@ interface Props {
   description: string;
   image?: ImageMetadata;
   noindex?: boolean;
+  /**
+   * Per-page docs structured data. When provided, emits a TechArticle +
+   * BreadcrumbList graph instead of the generic Organization/WebSite one.
+   * `headline` should be the visible H1 (not the suffixed meta title).
+   */
+  structuredData?: {
+    headline?: string;
+    breadcrumbs?: BreadcrumbItem[];
+  };
 }
 
-const { title: rawTitle, description, image, noindex = false } = Astro.props;
+const { title: rawTitle, description, image, noindex = false, structuredData } = Astro.props;
 
 // Append brand suffix unless the title already contains "Plumber"
 const title = rawTitle.includes("Plumber") ? rawTitle : `${rawTitle} | Plumber Docs`;
 
 let optimizedImage;
-const jsonLD = jsonLDGenerator({ type: "general" });
 
 // Normalize canonical URL: remove trailing slash except for root
 function normalizeCanonicalPath(pathname: string): string {
@@ -39,6 +47,16 @@ function normalizeCanonicalPath(pathname: string): string {
 // Shared Platform/CLI content canonicalizes to its CLI URL (the sitemap variant)
 const normalizedPathname = getCanonicalDocsPathname(normalizeCanonicalPath(Astro.url.pathname));
 const canonicalUrl = new URL(normalizedPathname, Astro.site);
+
+const jsonLD = structuredData?.breadcrumbs
+  ? jsonLDGenerator({
+      type: "docs",
+      headline: structuredData.headline ?? rawTitle,
+      description,
+      canonicalUrl,
+      breadcrumbs: structuredData.breadcrumbs,
+    })
+  : jsonLDGenerator({ type: "general" });
 
 if (image) {
   optimizedImage = await getImage({
@@ -99,5 +117,5 @@ const imageUrl =
 <!-- hreflang attributes -->
 <HrefLang />
 
-<!-- JSON-LD (Organization + WebSite for SEO/AEO) -->
+<!-- JSON-LD: per-page TechArticle + BreadcrumbList when available, else Organization + WebSite -->
 <Fragment set:html={jsonLD} />

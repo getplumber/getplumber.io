@@ -10,6 +10,7 @@ import CookieConsent from "@/docs/components/cookie-consent/CookieConsent.astro"
 import SkipLink from "@/docs/components/skip-link/SkipLink.astro";
 import siteSettings from "@/docs/config/siteSettings.json";
 import { getLocaleFromUrl } from "@/docs/js/localeUtils";
+import type { BreadcrumbItem } from "@/js/jsonLD";
 
 import BaseHead from "./BaseHead.astro";
 
@@ -21,9 +22,21 @@ interface Props {
   image?: ImageMetadata;
   noindex?: boolean; // you need to opt-in to no indexing, as it hides the page from search engines
   sectionId?: string;
+  // Per-page TechArticle + BreadcrumbList data (forwarded to <Seo>)
+  structuredData?: {
+    headline?: string;
+    breadcrumbs?: BreadcrumbItem[];
+  };
 }
 
-const { title, description, image, noindex = false, sectionId = "main" } = Astro.props as Props;
+const {
+  title,
+  description,
+  image,
+  noindex = false,
+  sectionId = "main",
+  structuredData,
+} = Astro.props as Props;
 
 const currLocale = getLocaleFromUrl(Astro.url);
 ---
@@ -36,6 +49,7 @@ const currLocale = getLocaleFromUrl(Astro.url);
       description={description}
       image={image ? image : undefined}
       noindex={noindex}
+      structuredData={structuredData}
     />
   </head>
   <body id="body" class="">

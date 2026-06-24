@@ -1,7 +1,8 @@
-import { getCollection } from "astro:content";
+import { type CollectionEntry, getCollection } from "astro:content";
 
 import { defaultLocale, locales, siteSettings } from "@/docs/config/siteSettings.json";
 import type { DocsSection, DocsSidebarNavData, DocsTab } from "@/docs/config/types/configDataTypes";
+import type { BreadcrumbItem } from "@/js/jsonLD";
 
 import { filterCollectionByLanguage } from "./localeUtils";
 import { getTranslatedData } from "./translationUtils";
@@ -171,6 +172,59 @@ export const getSectionTitle = (sectionId: string, tabId: string, locale: Locale
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+};
+
+/**
+ * Build BreadcrumbList items (Home → Section → Page) for a docs content page.
+ *
+ * Validity first: the section crumb is only added when that section actually
+ * has a landing page, so the emitted `item` URL never points at a 404 (a
+ * broken breadcrumb link is exactly what gets pages dropped from rich results).
+ * URLs follow the canonical path, so use-plumber shared content links under
+ * /docs/cli to match the canonical tag. The final crumb (current page) omits
+ * `item`, which schema.org allows.
+ */
+export const getDocsBreadcrumbs = async (
+  doc: CollectionEntry<"docs">,
+  tabId: string,
+  locale: LocaleType,
+  siteUrl: string,
+): Promise<BreadcrumbItem[]> => {
+  const base = siteUrl.replace(/\/$/, "");
+  const crumbs: BreadcrumbItem[] = [{ name: "Home", item: `${base}/` }];
+
+  const pagePath = getCanonicalDocsPathname(`/${docsRoute}/${contentIdToTabSlug(doc.id, tabId)}`);
+  // e.g. ["docs", "installation", "kubernetes"]
+  const segments = pagePath.split("/").filter(Boolean);
+
+  // Only intermediate (sub-)pages get a section crumb, and only when that
+  // section has its own landing page to link to.
+  if (segments.length > 2) {
+    const sectionSegment = segments[1];
+    const allDocs = await getCollection("docs");
+    // The glob loader collapses `<section>/index.mdx` into the id `<section>`,
+    // so the section landing's id is the segment itself. Match with and without
+    // the locale prefix (filterCollectionByLanguage strips it in place, so its
+    // presence at call time isn't guaranteed).
+    const landingIds = new Set([
+      sectionSegment,
+      ...locales.map((loc) => `${loc}/${sectionSegment}`),
+    ]);
+    const landing = allDocs.find(
+      (entry) => landingIds.has(entry.id) && entry.data.draft !== true,
+    );
+    if (landing) {
+      // Use the landing page's own title so the crumb name matches the H1 of
+      // the page it links to (sidebar labels are tuned for the nav, not SERPs).
+      crumbs.push({
+        name: landing.data.title,
+        item: `${base}/${docsRoute}/${sectionSegment}`,
+      });
+    }
+  }
+
+  crumbs.push({ name: doc.data.title });
+  return crumbs;
 };
 
 /**

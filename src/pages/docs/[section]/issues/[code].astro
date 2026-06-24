@@ -260,6 +260,20 @@ function configKeyExample(provider: Provider, configKey: string): string {
   }
   return `gitlab:\n  controls:\n    ${configKey}:\n      enabled: true`;
 }
+
+// Per-page structured data: BreadcrumbList mirrors the visible breadcrumb
+// (Controls → Issues → CODE) with absolute, resolvable URLs, prefixed by Home.
+// TechArticle headline matches the default provider's visible H1.
+const siteBase = (Astro.site?.toString() ?? "").replace(/\/$/, "");
+const structuredData = {
+  headline: defaultPageTitle,
+  breadcrumbs: [
+    { name: "Home", item: `${siteBase}/` },
+    { name: "Controls", item: `${siteBase}${docsBase}/controls` },
+    { name: "Issues", item: `${siteBase}${docsBase}/issues` },
+    { name: code },
+  ],
+};
 ---
 
 <DocsLayoutStandalone
@@ -267,6 +281,7 @@ function configKeyExample(provider: Provider, configKey: string): string {
   description={defaultContent.description}
   sectionId={tabId}
   headings={pageHeadings}
+  structuredData={structuredData}
 >
   <!-- Breadcrumb (shared across providers) -->
   <Breadcrumb class="mb-4 text-xs md:text-sm">
