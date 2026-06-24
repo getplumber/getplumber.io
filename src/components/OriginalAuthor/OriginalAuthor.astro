@@ -25,16 +25,16 @@ const {
   href={href}
   target="_blank"
   rel="noopener noreferrer"
-  class="original-author not-prose group my-6 block max-w-xl rounded-xl border border-border bg-card p-5 no-underline transition-colors hover:border-primary"
+  class="original-author not-prose group my-6 block max-w-xl rounded-xl border border-border bg-card p-4 no-underline transition-colors hover:border-primary sm:p-5"
 >
-  <div class="flex items-start gap-4">
+  <div class="flex items-center gap-4 sm:gap-5">
     <Image
       src={avatar}
       alt={name}
-      width={128}
-      height={128}
+      width={176}
+      height={176}
       loading="eager"
-      class="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-primary"
+      class="h-[4.5rem] w-[4.5rem] shrink-0 rounded-full object-cover ring-2 ring-primary sm:h-[5.5rem] sm:w-[5.5rem]"
     />
     <div class="min-w-0">
       <p class="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
@@ -45,9 +45,9 @@ const {
     </div>
   </div>
 
-  <div class="border-border mt-4 flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+  <div class="border-border mt-4 flex flex-col flex-wrap items-start justify-center gap-2 border-t pt-3">
     <p class="text-muted-foreground text-xs">
-      Republished in English with permission. The first-person "I" is {name}'s.
+      Republished in English with permission.
     </p>
     <span
       class="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors"
