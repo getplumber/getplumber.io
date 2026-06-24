@@ -25,24 +25,34 @@ const {
   href={href}
   target="_blank"
   rel="noopener noreferrer"
-  class="original-author not-prose group my-6 flex items-start gap-4 rounded-xl border border-border bg-card p-4 no-underline transition-colors hover:border-primary"
+  class="original-author not-prose group my-6 block max-w-xl rounded-xl border border-border bg-card p-5 no-underline transition-colors hover:border-primary"
 >
-  <Image
-    src={avatar}
-    alt={name}
-    width={128}
-    height={128}
-    loading="eager"
-    class="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-primary"
-  />
-  <div class="min-w-0">
-    <p class="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-      Originally written in French by
+  <div class="flex items-start gap-4">
+    <Image
+      src={avatar}
+      alt={name}
+      width={128}
+      height={128}
+      loading="eager"
+      class="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-primary"
+    />
+    <div class="min-w-0">
+      <p class="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+        Originally written in French by
+      </p>
+      <p class="text-foreground text-lg font-bold leading-tight">{name}</p>
+      <p class="text-muted-foreground text-sm">{role}</p>
+    </div>
+  </div>
+
+  <div class="border-border mt-4 flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+    <p class="text-muted-foreground text-xs">
+      Republished in English with permission. The first-person "I" is {name}'s.
     </p>
-    <p class="text-foreground text-base font-bold">{name}</p>
-    <p class="text-muted-foreground text-sm">{role}</p>
-    <p class="text-muted-foreground group-hover:text-primary mt-1 flex items-center gap-1 text-sm transition-colors">
-      Read the original on {site}
+    <span
+      class="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors"
+    >
+      Read on {site}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         class="h-4 w-4"
@@ -58,10 +68,6 @@ const {
         <path d="M14 4h6v6"></path>
         <path d="M10 14 20 4"></path>
       </svg>
-    </p>
+    </span>
   </div>
 </a>
-<p class="text-muted-foreground -mt-3 mb-6 text-sm italic">
-  Republished in English with the author's permission. Throughout this article, the
-  first-person voice ("I") is {name}'s.
-</p>
