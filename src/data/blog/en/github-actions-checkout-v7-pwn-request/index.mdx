@@ -96,7 +96,7 @@ I reserve it for the **rare** cases that **never** run the fork's code (labeling
 
 5. **Put detection on autopilot**
 
-   [Plumber](/docs/cli/github) ([ISSUE-802](/docs/cli/issues/ISSUE-802)), [zizmor](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/zizmor/), and [poutine](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/poutine/) catch these dangerous checkouts, so you do not regress.
+   [Plumber](/docs/cli/github) ([ISSUE-804](/docs/cli/issues/ISSUE-804)), [zizmor](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/zizmor/), and [poutine](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/poutine/) catch these dangerous checkouts, so you do not regress.
 
 </Steps>
 
@@ -111,6 +111,6 @@ I reserve it for the **rare** cases that **never** run the fork's code (labeling
 
 ## Next steps
 
-- [Scan your GitHub Actions workflows with the open-source Plumber CLI](/docs/cli/github): dangerous triggers ([ISSUE-802](/docs/cli/issues/ISSUE-802)), template injection ([ISSUE-207](/docs/cli/issues/ISSUE-207)), and unpinned actions ([ISSUE-701](/docs/cli/issues/ISSUE-701)) are detected automatically.
+- [Scan your GitHub Actions workflows with the open-source Plumber CLI](/docs/cli/github): unsafe fork checkouts under `pull_request_target` ([ISSUE-804](/docs/cli/issues/ISSUE-804)), dangerous triggers ([ISSUE-802](/docs/cli/issues/ISSUE-802)), template injection ([ISSUE-207](/docs/cli/issues/ISSUE-207)), and unpinned actions ([ISSUE-701](/docs/cli/issues/ISSUE-701)) are detected automatically.
 - [Securing pull_request_target](https://blog.stephane-robert.info/docs/pipeline-cicd/github/securite/pull-request-target/): the safe patterns and the two-workflow architecture.
 - [GitHub Actions checkout blocks pull_request_target checkouts](https://socket.dev/blog/github-actions-checkout-blocks-pull-request-target-checkouts), Socket: the analysis behind the July 16, 2026 backport.
