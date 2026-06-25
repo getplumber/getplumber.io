@@ -36,9 +36,8 @@ const navConfig: navItem[] = [
     link: "/blog",
   },
   {
-    text: "Discord",
-    link: "/discord",
-    newTab: true,
+    text: "Radar",
+    link: "/radar",
   },
 ];
 

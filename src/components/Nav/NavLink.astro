@@ -3,6 +3,8 @@ import { type navLinkItem } from "@config/types/configDataTypes";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { Icon } from "astro-icon/components";
 
+import RadarNavIcon from "@components/Nav/RadarNavIcon.astro";
+
 /**
  * Compares two paths ensuring they both have trailing slashes for consistency
  * @param path1 First path to compare
@@ -45,6 +47,9 @@ const isActive =
     : actualLink === "/blog"
       ? Astro.url.pathname.startsWith("/blog")
       : comparePathsWithTrailingSlash(Astro.url.pathname, actualLink);
+
+// the live radar link gets a tiny animated radar icon instead of a static one
+const isRadar = actualLink === "/radar";
 ---
 
 <li class="w-full">
@@ -61,7 +66,11 @@ const isActive =
     rel={newTab ? "noopener noreferrer" : ""}
     aria-label={text}
   >
-    {icon && !noIcon && <Icon name={icon} aria-hidden="true" class="hidden size-4 lg:block" />}
+    {isRadar ? (
+      <RadarNavIcon />
+    ) : (
+      icon && !noIcon && <Icon name={icon} aria-hidden="true" class="hidden size-4 lg:block" />
+    )}
 
     {text}
   </a>
