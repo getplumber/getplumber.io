@@ -20,9 +20,9 @@ const CONTACT_EMAIL = "hello@getplumber.io";
         </p>
       </header>
 
-      <!-- Two choices: Email & Book a meeting -->
+      <!-- Choices: Email, Book a meeting & Discord -->
       <div
-        class="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-2"
+        class="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3"
         data-mos="fade-up"
         data-mos-anchor="body"
       >
@@ -147,6 +147,40 @@ const CONTACT_EMAIL = "hello@getplumber.io";
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </span>
+        </a>
+
+        <a
+          href="/discord"
+          class="group border-base-300 bg-base-50 hover:border-primary-500 dark:border-base-600 dark:bg-base-800/50 dark:hover:border-primary-400 flex flex-col rounded-xl border p-8 transition hover:shadow-lg"
+        >
+          <span
+            class="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300"
+            aria-hidden="true"
+          >
+            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M20.317 4.369A19.79 19.79 0 0 0 15.432 3c-.21.375-.456.88-.625 1.28a18.27 18.27 0 0 0-5.614 0A12.6 12.6 0 0 0 8.56 3 19.74 19.74 0 0 0 3.677 4.37C.533 9.046-.32 13.6.106 18.09a19.9 19.9 0 0 0 6.066 3.058c.489-.665.925-1.372 1.3-2.114a12.94 12.94 0 0 1-2.045-.978c.171-.126.34-.257.502-.392a14.2 14.2 0 0 0 12.142 0c.164.137.332.268.502.392-.652.382-1.34.71-2.047.979.375.742.81 1.448 1.3 2.113a19.84 19.84 0 0 0 6.067-3.058c.5-5.177-.838-9.69-3.526-13.72ZM8.02 15.331c-1.183 0-2.157-1.085-2.157-2.42 0-1.334.955-2.42 2.157-2.42 1.21 0 2.176 1.095 2.157 2.42 0 1.335-.955 2.42-2.157 2.42Zm7.975 0c-1.183 0-2.157-1.085-2.157-2.42 0-1.334.955-2.42 2.157-2.42 1.21 0 2.176 1.095 2.157 2.42 0 1.335-.946 2.42-2.157 2.42Z"
+              ></path>
+            </svg>
+          </span>
+          <h2 class="text-base-900 dark:text-base-100 mt-4 text-xl font-semibold">
+            Join our Discord
+          </h2>
+          <p class="text-base-600 dark:text-base-400 mt-2">
+            Chat with the team and community about CI/CD compliance.
+          </p>
+          <span
+            class="text-primary-600 dark:text-primary-400 mt-4 inline-flex items-center gap-1 text-sm font-medium transition group-hover:gap-2"
+          >
+            Open Discord
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"></path>
             </svg>
           </span>
         </a>

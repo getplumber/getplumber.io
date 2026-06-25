@@ -1,0 +1,107 @@
+---
+/**
+ * * Tiny animated radar icon for the navbar "Radar" link.
+ * A miniature of the home-page Plumber Radar illustration: concentric rings,
+ * faint crosshairs, a rotating sweep wedge, a pulsing blip and a center pin.
+ * Pure inline SVG/CSS — no images. Animation is disabled under
+ * prefers-reduced-motion.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props as Props;
+---
+
+<svg
+  class:list={["radar-nav-icon", className]}
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+  fill="none"
+>
+  <defs>
+    <linearGradient id="rn-sweep-grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(34,197,94,0.55)" />
+      <stop offset="100%" stop-color="rgba(34,197,94,0)" />
+    </linearGradient>
+  </defs>
+
+  <!-- concentric rings -->
+  <circle cx="12" cy="12" r="10.5" class="rn-ring" />
+  <circle cx="12" cy="12" r="6" class="rn-ring" />
+
+  <!-- crosshairs -->
+  <line x1="12" y1="1.5" x2="12" y2="22.5" class="rn-cross" />
+  <line x1="1.5" y1="12" x2="22.5" y2="12" class="rn-cross" />
+
+  <!-- rotating sweep wedge -->
+  <g class="rn-sweep">
+    <path d="M12 12 L22.5 12 A10.5 10.5 0 0 0 17 3 Z" fill="url(#rn-sweep-grad)" />
+  </g>
+
+  <!-- blip + center pin -->
+  <circle cx="16.4" cy="7.6" r="1.3" class="rn-blip" />
+  <circle cx="12" cy="12" r="1.4" class="rn-center" />
+</svg>
+
+<style>
+  .radar-nav-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex-shrink: 0;
+    display: block;
+  }
+
+  .rn-ring {
+    stroke: rgba(34, 197, 94, 0.45);
+    stroke-width: 1;
+  }
+
+  .rn-cross {
+    stroke: rgba(34, 197, 94, 0.3);
+    stroke-width: 1;
+    stroke-dasharray: 1.5 2.5;
+  }
+
+  .rn-sweep {
+    transform-origin: 12px 12px;
+    animation: rn-sweep 3s linear infinite;
+  }
+
+  @keyframes rn-sweep {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .rn-blip {
+    fill: #4ade80;
+    animation: rn-blip-pulse 3s linear infinite;
+  }
+
+  @keyframes rn-blip-pulse {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+    45% {
+      opacity: 1;
+    }
+  }
+
+  .rn-center {
+    fill: #4ade80;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rn-sweep,
+    .rn-blip {
+      animation: none;
+    }
+    .rn-blip {
+      opacity: 0.85;
+    }
+  }
+</style>
