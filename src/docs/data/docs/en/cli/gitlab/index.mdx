@@ -118,6 +118,8 @@ plumber analyze [flags]
 | `--pbom-cyclonedx` | No | - | Write PBOM in CycloneDX SBOM format |
 | `--print` | No | `true` | Print text output to stdout |
 | `--score-point` | No | `false` | Add the full points breakdown table to stdout and the MR comment. The Plumber score banner is shown by default; this flag adds the per-issue-code detail |
+| `--push-score` | No | `false` | Publish this repo's Plumber Score to the hosted badge service. Runs in **CI only** (needs a CI-native OIDC id-token) and only from the default branch; a local run is a no-op. See [Live Score Badge](#live-score-badge) |
+| `--score-endpoint` | No | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the minted OIDC audience follows this value so it always matches the target |
 | `--mr-comment` | No | `false` | Post/update a compliance comment on the merge request (MR pipelines only; requires `api` scope) |
 | `--badge` | No | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
@@ -632,6 +634,35 @@ include:
   **Token requirement:** The `api` scope is required (not `read_api`) and Maintainer role to manage project badges.
 </Aside>
 
+### Live Score Badge
+
+Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) so any README or page can show a live, self-updating **A–E** badge. This is **distinct** from `--badge` / the `badge` input above (a native GitLab *project* badge): it publishes to the hosted service, needs **no token or scope**, and the badge works anywhere.
+
+Enable it via the GitLab CI component (recommended, it mints the OIDC token for you):
+
+```yaml
+include:
+  - component: gitlab.com/getplumber/plumber/plumber@v0.3.4
+    inputs:
+      score_push: true
+```
+
+Then drop the badge into any Markdown (swap in your project path):
+
+```md
+[![Plumber Score](https://score.getplumber.io/gitlab.com/your-group/your-project.svg)](https://score.getplumber.io/gitlab.com/your-group/your-project)
+```
+
+**How it works, no secret needed:**
+- The component mints a CI-native **OIDC id-token** (via its `id_tokens:` block) and the CLI publishes the report with it. The audience is pinned to the score service, so a pipeline can only ever write **its own** repo's badge: a score can't be spoofed from elsewhere.
+- Publishing happens **only in CI**. A local `plumber analyze --push-score` never publishes (no id-token) and prints a short note instead.
+- Only the **default branch** publishes. The badge has no branch dimension, so merge request and tag pipelines self-skip and never overwrite it (`score_push: true` is safe to leave on for every trigger).
+- On any error (network, etc.) it **warns but never fails the pipeline**.
+
+<Aside variant="info">
+  **Self-hosted score service?** Set `score_endpoint` (component) or `--score-endpoint` (CLI); the OIDC audience follows it automatically so it always matches the target. Full details: [getplumber.io/docs/plumber-score](/docs/plumber-score).
+</Aside>
+
 The Plumber GitLab CI/CD component (drop-in pipeline integration) is documented in the [GitLab CI Component](#gitlab-ci-component) section below. For installation, see the [Installation](/docs/cli/installation) page. For the provider-agnostic commands, see the [main CLI page](/docs/cli).
 
 
@@ -866,6 +897,8 @@ The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-co
 | `badge` | `false` | Create/update a Plumber letter-score badge (requires `api` scope; default branch only) |
 | `score` | `false` | Deprecated no-op. The Plumber score is shown by default now; kept so pipelines that already set it do not break. Use `score_point` for the full points breakdown |
 | `score_point` | `false` | Add the full points breakdown to stdout and the MR comment (the score banner is shown by default) |
+| `score_push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)). Uses CI-native OIDC (**no secret**); the component mints the id-token. Default branch only; warns (never fails) on error. See [Live Score Badge](#live-score-badge) |
+| `score_endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
 | `controls` | - | Run only listed controls (comma-separated). Cannot be used with `skip_controls` |
 | `skip_controls` | - | Skip listed controls (comma-separated). Cannot be used with `controls` |
 | `fail_warnings` | `false` | Treat configuration warnings (unknown keys) as errors (exit 2) |
@@ -898,6 +931,7 @@ To author one, run `plumber config generate` (see the [main CLI page](/docs/cli#
 | Plumber component job not running | The component's default stage is `.pre`, which requires at least one other job in a regular stage. Override with `inputs: { stage: test }` |
 | Two pipelines on the same push | Add [`workflow:rules`](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines) to prevent duplicate branch + MR pipelines (see [Quick Start](#quick-start-gitlabcom)) |
 | Component job skipped on branch | The component runs only on merge request events, the default branch, and tags |
+| Score badge not published | `score_push` publishes only from the **default branch** in CI (MR/tag pipelines self-skip). A local run never publishes. The push warns, never fails, when the OIDC id-token is unavailable. See [Live Score Badge](#live-score-badge) |
 
 <Aside variant="info">
   **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](/discord).

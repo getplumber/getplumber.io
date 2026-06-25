@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   security-events: write   # required to upload SARIF to Code Scanning
+  id-token: write          # required to mint the OIDC id-token for the Plumber Score push
 
 jobs:
   plumber:
@@ -31,3 +32,8 @@ jobs:
       - uses: getplumber/plumber@f128c7478695192b037a921f0b71399dcff2f3c8   # v0.3.70
         with:
           threshold: 90
+          # Publish the live Plumber Score badge. Safe on every trigger: the CLI
+          # publishes only from the default branch, so PR runs self-skip. No-op
+          # until the action pin is bumped to a release containing #269 (the
+          # score-push input does not exist before it).
+          score-push: true
