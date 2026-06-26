@@ -4,31 +4,56 @@ seoTitle: "Scan GitLab CI/CD Pipelines for Compliance - Plumber CLI"
 description: "Scan GitLab CI/CD pipelines for security and compliance with the open-source Plumber CLI: authentication, GitLab controls catalog, issues, configuration, and MR/badge integration."
 sidebar:
   label: "GitLab"
-  order: 3
+  order: 4
   indent: true
+  icon: "tabler/brand-gitlab"
 section: "api"
 ---
 import { Icon } from "astro-icon/components";
 
-This page covers the **GitLab CI/CD** particulars of the Plumber CLI: how to authenticate, the controls that ship for GitLab, the issues they emit, a complete `gitlab.controls:` configuration block, and the merge-request / badge integration. For installation, see the [Installation](/docs/cli/installation) page. For the provider-agnostic command reference, see the [main CLI page](/docs/cli).
+Plumber scans your **GitLab CI/CD pipelines** and repository configuration for security problems:
 
-On GitLab, Plumber flags issues like:
+- Unverified remote scripts
+- Weakened security jobs
+- Missing branch protection
+- [More…](/docs/use-plumber/controls?p=gitlab)
 
-- Container images using mutable tags (`latest`, `dev`) or from untrusted registries
-- Unprotected branches, missing approval rules, non-compliant MR settings
-- Hardcoded jobs / outdated includes / forbidden version patterns (`main`, `HEAD`)
-- Missing required catalog components or shared templates
-- Security jobs weakened via `allow_failure`, `rules:` overrides, `when: manual`
-- Controlled CI/CD variables overridden in the pipeline YAML
-- Unverified remote script execution patterns (`curl | bash`, `wget | sh`)
-- Docker-in-Docker (`dind`) services enabling container escape on shared runners
+It turns them into a [Plumber Score](/docs/plumber-score) from <span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to <span class="font-bold text-red-400 dark:text-red-300">E</span> that can block pipelines below a threshold you set.
 
 ## Quick Start
 
-<Steps>
-1. **Install Plumber** ([Installation](/docs/cli/installation)): Homebrew, mise, a prebuilt binary, Docker, or from source.
+Two ways to scan a GitLab project:
 
-2. **Authenticate**: create a `GITLAB_TOKEN` with `read_api` + `read_repository` scopes (see [Authentication](#authentication) below).
+<div class="not-content grid gap-6 sm:grid-cols-2 my-8">
+  <a href="#run-locally" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-xl font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/terminal-2" size="24px" />
+        Run locally
+      </div>
+      <div class="text-muted-foreground text-sm">Scan one project from your machine: quick checks before you push, security-team audits, or scanning another project without touching its CI.</div>
+      <div class="pt-2 text-primary text-sm font-medium group-hover:underline">Local CLI →</div>
+    </div>
+  </a>
+
+  <a href="#run-with-the-gitlab-ci-component" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-xl font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/brand-gitlab" size="24px" />
+        Run with the GitLab CI component
+      </div>
+      <div class="text-muted-foreground text-sm">A drop-in <code>include:</code> that runs on every pipeline (no binary to install) with MR comments, project badges, and a live score badge.</div>
+      <div class="pt-2 text-primary text-sm font-medium group-hover:underline">GitLab CI component →</div>
+    </div>
+  </a>
+</div>
+
+## Run locally
+
+<Steps>
+1. **Install Plumber**: Homebrew, mise, a prebuilt binary, Docker, or from source (see [Installation](/docs/cli/installation)).
+
+2. **Authenticate**: create a `GITLAB_TOKEN` with `read_api` + `read_repository` scopes (see [Authentication](#authentication)).
 
 3. **Run the scan** from inside your project, or against a remote one (see [Running a scan](#running-a-scan)):
 
@@ -36,24 +61,216 @@ On GitLab, Plumber flags issues like:
    plumber analyze
    ```
 
-4. **Read the report**: a per-control compliance breakdown and a letter grade, plus an optional JSON report, PBOM, and CycloneDX SBOM (see [Example Output](#example-output)).
+4. **Read your Plumber score**: an A–E grade with a per-control breakdown, plus an optional JSON report, PBOM, and CycloneDX SBOM (see [Example Output](#example-output)).
 </Steps>
 
 
-## Installation
+## Run with the GitLab CI component
 
-<div class="not-content my-8">
-  <a href="/docs/cli/installation" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-    <div class="flex flex-col space-y-2 p-6">
-      <div class="flex items-center gap-2 text-xl font-semibold tracking-tight text-card-foreground">
-        <Icon name="tabler/download" size="24px" />
-        Installation
-      </div>
-      <div class="text-muted-foreground text-sm">Homebrew, mise, prebuilt binary, Docker, or build from source.</div>
-      <div class="pt-2 text-primary text-sm font-medium group-hover:underline">Install →</div>
-    </div>
-  </a>
-</div>
+<Steps>
+1. **Create a GitLab token**
+
+   Use a token with `read_api` + `read_repository` scopes (or `api` if you enable `mr_comment` / `badge`), as described under [Authentication](#authentication) below.
+
+2. **Add the token to your project**
+
+   Go to **Settings → CI/CD → Variables** and add it as `GITLAB_TOKEN` (masked recommended).
+
+3. **Add the component to your `.gitlab-ci.yml`**
+
+   <Aside variant="info">
+
+   - **Self-hosted GitLab?** You need your own copy of the component; see [Hosting on self-hosted GitLab](#hosting-on-self-hosted-gitlab) below. The snippet below targets gitlab.com.
+   - **Why `workflow:rules`?** Without it, pushing to a branch with an open merge request creates **two pipelines** (a branch pipeline and an MR pipeline), splitting your jobs between them. The block below ensures a single pipeline per push: MR pipeline when an MR exists, branch pipeline otherwise. This is the [recommended GitLab pattern](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines). If you already have `workflow:rules`, keep yours and just add the `include`.
+   - **Publish a live score badge.** Set `score_push: true` to publish a **public** Plumber Score badge for this repo. See [Live Score Badge](#live-score-badge).
+
+   </Aside>
+
+   ```yaml
+   workflow:
+     rules:
+       - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+       - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS # prevents duplicate pipelines
+         when: never
+       - if: $CI_COMMIT_BRANCH
+       - if: $CI_COMMIT_TAG
+
+   include:
+     - component: gitlab.com/getplumber/plumber/plumber@<version>
+       inputs:
+         score_push: false # if "true": publish a public Plumber Score badge
+   ```
+
+   Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
+
+4. **Run your pipeline**
+
+   Plumber now runs on every pipeline (default branch, tags, and open merge requests) and reports compliance issues.
+</Steps>
+
+### Hosting on self-hosted GitLab
+
+If you run a self-hosted GitLab instance, you need your own copy of the component since `gitlab.com` components can't be accessed from your instance. There are two ways:
+
+<Tabs defaultValue="import">
+  <TabsList>
+    <TabsTrigger value="import">Direct Import (Simplest)</TabsTrigger>
+    <TabsTrigger value="mirror">Fork + Mirror (Recommended)</TabsTrigger>
+  </TabsList>
+
+  <TabsContent value="import">
+    Import the upstream repository directly into your GitLab instance.
+
+    <Steps>
+    1. **Import the repository**
+
+       Go to **New Project → Import project → Repository by URL** and use `https://gitlab.com/getplumber/plumber.git`. Choose a group and project name (e.g., `infrastructure/plumber`).
+
+    2. **Enable the CI/CD Catalog**
+
+       In the imported project, go to **Settings → General**, ensure the project has a **description** (required for the Catalog), expand **Visibility, project features, permissions**, toggle **CI/CD Catalog resource** on, and save.
+
+    3. **Publish a release**
+
+       The imported project comes with upstream tags. Run a pipeline on an existing tag to trigger the release: **CI/CD → Pipelines → Run pipeline**, select an imported tag (e.g., `v0.2.1`), and click **Run pipeline**. This creates a Catalog release for that tag. (Alternatively, create a tag manually under **Code → Tags → New tag**, though that can conflict when fetching remote tags later.)
+
+    4. **Add the token**
+
+       Create a token as described under [Authentication](#authentication), then add it under the scanned project's **Settings → CI/CD → Variables** as `GITLAB_TOKEN` (masked recommended).
+
+    5. **Use the component**
+
+       ```yaml
+       include:
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.4
+       ```
+
+       To update: re-import or manually pull upstream changes.
+    </Steps>
+  </TabsContent>
+
+  <TabsContent value="mirror">
+    Fork on gitlab.com, then set up a pull mirror on your self-hosted instance so it stays in sync automatically.
+
+    <Steps>
+    1. **Fork on gitlab.com**
+
+       Fork [getplumber/plumber](https://gitlab.com/getplumber/plumber) under your gitlab.com namespace (e.g., `your-org/plumber`).
+
+    2. **Create a mirrored project on your instance**
+
+       **New Project → Import project → Repository by URL** with `https://gitlab.com/your-org/plumber.git`.
+
+    3. **Set up pull mirroring**
+
+       In the project, **Settings → Repository → Mirroring repositories**: add `https://gitlab.com/your-org/plumber.git`, direction **Pull**, plus a gitlab.com token with `read_repository` scope if the fork is private.
+
+       <Aside variant="info">
+         Pull mirroring syncs automatically (every 30 minutes on Premium, manual on other tiers). On a new upstream release, sync your gitlab.com fork first, then the mirror picks it up.
+       </Aside>
+
+    4. **Enable the CI/CD Catalog**
+
+       **Settings → General**: ensure a project description, then toggle **CI/CD Catalog resource** on and save.
+
+    5. **Publish a release**
+
+       Run a pipeline on an existing imported tag (**CI/CD → Pipelines → Run pipeline**) to create a Catalog release.
+
+    6. **Add the token**
+
+       As under [Authentication](#authentication), then add it as `GITLAB_TOKEN` under the scanned project's **Settings → CI/CD → Variables**.
+
+    7. **Use the component**
+
+       ```yaml
+       include:
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.4
+       ```
+    </Steps>
+  </TabsContent>
+</Tabs>
+
+### Customizing the component
+
+Override any input to fit your needs:
+
+```yaml
+include:
+  - component: gitlab.com/getplumber/plumber/plumber@v0.3.4
+    inputs:
+      # Target (defaults to current project)
+      server_url: https://gitlab.example.com   # Self-hosted GitLab
+      project_path: other-group/other-project   # Analyze a different project
+      branch: develop                            # Analyze a specific branch
+      ci_config_path: $CI_CONFIG_PATH            # CI config path (GitLab predefined variable)
+
+      # Compliance
+      threshold: 80                              # Minimum % to pass (default: 100)
+      config_file: configs/my-plumber.yaml       # Custom config path
+
+      # Output
+      output_file: plumber-report.json           # Export JSON report
+      pbom_file: plumber-pbom.json               # PBOM artifact
+      pbom_cyclonedx_file: plumber-cyclonedx-sbom.json  # CycloneDX SBOM (auto-uploaded as a GitLab report)
+      print_output: true
+
+      # Job behavior
+      stage: test                                # Run in a different stage
+      allow_failure: true                        # Don't block the pipeline on failure
+      gitlab_token: $MY_CUSTOM_TOKEN             # Different variable name
+      verbose: true
+
+      # Selective execution (mutually exclusive)
+      controls: containerImageMustNotUseForbiddenTags,branchMustBeProtected
+      # skip_controls: branchMustBeProtected
+
+      # MR feedback (require `api` scope, see GitLab Integration above)
+      mr_comment: true
+      badge: true
+```
+
+The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-controls` flags ([valid names](#selective-control-execution)). `mr_comment` and `badge` are the component equivalents of the CLI `--mr-comment` / `--badge` flags shown under [GitLab Integration](#gitlab-integration).
+
+#### All inputs
+
+| Input | Default | Description |
+|-------|---------|-------------|
+| `server_url` | `$CI_SERVER_URL` | GitLab instance URL |
+| `project_path` | `$CI_PROJECT_PATH` | Project to analyze |
+| `branch` | `$CI_COMMIT_REF_NAME` | Branch to analyze |
+| `ci_config_path` | `$CI_CONFIG_PATH` | CI configuration file path to analyze. Defaults to the GitLab predefined variable (`.gitlab-ci.yml` unless customized in project settings) |
+| `gitlab_token` | `$GITLAB_TOKEN` | GitLab API token (`read_api` + `read_repository`, or `api` if `mr_comment` / `badge` is enabled) |
+| `threshold` | `100` | Minimum compliance % to pass |
+| `config_file` | *(auto-detect)* | Path to config file (relative to repo root). Auto-detects `.plumber.yaml`, falls back to default |
+| `output_file` | `plumber-report.json` | Path to write JSON results |
+| `pbom_file` | `plumber-pbom.json` | Path to write the PBOM |
+| `pbom_cyclonedx_file` | `plumber-cyclonedx-sbom.json` | Path to write the CycloneDX SBOM (auto-uploaded as a GitLab report) |
+| `print_output` | `true` | Print text output to stdout |
+| `stage` | `.pre` | Pipeline stage for the job. `.pre` runs before all other stages but requires at least one job in a regular stage. If Plumber is the only job, set this to `test` or another stage |
+| `image` | `getplumber/plumber:0.1` | Docker image to use |
+| `allow_failure` | `false` | Allow the job to fail without blocking |
+| `verbose` | `false` | Enable debug output |
+| `mr_comment` | `false` | Post/update a compliance comment on the merge request (requires `api` scope) |
+| `badge` | `false` | Create/update a Plumber letter-score badge (requires `api` scope; default branch only) |
+| `score` | `false` | Deprecated no-op. The Plumber score is shown by default now; kept so pipelines that already set it do not break. Use `score_point` for the full points breakdown |
+| `score_point` | `false` | Add the full points breakdown to stdout and the MR comment (the score banner is shown by default) |
+| `score_push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)). Uses CI-native OIDC (**no secret**); the component mints the id-token. Publishes on every run; the service keeps only the default branch for the public badge. Warns (never fails) on error. See [Live Score Badge](#live-score-badge) |
+| `score_endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
+| `controls` | - | Run only listed controls (comma-separated). Cannot be used with `skip_controls` |
+| `skip_controls` | - | Skip listed controls (comma-separated). Cannot be used with `controls` |
+| `fail_warnings` | `false` | Treat configuration warnings (unknown keys) as errors (exit 2) |
+
+#### Component configuration resolution
+
+The component resolves your configuration in priority order:
+
+1. **`config_file` input set** uses your specified path (relative to repo root).
+2. **`.plumber.yaml` in repo root** uses your repo's config file.
+3. **No config found** uses the [default](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) embedded in the container.
+
+To author one, run `plumber config generate` (see the [CLI Reference](/docs/cli/reference#command-reference)) or create it manually from the [default config](https://github.com/getplumber/plumber/blob/main/.plumber.yaml). The CycloneDX SBOM the component writes is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx).
+
 
 ## Authentication
 
@@ -93,54 +310,7 @@ By default Plumber reads the project's configured CI config path (usually `.gitl
 plumber analyze --ci-config-path .gitlab/ci/main.yml
 ```
 
-## Command Reference
-
-### `plumber analyze`
-
-The main command for analyzing GitLab CI/CD pipelines.
-
-```bash
-plumber analyze [flags]
-```
-
-### Flags
-
-| Flag | Required | Default | Description |
-|------|----------|---------|-------------|
-| `--gitlab-url` | No* | auto-detect | GitLab instance URL (e.g., `https://gitlab.com`). Mutually exclusive with `--github-url`. |
-| `--github-url` | No* | auto-detect | GitHub host (e.g., `github.com` or `ghes.example.com`). Mutually exclusive with `--gitlab-url`. |
-| `--project` | No* | auto-detect | Project / repo path. GitLab: `group/project`. GitHub: `owner/repo`. |
-| `--config` | No | `.plumber.yaml` | Path to configuration file |
-| `--threshold` | No | `100` | Minimum compliance % to pass (0-100) |
-| `--branch` | No | Project default | Branch to analyze |
-| `--output` | No | - | Write JSON results to file |
-| `--pbom` | No | - | Write PBOM (Pipeline Bill of Materials) to file |
-| `--pbom-cyclonedx` | No | - | Write PBOM in CycloneDX SBOM format |
-| `--print` | No | `true` | Print text output to stdout |
-| `--score-point` | No | `false` | Add the full points breakdown table to stdout and the MR comment. The Plumber score banner is shown by default; this flag adds the per-issue-code detail |
-| `--mr-comment` | No | `false` | Post/update a compliance comment on the merge request (MR pipelines only; requires `api` scope) |
-| `--badge` | No | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
-| `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
-| `--skip-controls` | No | - | Skip listed controls (comma-separated). Cannot be used with `--controls` |
-| `--fail-warnings` | No | `false` | Treat configuration warnings (unknown keys) as errors (exit 2) |
-| `--ci-config-path` | No | auto-detect | Override CI configuration file path. Defaults to project CI config path from GitLab settings (usually `.gitlab-ci.yml`) |
-| `--verbose`, `-v` | No | `false` | Enable verbose/debug output |
-
-<Aside variant="info">
-  \* Auto-detected from git remote (requires `origin`) if not specified. Supports both SSH and HTTPS remote URLs.  
-  \* You can always override with `--gitlab-url` and `--project`
-</Aside>
-
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GITLAB_TOKEN` | GitLab only | GitLab API token with `read_api` + `read_repository` scopes (from a Maintainer or higher). Use `api` scope instead if `--mr-comment` or `--badge` is enabled. |
-| `PLUMBER_NO_UPDATE_CHECK` | No | Set to any value (e.g., `1`) to disable the automatic version check. |
-
-For the configuration commands (`plumber config init` / `generate` / `migrate` / `view` / `validate`), `plumber explain`, and exit codes, see the [main CLI page](/docs/cli#command-reference). They behave identically for both providers.
-
-## Usage Examples
+## Examples
 
 ### Save JSON Output
 
@@ -169,7 +339,7 @@ plumber analyze \
   --print false
 ```
 
-## Example Output
+### Example Output
 
 The CLI output is color-coded in your terminal for easy scanning: green for passing controls, red for failures.
 
@@ -179,243 +349,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ![Plumber CLI output showing compliance results](../img/cli-output.png)
 
-## Available Controls
-
-Plumber ships **15 GitLab controls** (14 default-on plus the opt-in `pipelineMustNotLeakSecretsInConfig`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-101`) with a direct link to its documentation page.
-
-| Control | Issues | Description |
-|---------|--------|-------------|
-| **Container images must come from authorized sources** | [ISSUE-101](/docs/cli/issues/ISSUE-101) | Ensures images come from trusted registries |
-| **Container images must not use forbidden tags** | [ISSUE-102](/docs/cli/issues/ISSUE-102) | Flags `latest`, `dev`, and other mutable tags. Can enforce digest pinning for all images |
-| **Container images must be pinned by digest** | [ISSUE-103](/docs/cli/issues/ISSUE-103) | Ensures images use SHA256 digest pinning |
-| **Pipeline must not enable debug trace** | [ISSUE-203](/docs/cli/issues/ISSUE-203) | Detects `CI_DEBUG_TRACE`/`CI_DEBUG_SERVICES` leaking secrets in job logs |
-| **Pipeline must not use unsafe variable expansion** | [ISSUE-204](/docs/cli/issues/ISSUE-204) | Detects user-controlled variables in shell re-interpretation contexts (OWASP CICD-SEC-1) |
-| **Pipeline must not override job variables** | [ISSUE-205](/docs/cli/issues/ISSUE-205) | Detects controlled CI/CD variables redefined in `.gitlab-ci.yml` that should only be set in GitLab CI/CD Settings |
-| **Pipeline must not leak secrets in configuration** | [ISSUE-301](/docs/cli/issues/ISSUE-301) | Opt-in. Pipes the resolved `.gitlab-ci.yml` (with every `include:` followed) through [gitleaks](https://github.com/gitleaks/gitleaks); flags hardcoded API tokens, private keys, and other credentials. Each finding carries only a redacted preview |
-| **Pipeline must not contains hardcoded jobs** | [ISSUE-401](/docs/cli/issues/ISSUE-401) | Detects jobs defined directly instead of from includes |
-| **Pipeline must use only up-to-date includes** | [ISSUE-403](/docs/cli/issues/ISSUE-403) | Checks if included templates have newer versions |
-| **Pipeline must not use forbidden ref in includes** | [ISSUE-404](/docs/cli/issues/ISSUE-404) | Prevents mutable version references like `main`, `HEAD` |
-| **Pipelines must include templates** | [ISSUE-405](/docs/cli/issues/ISSUE-405) [ISSUE-406](/docs/cli/issues/ISSUE-406) | Ensures required templates are included; detects overridden jobs |
-| **Pipelines must include components** | [ISSUE-408](/docs/cli/issues/ISSUE-408) [ISSUE-409](/docs/cli/issues/ISSUE-409) | Ensures required CI/CD components are included; detects overridden jobs |
-| **Security jobs must not be weakened** | [ISSUE-410](/docs/cli/issues/ISSUE-410) | Detects security scanning jobs neutralized by `allow_failure`, `rules:` overrides, or `when: manual` (OWASP CICD-SEC-4) |
-| **Pipeline must not execute unverified scripts** | [ISSUE-411](/docs/cli/issues/ISSUE-411) | Detects `curl \| bash`, `wget \| sh`, and download-then-execute patterns without integrity verification (OWASP CICD-SEC-3) |
-| **Pipeline must not use Docker-in-Docker** | [ISSUE-412](/docs/cli/issues/ISSUE-412) [ISSUE-413](/docs/cli/issues/ISSUE-413) | Detects `docker:dind` services and insecure Docker daemon configuration (for example TLS disabled) |
-| **Branch must be protected** | [ISSUE-501](/docs/cli/issues/ISSUE-501) [ISSUE-505](/docs/cli/issues/ISSUE-505) | Verifies critical branches have proper protection |
-
-<details>
-<summary>**Unsafe Variable Expansion Detection**</summary>
-
-Detects user-controlled CI variables (MR title, commit message, branch name) passed to commands that re-interpret their input as shell code. This is [OWASP CICD-SEC-1](https://owasp.org/www-project-top-10-ci-cd-security-risks/).
-
-GitLab sets CI variables as environment variables. The shell does **not** re-parse expanded values for command substitution, so normal usage is safe. Only commands that re-interpret their arguments as code are flagged:
-
-**Flagged** (re-interpretation contexts):
-
-```bash
-eval "$CI_COMMIT_BRANCH"
-sh -c "$CI_MERGE_REQUEST_TITLE"
-bash -c "$CI_COMMIT_MESSAGE"
-source <(echo "$CI_COMMIT_REF_NAME")
-echo "$CI_COMMIT_BRANCH" | xargs sh
-```
-
-**Not flagged** (safe, the shell doesn't re-parse env var values):
-
-```bash
-echo $CI_COMMIT_BRANCH
-curl -d "$CI_MERGE_REQUEST_TITLE" https://...
-git checkout $CI_COMMIT_REF_NAME
-printf '%s' "$CI_COMMIT_MESSAGE"
-```
-
-**Allowing specific patterns**
-
-Some `sh -c` or `bash -c` usages are legitimate (e.g., Helm deploys, Terraform workspaces). Use `allowedPatterns` (regex) to suppress those findings. Each pattern is matched against the full script line.
-
-```yaml
-pipelineMustNotUseUnsafeVariableExpansion:
-  enabled: true
-  dangerousVariables:
-    - CI_MERGE_REQUEST_TITLE
-    - CI_COMMIT_MESSAGE
-    - CI_COMMIT_REF_NAME
-    - CI_COMMIT_REF_SLUG
-    - CI_COMMIT_BRANCH
-  allowedPatterns:
-    - "helm.*--set.*\\$CI_"
-    - "terraform workspace select.*\\$CI_"
-    - "docker build.*--build-arg.*\\$CI_"
-    - "aws s3 sync.*\\$CI_"
-    - "make deploy.*\\$CI_"
-```
-
-For example, the script line `sh -c "helm upgrade myapp . --set image.tag=$CI_COMMIT_SHA"` would normally be flagged, but the pattern `helm.*--set.*\\$CI_` allows it.
-
-<Aside variant="info">
-  Escape `$` as `\\$` and `{`/`}` as `\\{`/`\\}` in patterns. Only direct variable names are detected. Indirect aliasing (`variables: { B: $CI_COMMIT_BRANCH }` then `sh -c $B`) is not tracked.
-</Aside>
-
-</details>
-
-<details>
-<summary>**Security Job Weakening Detection**</summary>
-
-GitLab lets you override any property of an included job. This means someone can include a security template (SAST, Secret Detection, Container Scanning, Dependency Scanning, DAST, License Scanning) but silently neutralize it. The pipeline still looks compliant, but the scanning is disabled. Maps to [OWASP CICD-SEC-4](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Poisoned Pipeline Execution).
-
-This control detects three weakening patterns, each a separate sub-control you can toggle independently:
-
-- **`allowFailureMustBeFalse`** (default: off, opt-in): Detects `allow_failure: true`. Off by default because GitLab templates ship with this setting.
-- **`rulesMustNotBeRedefined`** (default: on): Detects `rules:` overrides with `when: never` or `when: manual`.
-- **`whenMustNotBeManual`** (default: on): Detects `when: manual` set at job level.
-
-**Flagged: security jobs weakened**
-
-```yaml
-include:
-  - template: Security/SAST.gitlab-ci.yml
-
-semgrep-sast:
-  allow_failure: true       # failures silently ignored
-
-secret_detection:
-  rules:
-    - when: never            # job will never run
-
-container_scanning:
-  when: manual               # requires manual trigger
-```
-
-Plumber identifies a job as a security job when its name (the job id as it appears in `.gitlab-ci.yml`, for example `semgrep-sast`) matches one of the globs in `securityJobPatterns`. Wildcards (`*`) match any substring.
-
-```yaml
-gitlab:
-  controls:
-    securityJobsMustNotBeWeakened:
-      enabled: true
-      securityJobPatterns:
-        - "*-sast"
-        - "secret_detection"
-        - "container_scanning"
-        - "*_dependency_scanning"
-        - "gemnasium-*"
-        - "dast"
-        - "dast_*"
-        - "license_scanning"
-      allowFailureMustBeFalse:
-        enabled: false
-      rulesMustNotBeRedefined:
-        enabled: true
-      whenMustNotBeManual:
-        enabled: true
-```
-
-</details>
-
-<details>
-<summary>**Unverified Script Execution Detection**</summary>
-
-Detects CI/CD jobs that download and immediately execute scripts from the internet without integrity verification. This is a well-documented supply chain attack vector: an attacker who compromises the remote URL can serve a modified script that exfiltrates secrets. Maps to [OWASP CICD-SEC-3](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).
-
-**Detected patterns:**
-- Direct pipe to shell: `curl ... | bash`, `wget ... | sh`, `curl ... | python`, etc.
-- Download-and-execute: `curl -o script.sh ... && bash script.sh`
-- Download-redirect-execute: `curl ... > install.sh; sh install.sh`
-
-Lines that include checksum verification (e.g., `sha256sum`, `gpg --verify`) between the download and execution are automatically excluded.
-
-```yaml
-pipelineMustNotExecuteUnverifiedScripts:
-  enabled: true
-  trustedUrls: []
-    # - https://internal-artifacts.example.com/*
-```
-
-Add trusted URL patterns to `trustedUrls` (supports wildcards) to suppress findings for known-good sources.
-
-</details>
-
-<details>
-<summary>**Job Variable Override Detection**</summary>
-
-Detects CI/CD variables that are redefined in `.gitlab-ci.yml` when they should only be set in **GitLab CI/CD Settings > Variables**. An attacker who can modify `.gitlab-ci.yml` could override variables like `SECURE_ANALYZERS_PREFIX` to point to a fake registry, or set `SAST_DISABLED: "true"` to silently disable security scanners.
-
-The control inspects only the raw user-authored YAML. Variables defined by included templates or components are not flagged.
-
-```yaml
-pipelineMustNotOverrideJobVariables:
-  enabled: true
-  variables:
-    - SECURE_ANALYZERS_PREFIX
-    - SAST_DISABLED
-    - SAST_EXCLUDED_PATHS
-    - SAST_EXCLUDED_ANALYZERS
-    - SECRET_DETECTION_DISABLED
-    - SECRET_DETECTION_EXCLUDED_PATHS
-    - CONTAINER_SCANNING_DISABLED
-    - DAST_DISABLED
-    - DEPENDENCY_SCANNING_DISABLED
-    - LICENSE_SCANNING_DISABLED
-```
-
-Add any variable name your organization considers controlled. Matching is case-insensitive and any value triggers the issue (even `"false"`).
-
-</details>
-
-<details>
-<summary>**Docker-in-Docker Detection**</summary>
-
-Detects CI/CD jobs that use Docker-in-Docker (dind) services. Running a Docker daemon inside a CI container on shared runners in privileged mode enables container escape, lateral movement, and access to secrets from other jobs on the same runner.
-
-When `detectInsecureDaemon` is enabled (default: true), the control also flags jobs where TLS is disabled (`DOCKER_TLS_CERTDIR=""`) or the Docker host uses the plaintext port (`tcp://docker:2375`).
-
-```yaml
-pipelineMustNotUseDockerInDocker:
-  enabled: true
-  detectInsecureDaemon: true
-```
-
-Consider using [Kaniko](https://github.com/GoogleContainerTools/kaniko) or [Buildah](https://github.com/containers/buildah) for building container images in CI/CD as safer alternatives.
-
-</details>
-
-## Issues
-
-The CLI reports **Issues** using identifiers like `ISSUE-XXX`. Each links to a documentation page with a description, the impact, and before/after fix examples. You can also inspect a code locally:
-
-```bash
-plumber explain ISSUE-412
-# shorthand:
-plumber explain 412
-```
-
-Codes shipping today for GitLab:
-
-| Issue | Title |
-|-------|-------|
-| [ISSUE-101](/docs/cli/issues/ISSUE-101?p=gitlab) | Untrusted image source |
-| [ISSUE-102](/docs/cli/issues/ISSUE-102?p=gitlab) | Forbidden container image tag |
-| [ISSUE-103](/docs/cli/issues/ISSUE-103?p=gitlab) | Container image not pinned by digest |
-| [ISSUE-203](/docs/cli/issues/ISSUE-203?p=gitlab) | Pipeline enables CI debug trace |
-| [ISSUE-204](/docs/cli/issues/ISSUE-204?p=gitlab) | Unsafe variable expansion |
-| [ISSUE-205](/docs/cli/issues/ISSUE-205?p=gitlab) | Job variable overrides controlled variable |
-| [ISSUE-301](/docs/cli/issues/ISSUE-301?p=gitlab) | Secret leak in pipeline configuration |
-| [ISSUE-401](/docs/cli/issues/ISSUE-401?p=gitlab) | Hardcoded job |
-| [ISSUE-403](/docs/cli/issues/ISSUE-403?p=gitlab) | Outdated template |
-| [ISSUE-404](/docs/cli/issues/ISSUE-404?p=gitlab) | Forbidden include version |
-| [ISSUE-405](/docs/cli/issues/ISSUE-405?p=gitlab) | Missing required template |
-| [ISSUE-406](/docs/cli/issues/ISSUE-406?p=gitlab) | Forbidden override of required template |
-| [ISSUE-408](/docs/cli/issues/ISSUE-408?p=gitlab) | Missing required component |
-| [ISSUE-409](/docs/cli/issues/ISSUE-409?p=gitlab) | Forbidden override of required component |
-| [ISSUE-410](/docs/cli/issues/ISSUE-410?p=gitlab) | Security job weakened |
-| [ISSUE-411](/docs/cli/issues/ISSUE-411?p=gitlab) | Unverified script execution |
-| [ISSUE-412](/docs/cli/issues/ISSUE-412?p=gitlab) | Docker-in-Docker service detected |
-| [ISSUE-413](/docs/cli/issues/ISSUE-413?p=gitlab) | Docker-in-Docker with insecure daemon configuration |
-| [ISSUE-501](/docs/cli/issues/ISSUE-501?p=gitlab) | Branch protection missing |
-| [ISSUE-505](/docs/cli/issues/ISSUE-505?p=gitlab) | Branch protection configuration not compliant |
-
-{/* The full catalog including roadmap controls is on the [Compliance Controls](/docs/use-plumber/controls) page. */}
-
-## Example Configuration
+### Example Configuration
 
 The `gitlab.controls:` section of a schema v2 `.plumber.yaml`:
 
@@ -628,7 +562,36 @@ include:
   **Token requirement:** The `api` scope is required (not `read_api`) and Maintainer role to manage project badges.
 </Aside>
 
-The Plumber GitLab CI/CD component (drop-in pipeline integration) is documented in the [GitLab CI Component](#gitlab-ci-component) section below. For installation, see the [Installation](/docs/cli/installation) page. For the provider-agnostic commands, see the [main CLI page](/docs/cli).
+### Live Score Badge
+
+Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) so any README or page can show a live, self-updating **A–E** badge. This is **distinct** from `--badge` / the `badge` input above (a native GitLab *project* badge): it publishes to the hosted service, needs **no token or scope**, and the badge works anywhere.
+
+Enable it via the GitLab CI component (recommended, it mints the OIDC token for you):
+
+```yaml
+include:
+  - component: gitlab.com/getplumber/plumber/plumber@v0.3.4
+    inputs:
+      score_push: true
+```
+
+Then drop the badge into any Markdown (swap in your project path):
+
+```md
+[![Plumber Score](https://score.getplumber.io/gitlab.com/your-group/your-project.svg)](https://score.getplumber.io/gitlab.com/your-group/your-project)
+```
+
+**How it works, no secret needed:**
+- The component mints a CI-native **OIDC id-token** (via its `id_tokens:` block) and the CLI publishes the report with it. The audience is pinned to the score service, so a pipeline can only ever write **its own** repo's badge: a score can't be spoofed from elsewhere.
+- Publishing happens **only in CI**. A local `plumber analyze --score-push` never publishes (no id-token) and prints a short note instead.
+- The CLI publishes on **every** run; the score service keeps only your **default branch** for the public badge, reading the verified branch from the OIDC token (which a pipeline cannot forge). So merge request and tag pipelines publish their own result but never overwrite the public badge; `score_push: true` is safe to leave on for every trigger.
+- On any error (network, etc.) it **warns but never fails the pipeline**.
+
+<Aside variant="info">
+  **Self-hosted score service?** Set `score_endpoint` (component) or `--score-endpoint` (CLI); the OIDC audience follows it automatically so it always matches the target. Full details: [getplumber.io/docs/plumber-score](/docs/plumber-score).
+</Aside>
+
+The Plumber GitLab CI/CD component (drop-in pipeline integration) is documented in the [Run with the GitLab CI component](#run-with-the-gitlab-ci-component) section above. For installation, see the [Installation](/docs/cli/installation) page. For the provider-agnostic commands, see the [CLI Reference](/docs/cli/reference).
 
 
 ## Selective Control Execution
@@ -667,214 +630,41 @@ Controls not selected are reported as **skipped** in the output. The `--controls
 
 </details>
 
-## GitLab CI Component
+## Reference
 
-Beyond running the CLI yourself, Plumber ships as a **GitLab CI/CD component**: a drop-in `include:` that runs compliance scanning on every pipeline with no binary to install. It uses the same engine, the same `.plumber.yaml`, and the same [controls](#available-controls) and [issues](#issues) documented above. It produces the same [output](#example-output) and supports the same [MR comments and badges](#gitlab-integration).
+The complete, always-current catalogs and command reference:
 
-### Quick Start (GitLab.com)
+<div class="not-content grid gap-6 sm:grid-cols-3 my-8">
+  <a href="/docs/cli/reference" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-lg font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/file-text" size="22px" />
+        CLI Reference
+      </div>
+      <div class="text-muted-foreground text-sm">Every <code>analyze</code> flag, the config commands, exit codes, and the JSON / PBOM / CycloneDX output.</div>
+    </div>
+  </a>
 
-<Aside variant="info">
-  For self-hosted GitLab instances, see [Hosting on self-hosted GitLab](#hosting-on-self-hosted-gitlab) below.
-</Aside>
+  <a href="/docs/use-plumber/controls?p=gitlab" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-lg font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/list-check" size="22px" />
+        Controls
+      </div>
+      <div class="text-muted-foreground text-sm">The full catalog of GitLab controls and what each one checks.</div>
+    </div>
+  </a>
 
-<Steps>
-1. **Create a GitLab token**
-
-   Use a token with `read_api` + `read_repository` scopes (or `api` if you enable `mr_comment` / `badge`), as described under [Authentication](#authentication) above.
-
-2. **Add the token to your project**
-
-   Go to **Settings → CI/CD → Variables** and add it as `GITLAB_TOKEN` (masked recommended).
-
-3. **Add the component to your `.gitlab-ci.yml`**
-
-   ```yaml
-   workflow:
-     rules:
-       - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-       - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS # prevents duplicate pipelines
-         when: never
-       - if: $CI_COMMIT_BRANCH
-       - if: $CI_COMMIT_TAG
-
-   include:
-     - component: gitlab.com/getplumber/plumber/plumber@v0.3.4
-       # inputs:
-       #   stage: .pre | by default runs in .pre which only runs if there is at least another CI job in another stage
-   ```
-
-   Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
-
-   <Aside variant="info">
-     **Why `workflow:rules`?** Without it, pushing to a branch with an open merge request creates **two pipelines** (a branch pipeline and an MR pipeline), splitting your jobs between them. The block above ensures a single pipeline per push: MR pipeline when an MR exists, branch pipeline otherwise. This is the [recommended GitLab pattern](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines). If you already have `workflow:rules`, keep yours and just add the `include`.
-   </Aside>
-
-4. **Run your pipeline**
-
-   Plumber now runs on every pipeline (default branch, tags, and open merge requests) and reports compliance issues.
-</Steps>
-
-### Hosting on self-hosted GitLab
-
-If you run a self-hosted GitLab instance, you need your own copy of the component since `gitlab.com` components can't be accessed from your instance. There are two ways:
-
-<Tabs defaultValue="import">
-  <TabsList>
-    <TabsTrigger value="import">Direct Import (Simplest)</TabsTrigger>
-    <TabsTrigger value="mirror">Fork + Mirror (Recommended)</TabsTrigger>
-  </TabsList>
-
-  <TabsContent value="import">
-    Import the upstream repository directly into your GitLab instance.
-
-    <Steps>
-    1. **Import the repository**
-
-       Go to **New Project → Import project → Repository by URL** and use `https://gitlab.com/getplumber/plumber.git`. Choose a group and project name (e.g., `infrastructure/plumber`).
-
-    2. **Enable the CI/CD Catalog**
-
-       In the imported project, go to **Settings → General**, ensure the project has a **description** (required for the Catalog), expand **Visibility, project features, permissions**, toggle **CI/CD Catalog resource** on, and save.
-
-    3. **Publish a release**
-
-       The imported project comes with upstream tags. Run a pipeline on an existing tag to trigger the release: **CI/CD → Pipelines → Run pipeline**, select an imported tag (e.g., `v0.2.1`), and click **Run pipeline**. This creates a Catalog release for that tag. (Alternatively, create a tag manually under **Code → Tags → New tag**, though that can conflict when fetching remote tags later.)
-
-    4. **Add the token**
-
-       Create a token as described under [Authentication](#authentication), then add it under the scanned project's **Settings → CI/CD → Variables** as `GITLAB_TOKEN` (masked recommended).
-
-    5. **Use the component**
-
-       ```yaml
-       include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.4
-       ```
-
-       To update: re-import or manually pull upstream changes.
-    </Steps>
-  </TabsContent>
-
-  <TabsContent value="mirror">
-    Fork on gitlab.com, then set up a pull mirror on your self-hosted instance so it stays in sync automatically.
-
-    <Steps>
-    1. **Fork on gitlab.com**
-
-       Fork [getplumber/plumber](https://gitlab.com/getplumber/plumber) under your gitlab.com namespace (e.g., `your-org/plumber`).
-
-    2. **Create a mirrored project on your instance**
-
-       **New Project → Import project → Repository by URL** with `https://gitlab.com/your-org/plumber.git`.
-
-    3. **Set up pull mirroring**
-
-       In the project, **Settings → Repository → Mirroring repositories**: add `https://gitlab.com/your-org/plumber.git`, direction **Pull**, plus a gitlab.com token with `read_repository` scope if the fork is private.
-
-       <Aside variant="info">
-         Pull mirroring syncs automatically (every 30 minutes on Premium, manual on other tiers). On a new upstream release, sync your gitlab.com fork first, then the mirror picks it up.
-       </Aside>
-
-    4. **Enable the CI/CD Catalog**
-
-       **Settings → General**: ensure a project description, then toggle **CI/CD Catalog resource** on and save.
-
-    5. **Publish a release**
-
-       Run a pipeline on an existing imported tag (**CI/CD → Pipelines → Run pipeline**) to create a Catalog release.
-
-    6. **Add the token**
-
-       As under [Authentication](#authentication), then add it as `GITLAB_TOKEN` under the scanned project's **Settings → CI/CD → Variables**.
-
-    7. **Use the component**
-
-       ```yaml
-       include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.4
-       ```
-    </Steps>
-  </TabsContent>
-</Tabs>
-
-### Customizing the component
-
-Override any input to fit your needs:
-
-```yaml
-include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.3.4
-    inputs:
-      # Target (defaults to current project)
-      server_url: https://gitlab.example.com   # Self-hosted GitLab
-      project_path: other-group/other-project   # Analyze a different project
-      branch: develop                            # Analyze a specific branch
-      ci_config_path: $CI_CONFIG_PATH            # CI config path (GitLab predefined variable)
-
-      # Compliance
-      threshold: 80                              # Minimum % to pass (default: 100)
-      config_file: configs/my-plumber.yaml       # Custom config path
-
-      # Output
-      output_file: plumber-report.json           # Export JSON report
-      pbom_file: plumber-pbom.json               # PBOM artifact
-      pbom_cyclonedx_file: plumber-cyclonedx-sbom.json  # CycloneDX SBOM (auto-uploaded as a GitLab report)
-      print_output: true
-
-      # Job behavior
-      stage: test                                # Run in a different stage
-      allow_failure: true                        # Don't block the pipeline on failure
-      gitlab_token: $MY_CUSTOM_TOKEN             # Different variable name
-      verbose: true
-
-      # Selective execution (mutually exclusive)
-      controls: containerImageMustNotUseForbiddenTags,branchMustBeProtected
-      # skip_controls: branchMustBeProtected
-
-      # MR feedback (require `api` scope, see GitLab Integration above)
-      mr_comment: true
-      badge: true
-```
-
-The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-controls` flags ([valid names](#selective-control-execution)). `mr_comment` and `badge` are the component equivalents of the CLI `--mr-comment` / `--badge` flags shown under [GitLab Integration](#gitlab-integration).
-
-#### All inputs
-
-| Input | Default | Description |
-|-------|---------|-------------|
-| `server_url` | `$CI_SERVER_URL` | GitLab instance URL |
-| `project_path` | `$CI_PROJECT_PATH` | Project to analyze |
-| `branch` | `$CI_COMMIT_REF_NAME` | Branch to analyze |
-| `ci_config_path` | `$CI_CONFIG_PATH` | CI configuration file path to analyze. Defaults to the GitLab predefined variable (`.gitlab-ci.yml` unless customized in project settings) |
-| `gitlab_token` | `$GITLAB_TOKEN` | GitLab API token (`read_api` + `read_repository`, or `api` if `mr_comment` / `badge` is enabled) |
-| `threshold` | `100` | Minimum compliance % to pass |
-| `config_file` | *(auto-detect)* | Path to config file (relative to repo root). Auto-detects `.plumber.yaml`, falls back to default |
-| `output_file` | `plumber-report.json` | Path to write JSON results |
-| `pbom_file` | `plumber-pbom.json` | Path to write the PBOM |
-| `pbom_cyclonedx_file` | `plumber-cyclonedx-sbom.json` | Path to write the CycloneDX SBOM (auto-uploaded as a GitLab report) |
-| `print_output` | `true` | Print text output to stdout |
-| `stage` | `.pre` | Pipeline stage for the job. `.pre` runs before all other stages but requires at least one job in a regular stage. If Plumber is the only job, set this to `test` or another stage |
-| `image` | `getplumber/plumber:0.1` | Docker image to use |
-| `allow_failure` | `false` | Allow the job to fail without blocking |
-| `verbose` | `false` | Enable debug output |
-| `mr_comment` | `false` | Post/update a compliance comment on the merge request (requires `api` scope) |
-| `badge` | `false` | Create/update a Plumber letter-score badge (requires `api` scope; default branch only) |
-| `score` | `false` | Deprecated no-op. The Plumber score is shown by default now; kept so pipelines that already set it do not break. Use `score_point` for the full points breakdown |
-| `score_point` | `false` | Add the full points breakdown to stdout and the MR comment (the score banner is shown by default) |
-| `controls` | - | Run only listed controls (comma-separated). Cannot be used with `skip_controls` |
-| `skip_controls` | - | Skip listed controls (comma-separated). Cannot be used with `controls` |
-| `fail_warnings` | `false` | Treat configuration warnings (unknown keys) as errors (exit 2) |
-
-#### Component configuration resolution
-
-The component resolves your configuration in priority order:
-
-1. **`config_file` input set** uses your specified path (relative to repo root).
-2. **`.plumber.yaml` in repo root** uses your repo's config file.
-3. **No config found** uses the [default](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) embedded in the container.
-
-To author one, run `plumber config generate` (see the [main CLI page](/docs/cli#command-reference)) or create it manually from the [default config](https://github.com/getplumber/plumber/blob/main/.plumber.yaml). The CycloneDX SBOM the component writes is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx).
-
+  <a href="/docs/use-plumber/issues?p=gitlab" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-lg font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/alert-triangle" size="22px" />
+        Issues
+      </div>
+      <div class="text-muted-foreground text-sm">Every <code>ISSUE-XXX</code> with severity, impact, and remediation.</div>
+    </div>
+  </a>
+</div>
 
 ## Troubleshooting
 
@@ -891,8 +681,9 @@ To author one, run `plumber config generate` (see the [main CLI page](/docs/cli#
 | Configuration file not found | Ensure `--config` points at the real file (use an absolute path in Docker). Create one with `plumber config generate` or `plumber config init` |
 | Component not found (self-hosted) | You must import or mirror the component to your instance ([Hosting on self-hosted GitLab](#hosting-on-self-hosted-gitlab)) |
 | Plumber component job not running | The component's default stage is `.pre`, which requires at least one other job in a regular stage. Override with `inputs: { stage: test }` |
-| Two pipelines on the same push | Add [`workflow:rules`](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines) to prevent duplicate branch + MR pipelines (see [Quick Start](#quick-start-gitlabcom)) |
+| Two pipelines on the same push | Add [`workflow:rules`](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines) to prevent duplicate branch + MR pipelines (see [Run with the GitLab CI component](#run-with-the-gitlab-ci-component)) |
 | Component job skipped on branch | The component runs only on merge request events, the default branch, and tags |
+| Score badge not published | `score_push` publishes on every CI run, but the **public badge** only reflects your default branch (the service filters by the OIDC branch claim; MR/tag pipelines publish without touching it). A local run never publishes. The push warns, never fails, when the OIDC id-token is unavailable. See [Live Score Badge](#live-score-badge) |
 
 <Aside variant="info">
   **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](/discord).

@@ -4,37 +4,58 @@ seoTitle: "GitHub Actions Security & Compliance Scanning - Plumber CLI"
 description: "Scan GitHub Actions workflows for security and compliance with the open-source Plumber CLI and GitHub Action: authentication, GitHub controls catalog, issues, SARIF and Code Scanning."
 sidebar:
   label: "GitHub"
-  order: 4
+  order: 3
   indent: true
+  icon: "tabler/brand-github"
 section: "api"
 ---
 import { Icon } from "astro-icon/components";
 
-This page covers the **GitHub Actions** particulars of the Plumber CLI: how to authenticate, the controls that ship for GitHub, the issues they emit, a complete `github.controls:` configuration block, and the **drop-in [GitHub Action](#github-action)** for automated compliance scanning with SARIF upload. For installation, see the [Installation](/docs/cli/installation) page. For the provider-agnostic command reference, see the [main CLI page](/docs/cli).
+Plumber scans your **GitHub Actions** workflows and repository configuration for security problems:
 
-On GitHub Actions, Plumber flags issues like:
+- Unpinned actions
+- Untrusted input in shell scripts
+- Missing branch protection
+- [More…](/docs/use-plumber/controls?p=github)
 
-- Third-party actions not pinned by commit SHA, the tj-actions / reviewdog supply chain vector (CVE-2025-30066)
-- Actions hosted in archived repositories or carrying published GitHub Advisory entries
-- Dangerous triggers (`pull_request_target`, `workflow_run`) that expose secrets to PR-author code
-- Template injection via `${{ github.event.* }}` inlined into shell scripts
-- Reusable workflows called with `secrets: inherit` instead of named-secret passing
-- Implicit / over-broad `permissions:` blocks and `permissions: write-all` grants
-- Debug-trace toggles (`ACTIONS_STEP_DEBUG`, `ACTIONS_RUNNER_DEBUG`) that leak secrets into job logs
-- Docker-in-Docker services and weakened security jobs
+It turns them into a [Plumber Score](/docs/plumber-score) from <span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to <span class="font-bold text-red-400 dark:text-red-300">E</span> that can block CI below a threshold you set.
 
 ## Quick Start
 
-Two ways to scan a GitHub repository. Pick the path that matches how you work: [Local CLI](#run-the-cli-locally) or [GitHub Action](#github-action).
+Two ways to scan a GitHub repository:
 
-### Run the CLI locally
+<div class="not-content grid gap-6 sm:grid-cols-2 my-8">
+  <a href="#run-locally" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-xl font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/terminal-2" size="24px" />
+        Run locally
+      </div>
+      <div class="text-muted-foreground text-sm">Scan one repo from your machine: quick checks before you push, security-team audits, or scanning an upstream repo without touching its CI.</div>
+      <div class="pt-2 text-primary text-sm font-medium group-hover:underline">Local CLI →</div>
+    </div>
+  </a>
+
+  <a href="#run-with-github-actions" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-xl font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/brand-github" size="24px" />
+        Run with GitHub Actions
+      </div>
+      <div class="text-muted-foreground text-sm">Automated scans on every push or pull request, SARIF in Code Scanning, and a live score badge, with no Plumber install on developer machines.</div>
+      <div class="pt-2 text-primary text-sm font-medium group-hover:underline">GitHub Action →</div>
+    </div>
+  </a>
+</div>
+
+## Run locally
 
 Best for trying Plumber on one repo, checks before you push, security-team audits, or scanning upstream repos without changing CI.
 
 <Steps>
-1. **Install Plumber** ([Installation](/docs/cli/installation)): Homebrew, mise, a prebuilt binary, Docker, or from source.
+1. **Install Plumber**: Homebrew, mise, a prebuilt binary, Docker, or from source (see [Installation](/docs/cli/installation)).
 
-2. **Authenticate**: run `gh auth login`, or set `GH_TOKEN` (see [Authentication](#authentication) below).
+2. **Authenticate**: run `gh auth login`, or set a `GH_TOKEN` with read access to the repo (see [Authentication](#authentication)).
 
 3. **Run the scan** from inside your checked-out repo, or against a remote one (see [Running a scan](#running-a-scan)):
 
@@ -42,24 +63,212 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
    plumber analyze
    ```
 
-4. **Read the report**: a per-control compliance breakdown and a letter grade, plus an optional JSON report, PBOM, and CycloneDX SBOM (see [Example Output](#example-output)).
+4. **Read your Plumber score**: an A–E grade with a per-control breakdown, plus an optional JSON report, PBOM, and CycloneDX SBOM (see [Example Output](#example-output)).
 </Steps>
 
 
-## Installation
+## Run with GitHub Actions
 
-<div class="not-content my-8">
-  <a href="/docs/cli/installation" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-    <div class="flex flex-col space-y-2 p-6">
-      <div class="flex items-center gap-2 text-xl font-semibold tracking-tight text-card-foreground">
-        <Icon name="tabler/download" size="24px" />
-        Installation
-      </div>
-      <div class="text-muted-foreground text-sm">Homebrew, mise, prebuilt binary, Docker, or build from source.</div>
-      <div class="pt-2 text-primary text-sm font-medium group-hover:underline">Install →</div>
-    </div>
-  </a>
-</div>
+<Steps>
+1. **Ensure a `.plumber.yaml` exists** in your repo root. Generate one with the [CLI](/docs/cli/installation) if you have it installed, or download the default:
+
+   ```bash
+   plumber config generate
+   # or:
+   curl -fsSL https://raw.githubusercontent.com/getplumber/plumber/main/.plumber.yaml -o .plumber.yaml
+   ```
+
+2. **Add the action to your workflow** (e.g. `.github/workflows/plumber.yml`):
+
+   <Aside variant="tip">
+
+   - **Pin by commit SHA, not a tag.** Copy the ready-to-paste SHA-pinned `uses:` line from the [GitHub Action section of the README](https://github.com/getplumber/plumber#option-3-github-action), auto-updated on new releases.
+   - **Permissions.** The job needs `security-events: write` for SARIF upload to Code Scanning; without it that step is skipped. Add `id-token: write` to publish a live score badge.
+   - **Publish a live score badge.** Set `score-push: true` to publish a **public** Plumber Score badge for this repo. See [Live Score Badge](#live-score-badge).
+
+   </Aside>
+
+   ```yaml
+   name: Plumber compliance
+
+   on:
+     push:
+       branches: [main]
+     pull_request: null
+
+   permissions:
+     contents: read
+     security-events: write
+     # id-token: write          # uncomment to publish a live Plumber Score badge (see below)
+
+   jobs:
+     plumber:
+       runs-on: ubuntu-24.04
+       steps:
+         - uses: actions/checkout@v6
+         - uses: getplumber/plumber@COMMIT_SHA
+           with:
+             score-push: true # if "true": publish a public Plumber Score badge
+   ```
+
+3. **Push and check results**: findings appear in the **Code Scanning** tab, the job summary, and the downloadable artifact bundle.
+</Steps>
+
+### Customizing the action
+
+Override any input to fit your needs:
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  with:
+    threshold: "80"
+    config-file: configs/strict.plumber.yaml
+    controls: actionsMustBePinnedByCommitSha,branchMustBeProtected
+    score: "true"
+    soft-fail: "true"
+    upload-sarif: "true"
+    upload-artifacts: "true"
+```
+
+### All inputs
+
+| Input | Default | Description |
+|-------|---------|-------------|
+| `version` | _(pinned in action.yml)_ | Plumber release tag to install. Downloaded from GitHub Releases and verified against `checksums.txt` |
+| `verify-attestation` | `true` | Verify the binary's SLSA build-provenance attestation via `gh attestation verify`. Disable for air-gapped or GHES setups |
+| `github-token` | `${{ github.token }}` | Token for the GitHub API and SARIF upload. Needs `Administration:read` for full `branchMustBeProtected`, and `security-events:write` for SARIF |
+| `metadata-token` | - | Optional token (public-repo read) used only to resolve third-party action versions for the known-CVE check, when an action is hosted in an org with an IP allow list that blocks the runner's `GITHUB_TOKEN`. Falls back to an anonymous read when unset |
+| `project` | _(current repo)_ | `owner/repo` to scan remotely (upstream-fetch, no checkout needed) |
+| `github-url` | _(github.com)_ | GitHub Enterprise Server host (e.g. `ghes.example.com`) |
+| `threshold` | `100` | Minimum compliance percentage to pass (0-100) |
+| `config-file` | _(auto-detect)_ | Path to `.plumber.yaml`. Defaults to repo root; the run fails if absent |
+| `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
+| `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
+| `score` | `true` | Include the full points breakdown. The Plumber score is shown by default; set `false` for the banner without the per-issue-code breakdown |
+| `score-push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) via CI-native OIDC (**no secret**). The workflow MUST grant `permissions: id-token: write`. Publishes on every run; the service keeps only the default branch for the public badge. Warns (never fails) on error. See [Live Score Badge](#live-score-badge) |
+| `score-endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
+| `fail-warnings` | `false` | Fail on warnings: unknown configuration keys (exit 2) and "could not verify" checks such as a skipped known-CVE lookup (exit 3). `soft-fail` does not mask exit 3 |
+| `soft-fail` | `false` | Do not fail the job when compliance is below the threshold. Findings are still produced and uploaded |
+| `upload-sarif` | `true` | Upload the SARIF report to GitHub Code Scanning |
+| `upload-artifacts` | `true` | Upload JSON report, PBOM, and CycloneDX SBOM as a workflow artifact |
+| `artifact-name` | `plumber-compliance` | Name of the uploaded artifact bundle |
+| `output` | `plumber-report.json` | JSON report output path. Empty to skip |
+| `pbom` | `plumber-pbom.json` | PBOM output path. Empty to skip |
+| `pbom-cyclonedx` | `plumber-cyclonedx-sbom.json` | CycloneDX SBOM output path. Empty to skip |
+| `sarif` | `plumber.sarif` | SARIF 2.1.0 output path. Empty to skip |
+
+### Outputs
+
+| Output | Description |
+|--------|-------------|
+| `compliance` | Overall compliance percentage from the run |
+| `passed` | `true` when compliance is at or above the threshold |
+| `report` | Path to the JSON report |
+| `sarif` | Path to the SARIF report |
+
+Use outputs in downstream steps:
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  id: plumber
+- run: echo "Compliance is ${{ steps.plumber.outputs.compliance }}%"
+```
+
+### Code Scanning integration
+
+When `upload-sarif` is `true` (the default), the action uploads a SARIF 2.1.0 report to [GitHub Code Scanning](https://docs.github.com/en/code-security/code-scanning). Each Plumber finding becomes an alert in the **Security** tab with:
+
+- The issue code as the rule ID (e.g. `ISSUE-701`)
+- Severity mapped to SARIF level (`error`, `warning`, `note`) and a numeric `security-severity` for triage
+- File location pointing at the workflow YAML line
+- A `helpUri` linking to the issue's documentation page on getplumber.io
+
+<Aside variant="info">
+  Code Scanning requires GitHub Advanced Security on private repos. On public repos it is free.
+</Aside>
+
+### Live Score Badge
+
+Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) so any README or page can show a live, self-updating **A–E** badge. It uses CI-native **OIDC** (no secret, no PAT) and the action fetches the id-token itself.
+
+Set `score-push: true` and grant `id-token: write` in the workflow:
+
+```yaml
+permissions:
+  contents: read
+  security-events: write
+  id-token: write              # REQUIRED for the score push (OIDC)
+
+jobs:
+  plumber:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+        with:
+          score-push: true
+```
+
+Then drop the badge into any Markdown (swap in your owner/repo):
+
+```md
+[![Plumber Score](https://score.getplumber.io/github.com/OWNER/REPO.svg)](https://score.getplumber.io/github.com/OWNER/REPO)
+```
+
+**How it works, no secret needed:**
+- With `id-token: write`, GitHub injects the OIDC request URL/token; the action mints an id-token for the score service's audience and publishes the report with it. The audience is pinned to the service, so a workflow can only ever write **its own** repo's badge: a score can't be spoofed from elsewhere.
+- Publishing happens **only in CI**. A local `plumber analyze --score-push` never publishes (no id-token) and prints a short note instead.
+- The CLI publishes on **every** run; the score service keeps only your **default branch** for the public badge, reading the verified branch from the OIDC token (which a workflow cannot forge). So the public badge updates when a change lands on your default branch (that is, when a PR **merges**).
+- **Pull request runs can't publish:** a `pull_request` OIDC token's ref is `refs/pull/N/merge`, not a branch, so the score service declines it with a harmless note (the badge updates on merge instead). `score-push: true` is safe to leave on for every trigger.
+- On any error (network, etc.) it **warns but never fails the run**.
+
+<Aside variant="caution">
+  `permissions: id-token: write` can only be granted by the **workflow**, not from inside the action. If `score-push` is on but the permission is missing, the action warns clearly and skips: it never fails the run.
+</Aside>
+
+<Aside variant="info">
+  **Self-hosted score service?** Set `score-endpoint` (action) or `--score-endpoint` (CLI); the OIDC audience follows it automatically so it always matches the target. Full details: [getplumber.io/docs/plumber-score](/docs/plumber-score).
+</Aside>
+
+### GitHub Enterprise Server
+
+For GHES, pass the host via `github-url`:
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  with:
+    github-url: ghes.example.com
+    verify-attestation: "false"
+```
+
+Set `verify-attestation: "false"` if the runner cannot reach the sigstore transparency log or your GHES instance does not support `gh attestation verify`.
+
+### Action examples
+
+**Scan a remote repo without cloning:**
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  with:
+    project: my-org/other-repo
+    github-token: ${{ secrets.PLUMBER_PAT }}
+```
+
+**Run only SHA-pinning and permissions checks:**
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  with:
+    controls: actionsMustBePinnedByCommitSha,workflowsMustDeclarePermissions
+```
+
+**Soft-fail in PRs, hard-fail on main:**
+
+```yaml
+- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
+  with:
+    soft-fail: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}
+```
 
 ## Authentication
 
@@ -117,55 +326,7 @@ plumber analyze --github-url github.com --project myorg/myrepo
 
 On GitHub Enterprise Server, pass the GHES host via `--github-url ghes.example.com`. Plumber auto-detects `github.com` from your git remote.
 
-## Command Reference
-
-### `plumber analyze`
-
-The main command for analyzing GitHub Actions workflows.
-
-```bash
-plumber analyze [flags]
-```
-
-### Flags
-
-| Flag | Required | Default | Description |
-|------|----------|---------|-------------|
-| `--gitlab-url` | No* | auto-detect | GitLab instance URL (e.g., `https://gitlab.com`). Mutually exclusive with `--github-url`. |
-| `--github-url` | No* | auto-detect | GitHub host (e.g., `github.com` or `ghes.example.com`). Mutually exclusive with `--gitlab-url`. |
-| `--project` | No* | auto-detect | Project / repo path. GitLab: `group/project`. GitHub: `owner/repo`. |
-| `--config` | No | `.plumber.yaml` | Path to configuration file |
-| `--threshold` | No | `100` | Minimum compliance % to pass (0-100) |
-| `--branch` | No | Project default | Branch to analyze |
-| `--output` | No | - | Write JSON results to file |
-| `--pbom` | No | - | Write PBOM (Pipeline Bill of Materials) to file |
-| `--pbom-cyclonedx` | No | - | Write PBOM in CycloneDX SBOM format |
-| `--print` | No | `true` | Print text output to stdout |
-| `--score-point` | No | `false` | Add the full points breakdown table to stdout and the MR comment. The Plumber score banner is shown by default; this flag adds the per-issue-code detail |
-| `--mr-comment` | No | `false` | Post/update a compliance comment on the merge request (MR pipelines only; requires `api` scope) |
-| `--badge` | No | `false` | Create/update a Plumber compliance badge on the project (requires `api` scope; only runs on default branch) |
-| `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
-| `--skip-controls` | No | - | Skip listed controls (comma-separated). Cannot be used with `--controls` |
-| `--fail-warnings` | No | `false` | Fail on warnings: configuration warnings such as unknown keys (exit 2) and "could not verify" warnings such as a skipped known-CVE check (exit 3) |
-| `--ci-config-path` | No | auto-detect | Override CI configuration file path. Defaults to project CI config path from GitLab settings (usually `.gitlab-ci.yml`) |
-| `--verbose`, `-v` | No | `false` | Enable verbose/debug output |
-
-<Aside variant="info">
-  \* Auto-detected from git remote (requires `origin`) if not specified. Supports both SSH and HTTPS remote URLs.  
-  \* You can always override with `--gitlab-url` and `--project`
-</Aside>
-
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GH_TOKEN` / `GITHUB_TOKEN` | GitHub only | GitHub API token. Fine-grained PAT needs `Contents: Read`, `Metadata: Read`, `Administration: Read`. Classic PAT needs `repo`. Alternatively, run `gh auth login` and Plumber will pick up the gh CLI credential. |
-| `PLUMBER_METADATA_TOKEN` | No | Token used only to resolve third-party action versions for the known-CVE check (ISSUE-703). Set it when an action is hosted in an org with an IP allow list that blocks the runner's `GITHUB_TOKEN`; a public-repository read scope is enough. Takes precedence over `GH_TOKEN` for that lookup. When unset, Plumber falls back to an anonymous read. |
-| `PLUMBER_NO_UPDATE_CHECK` | No | Set to any value (e.g., `1`) to disable the automatic version check. |
-
-For the configuration commands (`plumber config init` / `generate` / `migrate` / `view` / `validate`), `plumber explain`, and exit codes, see the [main CLI page](/docs/cli#command-reference). They behave identically for both providers.
-
-## Usage Examples
+## Examples
 
 ### Save JSON Output
 
@@ -194,7 +355,7 @@ plumber analyze \
   --print false
 ```
 
-## Example Output
+### Example Output
 
 The CLI output is color-coded in your terminal for easy scanning: green for passing controls, red for failures.
 
@@ -204,164 +365,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ![Plumber CLI output showing compliance results](../img/cli-gh-output.png)
 
-## Available Controls
-
-Plumber ships **17 GitHub controls** (15 default-on plus the opt-in `workflowMustIncludeRequiredActions` and `pipelineMustNotLeakSecretsInConfig`). Each can be enabled / disabled and customized in `.plumber.yaml`. When a control detects a violation, it creates an **Issue** (e.g., `ISSUE-701`) with a direct link to its documentation page.
-
-| Control | Issues | Description |
-|---------|--------|-------------|
-| **Container images must not use forbidden tags** | [ISSUE-102](/docs/cli/issues/ISSUE-102) | Flags mutable tags (`latest`, `dev`, …); can require all images be pinned by digest |
-| **Pipeline must not enable debug trace** | [ISSUE-203](/docs/cli/issues/ISSUE-203) | Flags truthy `ACTIONS_STEP_DEBUG` / `ACTIONS_RUNNER_DEBUG` in literal `env:`, `${{ }}` expression bindings, and runtime `>> $GITHUB_ENV` script writes |
-| **Workflow must not inline user input into shell scripts** | [ISSUE-207](/docs/cli/issues/ISSUE-207) | Flags `${{ github.event.* }}`, `${{ github.head_ref }}`, `${{ github.actor }}` interpolated directly into a `run:` shell (OWASP CICD-SEC-1) |
-| **Reusable workflow must not use `secrets: inherit`** | [ISSUE-302](/docs/cli/issues/ISSUE-302) | Flags `jobs.<name>.secrets: inherit`, which forwards every caller secret to the reusable workflow. Use an explicit secrets map |
-| **Workflow must not leak secrets in configuration** | [ISSUE-301](/docs/cli/issues/ISSUE-301) | Opt-in. Pipes every file under `.github/workflows/` through [gitleaks](https://github.com/gitleaks/gitleaks); flags hardcoded API tokens, private keys, and other credentials. Each finding carries only a redacted preview |
-| **Security jobs must not be weakened** | [ISSUE-410](/docs/cli/issues/ISSUE-410) | Flags CodeQL / dependency-review / gitleaks / trufflehog / OSV-Scanner jobs neutralized via `continue-on-error: true` or manual-only dispatch (OWASP CICD-SEC-4) |
-| **Workflow must not execute unverified scripts** | [ISSUE-411](/docs/cli/issues/ISSUE-411) | Detects `curl \| bash`, `wget \| sh`, download-then-execute, redirect-then-execute, and base64 pipe-to-shell patterns in `run:` steps without integrity verification (OWASP CICD-SEC-3) |
-| **Workflow must not use Docker-in-Docker** | [ISSUE-412](/docs/cli/issues/ISSUE-412) [ISSUE-413](/docs/cli/issues/ISSUE-413) | Flags `docker:dind` services and insecure daemon configuration (TLS disabled, plaintext port 2375) |
-| **Workflows must include required actions** | [ISSUE-417](/docs/cli/issues/ISSUE-417) | Opt-in. Asserts every workflow includes the action(s) your org requires (DNF: outer OR, inner AND), resolving against step-level and reusable-workflow `uses:` |
-| **Branch must be protected** | [ISSUE-501](/docs/cli/issues/ISSUE-501) [ISSUE-505](/docs/cli/issues/ISSUE-505) | Verifies default / named branches have force-push disabled and code-owner approval. Reads classic Branch Protection AND Repository / Organization Rulesets |
-| **Third-party actions must be pinned by commit SHA** | [ISSUE-701](/docs/cli/issues/ISSUE-701) | Requires `uses: owner/repo@<sha>` (40-char commit SHA) instead of a mutable tag or branch ref. `trustedOwners` exempts first-party `actions/*` and `github/*` |
-| **Actions must not reference archived repositories** | [ISSUE-702](/docs/cli/issues/ISSUE-702) | Flags `uses:` refs whose upstream GitHub repository has been archived (no security patches coming). One cached API call per unique ref |
-| **Actions must not carry known CVEs** | [ISSUE-703](/docs/cli/issues/ISSUE-703) | Cross-references every pinned action against the GitHub Advisory Database (`actions` ecosystem), semver-filtered so refs past the fix stay silent |
-| **Actions must come from authorized sources** | [ISSUE-713](/docs/cli/issues/ISSUE-713) | Restricts step and reusable-workflow `uses:` to GitHub-official owners (`actions/*`, `github/*`), the scanned repo's own org, a `trustedGithubActions` allowlist (exact or `owner/*`), or a `minimumStars` floor |
-| **Workflow permissions must be declared** | [ISSUE-801](/docs/cli/issues/ISSUE-801) | Flags workflows missing an explicit `permissions:` block (falls back to the repo-wide `GITHUB_TOKEN` default) |
-| **Workflow must not use dangerous triggers** | [ISSUE-802](/docs/cli/issues/ISSUE-802) | Flags `pull_request_target` and `workflow_run`, which run with base-repo secrets while being influenceable by an unprivileged caller |
-| **Job must not run with write-all permissions** | [ISSUE-803](/docs/cli/issues/ISSUE-803) | Flags `permissions: write-all` at workflow or job scope. Pairs with `workflowsMustDeclarePermissions` to close the least-privilege loop |
-
-<details>
-<summary>**Security Job Weakening Detection (GitHub)**</summary>
-
-A security job can be silently neutralized while the workflow still shows a green check. This control flags that. Maps to [OWASP CICD-SEC-4](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Poisoned Pipeline Execution).
-
-Plumber identifies a security job when its name matches one of the globs in `securityJobPatterns`. On GitHub the name is `<workflow-file-basename-without-.yml>/<job-id>` (for example `codeql-analysis/analyze` for `.github/workflows/codeql-analysis.yml` + `jobs.analyze`). The `<workflow>/` prefix exists so two workflow files defining a job with the same id never collide.
-
-Four useful pattern shapes:
-
-| Pattern | Matches | When to use |
-|---|---|---|
-| `*<token>*` | The token anywhere in the name | You don't know which workflow file will host the job |
-| `<workflow>/*` | Every job in one workflow file | All security jobs live in `security.yml` |
-| `*/<jobid>` | Specific job id in any workflow | Job id is canonical (e.g. `codeql`) but file location varies |
-| `<workflow>/<jobid>` | Exact match, no wildcard | You control both names and want strict matching |
-
-```yaml
-github:
-  controls:
-    securityJobsMustNotBeWeakened:
-      enabled: true
-      securityJobPatterns:
-        - "*codeql*"
-        - "*dependency-review*"
-        - "*trufflehog*"
-        - "*gitleaks*"
-        - "*osv-scanner*"
-        - "*-sast"
-        - "*-sast-*"
-        - "*-scan"
-        - "*scan*"
-        - "*-security"
-        - "*-security-*"
-        - "*-audit"
-        - "*-audit-*"
-        # Real-world slash-form examples (commented; uncomment and
-        # adapt to your repo for a tighter match than the wildcards
-        # above). Format: <workflow-filename-without-extension>/<job-id>.
-        # - codeql-analysis/analyze              # GitHub's default CodeQL template
-        # - dependency-review/dependency-review  # GitHub's default Dependency Review template
-        # - security/gitleaks                    # gitleaks job in security.yml
-        # - security/trufflehog                  # trufflehog job in security.yml
-        # - security/*                           # every job in security.yml
-        # - "*/sast"                             # any job named "sast", any workflow
-        # - ci/semgrep-sast                      # exact match, no wildcard
-      allowFailureMustBeFalse:
-        enabled: true
-      rulesMustNotBeRedefined:
-        enabled: true
-      whenMustNotBeManual:
-        enabled: true
-```
-
-</details>
-
-<details>
-<summary>**Unverified Script Execution Detection (GitHub)**</summary>
-
-Detects workflow `run:` steps that download and immediately execute scripts from the internet without integrity verification. This is the GitHub Actions counterpart of the GitLab control and targets the Megalodon attack pattern: obfuscated base64 payloads piped to a shell (`echo "…" | base64 -d | bash`) as well as classic `curl | bash` / `wget | sh` chains. Maps to [OWASP CICD-SEC-3](https://owasp.org/www-project-top-10-ci-cd-security-risks/) (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).
-
-**Detected patterns:**
-- Direct pipe to shell: `curl ... | bash`, `wget ... | sh`, `curl ... | python`, and any `<command> | <shell>` chain
-- Download-and-execute: `curl -o script.sh ... && bash script.sh`
-- Download-redirect-execute: `curl ... > install.sh; sh install.sh`
-- Inline obfuscation: `echo "..." | base64 -d | sh`
-
-Lines that include checksum or signature verification (`sha256sum`, `gpg --verify`, `cosign verify`, and similar) on the same line as the download are excluded.
-
-```yaml
-github:
-  controls:
-    pipelineMustNotExecuteUnverifiedScripts:
-      enabled: true
-      trustedUrls: []
-        # - https://internal-artifacts.example.com/*
-```
-
-Add trusted URL patterns to `trustedUrls` (host-precise globs) to suppress findings for known-good sources.
-
-</details>
-
-<details>
-<summary>**Docker-in-Docker Detection (GitHub)**</summary>
-
-Flags jobs that spin up a `docker:dind` service. A Docker daemon inside a CI container on a shared runner in privileged mode enables container escape, lateral movement, and access to secrets from other jobs on the same runner.
-
-When `detectInsecureDaemon` is enabled (default: true), the control also flags jobs where TLS is disabled (`DOCKER_TLS_CERTDIR=""`) or the Docker host uses the plaintext port (`tcp://docker:2375`).
-
-```yaml
-github:
-  controls:
-    pipelineMustNotUseDockerInDocker:
-      enabled: true
-      detectInsecureDaemon: true
-```
-
-</details>
-
-## Issues
-
-The CLI reports **Issues** using identifiers like `ISSUE-XXX`. Each links to a documentation page with a description, the impact, and before/after fix examples. You can also inspect a code locally:
-
-```bash
-plumber explain ISSUE-703
-# shorthand:
-plumber explain 703
-```
-
-| Issue | Title |
-|-------|-------|
-| [ISSUE-102](/docs/cli/issues/ISSUE-102?p=github) | Forbidden container image tag |
-| [ISSUE-103](/docs/cli/issues/ISSUE-103?p=github) | Container image not pinned by digest (sub-option of ISSUE-102) |
-| [ISSUE-203](/docs/cli/issues/ISSUE-203?p=github) | Workflow enables runner debug logging |
-| [ISSUE-207](/docs/cli/issues/ISSUE-207?p=github) | Workflow inlines user input into shell scripts |
-| [ISSUE-302](/docs/cli/issues/ISSUE-302?p=github) | Reusable workflow called with `secrets: inherit` |
-| [ISSUE-301](/docs/cli/issues/ISSUE-301?p=github) | Secret leak in workflow configuration |
-| [ISSUE-410](/docs/cli/issues/ISSUE-410?p=github) | Security job weakened |
-| [ISSUE-411](/docs/cli/issues/ISSUE-411?p=github) | Unverified script execution |
-| [ISSUE-412](/docs/cli/issues/ISSUE-412?p=github) | Docker-in-Docker service detected |
-| [ISSUE-413](/docs/cli/issues/ISSUE-413?p=github) | Docker-in-Docker with insecure daemon configuration |
-| [ISSUE-417](/docs/cli/issues/ISSUE-417?p=github) | Required action or reusable workflow is missing |
-| [ISSUE-501](/docs/cli/issues/ISSUE-501?p=github) | Branch protection missing |
-| [ISSUE-505](/docs/cli/issues/ISSUE-505?p=github) | Branch protection configuration not compliant |
-| [ISSUE-701](/docs/cli/issues/ISSUE-701?p=github) | Third-party action not pinned by commit SHA |
-| [ISSUE-702](/docs/cli/issues/ISSUE-702?p=github) | Action hosted in an archived repository |
-| [ISSUE-703](/docs/cli/issues/ISSUE-703?p=github) | Action carries a known security advisory (CVE) |
-| [ISSUE-713](/docs/cli/issues/ISSUE-713?p=github) | Action comes from an unauthorized source |
-| [ISSUE-801](/docs/cli/issues/ISSUE-801?p=github) | Workflow permissions not declared |
-| [ISSUE-802](/docs/cli/issues/ISSUE-802?p=github) | Workflow uses a dangerous trigger |
-| [ISSUE-803](/docs/cli/issues/ISSUE-803?p=github) | Workflow grants `write-all` permissions |
-
-{/* Other GitHub control codes (impostor SHA, stale-ref, dependabot hygiene, workflow obfuscation, and more) have Rego policies in the engine but are not yet user-facing in this release. They appear on the [Compliance Controls](/docs/use-plumber/controls) page under "On the roadmap" so you can see what is coming. */}
-
-## Example Configuration
+### Example Configuration
 
 The `github.controls:` section of a schema v2 `.plumber.yaml`:
 
@@ -433,8 +437,8 @@ github:
     reusableWorkflowsMustNotInheritSecrets:
       enabled: true
 
-    # See the Security Job Weakening Detection section above for the full
-    # naming-format reference and slash-form pattern examples.
+    # On GitHub a job's name is `<workflow-file-basename>/<job-id>`
+    # (e.g. `codeql-analysis/analyze`). Patterns are globs over that name.
     securityJobsMustNotBeWeakened:
       enabled: true
       securityJobPatterns:
@@ -506,7 +510,7 @@ github:
       codeOwnerApprovalRequired: true
 ```
 
-See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for every option, the [Installation](/docs/cli/installation) page, and the [main CLI page](/docs/cli) for the provider-agnostic commands and output formats.
+See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for every option, the [Installation](/docs/cli/installation) page, and the [CLI Reference](/docs/cli/reference) for the provider-agnostic commands and output formats.
 
 
 ## Selective Control Execution
@@ -547,171 +551,41 @@ Controls not selected are reported as **skipped** in the output. The `--controls
 
 </details>
 
-## GitHub Action
+## Reference
 
-Use this path for automated compliance on every push or pull request, SARIF in **Code Scanning**, and no Plumber install on developer machines. Plumber ships as the [Plumber Compliance Scanner](https://github.com/marketplace/actions/plumber-compliance-scanner) on the GitHub Marketplace: a `uses:` step that runs the same engine, the same `.plumber.yaml`, and the same [controls](#available-controls) and [issues](#issues) as the CLI.
+The complete, always-current catalogs and command reference:
 
-The action automatically:
-- Downloads and **checksum-verifies** the Plumber binary (with optional **SLSA attestation** verification)
-- Runs `plumber analyze` with your chosen inputs
-- Uploads findings to **GitHub Code Scanning** via SARIF
-- Uploads the JSON report, PBOM, and CycloneDX SBOM as **workflow artifacts**
-- Posts a **job summary** with compliance percentage, Plumber score, and severity counts
+<div class="not-content grid gap-6 sm:grid-cols-3 my-8">
+  <a href="/docs/cli/reference" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-lg font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/file-text" size="22px" />
+        CLI Reference
+      </div>
+      <div class="text-muted-foreground text-sm">Every <code>analyze</code> flag, the config commands, exit codes, and the JSON / PBOM / CycloneDX output.</div>
+    </div>
+  </a>
 
-### Quick Start
+  <a href="/docs/use-plumber/controls?p=github" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-lg font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/list-check" size="22px" />
+        Controls
+      </div>
+      <div class="text-muted-foreground text-sm">The full catalog of GitHub controls and what each one checks.</div>
+    </div>
+  </a>
 
-<Steps>
-1. **Ensure a `.plumber.yaml` exists** in your repo root. Generate one with the [CLI](/docs/cli/installation) if you have it installed, or download the default:
-
-   ```bash
-   plumber config generate
-   # or:
-   curl -fsSL https://raw.githubusercontent.com/getplumber/plumber/main/.plumber.yaml -o .plumber.yaml
-   ```
-
-2. **Add the action to your workflow** (e.g. `.github/workflows/plumber.yml`):
-
-   ```yaml
-   name: Plumber compliance
-
-   on:
-     push:
-       branches: [main]
-     pull_request: null
-
-   permissions:
-     contents: read
-     security-events: write
-
-   jobs:
-     plumber:
-       runs-on: ubuntu-24.04
-       steps:
-         - uses: actions/checkout@v6
-         - uses: getplumber/plumber@COMMIT_SHA
-   ```
-
-3. **Push and check results**: findings appear in the **Code Scanning** tab, the job summary, and the downloadable artifact bundle.
-</Steps>
-
-<Aside variant="tip">
-  **Pin by commit SHA, not a tag.** Copy the ready-to-paste SHA-pinned `uses:` line from the [GitHub Action section of the README](https://github.com/getplumber/plumber#option-3-github-action). This is automatically updated on new releases.
-</Aside>
-
-<Aside variant="caution">
-  The job needs `security-events: write` permission for SARIF upload to Code Scanning. Without it the upload step is skipped.
-</Aside>
-
-### Customizing the action
-
-Override any input to fit your needs:
-
-```yaml
-- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
-  with:
-    threshold: "80"
-    config-file: configs/strict.plumber.yaml
-    controls: actionsMustBePinnedByCommitSha,branchMustBeProtected
-    score: "true"
-    soft-fail: "true"
-    upload-sarif: "true"
-    upload-artifacts: "true"
-```
-
-### All inputs
-
-| Input | Default | Description |
-|-------|---------|-------------|
-| `version` | _(pinned in action.yml)_ | Plumber release tag to install. Downloaded from GitHub Releases and verified against `checksums.txt` |
-| `verify-attestation` | `true` | Verify the binary's SLSA build-provenance attestation via `gh attestation verify`. Disable for air-gapped or GHES setups |
-| `github-token` | `${{ github.token }}` | Token for the GitHub API and SARIF upload. Needs `Administration:read` for full `branchMustBeProtected`, and `security-events:write` for SARIF |
-| `metadata-token` | - | Optional token (public-repo read) used only to resolve third-party action versions for the known-CVE check, when an action is hosted in an org with an IP allow list that blocks the runner's `GITHUB_TOKEN`. Falls back to an anonymous read when unset |
-| `project` | _(current repo)_ | `owner/repo` to scan remotely (upstream-fetch, no checkout needed) |
-| `github-url` | _(github.com)_ | GitHub Enterprise Server host (e.g. `ghes.example.com`) |
-| `threshold` | `100` | Minimum compliance percentage to pass (0-100) |
-| `config-file` | _(auto-detect)_ | Path to `.plumber.yaml`. Defaults to repo root; the run fails if absent |
-| `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
-| `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
-| `score` | `true` | Include the full points breakdown. The Plumber score is shown by default; set `false` for the banner without the per-issue-code breakdown |
-| `fail-warnings` | `false` | Fail on warnings: unknown configuration keys (exit 2) and "could not verify" checks such as a skipped known-CVE lookup (exit 3). `soft-fail` does not mask exit 3 |
-| `soft-fail` | `false` | Do not fail the job when compliance is below the threshold. Findings are still produced and uploaded |
-| `upload-sarif` | `true` | Upload the SARIF report to GitHub Code Scanning |
-| `upload-artifacts` | `true` | Upload JSON report, PBOM, and CycloneDX SBOM as a workflow artifact |
-| `artifact-name` | `plumber-compliance` | Name of the uploaded artifact bundle |
-| `output` | `plumber-report.json` | JSON report output path. Empty to skip |
-| `pbom` | `plumber-pbom.json` | PBOM output path. Empty to skip |
-| `pbom-cyclonedx` | `plumber-cyclonedx-sbom.json` | CycloneDX SBOM output path. Empty to skip |
-| `sarif` | `plumber.sarif` | SARIF 2.1.0 output path. Empty to skip |
-
-### Outputs
-
-| Output | Description |
-|--------|-------------|
-| `compliance` | Overall compliance percentage from the run |
-| `passed` | `true` when compliance is at or above the threshold |
-| `report` | Path to the JSON report |
-| `sarif` | Path to the SARIF report |
-
-Use outputs in downstream steps:
-
-```yaml
-- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
-  id: plumber
-- run: echo "Compliance is ${{ steps.plumber.outputs.compliance }}%"
-```
-
-### Code Scanning integration
-
-When `upload-sarif` is `true` (the default), the action uploads a SARIF 2.1.0 report to [GitHub Code Scanning](https://docs.github.com/en/code-security/code-scanning). Each Plumber finding becomes an alert in the **Security** tab with:
-
-- The issue code as the rule ID (e.g. `ISSUE-701`)
-- Severity mapped to SARIF level (`error`, `warning`, `note`) and a numeric `security-severity` for triage
-- File location pointing at the workflow YAML line
-- A `helpUri` linking to the issue's documentation page on getplumber.io
-
-<Aside variant="info">
-  Code Scanning requires GitHub Advanced Security on private repos. On public repos it is free.
-</Aside>
-
-### GitHub Enterprise Server
-
-For GHES, pass the host via `github-url`:
-
-```yaml
-- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
-  with:
-    github-url: ghes.example.com
-    verify-attestation: "false"
-```
-
-Set `verify-attestation: "false"` if the runner cannot reach the sigstore transparency log or your GHES instance does not support `gh attestation verify`.
-
-### Examples
-
-**Scan a remote repo without cloning:**
-
-```yaml
-- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
-  with:
-    project: my-org/other-repo
-    github-token: ${{ secrets.PLUMBER_PAT }}
-```
-
-**Run only SHA-pinning and permissions checks:**
-
-```yaml
-- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
-  with:
-    controls: actionsMustBePinnedByCommitSha,workflowsMustDeclarePermissions
-```
-
-**Soft-fail in PRs, hard-fail on main:**
-
-```yaml
-- uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
-  with:
-    soft-fail: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}
-```
+  <a href="/docs/use-plumber/issues?p=github" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="flex items-center gap-2 text-lg font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/alert-triangle" size="22px" />
+        Issues
+      </div>
+      <div class="text-muted-foreground text-sm">Every <code>ISSUE-XXX</code> with severity, impact, and remediation.</div>
+    </div>
+  </a>
+</div>
 
 ## Troubleshooting
 
@@ -727,6 +601,7 @@ Set `verify-attestation: "false"` if the runner cannot reach the sigstore transp
 | Configuration file not found | Ensure `--config` points at the real file (use an absolute path in Docker). Create one with `plumber config generate` or `plumber config init` |
 | SARIF upload fails with 403 | The job needs `security-events: write` permission. Add it under the workflow or job-level `permissions:` block |
 | Attestation verification fails | The runner cannot reach sigstore or `gh` CLI is not installed. Set `verify-attestation: "false"` to skip |
+| Score badge not published | `score-push` needs `permissions: id-token: write` in the workflow. The **public badge** only reflects your default branch; pull request runs can't publish (their OIDC token has no branch ref), so the badge updates when the PR merges. A local run never publishes. The push warns, never fails, when the token or permission is missing. See [Live Score Badge](#live-score-badge) |
 
 <Aside variant="info">
   **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](/discord).
