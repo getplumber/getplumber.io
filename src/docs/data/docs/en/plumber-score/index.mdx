@@ -1,0 +1,480 @@
+---
+title: "Plumber Score"
+seoTitle: "Plumber Score: a live CI/CD compliance badge for your repo"
+description: "Plumber Score is an A-E grade for your CI/CD security & compliance, produced on every run of the open-source Plumber CLI, locally or in CI. Publish it from your pipeline and embed it as a live badge in your README."
+sidebar:
+  label: "Plumber Score"
+  order: 1
+---
+
+<a href="https://score.getplumber.io/github.com/getplumber/plumber" target="_blank" rel="noopener">
+  <img src="https://score.getplumber.io/github.com/getplumber/plumber.svg" alt="Plumber Score" height="20" style="height:20px;width:auto;display:inline-block" />
+</a>
+
+## What is a Plumber Score?
+
+Plumber Score is a simple **A-E** grade for your CI/CD security. The
+open-source [Plumber CLI](https://github.com/getplumber/plumber) produces it on
+**every run**, whether you run it locally or in your CI pipeline.
+
+| Grade | Points | What it means |
+|:-----:|:------:|---------------|
+| <span class="font-bold text-primary-400 dark:text-primary-300">A</span> | ≥ 90 | **Excellent**: very low risk, clean pipeline |
+| <span class="font-bold text-primary-400 dark:text-primary-300">B</span> | 71 – 89 | **Good**: a few Low or Medium issues |
+| <span class="font-bold text-yellow-500 dark:text-yellow-400">C</span> | 51 – 70 | **Moderate**: Medium issues or accumulating Low findings, worth fixing |
+| <span class="font-bold text-orange-500 dark:text-orange-400">D</span> | 31 – 50 | **Poor**: High-severity issues impacting the pipeline |
+| <span class="font-bold text-red-400 dark:text-red-300">E</span> | < 31 | **Critical**: at least one Critical issue, or heavy accumulated losses |
+
+## Publish your score
+
+You can publish your score during Plumber analysis in your CI to
+`score.getplumber.io`.
+
+Publishing is **opt-in**, and it does **not** send your source code. When it's
+enabled, after each analysis on your default branch, Plumber sends its analysis
+JSON output to `score.getplumber.io`
+
+<details>
+<summary>Example of published output</summary>
+
+```jsonc
+{
+"projectPath": "getplumber/plumber",
+"projectId": 0,
+"defaultBranch": "main",
+"ciConfigSource": "local",
+"ciValid": true,
+"ciMissing": false,
+"pipelineOriginMetrics": {
+    "jobTotal": 14,
+    "originAction": 7,
+    "originActionTrustedExempt": 35,
+    "originActionUnpinned": 0,
+    "originReusableWorkflow": 0,
+    "originReusableWorkflowSecretsInherit": 0,
+    "originTotal": 7,
+    "workflowsTotal": 5
+},
+"pipelineImageMetrics": {
+    "total": 0
+},
+"compliance": 100,
+"threshold": 100,
+"passed": true,
+"plumberScore": {
+    "profileId": "scoring-v3",
+    "counts": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+    },
+    "rawPoints": 100,
+    "finalPoints": 100,
+    "score": "A",
+    "criticalMalusApplied": false,
+    "losses": [],
+    "codeLosses": []
+},
+"actionPinningResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "actionRefsExempt": 35,
+    "actionRefsTotal": 7,
+    "actionRefsUnpinned": 0
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"archivedActionsResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "actionRefsArchived": 0,
+    "actionRefsTotal": 7
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"authorizedActionSourcesResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "actionRefsTotal": 42,
+    "actionRefsUnauthorized": 0
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"branchProtectionResult": {
+    "compliance": 100,
+    "data": [
+    {
+        "allowForcePush": false,
+        "branchName": "main",
+        "codeOwnerApprovalRequired": true,
+        "default": true,
+        "protected": true,
+        "protectionDetailsKnown": true
+    }
+    ],
+    "enabled": true,
+    "metrics": {
+    "branches": 24,
+    "branchesToProtect": 1,
+    "nonCompliantBranches": 0,
+    "projectsCorrectlyProtected": 1,
+    "totalProtectedBranches": 1,
+    "unprotectedBranches": 0
+    },
+    "version": "0.2.0"
+},
+"dangerousTriggersResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "workflowsScanned": 5,
+    "workflowsWithDangerousTrigger": 0
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"debugTraceResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "forbiddenFound": 0,
+    "totalVariablesChecked": 20
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"dockerInDockerResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "dindServicesFound": 0,
+    "insecureDaemonFound": 0,
+    "totalJobsChecked": 14
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"excessivePermissionsResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "jobsTotal": 14,
+    "jobsWithWriteAll": 0
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"imageForbiddenTagsResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "ciInvalid": 0,
+    "ciMissing": 0,
+    "notPinnedByDigest": 0,
+    "pinnedByDigest": 0,
+    "total": 0,
+    "usingForbiddenTags": 0
+    },
+    "mustBePinnedByDigest": true,
+    "skipped": false,
+    "version": "0.4.0"
+},
+"knownVulnerableActionsResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "actionRefsTotal": 7,
+    "actionRefsVulnerable": 0
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"leakedSecretsResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "hitsFound": 0
+    },
+    "skipped": true,
+    "version": "0.1.0"
+},
+"permissionsResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "workflowsMissingPermissions": 0,
+    "workflowsTotal": 5
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"pullRequestTargetHeadCheckoutResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "headCheckoutsUnderPrTarget": 0,
+    "workflowsScanned": 5
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"refConfusionResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "actionRefsAmbiguous": 0,
+    "actionRefsTotal": 7
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"requiredActionsResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "anySatisfiedGroup": false,
+    "satisfiedGroups": 0,
+    "totalGroups": 0
+    },
+    "requirementGroups": [],
+    "skipped": true,
+    "version": "0.1.0"
+},
+"reusableSecretsResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "reusableCalls": 0,
+    "reusableCallsSecretsInherit": 0
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"securityJobsWeakenedResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "securityJobsFound": 1,
+    "weakenedJobs": 0
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"templateInjectionResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "scriptLinesChecked": 26,
+    "templateInjectionsFound": 0,
+    "workflowsScanned": 5
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"unverifiedScriptsResult": {
+    "ciMissing": false,
+    "ciValid": true,
+    "compliance": 100,
+    "issues": [],
+    "metrics": {
+    "jobsChecked": 14,
+    "totalScriptLinesChecked": 26,
+    "unverifiedScriptsFound": 0
+    },
+    "skipped": false,
+    "version": "0.1.0"
+},
+"headCommitSha": "18a82651361aae6b23a12694d5954fef28569bd9",
+"rawConfig": {
+    "version": "2.0",
+    "github": {
+    "controls": {
+        "actionsMustBePinnedByCommitSha": {
+        "enabled": true,
+        "trustedOwners": ["actions", "github"]
+        },
+        "actionsMustNotBeArchived": {
+        "enabled": true
+        },
+        "actionsMustNotCarryKnownCVEs": {
+        "enabled": true
+        },
+        "githubActionMustComeFromAuthorizedSources": {
+        "enabled": true,
+        "trustGithubOfficialActions": true,
+        "trustSameOrgActions": true,
+        "minimumStars": 0,
+        "trustedGithubActions": ["jdx/mise-action"]
+        },
+        "containerImageMustNotUseForbiddenTags": {
+        "enabled": true,
+        "tags": ["latest", "dev", "development", "staging", "main", "master"],
+        "containerImagesMustBePinnedByDigest": true
+        },
+        "pipelineMustNotEnableDebugTrace": {
+        "enabled": true,
+        "forbiddenVariables": ["ACTIONS_STEP_DEBUG", "ACTIONS_RUNNER_DEBUG"]
+        },
+        "pipelineMustNotUseDockerInDocker": {
+        "enabled": true,
+        "detectInsecureDaemon": true
+        },
+        "reusableWorkflowsMustNotInheritSecrets": {
+        "enabled": true
+        },
+        "securityJobsMustNotBeWeakened": {
+        "enabled": true,
+        "securityJobPatterns": [
+            "*codeql*",
+            "*dependency-review*",
+            "*trufflehog*",
+            "*gitleaks*",
+            "*osv-scanner*",
+            "*-sast",
+            "*-sast-*",
+            "*-scan",
+            "*scan*",
+            "*-security",
+            "*-security-*",
+            "*-audit",
+            "*-audit-*"
+        ],
+        "allowFailureMustBeFalse": { "enabled": true },
+        "rulesMustNotBeRedefined": { "enabled": true },
+        "whenMustNotBeManual": { "enabled": true }
+        },
+        "pipelineMustNotExecuteUnverifiedScripts": {
+        "enabled": true,
+        "trustedUrls": []
+        },
+        "workflowMustNotInjectUserInputInScripts": {
+        "enabled": true
+        },
+        "workflowMustNotUseDangerousTriggers": {
+        "enabled": true
+        },
+        "workflowsMustDeclarePermissions": {
+        "enabled": true
+        },
+        "workflowMustNotGrantPermissionsWriteAll": {
+        "enabled": true
+        },
+        "workflowMustIncludeRequiredActions": {
+        "enabled": false
+        }
+    }
+    }
+}
+}
+```
+
+</details>
+
+<Aside variant="info" title="A few things to keep in mind">
+- All published scores are public
+- The score always reflects the latest analysis on your default branch
+- Publishing never fails your pipeline: if the push doesn't go through, your analysis still succeeds
+</Aside>
+
+
+### 🐙 How to publish with GitHub
+
+1. Add the [GitHub Action](/docs/cli/github#live-score-badge) to your workflow
+with the correct workflow `permissions` and `score-push` enabled in the action
+    ```yaml
+    permissions:
+      contents: read
+      id-token: write
+    jobs:
+      plumber:
+        steps:
+          - uses: getplumber/plumber@<version>
+            with:
+              score-push: true
+    ```
+2. Add a badge in your `README.md` (replace `OWNER` and `REPO`)
+    ```md
+    [![Plumber Score](https://score.getplumber.io/github.com/OWNER/REPO.svg)](https://score.getplumber.io/github.com/OWNER/REPO)
+    ```
+
+
+### 🦊 How to publish with GitLab
+
+1. Add the [GitLab CI component](/docs/cli/gitlab#live-score-badge) to your
+`.gitlab-ci.yml` with the `score_push` input enabled
+    ```yaml
+    include:
+      - component: gitlab.com/getplumber/plumber/plumber@<version>
+        inputs:
+          score_push: true
+    ```
+2. Add a badge in your repo: **Settings → General → Badges**
+    - **Link**: `https://score.getplumber.io/gitlab.com/%{project_path}`
+    - **Badge image URL**: `https://score.getplumber.io/gitlab.com/%{project_path}.svg`
+
+## How is the score determined?
+
+The Plumber CLI determines the score on each run, locally or in CI. Every run
+starts at a perfect **100 points**. Plumber scans your CI/CD configuration, and
+each open issue subtracts points based on its **severity**. The final point
+total maps to the A-E grade above (higher points = better grade).
+
+Each severity has a weight, and repeated occurrences of the *same* issue taper
+off (capped) so a single noisy problem can't dominate the whole score:
+
+| Severity | Points lost (first occurrence) | Cap per issue type |
+|----------|:------------------------------:|:------------------:|
+| Critical | 25 | none |
+| High     | 15 | 60 |
+| Medium   | 6  | 20 |
+| Low      | 3  | 10 |
+
+<Aside variant="caution" title="Any Critical issue forces an E">
+A single Critical finding represents an immediate, high-impact risk. While one
+exists, the score is capped at **30 points**, so the grade cannot read better
+than **E**, no matter how clean the rest of the pipeline is.
+</Aside>
+
+Want the full per-issue breakdown? Run `plumber analyze --score-point` to see
+every issue code, its weight, and exactly how many points it costs.
