@@ -5,6 +5,8 @@ import githubBlackLogo from "@images/github-black.svg";
 import githubWhiteLogo from "@images/github-white.svg";
 import gitlabDarkLogo from "@images/gitlab-dark.svg";
 import gitlabWhiteLogo from "@images/gilab-white.svg";
+import { PLUMBER_GITHUB_REPO_URL } from "@js/plumberGithubRepo";
+import { Icon } from "astro-icon/components";
 import { Image } from "astro:assets";
 ---
 
@@ -48,7 +50,7 @@ import { Image } from "astro:assets";
         data-mos-anchor="#plumber-hero"
       >
         The open-source tool that maps your pipelines, detects the leaks attackers look for, and
-        grades your CI/CD security in seconds.
+        grades your CI/CD security with a Plumber score in seconds.
       </p>
 
       <!-- CTA -->
@@ -58,6 +60,15 @@ import { Image } from "astro:assets";
         data-mos-delay="0.3"
         data-mos-anchor="#plumber-hero"
       >
+        <Button
+          variant="outline"
+          href={PLUMBER_GITHUB_REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Icon name="tabler/brand-github" class="mr-1.5 h-[1.2em] w-[1.2em]" aria-hidden="true" />
+          See on GitHub
+        </Button>
         <Button variant="primary" href="/docs/cli/installation" arrow="right">
           Install the CLI
         </Button>

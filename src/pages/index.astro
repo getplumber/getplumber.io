@@ -9,7 +9,7 @@ import PricingHome from "@components/Pricing/PricingHome.astro";
 import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
 import FaqSection from "@components/Faq/FaqSection.astro";
 import SoftwareAppJsonLd from "@components/Seo/SoftwareAppJsonLd.astro";
-import { faqData, platformFaqData } from "@config/en/faqData.json";
+import { faqData } from "@config/en/faqData.json";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
@@ -28,9 +28,6 @@ const pageSections = [
   { id: "pricing", label: "Pricing" },
   { id: "plumber-cta", label: "Quick start" },
 ];
-
-// Homepage FAQ merges the CLI and Platform question sets
-const homeFaqData = [...faqData, ...platformFaqData];
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
@@ -42,6 +39,6 @@ const homeFaqData = [...faqData, ...platformFaqData];
   <PricingHome />
   <PlumberQuickStart />
   <SectionDivider />
-  <FaqSection items={homeFaqData} heading="Frequently asked questions" id="faq" />
+  <FaqSection items={faqData} heading="Frequently asked questions" id="faq" />
   <SectionNav sections={pageSections} />
 </BaseLayout>
