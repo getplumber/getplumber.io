@@ -959,7 +959,7 @@ const subColor = isPlatform
     align-items: center;
     gap: 8px;
     padding: 7px 12px;
-    background: #0f172a;
+    background: #080a08;
   }
 
   .cfg-dots {
@@ -986,14 +986,14 @@ const subColor = isPlatform
 
   .cfg-name {
     font-size: 0.625rem;
-    color: #94a3b8;
+    color: #a1a1aa;
     font-family: var(--font-mono);
     letter-spacing: 0.03em;
   }
 
   .cfg-body {
     padding: 6px 0;
-    background: #1e293b;
+    background: #0d0f0d;
   }
 
   /* ╔══════════════════════════════════════════╗
@@ -1008,7 +1008,7 @@ const subColor = isPlatform
     font-family: var(--font-mono);
     font-size: 0.52rem;
     line-height: 1.65;
-    color: #cbd5e1;
+    color: #d4d4d8;
     white-space: normal;
     overflow: visible;
     /* Same left edge as highlighted rows; only color changes for bad/good */
@@ -1043,7 +1043,7 @@ const subColor = isPlatform
   }
 
   .cl-comment code {
-    color: #64748b;
+    color: #71717a;
     font-weight: 400;
   }
 
@@ -1063,7 +1063,7 @@ const subColor = isPlatform
   }
 
   .cn {
-    color: #475569;
+    color: #52525b;
     width: 1.35rem;
     min-width: 1.35rem;
     text-align: right;
@@ -1153,7 +1153,7 @@ const subColor = isPlatform
       z-index: 0;
       border-radius: 12px;
       inset: -13px 13px 13px -13px;
-      background: #1e293b;
+      background: #0d0f0d;
       border: 1px solid rgba(245, 158, 11, 0.15);
       opacity: 0.25;
       pointer-events: none;
@@ -1165,20 +1165,20 @@ const subColor = isPlatform
       z-index: 1;
       border-radius: 12px;
       inset: -7px 7px 7px -7px;
-      background: #1e293b;
+      background: #0d0f0d;
       border: 1px solid rgba(245, 158, 11, 0.15);
       opacity: 0.55;
       pointer-events: none;
     }
 
     /*
-     * Dark page: default stack uses #1e293b at low opacity on near-black; barely visible.
+     * Dark page: default stack uses #0d0f0d at low opacity on near-black; barely visible.
      * Use :global(.dark) so Astro does not scope .dark to [data-astro-cid] (html has no cid).
      * Lighter slate planes + neutral cool-gray rims (no extra green/yellow; pills keep amber).
      */
     :global(.dark) .hiw-anim[data-variant="platform"] .s-before .s-visual::before {
-      background: #64748b;
-      border: 2px solid rgba(203, 213, 225, 0.28);
+      background: #71717a;
+      border: 2px solid rgba(212, 212, 216, 0.28);
       opacity: 1;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.06),
@@ -1186,8 +1186,8 @@ const subColor = isPlatform
     }
 
     :global(.dark) .hiw-anim[data-variant="platform"] .s-before .s-visual::after {
-      background: #475569;
-      border: 2px solid rgba(148, 163, 184, 0.42);
+      background: #52525b;
+      border: 2px solid rgba(161, 161, 170, 0.42);
       opacity: 1;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.05),
@@ -1278,13 +1278,13 @@ const subColor = isPlatform
 
   .dash-body {
     padding: 10px 12px 12px;
-    background: #1e293b;
+    background: #0d0f0d;
     display: flex;
     flex-direction: column;
     gap: 10px;
     font-family: system-ui, -apple-system, sans-serif;
     font-size: 0.5rem;
-    color: #94a3b8;
+    color: #a1a1aa;
   }
 
   .dash-chart {
@@ -1293,7 +1293,7 @@ const subColor = isPlatform
 
   .dash-chart-label {
     font-size: 0.45rem;
-    color: #64748b;
+    color: #71717a;
     margin-bottom: 4px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -1314,7 +1314,7 @@ const subColor = isPlatform
 
   .dash-stat {
     flex: 1;
-    background: #0f172a;
+    background: #080a08;
     border-radius: 6px;
     padding: 5px 8px;
     display: flex;
@@ -1331,7 +1331,7 @@ const subColor = isPlatform
 
   .dash-stat-lbl {
     font-size: 0.4rem;
-    color: #475569;
+    color: #52525b;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     font-weight: 600;
@@ -1346,7 +1346,7 @@ const subColor = isPlatform
   }
 
   .dash-blue {
-    color: #60a5fa;
+    color: #d4d4d8;
   }
 
   .dash-issues {
@@ -1388,16 +1388,16 @@ const subColor = isPlatform
   }
 
   .dash-sev-low {
-    color: #60a5fa;
-    background: rgba(96, 165, 250, 0.12);
-    border: 1px solid rgba(96, 165, 250, 0.25);
+    color: #d4d4d8;
+    background: rgba(161, 161, 170, 0.12);
+    border: 1px solid rgba(161, 161, 170, 0.25);
   }
 
   .dash-bar {
     flex: 1;
     height: 4px;
     border-radius: 2px;
-    background: #334155;
+    background: #2a2e2a;
   }
 
   /* ╔══════════════════════════════════════════╗
@@ -1411,7 +1411,7 @@ const subColor = isPlatform
     border-radius: 24px;
     border: 2px solid var(--color-primary-400);
     /* Opaque base matches .cfg-body so connector lines under the column cannot show through */
-    background-color: #1e293b;
+    background-color: #0d0f0d;
     background-image: linear-gradient(
       rgba(0, 135, 0, 0.14),
       rgba(0, 135, 0, 0.14)
