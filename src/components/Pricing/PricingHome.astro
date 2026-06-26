@@ -1,0 +1,119 @@
+---
+/**
+ * * Homepage pricing — three plans: Open Source CLI, Platform Free, Enterprise.
+ * Simple card layout (no comparison table). The CLI plan is the featured/default.
+ */
+import Button from "@components/Button/Button.astro";
+import githubBlackLogo from "@images/github-black.svg";
+import githubWhiteLogo from "@images/github-white.svg";
+import gitlabDarkLogo from "@images/gitlab-dark.svg";
+import gitlabWhiteLogo from "@images/gilab-white.svg";
+import { Image } from "astro:assets";
+
+interface Plan {
+  name: string;
+  price: string;
+  description: string;
+  cta: string;
+  href: string;
+  featured?: boolean;
+  providers?: boolean;
+}
+
+const plans: Plan[] = [
+  {
+    name: "Open Source CLI",
+    price: "€0",
+    description: "1 pipeline · advisory fixes · scan anything from your terminal.",
+    cta: "Install the CLI",
+    href: "/docs/cli/installation",
+    featured: true,
+  },
+  {
+    name: "Platform Free",
+    price: "€0",
+    description:
+      "Up to 10 projects · core CI/CD controls · 7-day history · scheduled scans · community support.",
+    cta: "Start free",
+    href: "/docs/getting-started",
+    providers: true,
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    description:
+      "From 10+ projects to unlimited · AI fixes & suggestions · unlimited history · portfolios · dedicated support.",
+    cta: "Talk to us",
+    href: "/contact",
+    providers: true,
+  },
+];
+---
+
+<section
+  id="pricing"
+  class="border-base-300 dark:border-base-600/60 dark:bg-base-900/20 scroll-mt-20 border-t bg-base-200/20 py-20 md:py-28"
+>
+  <div class="site-container text-center">
+    <p
+      class="section-eyebrow"
+      data-mos="fade-up"
+      data-mos-anchor="#pricing"
+    >
+      Pricing
+    </p>
+    <h2
+      class="h2 mt-4"
+      data-mos="fade-up"
+      data-mos-delay="0.1"
+      data-mos-anchor="#pricing"
+    >
+      Start free. Scale when you need to.
+    </h2>
+
+    <div class="mt-12 grid gap-4 text-left md:grid-cols-3">
+      {
+        plans.map((plan, idx) => (
+          <div
+            class:list={[
+              "flex flex-col rounded-2xl border p-6",
+              plan.featured
+                ? "border-primary-500 dark:border-primary-500"
+                : "border-base-300 dark:border-base-600/60",
+            ]}
+            data-mos="fade-up"
+            data-mos-delay={`${idx * 0.1 + 0.2}`}
+            data-mos-anchor="#pricing"
+          >
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="text-base-900 dark:text-base-100 text-lg font-semibold">
+                {plan.name}
+              </span>
+              <span class="text-primary-600 dark:text-primary-400 font-mono text-sm">
+                {plan.price}
+              </span>
+            </div>
+            <p class="text-base-700 dark:text-base-300 mt-3 flex-1 text-sm leading-relaxed opacity-90 dark:opacity-80">
+              {plan.description}
+            </p>
+            {plan.providers && (
+              <div class="mt-4 flex items-center gap-3">
+                <Image src={gitlabDarkLogo} alt="GitLab" class="block h-4 w-auto opacity-80 dark:hidden" />
+                <Image src={gitlabWhiteLogo} alt="GitLab" class="hidden h-4 w-auto opacity-80 dark:block" />
+                <Image src={githubBlackLogo} alt="GitHub" class="block h-4 w-auto opacity-90 dark:hidden" />
+                <Image src={githubWhiteLogo} alt="GitHub" class="hidden h-4 w-auto opacity-90 dark:block" />
+              </div>
+            )}
+            <Button
+              variant={plan.featured ? "primary" : "outline"}
+              href={plan.href}
+              class="mt-5 w-full"
+            >
+              {plan.cta}
+            </Button>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

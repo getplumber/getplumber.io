@@ -1,0 +1,141 @@
+---
+/**
+ * * Floating section nav for the landing page (scroll-spy).
+ * Minimal vertical dot rail on the right; labels reveal on hover.
+ * The active section's dot turns primary + glows. Hidden below 1180px.
+ */
+interface Section {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  sections: Section[];
+}
+
+const { sections } = Astro.props as Props;
+---
+
+<nav class="section-nav" data-section-nav aria-label="Page sections">
+  {
+    sections.map((section) => (
+      <a href={`#${section.id}`} data-spy-link={section.id} class="spy-link">
+        <span class="spy-label">{section.label}</span>
+        <span class="spy-dot" aria-hidden="true" />
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .section-nav {
+    position: fixed;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-end;
+  }
+
+  /* Match the wireframe: hide on narrower viewports to avoid overlapping content */
+  @media (max-width: 1180px) {
+    .section-nav {
+      display: none;
+    }
+  }
+
+  .spy-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .spy-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--foreground) 50%, transparent);
+    opacity: 0;
+    transform: translateX(6px);
+    transition:
+      opacity 0.22s ease,
+      transform 0.22s ease,
+      color 0.2s ease;
+    pointer-events: none;
+  }
+
+  .section-nav:hover .spy-label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .spy-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--foreground) 25%, transparent);
+    transition: all 0.2s ease;
+  }
+
+  .spy-link:hover .spy-dot {
+    background: color-mix(in srgb, var(--foreground) 55%, transparent);
+  }
+
+  .spy-link[data-active="true"] .spy-dot {
+    background: var(--color-primary-500);
+    transform: scale(1.5);
+    box-shadow: 0 0 9px var(--color-primary-500);
+  }
+
+  .spy-link[data-active="true"] .spy-label {
+    color: var(--foreground);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spy-label,
+    .spy-dot {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  function initSectionNav() {
+    document.querySelectorAll<HTMLElement>("[data-section-nav]").forEach((nav) => {
+      if (nav.dataset.spyInit === "true") return;
+      nav.dataset.spyInit = "true";
+
+      const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>("[data-spy-link]"));
+      const sections = links
+        .map((l) => document.getElementById(l.dataset.spyLink || ""))
+        .filter((el): el is HTMLElement => Boolean(el));
+
+      if (!sections.length) return;
+
+      const setActive = (id: string) => {
+        links.forEach((l) =>
+          l.setAttribute("data-active", l.dataset.spyLink === id ? "true" : "false"),
+        );
+      };
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) setActive(entry.target.id);
+          });
+        },
+        { rootMargin: "-45% 0px -50% 0px", threshold: 0 },
+      );
+
+      sections.forEach((s) => observer.observe(s));
+    });
+  }
+
+  initSectionNav();
+  document.addEventListener("astro:after-swap", initSectionNav);
+</script>

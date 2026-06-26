@@ -163,6 +163,20 @@
     @apply text-xl font-medium;
   }
 
+  /* Mono uppercase section eyebrow (e.g. "THE LOOP", "OPEN SOURCE · CI/CD SECURITY").
+     Plain CSS (not @apply) so theme color vars resolve cleanly inside the layer. */
+  .section-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-primary-700);
+  }
+  .dark .section-eyebrow {
+    color: var(--color-primary-300);
+  }
+
   .description {
     @apply text-base-700 dark:text-base-300 md:text-lg;
   }

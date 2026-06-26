@@ -1,12 +1,15 @@
 ---
-import FaqSection from "@components/Faq/FaqSection.astro";
-import PlumberFeatures from "@components/Feature/PlumberFeatures.astro";
+import CliVsPlatform from "@components/Feature/CliVsPlatform.astro";
 import PlumberQuickStart from "@components/Feature/PlumberQuickStart.astro";
 import PlumberRadar from "@components/Feature/PlumberRadar.astro";
+import TheLoop from "@components/Feature/TheLoop.astro";
 import PlumberHero from "@components/Hero/PlumberHero.astro";
+import SectionNav from "@components/Nav/SectionNav.astro";
+import PricingHome from "@components/Pricing/PricingHome.astro";
 import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
+import FaqSection from "@components/Faq/FaqSection.astro";
 import SoftwareAppJsonLd from "@components/Seo/SoftwareAppJsonLd.astro";
-import { faqData } from "@config/en/faqData.json";
+import { faqData, platformFaqData } from "@config/en/faqData.json";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { getTranslatedData } from "@js/translationUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
@@ -16,14 +19,29 @@ const siteData = getTranslatedData("siteData", currLocale);
 
 const pageTitle = siteData.homepageTitle ?? siteData.title;
 const pageDescription = siteData.homepageDescription ?? siteData.description;
+
+// Floating right-side section nav (scroll-spy)
+const pageSections = [
+  { id: "the-loop", label: "How it works" },
+  { id: "platform", label: "CLI & Platform" },
+  { id: "plumber-radar", label: "Radar" },
+  { id: "pricing", label: "Pricing" },
+  { id: "plumber-cta", label: "Quick start" },
+];
+
+// Homepage FAQ merges the CLI and Platform question sets
+const homeFaqData = [...faqData, ...platformFaqData];
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
   <SoftwareAppJsonLd />
   <PlumberHero />
-  <SectionDivider />
-  <PlumberFeatures />
-  <PlumberQuickStart />
+  <TheLoop />
+  <CliVsPlatform />
   <PlumberRadar />
-  <FaqSection items={faqData} heading="Frequently asked questions" id="faq" />
+  <PricingHome />
+  <PlumberQuickStart />
+  <SectionDivider />
+  <FaqSection items={homeFaqData} heading="Frequently asked questions" id="faq" />
+  <SectionNav sections={pageSections} />
 </BaseLayout>

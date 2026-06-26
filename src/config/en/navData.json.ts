@@ -12,14 +12,6 @@ import { type navItem } from "../types/configDataTypes";
 
 const navConfig: navItem[] = [
   {
-    text: "Open Source CLI",
-    link: "/",
-  },
-  {
-    text: "Platform",
-    link: "/platform",
-  },
-  {
     text: "Docs",
     megaMenuColumns: [
       {

@@ -1,90 +1,78 @@
 ---
-import PipelineAnimation from "@components/Animation/PipelineAnimation.astro";
 import Button from "@components/Button/Button.astro";
 import GitHubHeroStatsBadge from "@components/Hero/GitHubHeroStatsBadge.astro";
 import githubBlackLogo from "@images/github-black.svg";
 import githubWhiteLogo from "@images/github-white.svg";
 import gitlabDarkLogo from "@images/gitlab-dark.svg";
 import gitlabWhiteLogo from "@images/gilab-white.svg";
-import { PLUMBER_GITHUB_REPO_URL } from "@js/plumberGithubRepo";
-import { Icon } from "astro-icon/components";
 import { Image } from "astro:assets";
 ---
 
 <section
   id="plumber-hero"
-  class="relative flex w-full overflow-hidden pt-32 pb-32 md:pt-40 md:pb-32"
+  class="relative flex w-full overflow-hidden pt-28 pb-20 md:pt-36 md:pb-24"
 >
-  <!-- background glow -->
-  <div
-    class="bg-primary-300/25 dark:bg-primary-500/50 absolute inset-0 bottom-1/2 -z-10 mx-auto aspect-square w-[65%] max-w-5xl -translate-y-2/3 rounded-full blur-[100px]"
-    aria-hidden="true"
-  >
-  </div>
-
-  <!-- background grid svg -->
-  <div class="absolute inset-0 -z-20 flex overflow-hidden">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="text-base-500/5 dark:text-base-500/5 relative h-full w-full xl:scale-125"
-      aria-hidden="true"
-    >
-      <defs>
-        <pattern id="grid-pattern" width="60" height="60" patternUnits="userSpaceOnUse">
-          <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" stroke-width="2"></path>
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#grid-pattern)"></rect>
-    </svg>
-  </div>
-
   <!-- hero items -->
-  <div class="site-container mx-auto max-w-6xl min-w-0 gap-8">
-    <!-- notification -->
-    <!-- <div
-      class="mb-4 flex w-full items-center justify-center"
-      data-mos="fade-up"
-      data-mos-anchor="#hero1"
-    >
-      <a
-        href={"/blog/tsconfig-paths-setup"}
-        class="border-primary-300 bg-base-100 text-base-800 ring-primary-500/20 hover:border-primary-400 dark:border-primary-300/20 dark:bg-base-800 dark:text-base-200 dark:hover:border-primary-400/60 flex items-center rounded-full border px-4 py-1 text-sm ring-2 transition"
-      >
-        <span class="flex items-center gap-2">
-          <Icon
-            name="tabler/wand"
-            class="text-primary-600 dark:text-primary-300 inline h-4 w-4"
-            aria-hidden="true"
-          />0.1.42 Released!</span
-        ></a
-      >
-    </div> -->
-    <!-- Hero text -->
-    <div class="mb-12 min-w-0 px-1 text-center sm:px-0">
-      <GitHubHeroStatsBadge />
-      <h1
-        class="from-base-900 to-base-600/90 dark:from-base-100 dark:to-base-400/90 text-pretty bg-gradient-to-r bg-clip-text pb-4 text-3xl leading-tight font-medium text-transparent sm:text-4xl md:text-5xl lg:text-6xl"
+  <div class="site-container mx-auto max-w-6xl min-w-0">
+    <div class="min-w-0 px-1 text-center sm:px-0">
+      <!-- GitHub stars + latest release pill -->
+      <div class="mb-6 flex justify-center">
+        <GitHubHeroStatsBadge />
+      </div>
+
+      <!-- eyebrow -->
+      <p
+        class="section-eyebrow"
         data-mos="fade-up"
         data-mos-anchor="#plumber-hero"
       >
-        Open Source compliance CLI <br /> for <span
-          class="text-primary-600 dark:text-primary-500 dark:text-shadow-base-700 dark:text-shadow-xs">GitLab CI/CD</span
+        Open source · CI/CD security
+      </p>
+
+      <h1
+        class="from-base-900 to-base-600/90 dark:from-base-100 dark:to-base-400/90 text-pretty mx-auto mt-5 max-w-3xl bg-gradient-to-r bg-clip-text pb-2 text-4xl leading-[1.1] font-semibold tracking-tight text-transparent sm:text-5xl md:text-6xl"
+        data-mos="fade-up"
+        data-mos-delay="0.1"
+        data-mos-anchor="#plumber-hero"
+      >
+        Spot &amp; fix CI/CD security leaks, <span
+          class="text-primary-600 dark:text-primary-500 dark:text-shadow-base-700 dark:text-shadow-xs"
+          >continuously</span
         >
-        <span class="text-base-500 dark:text-base-400 font-light">&amp;</span>
-        <span class="text-primary-600 dark:text-primary-500 dark:text-shadow-base-700 dark:text-shadow-xs">GitHub Actions</span>
       </h1>
+
+      <p
+        class="description mx-auto mt-6 max-w-2xl"
+        data-mos="fade-up"
+        data-mos-delay="0.2"
+        data-mos-anchor="#plumber-hero"
+      >
+        The open-source tool that maps your pipelines, detects the leaks attackers look for, and
+        grades your CI/CD security in seconds.
+      </p>
+
+      <!-- CTA -->
+      <div
+        class="mx-auto mt-8 flex max-w-md flex-col justify-center gap-4 px-4 sm:flex-row"
+        data-mos="fade-up"
+        data-mos-delay="0.3"
+        data-mos-anchor="#plumber-hero"
+      >
+        <Button variant="primary" href="/docs/cli/installation" arrow="right">
+          Install the CLI
+        </Button>
+      </div>
 
       <!-- Provider logos: official wordmarks for GitLab and GitHub -->
       <div
-        class="text-base-500 dark:text-base-400 mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs font-medium tracking-wider uppercase"
+        class="text-base-500 dark:text-base-400 mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs font-medium tracking-wider uppercase"
         data-mos="fade-up"
-        data-mos-delay="0.15"
+        data-mos-delay="0.4"
         data-mos-anchor="#plumber-hero"
         aria-label="Supported CI/CD providers"
       >
         <span aria-hidden="true">Works with</span>
         <span class="inline-flex items-center gap-5">
-          <!-- GitLab wordmark -->
           <Image
             src={gitlabDarkLogo}
             alt="GitLab"
@@ -97,10 +85,7 @@ import { Image } from "astro:assets";
             class="hidden h-5 w-auto opacity-80 dark:block"
             loading="eager"
           />
-          <span
-            class="bg-base-600 dark:bg-base-500 inline-block h-6 w-px"
-            aria-hidden="true"></span>
-          <!-- GitHub wordmark -->
+          <span class="bg-base-600 dark:bg-base-500 inline-block h-6 w-px" aria-hidden="true"></span>
           <Image
             src={githubBlackLogo}
             alt="GitHub"
@@ -115,52 +100,6 @@ import { Image } from "astro:assets";
           />
         </span>
       </div>
-
-      <p
-        class="description mx-auto mt-6 max-w-2xl"
-        data-mos="fade-up"
-        data-mos-delay="0.2"
-        data-mos-anchor="#plumber-hero"
-      >
-        <strong class="text-base-800 dark:text-base-200 font-medium"
-          >Plumber is an open-source CLI and platform that audits GitLab CI/CD pipelines and
-          GitHub Actions workflows for security and compliance.</strong
-        >
-        <a
-          href="#plumber-features"
-          class="text-primary-600 dark:text-primary-400 group mt-2 inline-flex items-center gap-1 no-underline hover:underline"
-        >
-          See how it works
-          <Icon
-            name="tabler/chevron-down"
-            class="h-[1.2em] w-[1.2em] transition-transform group-hover:translate-y-0.5"
-            aria-hidden="true"
-          />
-        </a>
-      </p>
-
-      <!-- CTA Buttons -->
-      <div
-        class="mx-auto mt-8 flex max-w-md flex-col justify-center gap-4 px-4 sm:flex-row"
-        data-mos="fade-up"
-        data-mos-delay="0.4"
-        data-mos-anchor="#plumber-hero"
-      >
-        <Button variant="primary" href={PLUMBER_GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
-          View on GitHub
-        </Button>
-        <Button variant="outline" href="/docs/cli" arrow="right"> CLI Documentation </Button>
-      </div>
-    </div>
-
-    <!-- Pipeline Animation Section -->
-    <div
-      class="relative mt-8 flex w-full min-w-0 max-w-full items-center justify-center overflow-x-clip"
-      data-mos="fade-up"
-      data-mos-delay="0.6"
-      data-mos-anchor="#plumber-hero"
-    >
-      <PipelineAnimation />
     </div>
   </div>
 </section>
