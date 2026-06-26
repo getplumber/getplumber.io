@@ -25,14 +25,13 @@ export const GET: APIRoute = async (context) => {
 
   const content = `# Plumber
 
-> Plumber is an open-source CLI and compliance platform that audits GitLab CI/CD pipelines and GitHub Actions workflows for security and compliance. It checks pipeline composition, container images, dangerous triggers and permissions, and branch protection settings against a policy file, and produces a letter-grade report (A-E) with documented remediation for every issue found.
+> Plumber is an open-source tool that maps your CI/CD pipelines, detects the security leaks attackers exploit, fixes them, and grades your GitLab CI/CD and GitHub Actions setup with a letter grade (A-E). It runs as one continuous loop — map, detect, fix, prove — checking pipeline composition, container images, dangerous triggers and permissions, and branch protection against a policy file, with documented remediation for every issue found.
 
-The open-source CLI scans a repository locally or in CI (GitLab CI/CD and GitHub Actions share one policy file and the same controls). The Plumber Platform continuously maps, audits, and remediates CI/CD compliance gaps across whole GitLab/GitHub organizations, for regulatory frameworks such as ISO 27001, NIS2, DORA, and SOC 2.
+The open-source CLI scans a repository locally or in CI (GitLab CI/CD and GitHub Actions share one policy file and the same controls). The Plumber Platform continuously maps, audits, and remediates CI/CD security gaps across whole GitLab and GitHub organizations, for regulatory frameworks such as ISO 27001, NIS2, DORA, and SOC 2.
 
 ## Key pages
 
 - [Plumber CLI (homepage)](${baseUrl}/): Open-source CI/CD compliance CLI for GitLab and GitHub
-- [Plumber Platform](${baseUrl}/platform): Continuous CI/CD compliance automation for organizations
 - [GitHub repository](https://github.com/getplumber/plumber): Source code, releases, and issue tracker
 - [Plumber Radar](${baseUrl}/radar): Live compliance scan of the open-source GitLab ecosystem
 

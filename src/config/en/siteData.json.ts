@@ -4,15 +4,14 @@ import { type SiteDataProps } from "../types/configDataTypes";
 const siteData: SiteDataProps = {
   name: "Plumber",
   // Your website's title and description (meta fields)
-  title: "Plumber - CI/CD compliance without effort",
+  title: "Plumber - CI/CD security for GitLab and GitHub",
   description:
-    "Audit, detect, and remediate drifts, continuously. Be ready for regulatory demands (ISO 27001, NIS2, DORA, SOC 2…).",
+    "Detect and fix the CI/CD security leaks attackers exploit across GitLab and GitHub, and grade your setup A–E — continuously. Audit-ready for ISO 27001, NIS2, DORA, and SOC 2.",
 
-  // Homepage (`/`) — Open Source CLI positioning (GitLab CI/CD + GitHub Actions)
-  homepageTitle:
-    "Plumber - CI/CD compliance CLI for GitLab and GitHub",
+  // Homepage (`/`) — open-source CI/CD security positioning (GitLab + GitHub)
+  homepageTitle: "Plumber - Spot & fix CI/CD security leaks for GitLab & GitHub",
   homepageDescription:
-    "Analyze GitLab CI/CD pipelines and GitHub Actions workflows for security and compliance. One policy file, shared controls, and letter-grade reports for both platforms.",
+    "The open-source tool that maps your pipelines, detects the CI/CD security leaks attackers exploit, and grades your GitLab and GitHub security A–E — continuously.",
 
   // Your information for blog post purposes
   author: {
@@ -24,7 +23,7 @@ const siteData: SiteDataProps = {
   // default image for Open Graph / Twitter card (big link preview)
   defaultImage: {
     src: "/social-media-card.png",
-    alt: "Plumber - CI/CD compliance CLI for GitLab and GitHub",
+    alt: "Plumber - Spot & fix CI/CD security leaks for GitLab and GitHub",
   },
 };
 

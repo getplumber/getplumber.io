@@ -21,7 +21,7 @@ export const faqData: FaqItem[] = [
     answer: `Yes. The Plumber CLI is open source and free to use — the code lives on
       <a href="https://github.com/getplumber/plumber" target="_blank" rel="noopener noreferrer">GitHub</a>.
       For teams that need continuous monitoring, drift detection, and audit-ready reporting
-      across many projects, there is also the <a href="/platform">Plumber Platform</a>.`,
+      across many projects, there is also the <a href="/#platform">Plumber Platform</a>.`,
   },
   {
     question: "How do I check my GitLab CI/CD pipelines for compliance?",

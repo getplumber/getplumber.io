@@ -1,0 +1,181 @@
+---
+/**
+ * * "How it works" section — Map. Detect. Fix. Prove.
+ * Four numbered cards describing the continuous CI/CD security loop, followed by
+ * the Plumber Score (the "Prove" step made tangible): an A–E grade + weighted bars.
+ */
+interface LoopStep {
+  num: string;
+  phase: string;
+  title: string;
+  text: string;
+}
+
+const steps: LoopStep[] = [
+  {
+    num: "01",
+    phase: "Map",
+    title: "Inventory",
+    text: "Discover every pipeline across all your repos.",
+  },
+  {
+    num: "02",
+    phase: "Detect",
+    title: "Find the leaks",
+    text: "Surface exposed secrets, misconfigs and risky actions.",
+  },
+  {
+    num: "03",
+    phase: "Fix",
+    title: "AI remediation",
+    text: "A deterministic AI agent applies the fix, auditable every time.",
+  },
+  {
+    num: "04",
+    phase: "Prove",
+    title: "Get a grade",
+    text: "Ship an audit-ready Plumber Score, A to E.",
+  },
+];
+
+interface Grade {
+  letter: string;
+  color: string; // text + border accent
+  featured?: boolean;
+}
+
+const grades: Grade[] = [
+  { letter: "A", color: "#2bb85c" },
+  { letter: "B", color: "#9bd34a", featured: true },
+  { letter: "C", color: "#e8c21d" },
+  { letter: "D", color: "#ef8a1a" },
+  { letter: "E", color: "#e0573a" },
+];
+
+interface Metric {
+  label: string;
+  value: number; // 0-100
+}
+
+const metrics: Metric[] = [
+  { label: "Secrets exposure", value: 70 },
+  { label: "Runner hardening", value: 45 },
+  { label: "Repo governance", value: 60 },
+];
+---
+
+<section
+  id="the-loop"
+  class="border-base-300 dark:border-base-600/60 scroll-mt-20 border-t py-20 md:py-28"
+>
+  <div class="site-container text-center">
+    <p class="section-eyebrow" data-mos="fade-up" data-mos-anchor="#the-loop">How it works</p>
+    <h2 class="h2 mt-4" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#the-loop">
+      Map. Detect. Fix. Prove.
+    </h2>
+    <p
+      class="description mx-auto mt-4 max-w-xl"
+      data-mos="fade-up"
+      data-mos-delay="0.2"
+      data-mos-anchor="#the-loop"
+    >
+      Continuous CI/CD security, run as one loop, on every pipeline.
+    </p>
+
+    <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        steps.map((step, idx) => (
+          <div
+            class="border-base-300 dark:border-base-600/60 dark:bg-base-900 rounded-2xl border bg-transparent p-6 text-left transition duration-300 hover:border-primary-300 dark:hover:border-base-500"
+            data-mos="fade-up"
+            data-mos-delay={`${idx * 0.1 + 0.25}`}
+            data-mos-anchor="#the-loop"
+          >
+            <div class="text-primary-600 dark:text-primary-400 font-mono text-sm font-bold tracking-wide">
+              {step.num} · {step.phase}
+            </div>
+            <h3 class="text-base-900 dark:text-base-100 mt-3 text-lg font-semibold tracking-tight">
+              {step.title}
+            </h3>
+            <p class="text-base-700 dark:text-base-300 mt-1.5 text-sm leading-relaxed opacity-90 dark:opacity-80">
+              {step.text}
+            </p>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- The Plumber Score: the "Prove" step, made tangible -->
+    <div
+      id="plumber-score"
+      class="border-base-300 dark:border-base-600/60 mx-auto mt-16 max-w-2xl scroll-mt-20 border-t pt-16 md:mt-20 md:pt-20"
+    >
+      <p
+        class="section-eyebrow"
+        data-mos="fade-up"
+        data-mos-anchor="#plumber-score"
+      >
+        The Plumber Score
+      </p>
+      <h3
+        class="h3 mt-4"
+        data-mos="fade-up"
+        data-mos-delay="0.1"
+        data-mos-anchor="#plumber-score"
+      >
+        One score. Everyone understands it.
+      </h3>
+      <p
+        class="description mx-auto mt-3 max-w-xl"
+        data-mos="fade-up"
+        data-mos-delay="0.2"
+        data-mos-anchor="#plumber-score"
+      >
+        An A to E grade that makes CI/CD security as easy to read as a credit rating.
+      </p>
+
+      <!-- grade scale -->
+      <div
+        class="mx-auto mt-10 flex max-w-xl gap-2 sm:gap-3"
+        data-mos="fade-up"
+        data-mos-delay="0.3"
+        data-mos-anchor="#plumber-score"
+      >
+        {
+          grades.map((g) => (
+            <div
+              class:list={[
+                "flex h-16 flex-1 items-center justify-center rounded-xl font-bold",
+                g.featured ? "text-2xl" : "text-xl",
+              ]}
+              style={`color:${g.color};border:${g.featured ? "2px" : "1px"} solid ${g.color}${g.featured ? "" : "80"};background:${g.color}1f;${g.featured ? `box-shadow:0 0 0 4px ${g.color}22;` : ""}`}
+            >
+              {g.letter}
+            </div>
+          ))
+        }
+      </div>
+
+      <!-- weighted control bars -->
+      <div
+        class="mx-auto mt-10 flex max-w-xl flex-col gap-4"
+        data-mos="fade-up"
+        data-mos-delay="0.4"
+        data-mos-anchor="#plumber-score"
+      >
+        {
+          metrics.map((m) => (
+            <div class="flex items-center gap-4 text-left">
+              <span class="text-base-700 dark:text-base-300 w-32 shrink-0 text-sm leading-tight">
+                {m.label}
+              </span>
+              <span class="bg-base-300 dark:bg-base-700 h-2 flex-1 overflow-hidden rounded-full">
+                <span class="bg-primary-500 block h-full rounded-full" style={`width:${m.value}%`} />
+              </span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

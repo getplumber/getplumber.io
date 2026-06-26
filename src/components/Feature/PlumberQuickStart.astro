@@ -30,7 +30,7 @@ const steps: StepData[] = [
   {
     icon: "tabler/terminal-2",
     title: "Set up Plumber in your repository",
-    text: "Add the Plumber component to your GitLab pipeline (or call the CLI from your GitHub Actions workflow) and configure controls (registries, action pinning, branch protection, etc.).",
+    text: "Add the Plumber CI component to your GitLab pipeline or the Plumber Action to your GitHub workflow, then configure controls: registries, action pinning, branch protection.",
   },
   {
     icon: "tabler/player-play",
@@ -47,12 +47,16 @@ const steps: StepData[] = [
 
 <section
   id="plumber-cta"
-  class="border-base-300 dark:border-base-600/60 mt-24 border-t py-20 md:mt-36"
+  class="border-base-300 dark:border-base-600/60 scroll-mt-20 border-t py-20 md:py-28"
 >
   <div class="site-container">
     <div class="flex flex-col">
       <div class="flex justify-start">
-        <p class="colored-title inline" data-mos="fade-up" data-mos-anchor="#plumber-cta">
+        <p
+          class="section-eyebrow"
+          data-mos="fade-up"
+          data-mos-anchor="#plumber-cta"
+        >
           Quick Start
         </p>
       </div>
@@ -144,7 +148,7 @@ const steps: StepData[] = [
                       <span class="text-base-500 dark:text-base-400 mt-0.5 block text-xs leading-snug">
                         {isGitlab
                           ? "CI component, controls, and GitLab-specific setup"
-                          : "Workflow scanning, auth, and GitHub controls"}
+                          : "GitHub Action, workflow scanning, and controls"}
                       </span>
                     </span>
                   </span>

@@ -60,6 +60,16 @@
       "permanent": true
     },
     {
+      "source": "/platform",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/platform/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
       "source": "/:path+/",
       "destination": "/:path+",
       "permanent": true

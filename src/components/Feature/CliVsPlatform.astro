@@ -1,0 +1,151 @@
+---
+/**
+ * * "CLI first, platform when you scale" section.
+ * Two selectable cards (CLI / Platform) that swap the media panel below.
+ * CLI shows the live scan animation; Platform shows a "coming soon" placeholder.
+ */
+import PipelineAnimation from "@components/Animation/PipelineAnimation.astro";
+import BeforeAfterPipeline from "@components/BeforeAfter/BeforeAfterPipeline.astro";
+import githubBlackLogo from "@images/github-black.svg";
+import githubWhiteLogo from "@images/github-white.svg";
+import gitlabDarkLogo from "@images/gitlab-dark.svg";
+import gitlabWhiteLogo from "@images/gilab-white.svg";
+import { Image } from "astro:assets";
+---
+
+<section
+  id="platform"
+  class="border-base-300 dark:border-base-600/60 dark:bg-base-900/20 scroll-mt-20 border-t bg-base-200/20 py-20 md:py-28"
+  data-clivp
+>
+  <div class="site-container text-center">
+    <p
+      class="section-eyebrow"
+      data-mos="fade-up"
+      data-mos-anchor="#platform"
+    >
+      CLI first, platform when you scale
+    </p>
+    <h2
+      class="h2 mt-4"
+      data-mos="fade-up"
+      data-mos-delay="0.1"
+      data-mos-anchor="#platform"
+    >
+      Start in the terminal. Grow into the dashboard.
+    </h2>
+
+    <!-- selectable cards -->
+    <div class="mt-10 grid gap-4 text-left md:grid-cols-2">
+      <button
+        type="button"
+        data-clivp-tab="cli"
+        aria-pressed="true"
+        class="clivp-card group rounded-2xl border p-6 text-left transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:focus-visible:ring-primary-400"
+        data-mos="fade-up"
+        data-mos-delay="0.2"
+        data-mos-anchor="#platform"
+      >
+        <span class="text-primary-600 dark:text-primary-400 font-mono text-xs font-medium tracking-[0.1em] uppercase">
+          The CLI
+        </span>
+        <span class="text-base-900 dark:text-base-100 mt-2 block text-xl font-semibold tracking-tight">
+          Scan from your CI
+        </span>
+        <span class="text-base-700 dark:text-base-300 mt-2 block text-sm leading-relaxed opacity-90 dark:opacity-80">
+          One pipeline at a time · open source · advisory fixes · zero setup.
+        </span>
+        <span class="text-base-600 dark:text-base-400 mt-2.5 block text-sm leading-relaxed">
+          Run it locally or in CI, as a GitHub Action or a GitLab CI component.
+        </span>
+        <span class="mt-4 flex items-center gap-3">
+          <Image src={gitlabDarkLogo} alt="GitLab" class="block h-4 w-auto opacity-80 dark:hidden" />
+          <Image src={gitlabWhiteLogo} alt="GitLab" class="hidden h-4 w-auto opacity-80 dark:block" />
+          <Image src={githubBlackLogo} alt="GitHub" class="block h-4 w-auto opacity-90 dark:hidden" />
+          <Image src={githubWhiteLogo} alt="GitHub" class="hidden h-4 w-auto opacity-90 dark:block" />
+        </span>
+      </button>
+
+      <button
+        type="button"
+        data-clivp-tab="platform"
+        aria-pressed="false"
+        class="clivp-card group rounded-2xl border p-6 text-left transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:focus-visible:ring-primary-400"
+        data-mos="fade-up"
+        data-mos-delay="0.3"
+        data-mos-anchor="#platform"
+      >
+        <span class="text-base-600 dark:text-base-400 font-mono text-xs font-medium tracking-[0.1em] uppercase">
+          The Platform
+        </span>
+        <span class="text-base-900 dark:text-base-100 mt-2 block text-xl font-semibold tracking-tight">
+          Monitor the whole org
+        </span>
+        <span class="text-base-700 dark:text-base-300 mt-2 block text-sm leading-relaxed opacity-90 dark:opacity-80">
+          Org-wide dashboards · drift alerts · AI fixes · audit-ready reports. Free up to 10
+          projects.
+        </span>
+        <span class="mt-4 flex items-center gap-3">
+          <Image src={gitlabDarkLogo} alt="GitLab" class="block h-4 w-auto opacity-80 dark:hidden" />
+          <Image src={gitlabWhiteLogo} alt="GitLab" class="hidden h-4 w-auto opacity-80 dark:block" />
+          <Image src={githubBlackLogo} alt="GitHub" class="block h-4 w-auto opacity-90 dark:hidden" />
+          <Image src={githubWhiteLogo} alt="GitHub" class="hidden h-4 w-auto opacity-90 dark:block" />
+        </span>
+      </button>
+    </div>
+
+    <!-- media panel -->
+    <div
+      class="border-base-300 dark:border-base-600/60 dark:bg-base-900/40 mt-6 overflow-hidden rounded-2xl border bg-base-100/40"
+      data-mos="fade-up"
+      data-mos-delay="0.35"
+      data-mos-anchor="#platform"
+    >
+      <div data-clivp-media="cli" class="p-4 sm:p-6">
+        <PipelineAnimation />
+      </div>
+      <div data-clivp-media="platform" hidden class="p-4 sm:p-6">
+        <BeforeAfterPipeline variant="platform" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .clivp-card {
+    border-color: var(--border);
+    background: transparent;
+  }
+  .clivp-card[aria-pressed="true"] {
+    border-color: var(--color-primary-500);
+    background: color-mix(in srgb, var(--color-primary-500) 7%, transparent);
+  }
+</style>
+
+<script>
+  function initCliVsPlatform() {
+    document.querySelectorAll<HTMLElement>("[data-clivp]").forEach((section) => {
+      if (section.dataset.clivpInit === "true") return;
+      section.dataset.clivpInit = "true";
+
+      const tabs = section.querySelectorAll<HTMLButtonElement>("[data-clivp-tab]");
+      const medias = section.querySelectorAll<HTMLElement>("[data-clivp-media]");
+
+      const select = (target: string) => {
+        tabs.forEach((t) =>
+          t.setAttribute("aria-pressed", t.dataset.clivpTab === target ? "true" : "false"),
+        );
+        medias.forEach((m) => {
+          m.hidden = m.dataset.clivpMedia !== target;
+        });
+      };
+
+      tabs.forEach((t) =>
+        t.addEventListener("click", () => select(t.dataset.clivpTab || "cli")),
+      );
+    });
+  }
+
+  initCliVsPlatform();
+  document.addEventListener("astro:after-swap", initCliVsPlatform);
+</script>
