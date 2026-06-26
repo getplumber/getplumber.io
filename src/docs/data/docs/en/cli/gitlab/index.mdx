@@ -68,21 +68,29 @@ Two ways to scan a GitLab project:
 ## Run with the GitLab CI component
 
 <Steps>
-1. **Create a GitLab token**
+1. **Ensure a `.plumber.yaml` exists** in your repo root. Generate one with the [CLI](/docs/cli/installation) if you have it installed, or download the default:
+
+   ```bash
+   plumber config generate
+   # or:
+   curl -fsSL https://raw.githubusercontent.com/getplumber/plumber/main/.plumber.yaml -o .plumber.yaml
+   ```
+
+2. **Create a GitLab token**
 
    Use a token with `read_api` + `read_repository` scopes (or `api` if you enable `mr_comment` / `badge`), as described under [Authentication](#authentication) below.
 
-2. **Add the token to your project**
+3. **Add the token to your project**
 
    Go to **Settings → CI/CD → Variables** and add it as `GITLAB_TOKEN` (masked recommended).
 
-3. **Add the component to your `.gitlab-ci.yml`**
+4. **Add the component to your `.gitlab-ci.yml`**
 
    <Aside variant="info">
 
    - **Self-hosted GitLab?** You need your own copy of the component; see [Hosting on self-hosted GitLab](#hosting-on-self-hosted-gitlab) below. The snippet below targets gitlab.com.
    - **Why `workflow:rules`?** Without it, pushing to a branch with an open merge request creates **two pipelines** (a branch pipeline and an MR pipeline), splitting your jobs between them. The block below ensures a single pipeline per push: MR pipeline when an MR exists, branch pipeline otherwise. This is the [recommended GitLab pattern](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines). If you already have `workflow:rules`, keep yours and just add the `include`.
-   - **Publish a live score badge.** Set `score_push: true` to publish a **public** Plumber Score badge for this repo. See [Live Score Badge](#live-score-badge).
+   - **Publish a live score badge.** Set `score_push: true` to publish a **public** Plumber Score badge for this repo. See [Plumber Score](/docs/plumber-score).
 
    </Aside>
 
@@ -103,7 +111,7 @@ Two ways to scan a GitLab project:
 
    Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
 
-4. **Run your pipeline**
+5. **Run your pipeline**
 
    Plumber now runs on every pipeline (default branch, tags, and open merge requests) and reports compliance issues.
 </Steps>
@@ -255,7 +263,7 @@ The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-co
 | `badge` | `false` | Create/update a Plumber letter-score badge (requires `api` scope; default branch only) |
 | `score` | `false` | Deprecated no-op. The Plumber score is shown by default now; kept so pipelines that already set it do not break. Use `score_point` for the full points breakdown |
 | `score_point` | `false` | Add the full points breakdown to stdout and the MR comment (the score banner is shown by default) |
-| `score_push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)). Uses CI-native OIDC (**no secret**); the component mints the id-token. Publishes on every run; the service keeps only the default branch for the public badge. Warns (never fails) on error. See [Live Score Badge](#live-score-badge) |
+| `score_push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)). Uses CI-native OIDC (**no secret**); the component mints the id-token. Publishes on every run; the service keeps only the default branch for the public badge. Warns (never fails) on error. See [Plumber Score](/docs/plumber-score) |
 | `score_endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
 | `controls` | - | Run only listed controls (comma-separated). Cannot be used with `skip_controls` |
 | `skip_controls` | - | Skip listed controls (comma-separated). Cannot be used with `controls` |
@@ -312,20 +320,19 @@ plumber analyze --ci-config-path .gitlab/ci/main.yml
 
 ## Examples
 
-### Save JSON Output
+### Selective Control Execution
+
+You can run or skip specific controls using their YAML key names from `.plumber.yaml`. This is useful for iterative debugging or targeted CI checks.
 
 ```bash
-docker run --rm \
-  -e GITLAB_TOKEN=glpat-xxxx \
-  -v $(pwd):/output \
-  getplumber/plumber:latest analyze \
-  --gitlab-url https://gitlab.com \
-  --project mygroup/myproject \
-  --branch main \
-  --config /.plumber.yaml \
-  --threshold 100 \
-  --output /output/results.json
+# Only check image tags and branch protection
+plumber analyze --controls containerImageMustNotUseForbiddenTags,branchMustBeProtected
+
+# Run everything except branch protection
+plumber analyze --skip-controls branchMustBeProtected
 ```
+
+Controls not selected are reported as **skipped** in the output. The `--controls` and `--skip-controls` flags are mutually exclusive.
 
 ### Silent Mode (JSON Only)
 
@@ -339,7 +346,7 @@ plumber analyze \
   --print false
 ```
 
-### Example Output
+### Output
 
 The CLI output is color-coded in your terminal for easy scanning: green for passing controls, red for failures.
 
@@ -349,7 +356,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ![Plumber CLI output showing compliance results](../img/cli-output.png)
 
-### Example Configuration
+### Configuration
 
 The `gitlab.controls:` section of a schema v2 `.plumber.yaml`:
 
@@ -562,74 +569,6 @@ include:
   **Token requirement:** The `api` scope is required (not `read_api`) and Maintainer role to manage project badges.
 </Aside>
 
-### Live Score Badge
-
-Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) so any README or page can show a live, self-updating **A–E** badge. This is **distinct** from `--badge` / the `badge` input above (a native GitLab *project* badge): it publishes to the hosted service, needs **no token or scope**, and the badge works anywhere.
-
-Enable it via the GitLab CI component (recommended, it mints the OIDC token for you):
-
-```yaml
-include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.3.4
-    inputs:
-      score_push: true
-```
-
-Then drop the badge into any Markdown (swap in your project path):
-
-```md
-[![Plumber Score](https://score.getplumber.io/gitlab.com/your-group/your-project.svg)](https://score.getplumber.io/gitlab.com/your-group/your-project)
-```
-
-**How it works, no secret needed:**
-- The component mints a CI-native **OIDC id-token** (via its `id_tokens:` block) and the CLI publishes the report with it. The audience is pinned to the score service, so a pipeline can only ever write **its own** repo's badge: a score can't be spoofed from elsewhere.
-- Publishing happens **only in CI**. A local `plumber analyze --score-push` never publishes (no id-token) and prints a short note instead.
-- The CLI publishes on **every** run; the score service keeps only your **default branch** for the public badge, reading the verified branch from the OIDC token (which a pipeline cannot forge). So merge request and tag pipelines publish their own result but never overwrite the public badge; `score_push: true` is safe to leave on for every trigger.
-- On any error (network, etc.) it **warns but never fails the pipeline**.
-
-<Aside variant="info">
-  **Self-hosted score service?** Set `score_endpoint` (component) or `--score-endpoint` (CLI); the OIDC audience follows it automatically so it always matches the target. Full details: [getplumber.io/docs/plumber-score](/docs/plumber-score).
-</Aside>
-
-The Plumber GitLab CI/CD component (drop-in pipeline integration) is documented in the [Run with the GitLab CI component](#run-with-the-gitlab-ci-component) section above. For installation, see the [Installation](/docs/cli/installation) page. For the provider-agnostic commands, see the [CLI Reference](/docs/cli/reference).
-
-
-## Selective Control Execution
-
-You can run or skip specific controls using their YAML key names from `.plumber.yaml`. This is useful for iterative debugging or targeted CI checks.
-
-```bash
-# Only check image tags and branch protection
-plumber analyze --controls containerImageMustNotUseForbiddenTags,branchMustBeProtected
-
-# Run everything except branch protection
-plumber analyze --skip-controls branchMustBeProtected
-```
-
-Controls not selected are reported as **skipped** in the output. The `--controls` and `--skip-controls` flags are mutually exclusive.
-
-<details>
-<summary>**Valid GitLab control names**</summary>
-
-| Control Name |
-|-------------|
-| `branchMustBeProtected` |
-| `containerImageMustComeFromAuthorizedSources` |
-| `containerImageMustNotUseForbiddenTags` |
-| `includesMustBeUpToDate` |
-| `includesMustNotUseForbiddenVersions` |
-| `pipelineMustIncludeComponent` |
-| `pipelineMustIncludeTemplate` |
-| `pipelineMustNotEnableDebugTrace` |
-| `pipelineMustNotExecuteUnverifiedScripts` |
-| `pipelineMustNotIncludeHardcodedJobs` |
-| `pipelineMustNotOverrideJobVariables` |
-| `pipelineMustNotUseDockerInDocker` |
-| `pipelineMustNotUseUnsafeVariableExpansion` |
-| `securityJobsMustNotBeWeakened` |
-
-</details>
-
 ## Reference
 
 The complete, always-current catalogs and command reference:
@@ -683,7 +622,7 @@ The complete, always-current catalogs and command reference:
 | Plumber component job not running | The component's default stage is `.pre`, which requires at least one other job in a regular stage. Override with `inputs: { stage: test }` |
 | Two pipelines on the same push | Add [`workflow:rules`](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines) to prevent duplicate branch + MR pipelines (see [Run with the GitLab CI component](#run-with-the-gitlab-ci-component)) |
 | Component job skipped on branch | The component runs only on merge request events, the default branch, and tags |
-| Score badge not published | `score_push` publishes on every CI run, but the **public badge** only reflects your default branch (the service filters by the OIDC branch claim; MR/tag pipelines publish without touching it). A local run never publishes. The push warns, never fails, when the OIDC id-token is unavailable. See [Live Score Badge](#live-score-badge) |
+| Score badge not published | `score_push` publishes on every CI run, but the **public badge** only reflects your default branch (the service filters by the OIDC branch claim; MR/tag pipelines publish without touching it). A local run never publishes. The push warns, never fails, when the OIDC id-token is unavailable. See [Plumber Score](/docs/plumber-score) |
 
 <Aside variant="info">
   **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](/discord).

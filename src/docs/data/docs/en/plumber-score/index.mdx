@@ -6,6 +6,7 @@ sidebar:
   label: "Plumber Score"
   order: 1
 ---
+import { Icon } from "astro-icon/components";
 
 <a href="https://score.getplumber.io/github.com/getplumber/plumber" target="_blank" rel="noopener">
   <img src="https://score.getplumber.io/github.com/getplumber/plumber.svg" alt="Plumber Score" height="20" style="height:20px;width:auto;display:inline-block" />
@@ -35,7 +36,7 @@ enabled, after each analysis on your default branch, Plumber sends its analysis
 JSON output to `score.getplumber.io`
 
 <details>
-<summary>Example of published output</summary>
+<summary>Example of pushed output</summary>
 
 ```jsonc
 {
@@ -418,9 +419,9 @@ JSON output to `score.getplumber.io`
 </Aside>
 
 
-### 🐙 How to publish with GitHub
+### <Icon name="tabler/brand-github" class="inline-block size-[1em] self-center shrink-0" /> How to publish with GitHub
 
-1. Add the [GitHub Action](/docs/cli/github#live-score-badge) to your workflow
+1. Add the [GitHub Action](/docs/cli/github#run-with-github-actions) to your workflow
 with the correct workflow `permissions` and `score-push` enabled in the action
     ```yaml
     permissions:
@@ -439,9 +440,9 @@ with the correct workflow `permissions` and `score-push` enabled in the action
     ```
 
 
-### 🦊 How to publish with GitLab
+### <Icon name="tabler/brand-gitlab" class="inline-block size-[1em] self-center shrink-0" /> How to publish with GitLab
 
-1. Add the [GitLab CI component](/docs/cli/gitlab#live-score-badge) to your
+1. Add the [GitLab CI component](/docs/cli/gitlab#run-with-the-gitlab-ci-component) to your
 `.gitlab-ci.yml` with the `score_push` input enabled
     ```yaml
     include:

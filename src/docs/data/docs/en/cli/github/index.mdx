@@ -84,7 +84,7 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
 
    - **Pin by commit SHA, not a tag.** Copy the ready-to-paste SHA-pinned `uses:` line from the [GitHub Action section of the README](https://github.com/getplumber/plumber#option-3-github-action), auto-updated on new releases.
    - **Permissions.** The job needs `security-events: write` for SARIF upload to Code Scanning; without it that step is skipped. Add `id-token: write` to publish a live score badge.
-   - **Publish a live score badge.** Set `score-push: true` to publish a **public** Plumber Score badge for this repo. See [Live Score Badge](#live-score-badge).
+   - **Publish a live score badge.** Set `score-push: true` to publish a **public** Plumber Score badge for this repo. See [Plumber Score](/docs/plumber-score).
 
    </Aside>
 
@@ -145,7 +145,7 @@ Override any input to fit your needs:
 | `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
 | `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
 | `score` | `true` | Include the full points breakdown. The Plumber score is shown by default; set `false` for the banner without the per-issue-code breakdown |
-| `score-push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) via CI-native OIDC (**no secret**). The workflow MUST grant `permissions: id-token: write`. Publishes on every run; the service keeps only the default branch for the public badge. Warns (never fails) on error. See [Live Score Badge](#live-score-badge) |
+| `score-push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) via CI-native OIDC (**no secret**). The workflow MUST grant `permissions: id-token: write`. Publishes on every run; the service keeps only the default branch for the public badge. Warns (never fails) on error. See [Plumber Score](/docs/plumber-score) |
 | `score-endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
 | `fail-warnings` | `false` | Fail on warnings: unknown configuration keys (exit 2) and "could not verify" checks such as a skipped known-CVE lookup (exit 3). `soft-fail` does not mask exit 3 |
 | `soft-fail` | `false` | Do not fail the job when compliance is below the threshold. Findings are still produced and uploaded |
@@ -185,49 +185,6 @@ When `upload-sarif` is `true` (the default), the action uploads a SARIF 2.1.0 re
 
 <Aside variant="info">
   Code Scanning requires GitHub Advanced Security on private repos. On public repos it is free.
-</Aside>
-
-### Live Score Badge
-
-Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) so any README or page can show a live, self-updating **A–E** badge. It uses CI-native **OIDC** (no secret, no PAT) and the action fetches the id-token itself.
-
-Set `score-push: true` and grant `id-token: write` in the workflow:
-
-```yaml
-permissions:
-  contents: read
-  security-events: write
-  id-token: write              # REQUIRED for the score push (OIDC)
-
-jobs:
-  plumber:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v6
-      - uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
-        with:
-          score-push: true
-```
-
-Then drop the badge into any Markdown (swap in your owner/repo):
-
-```md
-[![Plumber Score](https://score.getplumber.io/github.com/OWNER/REPO.svg)](https://score.getplumber.io/github.com/OWNER/REPO)
-```
-
-**How it works, no secret needed:**
-- With `id-token: write`, GitHub injects the OIDC request URL/token; the action mints an id-token for the score service's audience and publishes the report with it. The audience is pinned to the service, so a workflow can only ever write **its own** repo's badge: a score can't be spoofed from elsewhere.
-- Publishing happens **only in CI**. A local `plumber analyze --score-push` never publishes (no id-token) and prints a short note instead.
-- The CLI publishes on **every** run; the score service keeps only your **default branch** for the public badge, reading the verified branch from the OIDC token (which a workflow cannot forge). So the public badge updates when a change lands on your default branch (that is, when a PR **merges**).
-- **Pull request runs can't publish:** a `pull_request` OIDC token's ref is `refs/pull/N/merge`, not a branch, so the score service declines it with a harmless note (the badge updates on merge instead). `score-push: true` is safe to leave on for every trigger.
-- On any error (network, etc.) it **warns but never fails the run**.
-
-<Aside variant="caution">
-  `permissions: id-token: write` can only be granted by the **workflow**, not from inside the action. If `score-push` is on but the permission is missing, the action warns clearly and skips: it never fails the run.
-</Aside>
-
-<Aside variant="info">
-  **Self-hosted score service?** Set `score-endpoint` (action) or `--score-endpoint` (CLI); the OIDC audience follows it automatically so it always matches the target. Full details: [getplumber.io/docs/plumber-score](/docs/plumber-score).
 </Aside>
 
 ### GitHub Enterprise Server
@@ -328,20 +285,19 @@ On GitHub Enterprise Server, pass the GHES host via `--github-url ghes.example.c
 
 ## Examples
 
-### Save JSON Output
+### Selective Control Execution
+
+You can run or skip specific controls using their YAML key names from `.plumber.yaml`. This is useful for iterative debugging or targeted CI checks.
 
 ```bash
-docker run --rm \
-  -e GH_TOKEN=ghp_xxxx \
-  -v $(pwd):/output \
-  getplumber/plumber:latest analyze \
-  --github-url github.com \
-  --project myorg/myrepo \
-  --branch main \
-  --config /.plumber.yaml \
-  --threshold 100 \
-  --output /output/results.json
+# Only check SHA pinning and declared permissions
+plumber analyze --controls actionsMustBePinnedByCommitSha,workflowsMustDeclarePermissions
+
+# Run everything except the advisory-database check
+plumber analyze --skip-controls actionsMustNotCarryKnownCVEs
 ```
+
+Controls not selected are reported as **skipped** in the output. The `--controls` and `--skip-controls` flags are mutually exclusive.
 
 ### Silent Mode (JSON Only)
 
@@ -512,45 +468,6 @@ github:
 
 See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for every option, the [Installation](/docs/cli/installation) page, and the [CLI Reference](/docs/cli/reference) for the provider-agnostic commands and output formats.
 
-
-## Selective Control Execution
-
-You can run or skip specific controls using their YAML key names from `.plumber.yaml`. This is useful for iterative debugging or targeted CI checks.
-
-```bash
-# Only check SHA pinning and declared permissions
-plumber analyze --controls actionsMustBePinnedByCommitSha,workflowsMustDeclarePermissions
-
-# Run everything except the advisory-database check
-plumber analyze --skip-controls actionsMustNotCarryKnownCVEs
-```
-
-Controls not selected are reported as **skipped** in the output. The `--controls` and `--skip-controls` flags are mutually exclusive.
-
-<details>
-<summary>**Valid GitHub control names**</summary>
-
-| Control Name |
-|-------------|
-| `actionsMustBePinnedByCommitSha` |
-| `actionsMustNotBeArchived` |
-| `actionsMustNotCarryKnownCVEs` |
-| `githubActionMustComeFromAuthorizedSources` |
-| `branchMustBeProtected` |
-| `containerImageMustNotUseForbiddenTags` |
-| `pipelineMustNotEnableDebugTrace` |
-| `pipelineMustNotExecuteUnverifiedScripts` |
-| `pipelineMustNotUseDockerInDocker` |
-| `reusableWorkflowsMustNotInheritSecrets` |
-| `securityJobsMustNotBeWeakened` |
-| `workflowMustIncludeRequiredActions` |
-| `workflowMustNotGrantPermissionsWriteAll` |
-| `workflowMustNotInjectUserInputInScripts` |
-| `workflowMustNotUseDangerousTriggers` |
-| `workflowsMustDeclarePermissions` |
-
-</details>
-
 ## Reference
 
 The complete, always-current catalogs and command reference:
@@ -601,7 +518,7 @@ The complete, always-current catalogs and command reference:
 | Configuration file not found | Ensure `--config` points at the real file (use an absolute path in Docker). Create one with `plumber config generate` or `plumber config init` |
 | SARIF upload fails with 403 | The job needs `security-events: write` permission. Add it under the workflow or job-level `permissions:` block |
 | Attestation verification fails | The runner cannot reach sigstore or `gh` CLI is not installed. Set `verify-attestation: "false"` to skip |
-| Score badge not published | `score-push` needs `permissions: id-token: write` in the workflow. The **public badge** only reflects your default branch; pull request runs can't publish (their OIDC token has no branch ref), so the badge updates when the PR merges. A local run never publishes. The push warns, never fails, when the token or permission is missing. See [Live Score Badge](#live-score-badge) |
+| Score badge not published | `score-push` needs `permissions: id-token: write` in the workflow. The **public badge** only reflects your default branch; pull request runs can't publish (their OIDC token has no branch ref), so the badge updates when the PR merges. A local run never publishes. The push warns, never fails, when the token or permission is missing. See [Plumber Score](/docs/plumber-score) |
 
 <Aside variant="info">
   **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](/discord).
