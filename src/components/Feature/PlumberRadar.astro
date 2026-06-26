@@ -1,28 +1,38 @@
 ---
 /**
  * * Plumber Radar showcase section.
- * Two-column layout: text + CTA on the left, custom dashboard illustration on the right.
- * Highlights the public live compliance scan at /radar.
+ * Centered heading + a dark "getplumber.io/radar" dashboard window illustration
+ * (radar scope + KPIs + recent scans), matching the landing wireframe.
  *
- * The illustration is pure HTML/CSS/SVG (no images) and matches the radar dashboard
- * visual language: window chrome, animated radar sweep with blips, and a list of
- * anonymized project rows with Nutri-style A-E grade badges + compliance bars.
+ * The window is a self-contained dark mock, so its colors are intentionally
+ * hard-coded (not theme tokens) and stay dark in both light and dark mode.
  */
- import Button from "@components/Button/Button.astro";
+import Button from "@components/Button/Button.astro";
 import { Icon } from "astro-icon/components";
 
 interface RadarRow {
   letter: "A" | "B" | "C" | "D" | "E";
+  bg: string; // grade badge + bar color
+  fg: string; // grade badge text color
   compliance: number; // 0-100
-  segments: number[]; // bar widths used to anonymize the project path visually
+  segments: [number, number]; // anonymized path segment widths (px)
 }
 
 const radarRows: RadarRow[] = [
-  { letter: "A", compliance: 96, segments: [42, 78] },
-  { letter: "B", compliance: 84, segments: [56, 62] },
-  { letter: "C", compliance: 71, segments: [38, 88] },
-  { letter: "D", compliance: 53, segments: [64, 50] },
-  { letter: "E", compliance: 32, segments: [48, 70] },
+  { letter: "A", bg: "#1faa4e", fg: "#fff", compliance: 96, segments: [42, 54] },
+  { letter: "B", bg: "#7bc62d", fg: "#0c0e0c", compliance: 84, segments: [50, 46] },
+  { letter: "C", bg: "#e8c21d", fg: "#0c0e0c", compliance: 71, segments: [40, 58] },
+  { letter: "D", bg: "#ef8a1a", fg: "#0c0e0c", compliance: 53, segments: [48, 50] },
+  { letter: "E", bg: "#df4b2c", fg: "#fff", compliance: 32, segments: [44, 52] },
+];
+
+// Blips scattered across the scope (position %, size px, animation delay s)
+const blips = [
+  { left: 60, top: 31, size: 7, delay: 0 },
+  { left: 70, top: 52, size: 6, delay: 0.6 },
+  { left: 38, top: 42, size: 7, delay: 1 },
+  { left: 30, top: 64, size: 6, delay: 1.4 },
+  { left: 55, top: 72, size: 6, delay: 1.8 },
 ];
 ---
 
@@ -30,258 +40,122 @@ const radarRows: RadarRow[] = [
   id="plumber-radar"
   class="border-base-300 dark:border-base-600/60 relative scroll-mt-20 overflow-hidden border-t"
 >
-  <div class="site-container py-24 md:py-32">
-    <div
-      class="grid grid-cols-1 items-start gap-12 lg:grid-cols-12 lg:gap-14 xl:gap-20"
+  <div class="site-container py-24 text-center md:py-32">
+    <p class="section-eyebrow" data-mos="fade-up" data-mos-anchor="#plumber-radar">Plumber Radar</p>
+    <h2 class="h2 mt-4" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#plumber-radar">
+      The state of CI/CD security across <span class="text-primary-500">open source</span>
+    </h2>
+    <p
+      class="description mx-auto mt-4 max-w-xl"
+      data-mos="fade-up"
+      data-mos-delay="0.2"
       data-mos-anchor="#plumber-radar"
     >
-      <!-- ── Text column ───────────────────────────────────────── -->
-      <div class="flex flex-col gap-6 lg:col-span-5">
-        <p
-          class="section-eyebrow"
-          data-mos="fade-up"
-          data-mos-anchor="#plumber-radar"
-        >
-          Plumber Radar
-        </p>
+      A free initiative that continuously scans public open-source projects and scores their CI/CD
+      security, so the whole ecosystem can see where it stands.
+    </p>
 
-        <h2
-          class="h2"
-          data-mos="fade-up"
-          data-mos-delay="0.1"
-          data-mos-anchor="#plumber-radar"
-        >
-          The state of CI/CD security across <span class="text-primary-500">open source</span>
-        </h2>
+    <div
+      class="mt-8 flex flex-wrap items-center justify-center gap-4"
+      data-mos="fade-up"
+      data-mos-delay="0.3"
+      data-mos-anchor="#plumber-radar"
+    >
+      <Button variant="primary" href="/radar" arrow="right">Explore the Radar</Button>
+      <a
+        href="/radar"
+        class="text-base-600 dark:text-base-300 hover:text-primary-600 dark:hover:text-primary-400 inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
+      >
+        <Icon name="tabler/search" class="h-4 w-4" aria-hidden="true" />
+        Scan a public project
+      </a>
+    </div>
 
-        <p
-          class="description"
-          data-mos="fade-up"
-          data-mos-delay="0.2"
-          data-mos-anchor="#plumber-radar"
-        >
-          A free initiative that continuously scans public open-source projects and scores their
-          CI/CD security, so the whole ecosystem can see where it stands.
-        </p>
+    <!-- dashboard window illustration -->
+    <div
+      class="radar-window mx-auto mt-12 max-w-[940px] text-left"
+      data-mos="fade-up"
+      data-mos-delay="0.3"
+      data-mos-anchor="#plumber-radar"
+    >
+      <!-- window header -->
+      <div class="radar-bar">
+        <span class="radar-tl-dot" style="background:#e0573a"></span>
+        <span class="radar-tl-dot" style="background:#e8c21d"></span>
+        <span class="radar-tl-dot" style="background:#1faa4e"></span>
+        <span class="radar-url">getplumber.io/radar</span>
+        <span class="radar-live"><span class="live-dot"></span>LIVE</span>
+      </div>
 
-        <!-- inline stats -->
-        <ul
-          class="grid grid-cols-3 gap-3 sm:gap-4"
-          data-mos="fade-up"
-          data-mos-delay="0.3"
-          data-mos-anchor="#plumber-radar"
-        >
-          <li
-            class="border-base-300 dark:border-base-600/60 dark:bg-base-900/40 rounded-xl border bg-white/40 px-3 py-3 text-center"
-          >
-            <span class="text-primary-500 dark:text-primary-400 block text-xl font-semibold tracking-tight md:text-2xl">
-              200+
-            </span>
-            <span
-              class="text-base-500 dark:text-base-400 mt-0.5 block text-[0.65rem] leading-tight font-medium tracking-wide uppercase"
-            >
-              Projects scanned
-            </span>
-          </li>
-          <li
-            class="border-base-300 dark:border-base-600/60 dark:bg-base-900/40 rounded-xl border bg-white/40 px-3 py-3 text-center"
-          >
-            <span class="text-primary-500 dark:text-primary-400 block text-xl font-semibold tracking-tight md:text-2xl">
-              13
-            </span>
-            <span
-              class="text-base-500 dark:text-base-400 mt-0.5 block text-[0.65rem] leading-tight font-medium tracking-wide uppercase"
-            >
-              Compliance controls
-            </span>
-          </li>
-          <li
-            class="border-base-300 dark:border-base-600/60 dark:bg-base-900/40 rounded-xl border bg-white/40 px-3 py-3 text-center"
-          >
-            <span class="text-primary-500 dark:text-primary-400 block text-xl font-semibold tracking-tight md:text-2xl">
-              A-E
-            </span>
-            <span
-              class="text-base-500 dark:text-base-400 mt-0.5 block text-[0.65rem] leading-tight font-medium tracking-wide uppercase"
-            >
-              Nutri-style grades
-            </span>
-          </li>
-        </ul>
+      <!-- body: radar scope + KPI stack -->
+      <div class="radar-body">
+        <div class="radar-panel radar-scope">
+          <div class="radar-panel-head">
+            <span class="radar-panel-title">Live Plumber Radar</span>
+          </div>
+          <div class="radar-scope-circle" aria-hidden="true">
+            <div class="radar-ring" style="inset:17%"></div>
+            <div class="radar-ring" style="inset:34%"></div>
+            <div class="radar-ring" style="inset:51%"></div>
+            <div class="radar-cross-h"></div>
+            <div class="radar-cross-v"></div>
+            <div class="radar-sweep"></div>
+            {
+              blips.map((b) => (
+                <div
+                  class="radar-blip"
+                  style={`left:${b.left}%;top:${b.top}%;width:${b.size}px;height:${b.size}px;animation-delay:${b.delay}s`}
+                />
+              ))
+            }
+            <div class="radar-center"></div>
+          </div>
+        </div>
 
-        <!-- CTA -->
-        <div
-          class="mt-2 flex flex-wrap items-center gap-4"
-          data-mos="fade-up"
-          data-mos-delay="0.4"
-          data-mos-anchor="#plumber-radar"
-        >
-          <Button variant="primary" href="/radar" arrow="right">
-            Explore the Radar
-          </Button>
-          <a
-            href="/radar"
-            class="text-base-600 dark:text-base-300 hover:text-primary-600 dark:hover:text-primary-400 inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
-          >
-            <Icon name="tabler/search" class="h-4 w-4" aria-hidden="true" />
-            Scan a public project
-          </a>
+        <div class="radar-stats">
+          <div class="radar-panel radar-stat">
+            <div class="radar-stat-label">AVG SCORE</div>
+            <div class="radar-stat-value" style="color:#7bd44a">B</div>
+            <div class="radar-stat-sub">79.1 / 100</div>
+          </div>
+          <div class="radar-panel radar-stat">
+            <div class="radar-stat-label">FINDINGS</div>
+            <div class="radar-stat-value radar-stat-value-sm" style="color:#e8c21d">4,356</div>
+            <span class="radar-badge">715 high+</span>
+          </div>
         </div>
       </div>
 
-      <!-- ── Illustration column ──────────────────────────────── -->
-      <div
-        class="lg:col-span-7"
-        data-mos="fade-up"
-        data-mos-delay="0.3"
-        data-mos-anchor="#plumber-radar"
-      >
-        <div class="pr-window">
-          <!-- title bar -->
-          <div class="pr-bar">
-            <span class="pr-dots" aria-hidden="true"
-              ><span></span><span></span><span></span></span
-            >
-            <span class="pr-title">getplumber.io/radar</span>
-            <span class="pr-live" aria-hidden="true">
-              <span class="pr-live-dot"></span>
-              live
-            </span>
+      <!-- recent scans -->
+      <div class="radar-scans-wrap">
+        <div class="radar-panel">
+          <div class="radar-panel-head radar-scans-head">
+            <span class="radar-panel-title">Recent scans</span>
+            <span class="radar-meta">sorted by score</span>
           </div>
-
-          <div class="pr-content">
-            <!-- top row: radar + KPI stack -->
-            <div class="pr-top">
-              <!-- radar -->
-              <div class="pr-radar-panel">
-                <div class="pr-panel-head">
-                  <span class="pr-panel-title">Live Plumber Radar</span>
-                  <span class="pr-panel-meta">gitlab.com</span>
-                </div>
-                <div class="pr-radar-wrap">
-                  <svg
-                    class="pr-radar-svg"
-                    viewBox="0 0 200 200"
-                    aria-hidden="true"
-                  >
-                    <defs>
-                      <radialGradient id="pr-radar-bg" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="rgba(34,197,94,0.18)" />
-                        <stop offset="65%" stop-color="rgba(15,23,42,0.0)" />
-                      </radialGradient>
-                      <linearGradient
-                        id="pr-sweep-grad"
-                        x1="0"
-                        y1="0"
-                        x2="1"
-                        y2="0"
-                      >
-                        <stop offset="0%" stop-color="rgba(34,197,94,0.55)" />
-                        <stop offset="100%" stop-color="rgba(34,197,94,0)" />
-                      </linearGradient>
-                    </defs>
-
-                    <!-- background disc -->
-                    <circle cx="100" cy="100" r="92" fill="url(#pr-radar-bg)" />
-
-                    <!-- concentric rings -->
-                    <circle cx="100" cy="100" r="30" class="pr-ring" />
-                    <circle cx="100" cy="100" r="55" class="pr-ring" />
-                    <circle cx="100" cy="100" r="80" class="pr-ring" />
-                    <circle cx="100" cy="100" r="92" class="pr-ring pr-ring-edge" />
-
-                    <!-- crosshairs -->
-                    <line x1="8" y1="100" x2="192" y2="100" class="pr-cross" />
-                    <line x1="100" y1="8" x2="100" y2="192" class="pr-cross" />
-
-                    <!-- sweep wedge (rotates) -->
-                    <g class="pr-sweep">
-                      <path
-                        d="M 100 100 L 192 100 A 92 92 0 0 0 146 20 Z"
-                        fill="url(#pr-sweep-grad)"
-                      />
-                    </g>
-
-                    <!-- blips: each lights up under the sweep via animation-delay -->
-                    <g class="pr-blips">
-                      <circle cx="138" cy="62" r="3" class="pr-blip pr-blip-a" />
-                      <circle cx="74" cy="48" r="3" class="pr-blip pr-blip-b" />
-                      <circle cx="44" cy="118" r="3" class="pr-blip pr-blip-c" />
-                      <circle cx="92" cy="146" r="3" class="pr-blip pr-blip-d" />
-                      <circle cx="156" cy="132" r="3" class="pr-blip pr-blip-e" />
-                      <circle cx="118" cy="92" r="3" class="pr-blip pr-blip-f" />
-                    </g>
-
-                    <!-- center pin -->
-                    <circle cx="100" cy="100" r="3.5" class="pr-center" />
-                    <circle cx="100" cy="100" r="6" class="pr-center-ring" />
-                  </svg>
-                </div>
-              </div>
-
-              <!-- KPI stack -->
-              <div class="pr-kpi-col">
-                <div class="pr-kpi-card">
-                  <span class="pr-kpi-label">Avg score</span>
-                  <span class="pr-kpi-value pr-c-green">B</span>
-                  <span class="pr-kpi-sub">79.1 / 100</span>
-                </div>
-                <div class="pr-kpi-card">
-                  <span class="pr-kpi-label">Findings</span>
-                  <span class="pr-kpi-value pr-c-amber">4,356</span>
-                  <span class="pr-kpi-sub">
-                    <span class="pr-kpi-sev pr-sev-high">715 high+</span>
+          <ul class="radar-rows">
+            {
+              radarRows.map((row) => (
+                <li class="radar-row">
+                  <span class="radar-grade" style={`background:${row.bg};color:${row.fg}`}>
+                    {row.letter}
                   </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- bottom: scan results list -->
-            <div class="pr-results-panel">
-              <div class="pr-panel-head">
-                <span class="pr-panel-title">Recent scans</span>
-                <span class="pr-panel-meta">sorted by score</span>
-              </div>
-              <ul class="pr-results-list">
-                {
-                  radarRows.map((row) => (
-                    <li class="pr-result-row">
-                      <span
-                        class:list={[
-                          "pr-grade",
-                          `pr-grade-${row.letter.toLowerCase()}`,
-                        ]}
-                        aria-hidden="true"
-                      >
-                        {row.letter}
-                      </span>
-                      <span class="pr-path" aria-hidden="true">
-                        <span
-                          class="pr-path-seg"
-                          style={`width: ${row.segments[0]}px`}
-                        />
-                        <span class="pr-path-slash">/</span>
-                        <span
-                          class="pr-path-seg"
-                          style={`width: ${row.segments[1]}px`}
-                        />
-                      </span>
-                      <span class="pr-bar-track">
-                        <span
-                          class:list={[
-                            "pr-bar-fill",
-                            `pr-bar-${row.letter.toLowerCase()}`,
-                          ]}
-                          style={`width: ${row.compliance}%`}
-                        />
-                      </span>
-                      <span class="pr-score-num">{row.compliance}%</span>
-                    </li>
-                  ))
-                }
-              </ul>
-            </div>
-          </div>
+                  <span class="radar-path" aria-hidden="true">
+                    <span class="radar-path-seg" style={`width:${row.segments[0]}px`} />
+                    <span class="radar-path-slash">/</span>
+                    <span class="radar-path-seg" style={`width:${row.segments[1]}px`} />
+                  </span>
+                  <span class="radar-track">
+                    <span
+                      class="radar-fill"
+                      style={`width:${row.compliance}%;background:${row.bg}`}
+                    />
+                  </span>
+                  <span class="radar-pct">{row.compliance}%</span>
+                </li>
+              ))
+            }
+          </ul>
         </div>
       </div>
     </div>
@@ -289,455 +163,356 @@ const radarRows: RadarRow[] = [
 </section>
 
 <style>
-  /* ── window chrome ──────────────────────────────────────────── */
-  .pr-window {
-    position: relative;
-    border-radius: 14px;
+  /* ── window shell ─────────────────────────────────────────── */
+  .radar-window {
+    border: 1px solid rgba(245, 245, 245, 0.12);
+    border-radius: 16px;
+    background: #080a08;
     overflow: hidden;
-    border: 1px solid rgba(34, 197, 94, 0.16);
-    /* Light mode: soft neutral depth + a hint of green so the glow reads on a
-       light page without looking muddy. */
+    color: rgba(245, 245, 245, 0.9);
+    /* Light mode: soft neutral depth + a hint of green. */
     box-shadow:
       0 30px 70px -45px rgba(2, 6, 23, 0.4),
-      0 24px 80px -45px rgba(34, 197, 94, 0.18);
+      0 24px 80px -45px rgba(0, 212, 0, 0.18);
   }
 
-  /* Dark mode: the wireframe's prominent directional green glow under the panel. */
-  :global(.dark) .pr-window {
+  /* Dark mode: the wireframe's prominent directional green glow. */
+  :global(.dark) .radar-window {
     box-shadow:
-      0 40px 90px -50px rgba(34, 197, 94, 0.3),
+      0 40px 90px -50px rgba(0, 212, 0, 0.3),
       0 20px 60px -35px rgba(0, 0, 0, 0.55);
   }
 
-  .pr-bar {
+  /* ── header ───────────────────────────────────────────────── */
+  .radar-bar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 9px 14px;
-    background: #0f172a;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(245, 245, 245, 0.08);
   }
 
-  .pr-dots {
-    display: flex;
-    gap: 5px;
-  }
-
-  .pr-dots span {
-    width: 8px;
-    height: 8px;
+  .radar-tl-dot {
+    width: 11px;
+    height: 11px;
     border-radius: 50%;
-    display: block;
+    flex-shrink: 0;
   }
 
-  .pr-dots span:nth-child(1) {
-    background: #ef4444;
-  }
-  .pr-dots span:nth-child(2) {
-    background: #eab308;
-  }
-  .pr-dots span:nth-child(3) {
-    background: #22c55e;
+  .radar-url {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: rgba(245, 245, 245, 0.5);
+    margin-left: 6px;
   }
 
-  .pr-title {
-    color: #94a3b8;
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    flex: 1;
-  }
-
-  .pr-live {
+  .radar-live {
+    margin-left: auto;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-size: 0.6rem;
-    font-weight: 600;
-    color: #4ade80;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 3px 8px;
+    gap: 7px;
+    border: 1px solid rgba(0, 212, 0, 0.4);
     border-radius: 999px;
-    background: rgba(34, 197, 94, 0.12);
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    padding: 4px 11px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #00d400;
   }
 
-  .pr-live-dot {
-    width: 6px;
-    height: 6px;
+  .live-dot {
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background: #4ade80;
-    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
-    animation: pr-pulse 1.6s ease-out infinite;
+    background: #00d400;
+    box-shadow: 0 0 8px #00d400;
+    animation: radar-pulse 1.6s ease-in-out infinite;
   }
 
-  @keyframes pr-pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
-    }
-    70% {
-      box-shadow: 0 0 0 8px rgba(74, 222, 128, 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
-    }
-  }
-
-  .pr-content {
-    background: #1e293b;
+  /* ── body grid ────────────────────────────────────────────── */
+  .radar-body {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 14px;
     padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
   }
 
-  /* ── top row: radar + KPI ────────────────────────────────── */
-  .pr-top {
-    display: flex;
-    gap: 14px;
-    align-items: stretch;
+  .radar-panel {
+    border: 1px solid rgba(245, 245, 245, 0.1);
+    border-radius: 12px;
+    background: rgba(245, 245, 245, 0.02);
+    padding: 18px;
   }
 
-  @media (max-width: 639px) {
-    .pr-top {
-      flex-direction: column;
-    }
-  }
-
-  .pr-panel-head {
+  .radar-panel-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px 6px;
+    margin-bottom: 14px;
   }
 
-  .pr-panel-title {
-    color: #e2e8f0;
-    font-size: 0.72rem;
-    font-weight: 600;
+  .radar-panel-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: #f5f5f5;
   }
 
-  .pr-panel-meta {
-    color: #64748b;
-    font-size: 0.55rem;
-    font-weight: 500;
-    background: #0f172a;
-    border-radius: 4px;
-    padding: 2px 8px;
-    border: 1px solid #1e293b;
+  .radar-meta {
+    border: 1px solid rgba(245, 245, 245, 0.12);
+    border-radius: 7px;
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: rgba(245, 245, 245, 0.5);
   }
 
-  /* ── radar ───────────────────────────────────────────────── */
-  .pr-radar-panel {
-    flex: 1.4;
-    min-width: 0;
-    background: #0f172a;
-    border-radius: 10px;
-    border: 1px solid #1e293b;
+  /* ── radar scope ──────────────────────────────────────────── */
+  .radar-scope-circle {
+    position: relative;
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 212, 0, 0.25);
     overflow: hidden;
+    background: radial-gradient(circle, rgba(0, 212, 0, 0.07), transparent 72%);
+  }
+
+  .radar-ring {
+    position: absolute;
+    border: 1px solid rgba(0, 212, 0, 0.16);
+    border-radius: 50%;
+  }
+
+  .radar-cross-h {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: rgba(0, 212, 0, 0.14);
+  }
+
+  .radar-cross-v {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: rgba(0, 212, 0, 0.14);
+  }
+
+  .radar-sweep {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 180deg,
+      rgba(0, 212, 0, 0.4),
+      rgba(0, 212, 0, 0.05) 55deg,
+      transparent 60deg
+    );
+    transform-origin: 50% 50%;
+    animation: radar-spin 4s linear infinite;
+  }
+
+  .radar-blip {
+    position: absolute;
+    border-radius: 50%;
+    background: #4fe24f;
+    box-shadow: 0 0 8px #4fe24f;
+    animation: radar-blip-glow 2.4s ease-in-out infinite;
+  }
+
+  .radar-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    margin: -6px;
+    border-radius: 50%;
+    background: #00d400;
+    box-shadow: 0 0 14px #00d400;
+  }
+
+  /* ── KPI stack ────────────────────────────────────────────── */
+  .radar-stats {
     display: flex;
     flex-direction: column;
+    gap: 14px;
   }
 
-  .pr-radar-wrap {
+  .radar-stat {
     flex: 1;
-    padding: 4px 10px 12px;
+  }
+
+  .radar-stat-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: rgba(245, 245, 245, 0.45);
+  }
+
+  .radar-stat-value {
+    font-weight: 700;
+    font-size: 46px;
+    line-height: 1.05;
+    margin-top: 8px;
+  }
+
+  .radar-stat-value-sm {
+    font-size: 36px;
+  }
+
+  .radar-stat-sub {
+    font-size: 13px;
+    color: rgba(245, 245, 245, 0.55);
+    margin-top: 6px;
+  }
+
+  .radar-badge {
+    display: inline-block;
+    margin-top: 12px;
+    background: rgba(224, 89, 44, 0.15);
+    border: 1px solid rgba(224, 89, 44, 0.35);
+    color: #e8754a;
+    border-radius: 8px;
+    padding: 5px 11px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* ── recent scans ─────────────────────────────────────────── */
+  .radar-scans-wrap {
+    padding: 0 16px 16px;
+  }
+
+  .radar-scans-head {
+    margin-bottom: 6px;
+  }
+
+  .radar-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .radar-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 0;
+    border-top: 1px solid rgba(245, 245, 245, 0.07);
+  }
+
+  .radar-grade {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
   }
 
-  .pr-radar-svg {
-    width: 100%;
-    height: auto;
-    max-height: 230px;
-    aspect-ratio: 1;
+  .radar-path {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  .radar-path-seg {
+    height: 7px;
+    background: rgba(245, 245, 245, 0.14);
+    border-radius: 3px;
+  }
+
+  .radar-path-slash {
+    color: rgba(245, 245, 245, 0.3);
+    font-size: 12px;
+  }
+
+  .radar-track {
+    flex: 1;
+    height: 7px;
+    background: rgba(245, 245, 245, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 40px;
+  }
+
+  .radar-fill {
     display: block;
+    height: 100%;
+    border-radius: 4px;
   }
 
-  .pr-ring {
-    fill: none;
-    stroke: rgba(34, 197, 94, 0.22);
-    stroke-width: 1;
+  .radar-pct {
+    font-weight: 700;
+    font-size: 13px;
+    width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+    color: #f5f5f5;
   }
 
-  .pr-ring-edge {
-    stroke: rgba(34, 197, 94, 0.4);
-    stroke-width: 1.25;
-  }
-
-  .pr-cross {
-    stroke: rgba(34, 197, 94, 0.18);
-    stroke-width: 1;
-    stroke-dasharray: 2 4;
-  }
-
-  .pr-sweep {
-    transform-origin: 100px 100px;
-    animation: pr-sweep 4s linear infinite;
-  }
-
-  @keyframes pr-sweep {
-    from {
-      transform: rotate(0deg);
+  /* ── responsive ───────────────────────────────────────────── */
+  @media (max-width: 760px) {
+    .radar-body {
+      grid-template-columns: 1fr;
     }
+  }
+
+  @media (max-width: 460px) {
+    .radar-path {
+      display: none;
+    }
+  }
+
+  /* ── animations ───────────────────────────────────────────── */
+  @keyframes radar-spin {
     to {
       transform: rotate(360deg);
     }
   }
 
-  .pr-blip {
-    fill: #4ade80;
-    filter: drop-shadow(0 0 4px rgba(74, 222, 128, 0.6));
-    opacity: 0.55;
-    animation: pr-blip-pulse 4s linear infinite;
-  }
-
-  @keyframes pr-blip-pulse {
+  @keyframes radar-pulse {
     0%,
     100% {
-      opacity: 0.45;
-      r: 2.6;
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @keyframes radar-blip-glow {
+    0%,
+    100% {
+      opacity: 0.5;
+      transform: scale(0.85);
     }
     50% {
       opacity: 1;
-      r: 3.6;
-    }
-  }
-
-  /* stagger blip pulses so each one lights up at a different moment of the sweep */
-  .pr-blip-a {
-    animation-delay: 0s;
-  }
-  .pr-blip-b {
-    animation-delay: -0.8s;
-  }
-  .pr-blip-c {
-    animation-delay: -1.6s;
-  }
-  .pr-blip-d {
-    animation-delay: -2.4s;
-  }
-  .pr-blip-e {
-    animation-delay: -3.2s;
-  }
-  .pr-blip-f {
-    animation-delay: -2s;
-  }
-
-  .pr-center {
-    fill: #4ade80;
-    filter: drop-shadow(0 0 6px rgba(74, 222, 128, 0.8));
-  }
-
-  .pr-center-ring {
-    fill: none;
-    stroke: rgba(74, 222, 128, 0.55);
-    stroke-width: 1;
-  }
-
-  /* ── KPI stack ───────────────────────────────────────────── */
-  .pr-kpi-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-width: 130px;
-  }
-
-  .pr-kpi-card {
-    flex: 1;
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    border-radius: 10px;
-    padding: 12px 14px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 4px;
-  }
-
-  .pr-kpi-label {
-    color: #475569;
-    font-size: 0.5rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .pr-kpi-value {
-    font-size: 1.6rem;
-    font-weight: 800;
-    line-height: 1;
-  }
-
-  .pr-kpi-sub {
-    color: #94a3b8;
-    font-size: 0.62rem;
-    font-weight: 500;
-  }
-
-  .pr-kpi-sev {
-    display: inline-block;
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-size: 0.55rem;
-    font-weight: 700;
-  }
-
-  .pr-sev-high {
-    color: #fb923c;
-    background: rgba(251, 146, 60, 0.12);
-    border: 1px solid rgba(251, 146, 60, 0.25);
-  }
-
-  .pr-c-green {
-    color: #4ade80;
-  }
-
-  .pr-c-amber {
-    color: #fbbf24;
-  }
-
-  /* ── results list ───────────────────────────────────────── */
-  .pr-results-panel {
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  .pr-results-list {
-    list-style: none;
-    margin: 0;
-    padding: 4px 0 6px;
-  }
-
-  .pr-result-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 14px;
-    border-bottom: 1px solid #1e293b;
-  }
-
-  .pr-result-row:last-child {
-    border-bottom: none;
-  }
-
-  .pr-grade {
-    width: 22px;
-    height: 22px;
-    border-radius: 5px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: #fff;
-    flex-shrink: 0;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
-  }
-
-  /* Nutri-Score palette (matches the live radar dashboard) */
-  .pr-grade-a {
-    background: #038141;
-  }
-  .pr-grade-b {
-    background: #85bb2f;
-  }
-  .pr-grade-c {
-    background: #fecb02;
-    color: #1f2937;
-    text-shadow: none;
-  }
-  .pr-grade-d {
-    background: #ee8100;
-  }
-  .pr-grade-e {
-    background: #e63e11;
-  }
-
-  .pr-path {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-
-  .pr-path-seg {
-    display: inline-block;
-    height: 7px;
-    border-radius: 3px;
-    background: #334155;
-  }
-
-  .pr-path-slash {
-    color: #475569;
-    font-size: 0.7rem;
-    font-weight: 700;
-  }
-
-  .pr-bar-track {
-    flex: 1;
-    height: 6px;
-    border-radius: 3px;
-    background: #1e293b;
-    overflow: hidden;
-    min-width: 40px;
-  }
-
-  .pr-bar-fill {
-    display: block;
-    height: 100%;
-    border-radius: 3px;
-  }
-
-  .pr-bar-a {
-    background: #038141;
-  }
-  .pr-bar-b {
-    background: #85bb2f;
-  }
-  .pr-bar-c {
-    background: #fecb02;
-  }
-  .pr-bar-d {
-    background: #ee8100;
-  }
-  .pr-bar-e {
-    background: #e63e11;
-  }
-
-  .pr-score-num {
-    font-size: 0.62rem;
-    font-weight: 700;
-    color: #cbd5e1;
-    flex-shrink: 0;
-    width: 30px;
-    text-align: right;
-  }
-
-  /* hide a couple of rows on very narrow widths to keep the panel readable */
-  @media (max-width: 480px) {
-    .pr-result-row:nth-child(n + 4) {
-      display: none;
-    }
-    .pr-path-seg:last-child {
-      display: none;
-    }
-    .pr-path-slash {
-      display: none;
+      transform: scale(1.15);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .pr-sweep,
-    .pr-blip,
-    .pr-live-dot {
+    .radar-sweep,
+    .radar-blip,
+    .live-dot {
       animation: none;
     }
-    .pr-blip {
+    .radar-blip {
       opacity: 0.85;
     }
   }

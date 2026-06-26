@@ -15,7 +15,7 @@ import { Image } from "astro:assets";
 
 <section
   id="platform"
-  class="border-base-300 dark:border-base-600/60 dark:bg-base-900/20 scroll-mt-20 border-t bg-base-200/20 py-20 md:py-28"
+  class="border-base-300 dark:border-base-600/60 scroll-mt-20 border-t bg-black/[0.02] py-20 md:py-28 dark:bg-white/[0.015]"
   data-clivp
 >
   <div class="site-container text-center">
@@ -46,7 +46,7 @@ import { Image } from "astro:assets";
         data-mos-delay="0.2"
         data-mos-anchor="#platform"
       >
-        <span class="text-primary-600 dark:text-primary-400 font-mono text-xs font-medium tracking-[0.1em] uppercase">
+        <span class="clivp-eyebrow font-mono text-xs font-medium tracking-[0.1em] uppercase">
           The CLI
         </span>
         <span class="text-base-900 dark:text-base-100 mt-2 block text-xl font-semibold tracking-tight">
@@ -75,7 +75,7 @@ import { Image } from "astro:assets";
         data-mos-delay="0.3"
         data-mos-anchor="#platform"
       >
-        <span class="text-base-600 dark:text-base-400 font-mono text-xs font-medium tracking-[0.1em] uppercase">
+        <span class="clivp-eyebrow font-mono text-xs font-medium tracking-[0.1em] uppercase">
           The Platform
         </span>
         <span class="text-base-900 dark:text-base-100 mt-2 block text-xl font-semibold tracking-tight">
@@ -94,17 +94,20 @@ import { Image } from "astro:assets";
       </button>
     </div>
 
-    <!-- media panel -->
+    <!-- Media panel: each animation already carries its own framing, so there's
+         no extra card wrapper. text-left resets the section's centered text so the
+         CLI terminal output reads left-to-right like a real terminal (the heading
+         above stays centered); the platform animation centers its own captions. -->
     <div
-      class="border-base-300 dark:border-base-600/60 dark:bg-base-900/40 mt-6 overflow-hidden rounded-2xl border bg-base-100/40"
+      class="mt-8 text-left"
       data-mos="fade-up"
       data-mos-delay="0.35"
       data-mos-anchor="#platform"
     >
-      <div data-clivp-media="cli" class="p-4 sm:p-6">
+      <div data-clivp-media="cli">
         <PipelineAnimation />
       </div>
-      <div data-clivp-media="platform" hidden class="p-4 sm:p-6">
+      <div data-clivp-media="platform" hidden>
         <BeforeAfterPipeline variant="platform" />
       </div>
     </div>
@@ -116,9 +119,36 @@ import { Image } from "astro:assets";
     border-color: var(--border);
     background: transparent;
   }
+
+  /* Eyebrow ("THE CLI" / "THE PLATFORM"): muted by default, green only when its
+     card is the active one — matching the wireframe's selected-card accent. */
+  .clivp-eyebrow {
+    color: color-mix(in srgb, var(--foreground) 55%, transparent);
+  }
+
+  /* Active card: wireframe green accent + faint green fill. Light mode uses a
+     deeper green so the border/label stay readable on a light surface. */
   .clivp-card[aria-pressed="true"] {
-    border-color: var(--color-primary-500);
-    background: color-mix(in srgb, var(--color-primary-500) 7%, transparent);
+    border-color: #008700;
+    background: rgba(0, 212, 0, 0.07);
+  }
+  .clivp-card[aria-pressed="true"] .clivp-eyebrow {
+    color: #008700;
+  }
+
+  :global(.dark) .clivp-card[aria-pressed="true"] {
+    border-color: #00d400;
+  }
+  :global(.dark) .clivp-card[aria-pressed="true"] .clivp-eyebrow {
+    color: #00d400;
+  }
+
+  /* The CLI terminal defaults to an 800px cap; let it grow to the full media
+     width (matching the two cards above). The animation is responsive, so it
+     reflows safely on narrower screens. */
+  [data-clivp-media="cli"] :global(.pipeline-animation-container) {
+    width: 100%;
+    max-width: 100%;
   }
 </style>
 
