@@ -42,11 +42,12 @@ function normalizeContentId(contentId: string): string {
   return contentId.replace(/\/index$/, "");
 }
 
-/** Open Source CLI pages: installation before providers, GitLab before GitHub (overrides title sort). */
+/** Open Source CLI pages: installation, then providers (GitHub before GitLab), then the reference (overrides title sort). */
 const CLI_PROVIDER_SIDEBAR_RANK: Record<string, number> = {
   "cli/installation": 2,
-  "cli/gitlab": 3,
-  "cli/github": 4,
+  "cli/github": 3,
+  "cli/gitlab": 4,
+  "cli/reference": 5,
 };
 
 function sidebarSortRank(item: { contentId: string; order?: number }): number {
@@ -251,6 +252,7 @@ const docsBySection = sectionFilteredDocs.reduce(
       order: doc.data.sidebar?.order,
       indent: resolveSidebarIndent(doc, section),
       badge: doc.data.sidebar?.badge,
+      icon: doc.data.sidebar?.icon,
     });
     return acc;
   },
@@ -264,6 +266,7 @@ const docsBySection = sectionFilteredDocs.reduce(
       indent?: boolean;
       label?: string;
       badge?: { text: string; variant: "tip" | "caution" | "danger" | "info" };
+      icon?: string;
     }>
   >,
 );
@@ -350,6 +353,7 @@ for (const section of sections) {
                 text={doc.text}
                 indent={doc.indent}
                 badge={doc.badge}
+                icon={doc.icon}
                 highlightDescendants={doc.contentId === "use-plumber/issues"}
               />
             ))}

@@ -10,6 +10,35 @@ const sidebarNavData: DocsSidebarNavData = {
    */
   tabs: [
     {
+      id: "score",
+      title: "Plumber Score",
+      description: "Plumber Score documentation",
+      icon: "tabler/award",
+      sections: [
+        {
+          id: "plumber-score",
+          title: "Plumber Score",
+        },
+      ],
+    },
+    {
+      id: "api",
+      title: "Open Source CLI",
+      description: "CLI documentation",
+      icon: "tabler/terminal-2",
+      // Ordered list of sidebar sections for the 'api' tab
+      sections: [
+        {
+          id: "cli",
+          title: "CLI",
+          navLinks: [
+            { text: "Controls", href: "/docs/use-plumber/controls" },
+            { text: "Issues", href: "/docs/use-plumber/issues", indent: true },
+          ],
+        },
+      ],
+    },
+    {
       id: "main",
       title: "Platform",
       description: "Main documentation",
@@ -28,23 +57,6 @@ const sidebarNavData: DocsSidebarNavData = {
         {
           id: "use-plumber",
           title: "Use Plumber",
-        },
-      ],
-    },
-    {
-      id: "api",
-      title: "Open Source CLI",
-      description: "CLI documentation",
-      icon: "tabler/terminal-2",
-      // Ordered list of sidebar sections for the 'api' tab
-      sections: [
-        {
-          id: "cli",
-          title: "CLI",
-          navLinks: [
-            { text: "Controls", href: "/docs/use-plumber/controls" },
-            { text: "Issues", href: "/docs/use-plumber/issues", indent: true },
-          ],
         },
       ],
     },
