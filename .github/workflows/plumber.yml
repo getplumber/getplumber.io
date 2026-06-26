@@ -1,4 +1,4 @@
-name: Compliance
+name: Plumber
 on:
   push:
     branches: [main]   # scope to the default branch so a PR push isn't scanned twice
@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   security-events: write   # required to upload SARIF to Code Scanning
+  id-token: write          # required to mint the OIDC id-token for the Plumber Score push
 
 jobs:
   plumber:
@@ -28,6 +29,7 @@ jobs:
           sudo install gitleaks /usr/local/bin/gitleaks
           rm gitleaks gitleaks.tar.gz
 
-      - uses: getplumber/plumber@c2651456dd3775c552f6fa626ca6130ffd913579   # v0.3.62
+      - uses: getplumber/plumber@4d04d1cacca6625bc0e3f08f61f16f9d0367cd27   # v0.3.76
         with:
           threshold: 90
+          score-push: true   # publish the Plumber Score badge (repo name + score become public)

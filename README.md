@@ -4,10 +4,11 @@
 
 **The website for Plumber — the open-source CI/CD compliance CLI and platform for GitLab CI/CD and GitHub Actions — built with Astro, Tailwind CSS, and React.**
 
+[![Plumber Score](https://score.getplumber.io/github.com/getplumber/getplumber.io.svg)](https://score.getplumber.io/github.com/getplumber/getplumber.io)
 [![Deploy Production](https://github.com/getplumber/getplumber.io/actions/workflows/production.yaml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/production.yaml)
 [![Lint](https://github.com/getplumber/getplumber.io/actions/workflows/lint.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/lint.yml)
 [![Security Scan](https://github.com/getplumber/getplumber.io/actions/workflows/security.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/security.yml)
-[![Compliance](https://github.com/getplumber/getplumber.io/actions/workflows/plumber.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/plumber.yml)
+[![Plumber](https://github.com/getplumber/getplumber.io/actions/workflows/plumber.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/plumber.yml)
 [![SEO Audit](https://github.com/getplumber/getplumber.io/actions/workflows/seo-audit.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/seo-audit.yml)
 [![Last commit](https://img.shields.io/github/last-commit/getplumber/getplumber.io)](https://github.com/getplumber/getplumber.io/commits)
 
