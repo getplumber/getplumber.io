@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { Icon } from "astro-icon/components";
 
 // Commented out - we might use this example later
 import DocsPagination from "@/docs/components/nav/DocsPagination.astro";
@@ -110,7 +111,18 @@ const structuredData = { headline: title, breadcrumbs };
         data-pagefind-body={pagefind ? true : undefined}
       >
         <div class="flex">
-          <h1 class="docs-h1 docs-text-gradient mb-8 pb-1">{title}</h1>
+          <h1 class="docs-h1 mb-8 flex items-center gap-3 pb-1">
+            {
+              sidebar?.icon && (
+                <Icon
+                  name={sidebar.icon}
+                  class="text-foreground size-[0.9em] shrink-0"
+                  aria-hidden="true"
+                />
+              )
+            }
+            <span class="docs-text-gradient">{title}</span>
+          </h1>
         </div>
         <div class="docs-markdown-content">
           <slot />

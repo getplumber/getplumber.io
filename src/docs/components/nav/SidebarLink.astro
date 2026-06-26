@@ -1,5 +1,6 @@
 ---
 import type { ComponentProps } from "astro/types";
+import { Icon } from "astro-icon/components";
 
 import Badge from "@/docs/components/mdx-components/Badge.astro";
 import { getLocaleFromUrl } from "@/docs/js/localeUtils";
@@ -22,11 +23,13 @@ interface Props {
   text: string;
   indent?: boolean;
   badge?: ComponentProps<typeof Badge>;
+  /** Optional astro-icon name rendered before the label (e.g. `tabler/brand-github`). */
+  icon?: string;
   /** When true, also active for paths under this link (e.g. issue detail pages under the Issues index). */
   highlightDescendants?: boolean;
 }
 
-const { link, text, indent = false, badge, highlightDescendants = false } = Astro.props;
+const { link, text, indent = false, badge, icon, highlightDescendants = false } = Astro.props;
 
 // get the current page locale to use in links to other pages
 const currLocale = getLocaleFromUrl(Astro.url);
@@ -72,6 +75,7 @@ const currentPath =
           </span>
         )
       }
+      {icon && <Icon name={icon} class="size-4 shrink-0" aria-hidden="true" />}
       <span>{text}</span>
       {badge && <Badge text={badge.text} variant={badge.variant} />}
     </div>
