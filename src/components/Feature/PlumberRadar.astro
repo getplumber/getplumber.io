@@ -1,39 +1,63 @@
 ---
 /**
  * * Plumber Radar showcase section.
- * Centered heading + a dark "getplumber.io/radar" dashboard window illustration
- * (radar scope + KPIs + recent scans), matching the landing wireframe.
+ * Centered heading + a dark "getplumber.io/radar" dashboard window illustration.
  *
- * The window is a self-contained dark mock, so its colors are intentionally
- * hard-coded (not theme tokens) and stay dark in both light and dark mode.
+ * The window mirrors the real radar app (plumber-gitlab-ecosystem-scan):
+ *   - KPI strip: Projects scanned · Avg score (A–E letter bar) · Total issues
+ *     split by severity (Critical / High / Medium / Low).
+ *   - Projects table: Nutri-style A–E score, provider, anonymized path, compliance %.
+ * It is a self-contained dark mock, so colors are intentionally hard-coded (not
+ * theme tokens) and stay dark in both light and dark mode. Figures are a snapshot
+ * of the live radar (getplumber.io/radar — /api/stats); refresh them periodically.
  */
 import Button from "@components/Button/Button.astro";
+import githubIconWhite from "@images/github-icon-white.svg";
+import gitlabIcon from "@images/gitlab-icon.svg";
 import { Icon } from "astro-icon/components";
+import { Image } from "astro:assets";
 
-interface RadarRow {
-  letter: "A" | "B" | "C" | "D" | "E";
-  bg: string; // grade badge + bar color
-  fg: string; // grade badge text color
+// Nutri-style grade palette (matches the radar app's score badges)
+const GRADE: Record<string, { bg: string; fg: string }> = {
+  A: { bg: "#1faa4e", fg: "#fff" },
+  B: { bg: "#7bc62d", fg: "#0c0e0c" },
+  C: { bg: "#e8c21d", fg: "#0c0e0c" },
+  D: { bg: "#ef8a1a", fg: "#0c0e0c" },
+  E: { bg: "#df4b2c", fg: "#fff" },
+};
+const LETTERS = ["A", "B", "C", "D", "E"] as const;
+
+// Aggregate KPIs — snapshot from getplumber.io/radar (/api/stats, all providers)
+const projectsScanned = 4122;
+const avgScore = "D";
+const issueSeverity = [
+  { label: "Critical", count: 5312, color: "#df4b2c" },
+  { label: "High", count: 43883, color: "#ef8a1a" },
+  { label: "Medium", count: 28800, color: "#e8c21d" },
+  { label: "Low", count: 5, color: "#a1a1aa" },
+];
+
+interface ProjectRow {
+  letter: keyof typeof GRADE;
+  provider: "gitlab" | "github";
   compliance: number; // 0-100
   segments: [number, number]; // anonymized path segment widths (px)
 }
 
-const radarRows: RadarRow[] = [
-  { letter: "A", bg: "#1faa4e", fg: "#fff", compliance: 96, segments: [42, 54] },
-  { letter: "B", bg: "#7bc62d", fg: "#0c0e0c", compliance: 84, segments: [50, 46] },
-  { letter: "C", bg: "#e8c21d", fg: "#0c0e0c", compliance: 71, segments: [40, 58] },
-  { letter: "D", bg: "#ef8a1a", fg: "#0c0e0c", compliance: 53, segments: [48, 50] },
-  { letter: "E", bg: "#df4b2c", fg: "#fff", compliance: 32, segments: [44, 52] },
+const projectRows: ProjectRow[] = [
+  { letter: "A", provider: "gitlab", compliance: 96, segments: [42, 54] },
+  { letter: "B", provider: "github", compliance: 82, segments: [50, 46] },
+  { letter: "C", provider: "gitlab", compliance: 68, segments: [40, 58] },
+  { letter: "D", provider: "github", compliance: 51, segments: [48, 50] },
+  { letter: "E", provider: "gitlab", compliance: 29, segments: [44, 52] },
 ];
 
-// Blips scattered across the scope (position %, size px, animation delay s)
-const blips = [
-  { left: 60, top: 31, size: 7, delay: 0 },
-  { left: 70, top: 52, size: 6, delay: 0.6 },
-  { left: 38, top: 42, size: 7, delay: 1 },
-  { left: 30, top: 64, size: 6, delay: 1.4 },
-  { left: 55, top: 72, size: 6, delay: 1.8 },
-];
+function complianceColor(c: number): string {
+  if (c >= 100) return "#1a951a";
+  if (c >= 75) return "#008700";
+  if (c >= 50) return "#e8c21d";
+  return "#df4b2c";
+}
 ---
 
 <section
@@ -51,8 +75,8 @@ const blips = [
       data-mos-delay="0.2"
       data-mos-anchor="#plumber-radar"
     >
-      A free initiative that continuously scans public open-source projects and scores their CI/CD
-      security, so the whole ecosystem can see where it stands.
+      A free initiative that continuously scans public GitLab and GitHub projects and scores their
+      CI/CD security, so the whole ecosystem can see where it stands.
     </p>
 
     <div
@@ -87,59 +111,68 @@ const blips = [
         <span class="radar-live"><span class="live-dot"></span>LIVE</span>
       </div>
 
-      <!-- body: radar scope + KPI stack -->
-      <div class="radar-body">
-        <div class="radar-panel radar-scope">
-          <div class="radar-panel-head">
-            <span class="radar-panel-title">Live Plumber Radar</span>
-          </div>
-          <div class="radar-scope-circle" aria-hidden="true">
-            <div class="radar-ring" style="inset:17%"></div>
-            <div class="radar-ring" style="inset:34%"></div>
-            <div class="radar-ring" style="inset:51%"></div>
-            <div class="radar-cross-h"></div>
-            <div class="radar-cross-v"></div>
-            <div class="radar-sweep"></div>
-            {
-              blips.map((b) => (
-                <div
-                  class="radar-blip"
-                  style={`left:${b.left}%;top:${b.top}%;width:${b.size}px;height:${b.size}px;animation-delay:${b.delay}s`}
-                />
-              ))
-            }
-            <div class="radar-center"></div>
-          </div>
+      <!-- KPI strip -->
+      <div class="radar-kpis">
+        <div class="radar-panel radar-kpi">
+          <span class="radar-kpi-label">Projects scanned</span>
+          <span class="radar-kpi-value">{projectsScanned.toLocaleString("en-US")}</span>
         </div>
 
-        <div class="radar-stats">
-          <div class="radar-panel radar-stat">
-            <div class="radar-stat-label">AVG SCORE</div>
-            <div class="radar-stat-value" style="color:#7bd44a">B</div>
-            <div class="radar-stat-sub">79.1 / 100</div>
-          </div>
-          <div class="radar-panel radar-stat">
-            <div class="radar-stat-label">FINDINGS</div>
-            <div class="radar-stat-value radar-stat-value-sm" style="color:#e8c21d">4,356</div>
-            <span class="radar-badge">715 high+</span>
-          </div>
+        <div class="radar-panel radar-kpi">
+          <span class="radar-kpi-label">Avg score</span>
+          <span class="radar-score-bar" role="img" aria-label={`Average Plumber score ${avgScore}`}>
+            {
+              LETTERS.map((l) => (
+                <span
+                  class:list={["rs-seg", l === avgScore && "rs-seg--active"]}
+                  style={`background:${GRADE[l].bg};color:${GRADE[l].fg}`}
+                >
+                  {l}
+                </span>
+              ))
+            }
+          </span>
+        </div>
+
+        <div class="radar-panel radar-kpi">
+          <span class="radar-kpi-label">Total issues</span>
+          <span class="radar-sev">
+            {
+              issueSeverity.map((s) => (
+                <span
+                  class="radar-sev-badge"
+                  style={`color:${s.color};border-color:${s.color}55;background:${s.color}1f`}
+                >
+                  {s.label} {s.count.toLocaleString("en-US")}
+                </span>
+              ))
+            }
+          </span>
         </div>
       </div>
 
-      <!-- recent scans -->
+      <!-- projects table -->
       <div class="radar-scans-wrap">
         <div class="radar-panel">
           <div class="radar-panel-head radar-scans-head">
-            <span class="radar-panel-title">Recent scans</span>
+            <span class="radar-panel-title">Projects</span>
             <span class="radar-meta">sorted by score</span>
           </div>
           <ul class="radar-rows">
             {
-              radarRows.map((row) => (
+              projectRows.map((row) => (
                 <li class="radar-row">
-                  <span class="radar-grade" style={`background:${row.bg};color:${row.fg}`}>
+                  <span
+                    class="radar-grade"
+                    style={`background:${GRADE[row.letter].bg};color:${GRADE[row.letter].fg}`}
+                  >
                     {row.letter}
                   </span>
+                  <Image
+                    src={row.provider === "gitlab" ? gitlabIcon : githubIconWhite}
+                    alt={row.provider === "gitlab" ? "GitLab" : "GitHub"}
+                    class="radar-row-provider"
+                  />
                   <span class="radar-path" aria-hidden="true">
                     <span class="radar-path-seg" style={`width:${row.segments[0]}px`} />
                     <span class="radar-path-slash">/</span>
@@ -148,7 +181,7 @@ const blips = [
                   <span class="radar-track">
                     <span
                       class="radar-fill"
-                      style={`width:${row.compliance}%;background:${row.bg}`}
+                      style={`width:${row.compliance}%;background:${complianceColor(row.compliance)}`}
                     />
                   </span>
                   <span class="radar-pct">{row.compliance}%</span>
@@ -176,7 +209,7 @@ const blips = [
       0 24px 80px -45px rgba(0, 212, 0, 0.18);
   }
 
-  /* Dark mode: the wireframe's prominent directional green glow. */
+  /* Dark mode: prominent directional green glow. */
   :global(.dark) .radar-window {
     box-shadow:
       0 40px 90px -50px rgba(0, 212, 0, 0.3),
@@ -230,26 +263,19 @@ const blips = [
     animation: radar-pulse 1.6s ease-in-out infinite;
   }
 
-  /* ── body grid ────────────────────────────────────────────── */
-  .radar-body {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 14px;
-    padding: 16px;
-  }
-
+  /* ── shared panel ─────────────────────────────────────────── */
   .radar-panel {
     border: 1px solid rgba(245, 245, 245, 0.1);
     border-radius: 12px;
     background: rgba(245, 245, 245, 0.02);
-    padding: 18px;
+    padding: 16px;
   }
 
   .radar-panel-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 14px;
+    margin-bottom: 8px;
   }
 
   .radar-panel-title {
@@ -267,126 +293,83 @@ const blips = [
     color: rgba(245, 245, 245, 0.5);
   }
 
-  /* ── radar scope ──────────────────────────────────────────── */
-  .radar-scope-circle {
-    position: relative;
-    width: 100%;
-    max-width: 280px;
-    aspect-ratio: 1 / 1;
-    margin: 0 auto;
-    border-radius: 50%;
-    border: 1px solid rgba(0, 212, 0, 0.25);
-    overflow: hidden;
-    background: radial-gradient(circle, rgba(0, 212, 0, 0.07), transparent 72%);
+  /* ── KPI strip ────────────────────────────────────────────── */
+  .radar-kpis {
+    display: grid;
+    grid-template-columns: 0.8fr 1.1fr 1.4fr;
+    gap: 14px;
+    padding: 16px;
   }
 
-  .radar-ring {
-    position: absolute;
-    border: 1px solid rgba(0, 212, 0, 0.16);
-    border-radius: 50%;
-  }
-
-  .radar-cross-h {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    height: 1px;
-    background: rgba(0, 212, 0, 0.14);
-  }
-
-  .radar-cross-v {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: 1px;
-    background: rgba(0, 212, 0, 0.14);
-  }
-
-  .radar-sweep {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: conic-gradient(
-      from 180deg,
-      rgba(0, 212, 0, 0.4),
-      rgba(0, 212, 0, 0.05) 55deg,
-      transparent 60deg
-    );
-    transform-origin: 50% 50%;
-    animation: radar-spin 4s linear infinite;
-  }
-
-  .radar-blip {
-    position: absolute;
-    border-radius: 50%;
-    background: #4fe24f;
-    box-shadow: 0 0 8px #4fe24f;
-    animation: radar-blip-glow 2.4s ease-in-out infinite;
-  }
-
-  .radar-center {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 12px;
-    height: 12px;
-    margin: -6px;
-    border-radius: 50%;
-    background: #00d400;
-    box-shadow: 0 0 14px #00d400;
-  }
-
-  /* ── KPI stack ────────────────────────────────────────────── */
-  .radar-stats {
+  .radar-kpi {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
+    min-width: 0;
   }
 
-  .radar-stat {
-    flex: 1;
-  }
-
-  .radar-stat-label {
+  .radar-kpi-label {
     font-family: var(--font-mono);
     font-size: 11px;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
     color: rgba(245, 245, 245, 0.45);
   }
 
-  .radar-stat-value {
+  .radar-kpi-value {
     font-weight: 700;
-    font-size: 46px;
-    line-height: 1.05;
-    margin-top: 8px;
+    font-size: 34px;
+    line-height: 1;
+    color: #f5f5f5;
+    margin-top: auto;
   }
 
-  .radar-stat-value-sm {
-    font-size: 36px;
+  /* avg-score A–E bar (matches the radar app's AvgNutriScoreBar) */
+  .radar-score-bar {
+    display: flex;
+    gap: 3px;
+    margin-top: auto;
   }
 
-  .radar-stat-sub {
-    font-size: 13px;
-    color: rgba(245, 245, 245, 0.55);
-    margin-top: 6px;
+  .rs-seg {
+    flex: 1;
+    height: 26px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    opacity: 0.4;
+    transition: none;
   }
 
-  .radar-badge {
-    display: inline-block;
-    margin-top: 12px;
-    background: rgba(224, 89, 44, 0.15);
-    border: 1px solid rgba(224, 89, 44, 0.35);
-    color: #e8754a;
-    border-radius: 8px;
-    padding: 5px 11px;
+  .rs-seg--active {
+    opacity: 1;
+    height: 32px;
+    margin-top: -3px;
+    box-shadow: 0 0 0 2px rgba(245, 245, 245, 0.18);
+  }
+
+  /* severity badges (matches the app's Critical/High/Medium/Low) */
+  .radar-sev {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+  }
+
+  .radar-sev-badge {
     font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 700;
+    border: 1px solid;
+    border-radius: 7px;
+    padding: 4px 8px;
+    white-space: nowrap;
   }
 
-  /* ── recent scans ─────────────────────────────────────────── */
+  /* ── projects table ───────────────────────────────────────── */
   .radar-scans-wrap {
     padding: 0 16px 16px;
   }
@@ -404,7 +387,7 @@ const blips = [
   .radar-row {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     padding: 11px 0;
     border-top: 1px solid rgba(245, 245, 245, 0.07);
   }
@@ -421,11 +404,18 @@ const blips = [
     font-size: 14px;
   }
 
+  .radar-row-provider {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    opacity: 0.85;
+  }
+
   .radar-path {
     display: flex;
     align-items: center;
     gap: 8px;
-    width: 120px;
+    width: 110px;
     flex-shrink: 0;
   }
 
@@ -466,7 +456,7 @@ const blips = [
 
   /* ── responsive ───────────────────────────────────────────── */
   @media (max-width: 760px) {
-    .radar-body {
+    .radar-kpis {
       grid-template-columns: 1fr;
     }
   }
@@ -478,12 +468,6 @@ const blips = [
   }
 
   /* ── animations ───────────────────────────────────────────── */
-  @keyframes radar-spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
   @keyframes radar-pulse {
     0%,
     100% {
@@ -494,26 +478,9 @@ const blips = [
     }
   }
 
-  @keyframes radar-blip-glow {
-    0%,
-    100% {
-      opacity: 0.5;
-      transform: scale(0.85);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1.15);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .radar-sweep,
-    .radar-blip,
     .live-dot {
       animation: none;
-    }
-    .radar-blip {
-      opacity: 0.85;
     }
   }
 </style>
