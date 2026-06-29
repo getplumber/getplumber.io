@@ -8,8 +8,11 @@ const HEADERS: HeadersInit = {
 };
 
 /**
- * Fetches hero GitHub stars and latest release in the browser, then shows the badge only
- * when at least one value is available. No auth token. Uses textContent only.
+ * Fetches hero GitHub stars and latest release in the browser. The badge is
+ * rendered up-front with skeleton placeholders (so it reserves its space and
+ * does not shift the hero when data arrives); this fills in the real values,
+ * hides a half that failed, and only collapses the whole badge if both fail.
+ * No auth token. Uses textContent only.
  */
 export function initGitHubHeroStats(): void {
   void run();
@@ -64,8 +67,12 @@ async function run(): Promise<void> {
   }
 
   if (starsOk || releaseOk) {
-    badgeEl.classList.remove("hidden");
-    badgeEl.classList.add("inline-flex");
+    // The badge is visible from first paint (skeleton); setting textContent above
+    // already swapped the placeholders for real values — just expose it to a11y.
     badgeEl.removeAttribute("aria-hidden");
+  } else {
+    // Both lookups failed (offline / rate-limited): collapse the placeholder
+    // instead of leaving skeletons up indefinitely.
+    badgeEl.classList.add("hidden");
   }
 }
