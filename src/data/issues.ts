@@ -196,6 +196,20 @@ export const controlCatalog: Record<
         "Prevents reliance on insecure or non-compliant references.",
     },
   },
+  externalRefsMustNotCollide: {
+    gitlab: {
+      controlDescription:
+        "Flags `include:` refs (project `ref:` or CI/CD component `@version`) that resolve upstream as both a tag and a branch.",
+      controlWhyItMatters:
+        "A tag deletion or rename can silently rebind the include to a mutable branch, swapping the revision that runs. Pin by commit SHA.",
+    },
+    github: {
+      controlDescription:
+        "Flags `uses: owner/repo@ref` references that resolve upstream as both a tag and a branch.",
+      controlWhyItMatters:
+        "A tag deletion, rename, or typo can silently switch which revision runs. Pin by 40-char commit SHA.",
+    },
+  },
   pipelineMustIncludeTemplate: {
     gitlab: {
       controlDescription:
@@ -2896,6 +2910,7 @@ jobs:
       category: "Pipeline Composition",
       severity: "medium",
       fixDuration: "quick",
+      productScope: "cli",
       controlName: "Includes must not use ambiguous tag/branch refs",
       controlConfigKey: "externalRefsMustNotCollide",
       description:
