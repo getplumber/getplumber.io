@@ -1,0 +1,23 @@
+# gitleaks configuration for getplumber.io
+#
+# Extends gitleaks' built-in rule set and allowlists known, intentional
+# non-secrets so they don't show up as findings. gitleaks auto-loads this
+# file from the repository root.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known non-secrets (public by design)"
+# The IndexNow key is *meant* to be public: the protocol verifies domain
+# ownership by fetching https://getplumber.io/<key>.txt (served from public/),
+# so the same value lives in scripts/indexnow-submit.js and that .txt file.
+# It grants no access — it only lets us ping search engines about our own
+# sitemap — so it is not a credential and there is nothing to rotate.
+regexes = [
+  '''9d9a12ab657a0134d92384f186ea6b6c''',
+]
+paths = [
+  '''scripts/indexnow-submit\.js''',
+  '''9d9a12ab657a0134d92384f186ea6b6c\.txt''',
+]
