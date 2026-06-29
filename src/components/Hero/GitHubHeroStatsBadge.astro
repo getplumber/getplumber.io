@@ -8,7 +8,7 @@ import { Icon } from "astro-icon/components";
 
 <div
   id="gh-hero-stats-badge"
-  class="bg-base-100/70 dark:bg-base-800/70 border-primary-500/30 ring-primary-500/15 mx-auto hidden w-max flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border px-4 py-2 text-sm ring-1 sm:gap-x-4"
+  class="bg-base-100/70 dark:bg-base-800/70 border-primary-500/30 ring-primary-500/15 mx-auto inline-flex w-max flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border px-4 py-2 text-sm ring-1 sm:gap-x-4"
   data-mos="fade-up"
   data-mos-delay="0.3"
   data-mos-anchor="#plumber-hero"
@@ -23,7 +23,11 @@ import { Icon } from "astro-icon/components";
     <Icon name="tabler/brand-github" class="h-4 w-4 shrink-0" aria-hidden="true" />
     <span class="inline-flex items-center gap-1.5" data-gh-stars-wrap>
       <Icon name="tabler/star-filled" class="h-4 w-4 text-amber-400" aria-hidden="true" />
-      <span id="gh-stars" class="tabular-nums text-xs"></span>
+      <span id="gh-stars" class="tabular-nums text-xs"
+        ><span
+          class="gh-skel inline-block h-3 w-7 animate-pulse rounded bg-base-400/40 dark:bg-base-500/40 align-middle"
+          aria-hidden="true"></span
+      ></span>
       <span>stars</span>
     </span>
   </a>
@@ -40,7 +44,11 @@ import { Icon } from "astro-icon/components";
     data-gh-release-wrap
   >
     <Icon name="tabler/tag" class="h-4 w-4 shrink-0" aria-hidden="true" />
-    <span id="gh-release" class="min-w-[2.5rem] font-mono text-xs tracking-tight"></span>
+    <span id="gh-release" class="min-w-[2.5rem] font-mono text-xs tracking-tight"
+      ><span
+        class="gh-skel inline-block h-3 w-12 animate-pulse rounded bg-base-400/40 dark:bg-base-500/40 align-middle"
+        aria-hidden="true"></span
+    ></span>
   </a>
 </div>
 
