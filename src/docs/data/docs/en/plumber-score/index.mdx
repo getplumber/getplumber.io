@@ -18,13 +18,13 @@ Plumber Score is a simple **A-E** grade for your CI/CD security. The
 open-source [Plumber CLI](https://github.com/getplumber/plumber) produces it on
 **every run**, whether you run it locally or in your CI pipeline.
 
-| Grade | Points | What it means |
-|:-----:|:------:|---------------|
-| <span class="font-bold text-primary-400 dark:text-primary-300">A</span> | ≥ 90 | **Excellent**: very low risk, clean pipeline |
-| <span class="font-bold text-primary-400 dark:text-primary-300">B</span> | 71 – 89 | **Good**: a few Low or Medium issues |
-| <span class="font-bold text-yellow-500 dark:text-yellow-400">C</span> | 51 – 70 | **Moderate**: Medium issues or accumulating Low findings, worth fixing |
-| <span class="font-bold text-orange-500 dark:text-orange-400">D</span> | 31 – 50 | **Poor**: High-severity issues impacting the pipeline |
-| <span class="font-bold text-red-400 dark:text-red-300">E</span> | < 31 | **Critical**: at least one Critical issue, or heavy accumulated losses |
+| Grade | What it means |
+|:-----:|---------------|
+| <span class="font-bold text-primary-400 dark:text-primary-300">A</span> | **Excellent**: very low risk, clean pipeline |
+| <span class="font-bold text-primary-400 dark:text-primary-300">B</span> | **Good**: a few Low or Medium issues |
+| <span class="font-bold text-yellow-500 dark:text-yellow-400">C</span> | **Moderate**: Medium issues or accumulating Low findings, worth fixing |
+| <span class="font-bold text-orange-500 dark:text-orange-400">D</span> | **Poor**: High-severity issues impacting the pipeline |
+| <span class="font-bold text-red-400 dark:text-red-300">E</span> | **Critical**: at least one Critical issue, or heavy accumulated losses |
 
 ## Publish your score
 
@@ -459,7 +459,15 @@ with the correct workflow `permissions` and `score-push` enabled in the action
 The Plumber CLI determines the score on each run, locally or in CI. Every run
 starts at a perfect **100 points**. Plumber scans your CI/CD configuration, and
 each open issue subtracts points based on its **severity**. The final point
-total maps to the A-E grade above (higher points = better grade).
+total then maps to the A-E grade (higher points = better grade):
+
+| Grade | Points |
+|:-----:|:------:|
+| <span class="font-bold text-primary-400 dark:text-primary-300">A</span> | ≥ 90 |
+| <span class="font-bold text-primary-400 dark:text-primary-300">B</span> | 71 – 89 |
+| <span class="font-bold text-yellow-500 dark:text-yellow-400">C</span> | 51 – 70 |
+| <span class="font-bold text-orange-500 dark:text-orange-400">D</span> | 31 – 50 |
+| <span class="font-bold text-red-400 dark:text-red-300">E</span> | < 31 |
 
 Each severity has a weight, and repeated occurrences of the *same* issue taper
 off (capped) so a single noisy problem can't dominate the whole score:
