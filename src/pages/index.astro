@@ -7,6 +7,7 @@ import PlumberHero from "@components/Hero/PlumberHero.astro";
 import SectionNav from "@components/Nav/SectionNav.astro";
 import PricingHome from "@components/Pricing/PricingHome.astro";
 import SectionDivider from "@components/SectionDivider/SectionDivider.astro";
+import Testimonials2 from "@components/Testimonials/Testimonials2.astro";
 import FaqSection from "@components/Faq/FaqSection.astro";
 import SoftwareAppJsonLd from "@components/Seo/SoftwareAppJsonLd.astro";
 import { faqData } from "@config/en/faqData.json";
@@ -25,6 +26,7 @@ const pageSections = [
   { id: "the-loop", label: "How it works" },
   { id: "platform", label: "CLI & Platform" },
   { id: "plumber-radar", label: "Radar" },
+  { id: "testimonials", label: "Testimonials" },
   { id: "pricing", label: "Pricing" },
   { id: "plumber-cta", label: "Quick start" },
 ];
@@ -36,6 +38,7 @@ const pageSections = [
   <TheLoop />
   <CliVsPlatform />
   <PlumberRadar />
+  <Testimonials2 />
   <PricingHome />
   <PlumberQuickStart />
   <SectionDivider />
