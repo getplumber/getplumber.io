@@ -4,9 +4,10 @@
  * Centered heading + a dark "getplumber.io/radar" dashboard window illustration.
  *
  * The window mirrors the real radar app (plumber-gitlab-ecosystem-scan):
- *   - KPI strip: Projects scanned · Avg score (A–E letter bar) · Total issues
- *     split by severity (Critical / High / Medium / Low).
- *   - Projects table: Nutri-style A–E score, provider, anonymized path, compliance %.
+ *   - KPI strip: Projects scanned · Avg score (A–E grade boxes, like the Plumber
+ *     Score section) · Total issues split by severity (full-width so it never wraps).
+ *   - Projects table: Nutri-style A–E score, provider, path, issues by severity,
+ *     and the per-row "Improve" CTA (with a cursor on the worst project).
  * It is a self-contained dark mock, so colors are intentionally hard-coded (not
  * theme tokens) and stay dark in both light and dark mode. Figures are a snapshot
  * of the live radar (getplumber.io/radar — /api/stats); refresh them periodically.
@@ -37,27 +38,33 @@ const issueSeverity = [
   { label: "Low", count: 5, color: "#a1a1aa" },
 ];
 
+// Per-row severity badge order + colors (match the KPI strip)
+const SEVERITIES = [
+  { key: "critical", label: "Critical", color: "#df4b2c" },
+  { key: "high", label: "High", color: "#ef8a1a" },
+  { key: "medium", label: "Medium", color: "#e8c21d" },
+  { key: "low", label: "Low", color: "#a1a1aa" },
+] as const;
+
 interface ProjectRow {
   letter: keyof typeof GRADE;
   provider: "gitlab" | "github";
-  compliance: number; // 0-100
   segments: [number, number]; // anonymized path segment widths (px)
+  issues: { critical: number; high: number; medium: number; low: number };
+  /** Worst project: show a cursor focusing its "Improve" button. */
+  cursor?: boolean;
 }
 
+// Sorted worst → best (E → A): the riskiest projects surface first, mirroring
+// the radar's "sorted by score". Issue counts track the grade; each project
+// carries some low findings, like the live radar's per-project severity split.
 const projectRows: ProjectRow[] = [
-  { letter: "A", provider: "gitlab", compliance: 96, segments: [42, 54] },
-  { letter: "B", provider: "github", compliance: 82, segments: [50, 46] },
-  { letter: "C", provider: "gitlab", compliance: 68, segments: [40, 58] },
-  { letter: "D", provider: "github", compliance: 51, segments: [48, 50] },
-  { letter: "E", provider: "gitlab", compliance: 29, segments: [44, 52] },
+  { letter: "E", provider: "gitlab", segments: [62, 78], issues: { critical: 4, high: 9, medium: 7, low: 2 }, cursor: true },
+  { letter: "D", provider: "github", segments: [68, 72], issues: { critical: 1, high: 5, medium: 6, low: 3 } },
+  { letter: "C", provider: "gitlab", segments: [56, 86], issues: { critical: 0, high: 3, medium: 4, low: 5 } },
+  { letter: "B", provider: "github", segments: [70, 64], issues: { critical: 0, high: 1, medium: 2, low: 4 } },
+  { letter: "A", provider: "gitlab", segments: [58, 80], issues: { critical: 0, high: 0, medium: 0, low: 3 } },
 ];
-
-function complianceColor(c: number): string {
-  if (c >= 100) return "#1a951a";
-  if (c >= 75) return "#008700";
-  if (c >= 50) return "#e8c21d";
-  return "#df4b2c";
-}
 ---
 
 <section
@@ -111,7 +118,7 @@ function complianceColor(c: number): string {
         <span class="radar-live"><span class="live-dot"></span>LIVE</span>
       </div>
 
-      <!-- KPI strip -->
+      <!-- KPI strip: Projects + Avg score on row 1, Total issues full-width row 2 -->
       <div class="radar-kpis">
         <div class="radar-panel radar-kpi">
           <span class="radar-kpi-label">Projects scanned</span>
@@ -122,19 +129,23 @@ function complianceColor(c: number): string {
           <span class="radar-kpi-label">Avg score</span>
           <span class="radar-score-bar" role="img" aria-label={`Average Plumber score ${avgScore}`}>
             {
-              LETTERS.map((l) => (
-                <span
-                  class:list={["rs-seg", l === avgScore && "rs-seg--active"]}
-                  style={`background:${GRADE[l].bg};color:${GRADE[l].fg}`}
-                >
-                  {l}
-                </span>
-              ))
+              LETTERS.map((l) => {
+                const c = GRADE[l].bg;
+                const active = l === avgScore;
+                return (
+                  <span
+                    class:list={["rs-seg", active && "rs-seg--active"]}
+                    style={`color:${c};border:${active ? "2px" : "1px"} solid ${active ? c : `${c}80`};background:${c}1f;${active ? `box-shadow:0 0 0 4px ${c}33;` : ""}`}
+                  >
+                    {l}
+                  </span>
+                );
+              })
             }
           </span>
         </div>
 
-        <div class="radar-panel radar-kpi">
+        <div class="radar-panel radar-kpi radar-kpi--issues">
           <span class="radar-kpi-label">Total issues</span>
           <span class="radar-sev">
             {
@@ -162,29 +173,52 @@ function complianceColor(c: number): string {
             {
               projectRows.map((row) => (
                 <li class="radar-row">
-                  <span
-                    class="radar-grade"
-                    style={`background:${GRADE[row.letter].bg};color:${GRADE[row.letter].fg}`}
-                  >
-                    {row.letter}
-                  </span>
-                  <Image
-                    src={row.provider === "gitlab" ? gitlabIcon : githubIconWhite}
-                    alt={row.provider === "gitlab" ? "GitLab" : "GitHub"}
-                    class="radar-row-provider"
-                  />
-                  <span class="radar-path" aria-hidden="true">
-                    <span class="radar-path-seg" style={`width:${row.segments[0]}px`} />
-                    <span class="radar-path-slash">/</span>
-                    <span class="radar-path-seg" style={`width:${row.segments[1]}px`} />
-                  </span>
-                  <span class="radar-track">
+                  <span class="radar-row-head">
                     <span
-                      class="radar-fill"
-                      style={`width:${row.compliance}%;background:${complianceColor(row.compliance)}`}
+                      class="radar-grade"
+                      style={`background:${GRADE[row.letter].bg};color:${GRADE[row.letter].fg}`}
+                    >
+                      {row.letter}
+                    </span>
+                    <Image
+                      src={row.provider === "gitlab" ? gitlabIcon : githubIconWhite}
+                      alt={row.provider === "gitlab" ? "GitLab" : "GitHub"}
+                      class="radar-row-provider"
                     />
+                    <span class="radar-path" aria-hidden="true">
+                      <span class="radar-path-seg" style={`width:${row.segments[0]}px`} />
+                      <span class="radar-path-slash">/</span>
+                      <span class="radar-path-seg" style={`width:${row.segments[1]}px`} />
+                    </span>
                   </span>
-                  <span class="radar-pct">{row.compliance}%</span>
+                  <span class="radar-row-issues">
+                    {
+                      SEVERITIES.filter((s) => row.issues[s.key] > 0).map((s) => (
+                        <span
+                          class="radar-issue"
+                          style={`color:${s.color};border-color:${s.color}55;background:${s.color}1f`}
+                        >
+                          {s.label} {row.issues[s.key]}
+                        </span>
+                      ))
+                    }
+                  </span>
+                  <span class="radar-improve-wrap">
+                    <span class:list={["radar-improve", row.cursor && "radar-improve--focus"]}>
+                      Improve
+                    </span>
+                    {row.cursor && (
+                      <svg class="radar-cursor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                          d="M5 2.5l14.5 8.7-6.6 1.1-3.4 6.6L5 2.5z"
+                          fill="#ffffff"
+                          stroke="#0c0e0c"
+                          stroke-width="1.4"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </span>
                 </li>
               ))
             }
@@ -296,9 +330,15 @@ function complianceColor(c: number): string {
   /* ── KPI strip ────────────────────────────────────────────── */
   .radar-kpis {
     display: grid;
-    grid-template-columns: 0.8fr 1.1fr 1.4fr;
+    grid-template-columns: 1fr 1.6fr;
     gap: 14px;
     padding: 16px;
+  }
+
+  /* Total issues spans the full width on its own row so the severity badges
+     never wrap on desktop. */
+  .radar-kpi--issues {
+    grid-column: 1 / -1;
   }
 
   .radar-kpi {
@@ -318,40 +358,35 @@ function complianceColor(c: number): string {
 
   .radar-kpi-value {
     font-weight: 700;
-    font-size: 34px;
+    font-size: 26px;
     line-height: 1;
     color: #f5f5f5;
     margin-top: auto;
   }
 
-  /* avg-score A–E bar (matches the radar app's AvgNutriScoreBar) */
+  /* avg-score A–E boxes (same visual language as "The Plumber Score" section) */
   .radar-score-bar {
     display: flex;
-    gap: 3px;
+    gap: 6px;
     margin-top: auto;
   }
 
   .rs-seg {
     flex: 1;
-    height: 26px;
-    border-radius: 5px;
+    height: 46px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 12px;
-    opacity: 0.4;
-    transition: none;
+    font-size: 17px;
   }
 
   .rs-seg--active {
-    opacity: 1;
-    height: 32px;
-    margin-top: -3px;
-    box-shadow: 0 0 0 2px rgba(245, 245, 245, 0.18);
+    font-size: 20px;
   }
 
-  /* severity badges (matches the app's Critical/High/Medium/Low) */
+  /* total-issues severity badges */
   .radar-sev {
     display: flex;
     flex-wrap: wrap;
@@ -392,6 +427,13 @@ function complianceColor(c: number): string {
     border-top: 1px solid rgba(245, 245, 245, 0.07);
   }
 
+  .radar-row-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
   .radar-grade {
     width: 30px;
     height: 30px;
@@ -411,47 +453,83 @@ function complianceColor(c: number): string {
     opacity: 0.85;
   }
 
+  /* "group / project" — larger, more legible */
   .radar-path {
     display: flex;
     align-items: center;
-    gap: 8px;
-    width: 110px;
+    gap: 9px;
+    width: 180px;
     flex-shrink: 0;
   }
 
   .radar-path-seg {
-    height: 7px;
-    background: rgba(245, 245, 245, 0.14);
-    border-radius: 3px;
+    height: 9px;
+    background: rgba(245, 245, 245, 0.16);
+    border-radius: 4px;
   }
 
   .radar-path-slash {
     color: rgba(245, 245, 245, 0.3);
-    font-size: 12px;
-  }
-
-  .radar-track {
-    flex: 1;
-    height: 7px;
-    background: rgba(245, 245, 245, 0.08);
-    border-radius: 4px;
-    overflow: hidden;
-    min-width: 40px;
-  }
-
-  .radar-fill {
-    display: block;
-    height: 100%;
-    border-radius: 4px;
-  }
-
-  .radar-pct {
-    font-weight: 700;
     font-size: 13px;
-    width: 40px;
-    text-align: right;
+  }
+
+  .radar-row-issues {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .radar-issue {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    border: 1px solid;
+    border-radius: 6px;
+    padding: 2px 6px;
+    white-space: nowrap;
+  }
+
+  /* per-row "Improve" CTA (matches the radar app's row-improve-btn) */
+  .radar-improve-wrap {
+    position: relative;
     flex-shrink: 0;
-    color: #f5f5f5;
+    display: inline-flex;
+  }
+
+  .radar-improve {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 212, 0, 0.4);
+    background: rgba(0, 135, 0, 0.12);
+    color: #4fe24f;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .radar-improve--focus {
+    border-color: #00d400;
+    background: rgba(0, 212, 0, 0.22);
+    color: #7bf07b;
+    box-shadow: 0 0 0 3px rgba(0, 212, 0, 0.25);
+  }
+
+  .radar-cursor {
+    position: absolute;
+    right: 8px;
+    bottom: -4px;
+    width: 20px;
+    height: 20px;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+    pointer-events: none;
   }
 
   /* ── responsive ───────────────────────────────────────────── */
@@ -461,9 +539,32 @@ function complianceColor(c: number): string {
     }
   }
 
-  @media (max-width: 460px) {
-    .radar-path {
-      display: none;
+  /* Project rows become cards on mobile (like the radar app): the group/project
+     skeletons stay visible and the severity badges get their own row instead of
+     cramming onto a single line. */
+  @media (max-width: 680px) {
+    .radar-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .radar-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid rgba(245, 245, 245, 0.1);
+      border-radius: 12px;
+      background: rgba(245, 245, 245, 0.02);
+    }
+
+    .radar-row-issues {
+      justify-content: flex-start;
+    }
+
+    .radar-improve-wrap {
+      align-self: flex-end;
     }
   }
 

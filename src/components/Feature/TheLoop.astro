@@ -46,21 +46,25 @@ interface Grade {
 
 const grades: Grade[] = [
   { letter: "A", color: "#2bb85c" },
-  { letter: "B", color: "#9bd34a", featured: true },
+  { letter: "B", color: "#9bd34a" },
   { letter: "C", color: "#e8c21d" },
-  { letter: "D", color: "#ef8a1a" },
+  { letter: "D", color: "#ef8a1a", featured: true },
   { letter: "E", color: "#e0573a" },
 ];
 
 interface Metric {
   label: string;
   value: number; // 0-100
+  color: string;
 }
 
+// The highlighted grade is "D" — a negative case: secrets exposure is shaky
+// (orange), container images are the worst area (red), and repo governance is
+// the only healthy one (green). Colors signal where the issues are.
 const metrics: Metric[] = [
-  { label: "Secrets exposure", value: 70 },
-  { label: "Container images", value: 45 },
-  { label: "Repo governance", value: 60 },
+  { label: "Secrets exposure", value: 48, color: "#ef8a1a" },
+  { label: "Container images", value: 30, color: "#e0573a" },
+  { label: "Repo governance", value: 60, color: "#9bd34a" },
 ];
 ---
 
@@ -170,7 +174,7 @@ const metrics: Metric[] = [
                 {m.label}
               </span>
               <span class="bg-base-300 dark:bg-base-700 h-2 flex-1 overflow-hidden rounded-full">
-                <span class="bg-primary-500 block h-full rounded-full" style={`width:${m.value}%`} />
+                <span class="block h-full rounded-full" style={`width:${m.value}%;background:${m.color}`} />
               </span>
             </div>
           ))
