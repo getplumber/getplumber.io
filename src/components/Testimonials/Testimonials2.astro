@@ -14,13 +14,16 @@ const currLocale = getLocaleFromUrl(Astro.url);
 const testimonialData = getTranslatedData("testimonialData", currLocale);
 ---
 
-<section id="testimonial2" class="site-container my-16 md:my-36">
-  <div class="flex">
-    <p class="colored-title inline">Testimonials</p>
+<section
+  id="testimonials"
+  class="border-base-300 dark:border-base-600/60 scroll-mt-20 border-t py-20 md:py-28"
+>
+  <div class="site-container text-center">
+    <p class="section-eyebrow">Testimonials</p>
+    <h2 class="h2 mt-4">Hear from our customers</h2>
   </div>
-  <h2 class="h2 mt-8">Hear from our customers</h2>
 
-  <div class="relative overflow-hidden">
+  <div class="relative mt-12 overflow-hidden">
     <!-- left fade-out -->
     <div
       class="from-base-100 dark:from-base-900 absolute top-0 -left-px z-10 h-full w-[10%] bg-gradient-to-r from-10% to-transparent"
