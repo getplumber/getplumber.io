@@ -27,9 +27,8 @@ Two ways to scan a GitLab project:
 <div class="not-content grid gap-6 sm:grid-cols-2 my-8">
   <a href="#run-locally" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="flex items-center gap-2 text-xl font-semibold tracking-tight text-card-foreground">
-        <Icon name="tabler/terminal-2" size="24px" />
-        Run locally
+      <div class="text-xl font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/terminal-2" size="24px" class="inline align-text-bottom mr-1" /> Run locally
       </div>
       <div class="text-muted-foreground text-sm">Scan one project from your machine: quick checks before you push, security-team audits, or scanning another project without touching its CI.</div>
       <div class="pt-2 text-primary text-sm font-medium group-hover:underline">Local CLI →</div>
@@ -38,9 +37,8 @@ Two ways to scan a GitLab project:
 
   <a href="#run-with-the-gitlab-ci-component" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="flex items-center gap-2 text-xl font-semibold tracking-tight text-card-foreground">
-        <Icon name="tabler/brand-gitlab" size="24px" />
-        Run with the GitLab CI component
+      <div class="text-xl font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/brand-gitlab" size="24px" class="inline align-text-bottom mr-1" /> Run with the GitLab CI component
       </div>
       <div class="text-muted-foreground text-sm">A drop-in <code>include:</code> that runs on every pipeline (no binary to install) with MR comments, project badges, and a live score badge.</div>
       <div class="pt-2 text-primary text-sm font-medium group-hover:underline">GitLab CI component →</div>
@@ -150,7 +148,7 @@ If you run a self-hosted GitLab instance, you need your own copy of the componen
 
        ```yaml
        include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.4
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.9
        ```
 
        To update: re-import or manually pull upstream changes.
@@ -193,7 +191,7 @@ If you run a self-hosted GitLab instance, you need your own copy of the componen
 
        ```yaml
        include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.4
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.9
        ```
     </Steps>
   </TabsContent>
@@ -205,7 +203,7 @@ Override any input to fit your needs:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.3.4
+  - component: gitlab.com/getplumber/plumber/plumber@v0.3.9
     inputs:
       # Target (defaults to current project)
       server_url: https://gitlab.example.com   # Self-hosted GitLab
@@ -522,7 +520,7 @@ Or via the GitLab CI component:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.3.4
+  - component: gitlab.com/getplumber/plumber/plumber@v0.3.9
     inputs:
       mr_comment: true  # Requires api scope on token
 ```
@@ -551,7 +549,7 @@ Or via the GitLab CI component:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.3.4
+  - component: gitlab.com/getplumber/plumber/plumber@v0.3.9
     inputs:
       badge: true  # Requires api scope on token
 ```
@@ -579,9 +577,8 @@ The complete, always-current catalogs and command reference:
 <div class="not-content grid gap-6 sm:grid-cols-3 my-8">
   <a href="/docs/cli/reference" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="flex items-center gap-2 text-lg font-semibold tracking-tight text-card-foreground">
-        <Icon name="tabler/file-text" size="22px" />
-        CLI Reference
+      <div class="text-lg font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/file-text" size="22px" class="inline align-text-bottom mr-1" /> CLI Reference
       </div>
       <div class="text-muted-foreground text-sm">Every <code>analyze</code> flag, the config commands, exit codes, and the JSON / PBOM / CycloneDX output.</div>
     </div>
@@ -589,9 +586,8 @@ The complete, always-current catalogs and command reference:
 
   <a href="/docs/use-plumber/controls?p=gitlab" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="flex items-center gap-2 text-lg font-semibold tracking-tight text-card-foreground">
-        <Icon name="tabler/list-check" size="22px" />
-        Controls
+      <div class="text-lg font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/list-check" size="22px" class="inline align-text-bottom mr-1" /> Controls
       </div>
       <div class="text-muted-foreground text-sm">The full catalog of GitLab controls and what each one checks.</div>
     </div>
@@ -599,9 +595,8 @@ The complete, always-current catalogs and command reference:
 
   <a href="/docs/use-plumber/issues?p=gitlab" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="flex items-center gap-2 text-lg font-semibold tracking-tight text-card-foreground">
-        <Icon name="tabler/alert-triangle" size="22px" />
-        Issues
+      <div class="text-lg font-semibold tracking-tight text-card-foreground">
+        <Icon name="tabler/alert-triangle" size="22px" class="inline align-text-bottom mr-1" /> Issues
       </div>
       <div class="text-muted-foreground text-sm">Every <code>ISSUE-XXX</code> with severity, impact, and remediation.</div>
     </div>
