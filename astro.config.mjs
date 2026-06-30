@@ -5,6 +5,9 @@ import vercel from "@astrojs/vercel";
 import keystatic from "@keystatic/astro";
 import compress from "@playform/compress";
 import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath, URL } from "node:url";
+
+import { unified } from "@astrojs/markdown-remark";
 import { defineConfig, sharpImageService } from "astro/config";
 import AutoImport from "astro-auto-import";
 import expressiveCode from "astro-expressive-code";
@@ -40,11 +43,11 @@ export default defineConfig({
     },
   },
   markdown: {
-    // gfm defaults to true, but astro 6.4.x stopped applying it through the
-    // (now-deprecated) markdown remark-plugin path that an integration wires
-    // up, which silently dropped GFM tables site-wide. Setting it explicitly
-    // restores table rendering.
-    gfm: true,
+    // Astro 7's default Sätteri processor ignores `markdown.remarkPlugins`
+    // (astro-auto-import injects MDX components through one) and the `gfm`
+    // option. Use the unified processor so remark plugins run again and GFM
+    // tables keep rendering site-wide.
+    processor: unified({ gfm: true }),
     shikiConfig: {
       // Shiki Themes: https://shiki.style/themes
       theme: "css-variables",
@@ -102,10 +105,21 @@ export default defineConfig({
   ],
 
   vite: {
+    // Astro 7 ships Vite 8 (rolldown), whose CSS resolver no longer picks up the
+    // "@/" tsconfig path alias used by `@import "@/styles/..."`. Wire it explicitly.
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
+      },
+    },
     plugins: [tailwindcss()],
     // stop inlining short scripts to fix issues with ClientRouter
     build: {
       assetsInlineLimit: 0,
+      // Astro 7's Vite 8 defaults CSS minification to lightningcss, which can't
+      // parse Tailwind's `@import "..." theme(reference)` in scoped <style> blocks.
+      // Use esbuild (the pre-Vite-8 default) to keep minification working.
+      cssMinify: "esbuild",
     },
   },
 });
