@@ -29,7 +29,8 @@ const authorsData = await getEntries(authors);
         alt={`${title} blog post`}
         width={960}
         height={540}
-        quality="high"
+        densities={[1, 2]}
+        quality={90}
         class="size-full object-cover transition-all duration-500 hover:scale-[1.02]"
       />
     </a>

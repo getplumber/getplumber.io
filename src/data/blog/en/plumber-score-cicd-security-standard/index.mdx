@@ -1,0 +1,260 @@
+---
+title: "Plumber Score: A Security Standard for CI/CD Pipelines"
+description: "Plumber Score is a free, open-source A-E security grade for CI/CD pipelines: the unwatched stage AI is flooding with more code and more automated attacks. Publish yours, and check your dependencies' scores before trusting what they ship."
+draft: false
+authors:
+  - plumber
+pubDate: 2026-07-07
+heroImage: ./heroImage.png
+categories:
+  - "Plumber"
+  - "CI/CD"
+  - "Security"
+  - "Compliance"
+  - "Open Source"
+  - "DevOps"
+---
+
+import { Image } from "astro:assets";
+import scorePageExample from "./score-page-example.png";
+import cicdBlindSpot from "./cicd-blind-spot.png";
+import radarGradeDistribution from "./radar-grade-distribution.png";
+import gradeScale from "./grade-scale.png";
+
+> **Your code is scanned. Your runtime is monitored. The pipeline between them, the stage that holds your secrets, your registries, and your deploy keys, ships everything you build with no standard measure of trust. Plumber Score exists to change that.**
+
+## TL;DR
+
+- CI/CD is the **blind spot of software security**: SAST and SCA watch your code, DAST and logs watch your runtime, and the pipeline in between is mostly checked by hand, while AI pushes more code, more dependencies, and more automated attacks through it every day.
+- **Plumber Score** is an **A–E security grade for CI/CD pipelines** (GitLab CI and GitHub Actions), computed by the open-source [Plumber CLI](https://github.com/getplumber/plumber) on every scan and backed by an official, verifiable page at `score.getplumber.io`.
+- It's designed as a **standard**: immediately legible, hard to game, and independently verifiable by anyone.
+- The standard cuts both ways: **publish your score** to prove your pipeline can be trusted, and **check the score of your dependencies** before trusting what they ship into your build.
+- Publishing is **free, opt-in, and two lines of CI config**. Of the **8,729 public pipelines** graded live on [Plumber Radar](/radar), **63% currently sit at E**.
+
+## CI/CD: the blind spot AI is making bigger
+
+Map how the industry watches the software path today, and the problem is visible at a glance:
+
+- **Your code** is well covered. SAST, SCA, secret detection, and dependency review run on every merge request.
+- **Your runtime** is well covered. DAST, WAFs, logs, and observability watch every request in production.
+- **Your CI/CD pipeline**, the stage in between, has no equivalent. It is checked by hand, if at all.
+
+<Image src={cicdBlindSpot} alt="The software delivery path: code is covered by SAST, SCA and secret detection, runtime is covered by DAST, WAF and logs, but the CI/CD pipeline holding secrets, deploy keys and registries has no standard control" width={780} densities={[1, 2]} quality={92} class="mx-auto rounded-xl" />
+
+That gap would be worrying even if the pipeline were a low-value target. It's the opposite: the pipeline is the **highest-privilege stage of the three**. It executes on every push, it holds the secrets, tokens, and deploy keys, it decides which container images and third-party actions run with them, and whatever it produces goes straight to production.
+
+### AI is pouring more through the gap
+
+AI has industrialized code production, and every line, human or machine, still ships through that one unwatched stage:
+
+- **More volume**: AI coding assistants multiply commits, dependencies, and releases. Each one is another pipeline run with secret access.
+- **More generated configuration**: AI agents now write the CI YAML itself. Workflow files are generated, approved, and merged faster than anyone reviews them line by line.
+- **Faster attackers**: offense automated first. Autonomous AI bots now scan and exploit pipeline misconfigurations at machine speed, no human operator required.
+
+That's the asymmetry: the attack side is automated and scales with compute, while the defense of the pipeline is still, on most projects, a human occasionally reading YAML.
+
+### The bombs are already going off, and Radar shows how many are left
+
+The last eighteen months read like a proof by repetition. Each incident abused the same unwatched stage:
+
+- **[tj-actions/changed-files](/blog/tj-actions-compromised)** (March 2025): a widely-used GitHub Action was compromised, and thousands of downstream pipelines that trusted it blindly leaked their CI secrets.
+- **[Shai-Hulud](/blog/shai-hulud)** (November 2025): a self-replicating npm supply-chain worm that harvested credentials from build environments and used them to keep spreading.
+- **[hackerbot-claw](/blog/hackerbot-claw-cicd-governance)** (February 2026): an autonomous AI bot that compromised 5 of 7 major open-source repositories in 7 days, exploiting only known misconfigurations that had been documented for years.
+
+Those are the incidents that made the news. The quieter, bigger problem is how much of the same fuel is still lying around. **[Plumber Radar](/radar)** continuously scans public GitLab and GitHub projects and grades every pipeline it finds, and the picture is uncomfortable:
+
+<Image src={radarGradeDistribution} alt="Plumber Radar live grade distribution: of 8,729 public pipelines, 638 grade A, 851 B, 918 C, 790 D and 5,532 grade E, with 10,325 Critical findings across the cohort" width={780} densities={[1, 2]} quality={92} class="mx-auto rounded-xl" />
+
+**63% of the 8,729 pipelines graded so far sit at E**, the band reserved for Critical findings. Across the cohort, Radar counts over **10,000 Critical** and **80,000 High** findings: unpinned third-party actions, workflows without permission scopes, unprotected default branches, weakened security jobs. The hidden bombs are everywhere; [Radar](/radar) just makes them visible. (These figures are a July 2026 snapshot; the live numbers on Radar keep moving.)
+
+All of these problems share two properties: they are **plainly visible in the pipeline configuration**, and they are **invisible in a normal code review**. Which means they are measurable. The industry just never agreed on a measure.
+
+<Admonition variant="info">
+SAST answers "is the code safe." DAST answers "is the runtime safe." Until now, no standard answered "is the **pipeline** that builds, tests, and ships everything safe": the exact stage these attacks go through.
+</Admonition>
+
+## Plumber Score: a security standard for CI/CD
+
+**Plumber Score is an A–E security grade for a CI/CD pipeline**, computed by the open-source [Plumber CLI](https://github.com/getplumber/plumber) on every scan, locally or in CI. It reads your `.gitlab-ci.yml` or `.github/workflows/*.yml` and evaluates it against pipeline-security controls: hardcoded jobs, mutable image tags, Docker-in-Docker, unverified remote scripts, weakened security jobs, unpinned actions, dangerous triggers, and more.
+
+Every scan starts at 100 points, each open issue subtracts points by severity, and the total maps to a letter anyone can read:
+
+<Image src={gradeScale} alt="The Plumber Score scale: A excellent with very low risk, B good with a few low issues, C moderate and worth fixing, D poor with high-severity issues, E critical" width={780} densities={[1, 2]} quality={92} class="mx-auto rounded-xl" />
+
+A standard has to be more than accurate. It has to be trustworthy at a glance, so Plumber Score is designed around three properties:
+
+- **Immediately legible.** A–E is the same shorthand as Nutri-Score or restaurant hygiene grades. Nobody needs a glossary to know a D is bad.
+- **Hard to game.** **A single Critical finding forces the grade to E**, no matter how many other controls pass. A privileged Docker-in-Docker service or one `curl | bash` from an untrusted source, and the grade reads E, full stop. Repeated issues taper off, but distinct issues each keep costing points.
+- **Independently verifiable.** Every published score has a public page at `score.getplumber.io` showing when it was computed, on which branch, and under which policy, and it discloses when a project used a customized scanning configuration instead of the default one.
+
+The scoring model itself is open source and versioned (profile id `scoring-v3`). The exact weights, caps, and malus rules live in the [scoring documentation](/docs/plumber-score#how-is-the-score-determined), and `plumber analyze --score-point` prints the per-issue breakdown for your own pipeline.
+
+## A standard works both ways: prove yours, check theirs
+
+What made test coverage a standard wasn't the metric, it was the **social contract**: maintainers publish it, and visitors expect to see it. Plumber Score is built for the same contract, on the layer that actually ships the software:
+
+- **As a maintainer, publish your score.** It's the proof that the pipeline behind your releases is configured safely, the answer to a question your users can't currently evaluate themselves.
+- **As a consumer, check the score of your dependencies.** Every `npm install`, `docker pull`, and third-party action is an act of trust in *someone else's pipeline*. That's the exact trust the `tj-actions` and Shai-Hulud attackers exploited. A dependency with a public A tells you something real; a dependency with an E, or no score at all, tells you something too. Checking takes one URL: `score.getplumber.io/<host>/<owner>/<repo>` shows the latest published grade for any project. The [Plumber CLI itself](https://score.getplumber.io/github.com/getplumber/plumber) holds an **A**, and you can verify it right now.
+
+This is where the standard compounds: checking a Plumber Score before adopting a dependency belongs next to checking its license or its last release date. An unwatched pipeline stops being a private problem and becomes a visible adoption risk. That's how the blind spot closes: not one security team at a time, but as an ecosystem default.
+
+## Get your score and publish it
+
+Your grade is one command away, and publishing it takes two lines of CI config:
+
+1. **Install Plumber.** `brew install getplumber/plumber/plumber`, or see the [installation docs](/docs/cli/installation). Run `plumber analyze` from your repository and the terminal banner shows your grade immediately, no publishing required to see it locally.
+2. **Enable publishing** by adding two lines to the CI job you already run (the examples below show the full job for context).
+
+   **GitHub Actions:**
+
+   ```yaml
+   permissions:
+     contents: read
+     security-events: write
+     id-token: write
+   jobs:
+     plumber:
+       steps:
+         - uses: getplumber/plumber@<version>
+           with:
+             score-push: true
+   ```
+
+   **GitLab CI component:**
+
+   ```yaml
+   include:
+     - component: gitlab.com/getplumber/plumber/plumber@<version>
+       inputs:
+         score_push: true
+   ```
+
+3. **Make it visible.** Publishing creates your official score page at `score.getplumber.io`, plus an embeddable image for your README that links straight to it:
+
+   ```md
+   [![Plumber Score](https://score.getplumber.io/github.com/OWNER/REPO.svg)](https://score.getplumber.io/github.com/OWNER/REPO)
+   ```
+
+   On GitLab, you can also wire it into **Settings → General → Badges**. Here's Plumber's own, live and holding an **A**: <a href="https://score.getplumber.io/github.com/getplumber/plumber" target="_blank" rel="noopener"><img src="https://score.getplumber.io/github.com/getplumber/plumber.svg" alt="Plumber Score" height="20" style="height:20px;width:auto;display:inline-block;vertical-align:middle" /></a>. Click it to verify on [its score page](https://score.getplumber.io/github.com/getplumber/plumber).
+
+The score page is the source of truth the ecosystem can check: last analysis date, branch, grade, and whether the default or a project-customized policy produced it.
+
+<Image src={scorePageExample} alt="A project's official Plumber Score page, showing a D grade, the scanned repository, branch, and last update time" width={440} densities={[1, 2]} quality={92} class="mx-auto rounded-xl" />
+
+A few things worth knowing about publishing:
+
+- It's **opt-in**. Nothing is published until you set `score-push` / `score_push` to `true`.
+- It sends only the **analysis JSON**, never your source code.
+- The score page **refreshes on every scan** of your default branch, so it can't go stale.
+- If the push fails, your pipeline still passes; publishing never blocks a build.
+
+Full details, including the exact payload published, live in the [Plumber Score documentation](/docs/plumber-score).
+
+<Aside variant="caution" title="Key takeaways">
+
+1. **CI/CD is the unwatched, highest-privilege stage** of software delivery, and AI is multiplying both the code flowing through it and the attacks against it.
+2. **The risk is measurable and widespread**: 63% of the 8,729 public pipelines graded on [Plumber Radar](/radar) currently sit at E.
+3. **Plumber Score makes pipeline security a standard**: a free, open-source A–E grade, legible at a glance, hard to game, and verifiable on an official public score page.
+4. **It works both ways**: publish your score to prove your pipeline, and check your dependencies' scores before trusting what they ship.
+5. **Getting graded takes one command**, and publishing takes two lines of CI config.
+
+</Aside>
+
+## FAQ
+
+<div class="my-4 space-y-2">
+
+<details>
+<summary>What is Plumber Score?</summary>
+
+Plumber Score is an A–E security grade for CI/CD pipelines (GitLab CI and GitHub Actions), computed by the open-source Plumber CLI on every scan. Publishing it creates an official, independently verifiable score page at `score.getplumber.io`, plus an embeddable image for your README that links to it.
+
+</details>
+
+<details>
+<summary>Why does CI/CD security need its own standard?</summary>
+
+Because the pipeline is the only stage of software delivery without one. Code is covered by SAST and SCA, runtime by DAST and monitoring, but the CI/CD configuration that holds secrets, deploy keys, and registry access is usually reviewed by hand, if at all. AI widens the gap: it multiplies the code and dependencies flowing through pipelines, generates CI configuration nobody reviews line by line, and powers automated attacks like the hackerbot-claw campaign that compromised 5 of 7 major repositories in 7 days using only known misconfigurations.
+
+</details>
+
+<details>
+<summary>How is Plumber Score calculated?</summary>
+
+Every scan starts at 100 points. Each open issue subtracts points based on its severity (Critical, High, Medium, Low), with repeated occurrences of the same issue tapering off rather than stacking linearly. If any Critical issue is present, final points are capped at 30, which forces the grade into the E band. The resulting points map to a letter from A (90 or above, excellent) to E (below 31, critical). The full algorithm, profile id `scoring-v3`, is documented in the [scoring specification](https://github.com/getplumber/plumber/blob/main/docs/scoring.md).
+
+</details>
+
+<details>
+<summary>Is Plumber Score free?</summary>
+
+Yes. The Plumber CLI is open source and free to run locally or in CI. Publishing your score to `score.getplumber.io`, the public score page and the README image, is also free and opt-in.
+
+</details>
+
+<details>
+<summary>Should I check the Plumber Score of my dependencies?</summary>
+
+Yes, that's half the point of a standard. Every dependency, container image, and third-party action you adopt runs through someone else's pipeline before it reaches yours, and incidents like `tj-actions/changed-files` and Shai-Hulud spread precisely through that inherited trust. A dependency's public Plumber Score tells you how its pipeline is configured before you trust what it ships; the score page at `score.getplumber.io/<host>/<owner>/<repo>` shows the latest grade for any published project.
+
+</details>
+
+<details>
+<summary>Does publishing my score expose my source code?</summary>
+
+No. Publishing sends only the analysis JSON output (issue counts, control results, and the computed score), never your source code. All published scores are public, and the score always reflects the latest analysis of your default branch.
+
+</details>
+
+<details>
+<summary>How is Plumber Score different from OpenSSF Scorecard or SLSA?</summary>
+
+[OpenSSF Scorecard](https://securityscorecards.dev/) evaluates repository-level security hygiene (branch protection, dependency pinning, fuzzing, and more), and [SLSA](https://slsa.dev/) describes build-provenance guarantees. Neither reads your pipeline YAML line by line. Plumber Score specifically grades the CI/CD configuration itself, the stage with direct access to secrets, registries, and deploy credentials. The three are complementary and commonly used together.
+
+</details>
+
+<details>
+<summary>Does Plumber Score work with both GitHub Actions and GitLab CI?</summary>
+
+Yes. The Plumber CLI supports both providers natively, and both the GitHub Action and the GitLab CI component can publish the score (`score-push: true` on GitHub, `score_push: true` on GitLab).
+
+</details>
+
+<details>
+<summary>Can a project game a good Plumber Score?</summary>
+
+It's designed to resist that. A single Critical finding, such as a privileged Docker-in-Docker service or a security scanner silently weakened with `allow_failure: true`, caps the grade at E regardless of how many other controls pass. Per-issue caps prevent one noisy finding from dominating the score, but distinct problems each carry their own weight. And if a project publishes with a customized scanning policy instead of Plumber's default one, that's disclosed on its public score page.
+
+</details>
+
+</div>
+
+## See where your project stands
+
+If you want to see where the ecosystem sits before you measure your own repository, browse the live cohort on **[Plumber Radar](/radar)**, or skip ahead and run `plumber analyze` right now. Your grade is one command away.
+
+## Related Resources
+
+<div class="my-4 grid gap-2 sm:grid-cols-2">
+
+<a href="/radar" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Plumber Radar</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Live cohort of public GitLab and GitHub pipelines; 63% currently grade E</p>
+</a>
+
+<a href="/docs/plumber-score" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Plumber Score documentation</strong>
+  <p class="text-foreground/60 mt-1 text-sm">Full spec, publish payload, and setup for GitHub and GitLab</p>
+</a>
+
+<a href="/blog/cicd-compliance-guidelines" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">CI/CD Compliance Guidelines</strong>
+  <p class="text-foreground/60 mt-1 text-sm">A 26-point checklist mapped to ISO 27001, NIS2, DORA, and the CRA</p>
+</a>
+
+<a href="/blog/hackerbot-claw-cicd-governance" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">hackerbot-claw: CI/CD Pipelines as Attack Surface</strong>
+  <p class="text-foreground/60 mt-1 text-sm">An AI bot compromised 5 of 7 major repos via known misconfigurations</p>
+</a>
+
+</div>

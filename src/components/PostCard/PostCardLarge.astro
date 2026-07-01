@@ -31,7 +31,8 @@ const currLocale = getLocaleFromUrl(Astro.url);
         src={heroImage}
         alt={`${title} blog post`}
         height={700}
-        quality="high"
+        densities={[1, 2]}
+        quality={90}
         class="h-auto max-h-96 w-full object-cover transition-all duration-500 group-hover:scale-[1.02]"
       />
     </figure>
