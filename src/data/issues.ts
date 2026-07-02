@@ -416,6 +416,14 @@ export const controlCatalog: Record<
         "Workflow template-injection is the GitHub Actions equivalent of SQL injection: the PR title or branch name becomes part of the executed shell command.",
     },
   },
+  workflowMustNotWriteUntrustedContentToGitHubEnv: {
+    github: {
+      controlDescription:
+        "Flags a `run:` step that writes an untrusted `${{ github.event.* }}` / `${{ github.head_ref }}` expression into `$GITHUB_ENV` or `$GITHUB_PATH` (via `>>`, `>`, or `tee -a`).",
+      controlWhyItMatters:
+        "Both files are sticky: every later step inherits the variable or PATH entry. An attacker-controlled value can set `NODE_OPTIONS=--require=./exfil.js` or front-load a malicious PATH directory and hijack later steps. Worst under `pull_request_target` / `workflow_run`, where the run carries secrets.",
+    },
+  },
   reusableWorkflowsMustNotInheritSecrets: {
     github: {
       controlDescription:
@@ -3350,11 +3358,11 @@ jobs:
       controlName: "Workflow must not write untrusted content to $GITHUB_ENV",
       controlConfigKey: "workflowMustNotWriteUntrustedContentToGitHubEnv",
       description:
-        "A workflow appends a line of the form `echo \"KEY=${{ github.event.* }}\" >> $GITHUB_ENV` with PR-author-controlled content on the right-hand side.",
+        "A workflow routes PR-author-controlled content into `$GITHUB_ENV` or `$GITHUB_PATH` — directly (`echo \"KEY=${{ github.event.* }}\" >> $GITHUB_ENV`), through an `env:`-bound shell variable, or through a heredoc/redirect whose body dereferences the value.",
       impact:
         "Writing attacker-controlled content to $GITHUB_ENV creates an environment variable for every subsequent step in the job. A title containing newlines (`foo\\nMALICIOUS_PATH=...`) can inject *multiple* env vars at once, including overriding $PATH.",
       remediation:
-        "Bind the untrusted value through `env:` on the step that produces it. If you must write to $GITHUB_ENV, base64-encode the value so newlines can't escape the line.",
+        "Binding the value through `env:` stops command injection (ISSUE-207) but not this: a newline still opens a second `$GITHUB_ENV` line and any value poisons `$GITHUB_PATH`. Base64-encode the untrusted value itself before writing it (so no newline survives) or wrap it in `toJSON`. If it's only needed within one step, keep it in `env:` and don't write to the sticky file at all.",
       badExample: `# .github/workflows/triage.yml — ❌ Untrusted into $GITHUB_ENV
 on: pull_request_target
 jobs:
@@ -3378,8 +3386,10 @@ jobs:
       tips: [
         "Use the same trick for `$GITHUB_OUTPUT` and `$GITHUB_PATH`.",
         "If you only need the value within one step, env: is enough — don't write to $GITHUB_ENV at all.",
+        "A fixed heredoc delimiter (`<<EOF`) doesn't help — the body still lands in $GITHUB_ENV verbatim; randomise the delimiter or base64-encode the value.",
+        "base64 must wrap the untrusted value itself; a base64 elsewhere on the line (e.g. `$(date | base64)`) does not neutralise a raw `$VAR`.",
       ],
-      status: "roadmap",
+      status: "shipping",
       relatedCodes: ["ISSUE-207", "ISSUE-208"],
     },
   },

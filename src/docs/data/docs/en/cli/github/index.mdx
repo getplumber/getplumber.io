@@ -431,6 +431,13 @@ github:
     workflowMustNotInjectUserInputInScripts:
       enabled: true
 
+    # `${{ github.event.* }}` / `${{ github.head_ref }}` written into
+    # $GITHUB_ENV or $GITHUB_PATH is sticky and hijacks every later step.
+    # env: binding stops ISSUE-207 but not this — base64-encode the value
+    # itself (or use toJSON) so a newline can't open a second variable.
+    workflowMustNotWriteUntrustedContentToGitHubEnv:
+      enabled: true
+
     # `pull_request_target` and `workflow_run` run with the base repo's
     # secrets while being influenceable by an unprivileged caller.
     workflowMustNotUseDangerousTriggers:

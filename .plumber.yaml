@@ -1,5 +1,5 @@
 # Plumber Configuration - CI/CD compliance policy for this repository
-# Generated with: plumber config generate (CLI v0.3.72), then tailored.
+# Generated with: plumber config generate (CLI v0.3.85), then tailored.
 # Scope: GitHub-only repo (the gitlab: section is intentionally omitted).
 # Reference: https://github.com/getplumber/plumber/blob/main/.plumber.yaml
 # Docs: https://getplumber.io/docs/cli/github
