@@ -148,7 +148,7 @@ If you run a self-hosted GitLab instance, you need your own copy of the componen
 
        ```yaml
        include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.9
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.10
        ```
 
        To update: re-import or manually pull upstream changes.
@@ -191,7 +191,7 @@ If you run a self-hosted GitLab instance, you need your own copy of the componen
 
        ```yaml
        include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.9
+         - component: gitlab.example.com/infrastructure/plumber/plumber@v0.3.10
        ```
     </Steps>
   </TabsContent>
@@ -203,7 +203,7 @@ Override any input to fit your needs:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.3.9
+  - component: gitlab.com/getplumber/plumber/plumber@v0.3.10
     inputs:
       # Target (defaults to current project)
       server_url: https://gitlab.example.com   # Self-hosted GitLab
@@ -520,7 +520,7 @@ Or via the GitLab CI component:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.3.9
+  - component: gitlab.com/getplumber/plumber/plumber@v0.3.10
     inputs:
       mr_comment: true  # Requires api scope on token
 ```
@@ -549,7 +549,7 @@ Or via the GitLab CI component:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@v0.3.9
+  - component: gitlab.com/getplumber/plumber/plumber@v0.3.10
     inputs:
       badge: true  # Requires api scope on token
 ```
