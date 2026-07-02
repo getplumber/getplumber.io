@@ -1,0 +1,453 @@
+---
+/**
+ * "Why CI/CD security matters" — a single illustrated "coverage map" scene.
+ *
+ * A dark dashboard window (same visual language as the radar mock) shows the
+ * software path as three stations. The stations at both ends sit under green
+ * floodlights (your scanners); the CI/CD pipeline between them sits in the
+ * dark, flagged unmonitored, while AI-generated config and attacks drop
+ * straight into it. One look: lit, dark, lit.
+ *
+ * The window is a self-contained dark mock, so colors are hard-coded (not
+ * theme tokens) and read identically in light and dark mode.
+ * A kept alternative (plain coverage-gap layout) lives in
+ * WhyCicdSecurityGap.astro.
+ */
+import { Icon } from "astro-icon/components";
+---
+
+<section
+  id="why-security"
+  class="border-base-300 dark:border-base-600/60 scroll-mt-20 border-t py-20 md:py-28"
+>
+  <div class="site-container text-center">
+    <p class="section-eyebrow" data-mos="fade-up" data-mos-anchor="#why-security">Why it matters</p>
+    <h2 class="h2 mt-4" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#why-security">
+      CI/CD is the <span class="text-primary-500">blind spot</span>
+    </h2>
+    <p
+      class="description mt-3"
+      data-mos="fade-up"
+      data-mos-delay="0.2"
+      data-mos-anchor="#why-security"
+    >
+      Unwatched. AI-fueled. Under attack.
+    </p>
+
+    <!-- coverage-map window -->
+    <div
+      class="wsb-window mx-auto mt-12 max-w-4xl text-left"
+      data-mos="fade-up"
+      data-mos-delay="0.3"
+      data-mos-anchor="#why-security"
+    >
+      <!-- window header -->
+      <div class="wsb-bar">
+        <span class="wsb-dot" style="background:#e0573a"></span>
+        <span class="wsb-dot" style="background:#e8c21d"></span>
+        <span class="wsb-dot" style="background:#1faa4e"></span>
+        <span class="wsb-url">your-security-stack</span>
+        <span class="wsb-badge"><span class="wsb-badge-dot"></span>PARTIAL COVERAGE</span>
+      </div>
+
+      <!-- stage -->
+      <div class="wsb-stage">
+        <!-- pipeline track + flowing commits (desktop) -->
+        <div class="wsb-track" aria-hidden="true"></div>
+        <span class="wsb-flow" style="animation-delay:0s" aria-hidden="true"></span>
+        <span class="wsb-flow" style="animation-delay:-2.3s" aria-hidden="true"></span>
+        <span class="wsb-flow" style="animation-delay:-4.7s" aria-hidden="true"></span>
+        <!-- (each .wsb-flow is a full-width invisible rail whose ::before dot
+             rides along as the rail translates; transform-only, no reflow) -->
+
+        <div class="wsb-grid">
+          <!-- station: code (lit) -->
+          <div class="wsb-col">
+            <div class="wsb-top">
+              <span class="wsb-chip wsb-chip--tool">
+                <Icon name="tabler/shield-check" class="wsb-ic" aria-hidden="true" />
+                SAST · SCA
+              </span>
+              <div class="wsb-cone" aria-hidden="true"></div>
+            </div>
+            <div class="wsb-node wsb-node--lit">
+              <span class="wsb-name">Your code</span>
+              <span class="wsb-status wsb-status--ok">
+                <Icon name="tabler/check" class="wsb-ic-s" aria-hidden="true" />
+                covered
+              </span>
+            </div>
+          </div>
+
+          <!-- station: CI/CD (dark) -->
+          <div class="wsb-col">
+            <div class="wsb-top">
+              <span class="wsb-chip wsb-chip--ai">
+                <Icon name="tabler/sparkles" class="wsb-ic" aria-hidden="true" />
+                AI ships risky config
+              </span>
+              <span class="wsb-chip wsb-chip--atk">
+                <Icon name="tabler/flame" class="wsb-ic" aria-hidden="true" />
+                Attacks surging
+              </span>
+              <div class="wsb-drop" aria-hidden="true"></div>
+            </div>
+            <div class="wsb-node wsb-node--blind">
+              <span class="wsb-name">CI/CD pipeline</span>
+              <span class="wsb-status wsb-status--bad">
+                <Icon name="tabler/alert-triangle" class="wsb-ic-s" aria-hidden="true" />
+                unmonitored
+              </span>
+            </div>
+          </div>
+
+          <!-- station: runtime (lit) -->
+          <div class="wsb-col">
+            <div class="wsb-top">
+              <span class="wsb-chip wsb-chip--tool">
+                <Icon name="tabler/shield-check" class="wsb-ic" aria-hidden="true" />
+                DAST · logs
+              </span>
+              <div class="wsb-cone" aria-hidden="true"></div>
+            </div>
+            <div class="wsb-node wsb-node--lit">
+              <span class="wsb-name">Your runtime</span>
+              <span class="wsb-status wsb-status--ok">
+                <Icon name="tabler/check" class="wsb-ic-s" aria-hidden="true" />
+                covered
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p
+      class="text-base-600 dark:text-base-400 mx-auto mt-8 max-w-xl text-sm leading-relaxed"
+      data-mos="fade-up"
+      data-mos-delay="0.4"
+      data-mos-anchor="#why-security"
+    >
+      Your security stack watches the code and the runtime. The pipeline that builds and ships
+      everything in between runs blind.
+    </p>
+  </div>
+</section>
+
+<style>
+  /* ── window shell (same language as the radar mock) ─────────── */
+  .wsb-window {
+    border: 1px solid rgba(245, 245, 245, 0.12);
+    border-radius: 16px;
+    background: #080a08;
+    overflow: hidden;
+    color: rgba(245, 245, 245, 0.9);
+    box-shadow:
+      0 30px 70px -45px rgba(2, 6, 23, 0.4),
+      0 24px 80px -45px rgba(0, 212, 0, 0.18);
+  }
+
+  :global(.dark) .wsb-window {
+    box-shadow:
+      0 40px 90px -50px rgba(0, 212, 0, 0.3),
+      0 20px 60px -35px rgba(0, 0, 0, 0.55);
+  }
+
+  .wsb-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(245, 245, 245, 0.08);
+  }
+
+  .wsb-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .wsb-url {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: rgba(245, 245, 245, 0.5);
+    margin-left: 6px;
+  }
+
+  .wsb-badge {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid rgba(232, 194, 29, 0.4);
+    border-radius: 999px;
+    padding: 4px 11px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #e8c21d;
+    white-space: nowrap;
+  }
+
+  .wsb-badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #e8c21d;
+    box-shadow: 0 0 8px #e8c21d;
+    animation: wsb-pulse 1.6s ease-in-out infinite;
+  }
+
+  /* ── stage ──────────────────────────────────────────────────── */
+  .wsb-stage {
+    position: relative;
+    padding: 26px 24px 28px;
+  }
+
+  .wsb-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .wsb-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* top zone: fixed height so the three nodes align on one baseline */
+  .wsb-top {
+    height: 128px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── chips (scanners shine light, threats pour in) ──────────── */
+  .wsb-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid;
+    border-radius: 999px;
+    padding: 4px 11px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .wsb-chip--tool {
+    border-color: rgba(0, 212, 0, 0.35);
+    background: rgba(0, 212, 0, 0.1);
+    color: #4fe24f;
+  }
+
+  .wsb-chip--ai {
+    border-color: rgba(232, 194, 29, 0.4);
+    background: rgba(232, 194, 29, 0.1);
+    color: #e8c21d;
+  }
+
+  .wsb-chip--atk {
+    border-color: rgba(224, 87, 58, 0.45);
+    background: rgba(224, 87, 58, 0.1);
+    color: #e0573a;
+  }
+
+  .wsb-ic {
+    width: 14px;
+    height: 14px;
+  }
+
+  .wsb-ic-s {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* ── floodlight cones over the covered stations ─────────────── */
+  .wsb-cone {
+    flex: 1;
+    width: 100%;
+    clip-path: polygon(44% 0%, 56% 0%, 100% 100%, 0% 100%);
+    background: linear-gradient(to bottom, rgba(0, 212, 0, 0.24), rgba(0, 212, 0, 0.02));
+  }
+
+  /* ── threat drop into the dark station ──────────────────────── */
+  .wsb-drop {
+    position: relative;
+    flex: 1;
+    width: 2px;
+    overflow: hidden;
+    opacity: 0.85;
+  }
+
+  .wsb-drop::before {
+    content: "";
+    position: absolute;
+    inset: -12px 0 0 0;
+    background: repeating-linear-gradient(to bottom, #e0573a 0 6px, transparent 6px 12px);
+    animation: wsb-drip 1.1s linear infinite;
+  }
+
+  /* ── stations ───────────────────────────────────────────────── */
+  .wsb-node {
+    min-height: 88px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 14px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+
+  .wsb-node--lit {
+    border: 1px solid rgba(0, 212, 0, 0.3);
+    background: rgba(0, 212, 0, 0.06);
+  }
+
+  .wsb-node--blind {
+    border: 1.5px dashed rgba(224, 87, 58, 0.6);
+    background: rgba(224, 87, 58, 0.07);
+    box-shadow: 0 0 44px -12px rgba(224, 87, 58, 0.65);
+  }
+
+  .wsb-name {
+    color: #f5f5f5;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .wsb-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .wsb-status--ok {
+    color: #4fe24f;
+  }
+
+  .wsb-status--bad {
+    color: #e0573a;
+  }
+
+  /* ── pipeline track + flowing commits (desktop) ─────────────── */
+  .wsb-track {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 72px;
+    height: 1px;
+    background: rgba(245, 245, 245, 0.08);
+  }
+
+  /* Invisible full-width rail; translating it by 100% of its own width walks
+     the dot (::before) across the whole track. Compositor-only animation. */
+  .wsb-flow {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 70px;
+    height: 5px;
+    pointer-events: none;
+    animation: wsb-flow 7s linear infinite;
+  }
+
+  .wsb-flow::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #4fe24f;
+    box-shadow: 0 0 6px rgba(79, 226, 79, 0.8);
+    opacity: 0.75;
+  }
+
+  /* ── responsive: stack the scene vertically ─────────────────── */
+  @media (max-width: 767px) {
+    .wsb-grid {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .wsb-top {
+      height: auto;
+    }
+
+    .wsb-cone {
+      flex: none;
+      height: 44px;
+    }
+
+    .wsb-drop {
+      flex: none;
+      height: 30px;
+    }
+
+    .wsb-track,
+    .wsb-flow {
+      display: none;
+    }
+
+    .wsb-badge {
+      font-size: 10px;
+      padding: 3px 9px;
+    }
+  }
+
+  /* ── animations ─────────────────────────────────────────────── */
+  @keyframes wsb-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @keyframes wsb-drip {
+    to {
+      transform: translateY(12px);
+    }
+  }
+
+  @keyframes wsb-flow {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wsb-badge-dot,
+    .wsb-drop::before {
+      animation: none;
+    }
+
+    .wsb-flow {
+      display: none;
+    }
+  }
+</style>

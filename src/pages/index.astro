@@ -3,6 +3,7 @@ import CliVsPlatform from "@components/Feature/CliVsPlatform.astro";
 import PlumberQuickStart from "@components/Feature/PlumberQuickStart.astro";
 import PlumberRadar from "@components/Feature/PlumberRadar.astro";
 import TheLoop from "@components/Feature/TheLoop.astro";
+import WhyCicdSecurity from "@components/Feature/WhyCicdSecurity.astro";
 import PlumberHero from "@components/Hero/PlumberHero.astro";
 import SectionNav from "@components/Nav/SectionNav.astro";
 import PricingHome from "@components/Pricing/PricingHome.astro";
@@ -24,6 +25,7 @@ const pageDescription = siteData.homepageDescription ?? siteData.description;
 
 // Floating right-side section nav (scroll-spy)
 const pageSections = [
+  { id: "why-security", label: "Why it matters" },
   { id: "the-loop", label: "How it works" },
   { id: "platform", label: "CLI & Platform" },
   { id: "plumber-radar", label: "Radar" },
@@ -37,6 +39,7 @@ const pageSections = [
   <SoftwareAppJsonLd />
   <PlumberHero />
   <LogoCloud2 />
+  <WhyCicdSecurity />
   <TheLoop />
   <CliVsPlatform />
   <PlumberRadar />
