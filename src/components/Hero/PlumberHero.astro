@@ -1,6 +1,7 @@
 ---
 import Button from "@components/Button/Button.astro";
 import GitHubHeroStatsBadge from "@components/Hero/GitHubHeroStatsBadge.astro";
+import PlumberVideo from "@components/Hero/PlumberVideo.jsx";
 import githubBlackLogo from "@images/github-black.svg";
 import githubWhiteLogo from "@images/github-white.svg";
 import gitlabDarkLogo from "@images/gitlab-dark.svg";
@@ -12,7 +13,7 @@ import { Image } from "astro:assets";
 
 <section
   id="plumber-hero"
-  class="relative flex w-full overflow-hidden pt-28 pb-20 md:pt-36 md:pb-24"
+  class="relative flex w-full flex-col overflow-hidden pt-28 pb-20 md:pt-36 md:pb-28"
 >
   <!-- hero items -->
   <div class="site-container mx-auto max-w-6xl min-w-0">
@@ -113,4 +114,31 @@ import { Image } from "astro:assets";
       </div>
     </div>
   </div>
+
+  <!-- Animated explainer: 40s looping timeline (React island).
+       Own site-container (not the max-w-6xl text column) so it widens with the
+       viewport: ~1100px on desktop, up to 1400px on 2xl screens. -->
+  <div
+    class="site-container mt-14 w-full"
+    data-mos="fade-up"
+    data-mos-delay="0.5"
+    data-mos-anchor="#plumber-hero"
+  >
+    <div
+      class="border-base-300 dark:border-base-600/60 relative aspect-video overflow-hidden rounded-2xl border bg-[#070809] shadow-[0_30px_70px_-45px_rgba(2,6,23,0.4),0_24px_80px_-45px_rgba(0,212,0,0.18)] dark:shadow-[0_40px_90px_-50px_rgba(0,212,0,0.3),0_20px_60px_-35px_rgba(0,0,0,0.55)]"
+    >
+      {/* client:only — the scene is pure animation (nothing useful to SSR), and
+          server/client float rounding differs, which triggers hydration warnings */}
+      <PlumberVideo client:only="react" />
+    </div>
+  </div>
 </section>
+
+<!-- Fonts used by the explainer animation (Space Grotesk display, JetBrains Mono code).
+     Loaded from the hero only so other pages don't pay for them. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+  rel="stylesheet"
+/>

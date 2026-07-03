@@ -37,16 +37,22 @@ const pageSections = [
 
 <BaseLayout title={pageTitle} description={pageDescription}>
   <SoftwareAppJsonLd />
-  <PlumberHero />
-  <LogoCloud2 />
-  <WhyCicdSecurity />
-  <TheLoop />
-  <CliVsPlatform />
-  <PlumberRadar />
-  <PricingHome />
-  <Testimonials2 />
-  <PlumberQuickStart />
-  <SectionDivider />
-  <FaqSection items={faqData} heading="Frequently asked questions" id="faq" />
-  <SectionNav sections={pageSections} />
+  <!-- .sections-alternate: children marked .section-alt alternate the subtle
+       background band automatically (see global.css) — reorder freely -->
+  <div class="sections-alternate">
+    <!-- hero + logo strip form one visual unit, so they share one alternation slot -->
+    <div class="section-alt">
+      <PlumberHero />
+      <LogoCloud2 />
+    </div>
+    <!-- <WhyCicdSecurity /> -->
+    <TheLoop />
+    <CliVsPlatform />
+    <PlumberRadar />
+    <PricingHome />
+    <Testimonials2 />
+    <PlumberQuickStart />
+    <FaqSection items={faqData} heading="Frequently asked questions" id="faq" />
+    <SectionNav sections={pageSections} />
+  </div>
 </BaseLayout>

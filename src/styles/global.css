@@ -190,6 +190,21 @@
     @apply mx-auto max-w-[1100px] px-4 2xl:max-w-[1400px];
   }
 
+  /* Alternating section backgrounds (landing page).
+     Wrap the page's sections in .sections-alternate and mark each participating
+     block (a <section>, or a wrapper grouping sections into one visual unit)
+     with .section-alt: every odd block gets the darker band, counted in document
+     order, so the page starts dark (hero) and alternates from there. Reorder the
+     sections and the alternation follows — no per-section background classes to
+     keep in sync. Non-participating elements (dividers, scripts) don't break the
+     count. In dark mode the band darkens toward the hero animation's #070809. */
+  .sections-alternate > :nth-child(odd of .section-alt) {
+    background-color: rgb(0 0 0 / 0.06);
+  }
+  .dark .sections-alternate > :nth-child(odd of .section-alt) {
+    background-color: rgb(0 0 0 / 0.4);
+  }
+
   /* used for newsletter, and contact form inputs */
   .form__input {
     @apply border-base-300 bg-base-100 hover:border-primary-500 dark:border-base-600/60 dark:bg-base-800 w-full rounded-md border px-3 transition;

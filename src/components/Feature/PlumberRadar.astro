@@ -29,12 +29,12 @@ const GRADE: Record<string, { bg: string; fg: string }> = {
 const LETTERS = ["A", "B", "C", "D", "E"] as const;
 
 // Aggregate KPIs — snapshot from getplumber.io/radar (/api/stats, all providers)
-const projectsScanned = 4122;
+const projectsScanned = 8247;
 const avgScore = "D";
 const issueSeverity = [
-  { label: "Critical", count: 5312, color: "#df4b2c" },
-  { label: "High", count: 43883, color: "#ef8a1a" },
-  { label: "Medium", count: 28800, color: "#e8c21d" },
+  { label: "Critical", count: 10096, color: "#df4b2c" },
+  { label: "High", count: 79867, color: "#ef8a1a" },
+  { label: "Medium", count: 44102, color: "#e8c21d" },
   { label: "Low", count: 5, color: "#a1a1aa" },
 ];
 
@@ -51,6 +51,8 @@ interface ProjectRow {
   provider: "gitlab" | "github";
   segments: [number, number]; // anonymized path segment widths (px)
   issues: { critical: number; high: number; medium: number; low: number };
+  /** Weekly score trend vs the ~7-day-ago baseline scan (like the live radar). */
+  trend?: "up" | "down";
   /** Worst project: show a cursor focusing its "Improve" button. */
   cursor?: boolean;
 }
@@ -59,19 +61,19 @@ interface ProjectRow {
 // the radar's "sorted by score". Issue counts track the grade; each project
 // carries some low findings, like the live radar's per-project severity split.
 const projectRows: ProjectRow[] = [
-  { letter: "E", provider: "gitlab", segments: [62, 78], issues: { critical: 4, high: 9, medium: 7, low: 2 }, cursor: true },
+  { letter: "E", provider: "gitlab", segments: [62, 78], issues: { critical: 4, high: 9, medium: 7, low: 2 }, trend: "down", cursor: true },
   { letter: "D", provider: "github", segments: [68, 72], issues: { critical: 1, high: 5, medium: 6, low: 3 } },
   { letter: "C", provider: "gitlab", segments: [56, 86], issues: { critical: 0, high: 3, medium: 4, low: 5 } },
-  { letter: "B", provider: "github", segments: [70, 64], issues: { critical: 0, high: 1, medium: 2, low: 4 } },
+  { letter: "B", provider: "github", segments: [70, 64], issues: { critical: 0, high: 1, medium: 2, low: 4 }, trend: "up" },
   { letter: "A", provider: "gitlab", segments: [58, 80], issues: { critical: 0, high: 0, medium: 0, low: 3 } },
 ];
 ---
 
 <section
   id="plumber-radar"
-  class="border-base-300 dark:border-base-600/60 relative scroll-mt-20 overflow-hidden border-t bg-black/[0.02] dark:bg-white/[0.015]"
+  class="section-alt border-base-300 dark:border-base-600/60 relative scroll-mt-20 overflow-hidden border-t"
 >
-  <div class="site-container py-24 text-center md:py-32">
+  <div class="site-container py-20 text-center md:py-28">
     <p class="section-eyebrow" data-mos="fade-up" data-mos-anchor="#plumber-radar">Plumber Radar</p>
     <h2 class="h2 mt-4" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#plumber-radar">
       The state of CI/CD security across <span class="text-primary-500">open source</span>
@@ -135,7 +137,12 @@ const projectRows: ProjectRow[] = [
                 return (
                   <span
                     class:list={["rs-seg", active && "rs-seg--active"]}
-                    style={`color:${c};border:${active ? "2px" : "1px"} solid ${active ? c : `${c}80`};background:${c}1f;${active ? `box-shadow:0 0 0 4px ${c}33;` : ""}`}
+                    style={
+                      active
+                        ? /* solid fill + glow so the current grade is unmissable */
+                          `color:${GRADE[l].fg};background:${c};border:2px solid ${c};box-shadow:0 0 0 4px ${c}33, 0 8px 24px -6px ${c}66;`
+                        : `color:${c};border:1px solid ${c}80;background:${c}1f;`
+                    }
                   >
                     {l}
                   </span>
@@ -180,6 +187,14 @@ const projectRows: ProjectRow[] = [
                     >
                       {row.letter}
                     </span>
+                    {row.trend && (
+                      <span
+                        class:list={["radar-trend", `radar-trend--${row.trend}`]}
+                        aria-label={`score trending ${row.trend} this week`}
+                      >
+                        {row.trend === "up" ? "▲" : "▼"}
+                      </span>
+                    )}
                     <Image
                       src={row.provider === "gitlab" ? gitlabIcon : githubIconWhite}
                       alt={row.provider === "gitlab" ? "GitLab" : "GitHub"}
@@ -446,6 +461,21 @@ const projectRows: ProjectRow[] = [
     font-size: 14px;
   }
 
+  /* weekly score trend vs the ~7-day baseline (like PlumberScoreTrend) */
+  .radar-trend {
+    flex-shrink: 0;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .radar-trend--up {
+    color: #4fe24f;
+  }
+
+  .radar-trend--down {
+    color: #df4b2c;
+  }
+
   .radar-row-provider {
     width: 16px;
     height: 16px;
@@ -561,6 +591,14 @@ const projectRows: ProjectRow[] = [
 
     .radar-row-issues {
       justify-content: flex-start;
+    }
+
+    /* let the path skeleton compress so grade + trend + provider + path
+       always fit inside the card */
+    .radar-path {
+      flex-shrink: 1;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .radar-improve-wrap {
