@@ -41,15 +41,17 @@ const steps: LoopStep[] = [
 interface Grade {
   letter: string;
   color: string; // text + border accent
+  /** Text color when the grade is featured (solid fill). */
+  fg: string;
   featured?: boolean;
 }
 
 const grades: Grade[] = [
-  { letter: "A", color: "#2bb85c" },
-  { letter: "B", color: "#9bd34a" },
-  { letter: "C", color: "#e8c21d" },
-  { letter: "D", color: "#ef8a1a", featured: true },
-  { letter: "E", color: "#e0573a" },
+  { letter: "A", color: "#2bb85c", fg: "#fff" },
+  { letter: "B", color: "#9bd34a", fg: "#0c0e0c" },
+  { letter: "C", color: "#e8c21d", fg: "#0c0e0c" },
+  { letter: "D", color: "#ef8a1a", fg: "#0c0e0c", featured: true },
+  { letter: "E", color: "#e0573a", fg: "#fff" },
 ];
 
 interface Metric {
@@ -70,7 +72,7 @@ const metrics: Metric[] = [
 
 <section
   id="the-loop"
-  class="border-base-300 dark:border-base-600/60 scroll-mt-20 border-t bg-black/[0.02] py-20 md:py-28 dark:bg-white/[0.015]"
+  class="section-alt border-base-300 dark:border-base-600/60 scroll-mt-20 border-t py-20 md:py-28"
 >
   <div class="site-container text-center">
     <p class="section-eyebrow" data-mos="fade-up" data-mos-anchor="#the-loop">How it works</p>
@@ -150,9 +152,14 @@ const metrics: Metric[] = [
             <div
               class:list={[
                 "flex h-16 flex-1 items-center justify-center rounded-xl font-bold",
-                g.featured ? "text-2xl" : "text-xl",
+                g.featured ? "scale-110 text-3xl" : "text-xl opacity-70",
               ]}
-              style={`color:${g.color};border:${g.featured ? "2px" : "1px"} solid ${g.color}${g.featured ? "" : "80"};background:${g.color}1f;${g.featured ? `box-shadow:0 0 0 4px ${g.color}22;` : ""}`}
+              style={
+                g.featured
+                  ? /* solid fill + glow so the active grade is unmissable */
+                    `color:${g.fg};background:${g.color};border:2px solid ${g.color};box-shadow:0 0 0 4px ${g.color}33, 0 8px 28px -6px ${g.color}66;`
+                  : `color:${g.color};border:1px solid ${g.color}80;background:${g.color}1f;`
+              }
             >
               {g.letter}
             </div>

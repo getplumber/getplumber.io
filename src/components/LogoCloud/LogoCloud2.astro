@@ -26,18 +26,10 @@ import zenikaLogo from "@assets/customers/zenika-logo.svg";
   data-mos="fade"
   data-mos-anchor="#logocloud2"
 >
-  <div class="relative mx-auto max-w-[1800px] overflow-hidden px-4">
-    <!-- left fade-out -->
-    <div
-      class="dark:from-base-900 absolute top-0 -left-px z-10 h-full w-[20%] bg-gradient-to-r from-black from-20% to-transparent"
-    >
-    </div>
-    <!-- right fade-out -->
-    <div
-      class="dark:to-base-900 absolute top-0 -right-px z-10 h-full w-[20%] bg-gradient-to-r from-transparent to-black to-80%"
-    >
-    </div>
-
+  <!-- logo-fade masks the logos to transparent at both edges, so the real
+       section background shows through — no painted overlay to keep in sync
+       with whatever background the section sits on -->
+  <div class="logo-fade relative mx-auto max-w-[1800px] overflow-hidden px-4">
     <div class="logo-marquee relative flex gap-32 overflow-hidden">
       <!-- Each animate-marquee2 section needs to have the exact same logos. Just do one then copy / paste -->
       <div class="animate-marquee2 flex min-w-full shrink-0 items-center justify-around gap-32">
@@ -98,6 +90,11 @@ import zenikaLogo from "@assets/customers/zenika-logo.svg";
 <style>
   @import "tailwindcss/theme" theme(reference);
   @import "@/styles/tailwind-theme.css" theme(reference);
+
+  .logo-fade {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 18%, black 82%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 18%, black 82%, transparent);
+  }
 
   .logo {
     @apply h-10 w-auto;

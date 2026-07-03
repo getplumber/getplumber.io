@@ -34,13 +34,17 @@ const faqJsonLd = JSON.stringify({
 }).replace(/</g, "\\u003c");
 ---
 
-<section id={id} class="site-container my-24 md:my-36">
-  <div class="flex justify-center">
-    <p class="section-eyebrow">FAQ</p>
-  </div>
-  <h2 class="h2 mt-8 text-center">{heading}</h2>
-  <div class="mx-auto mt-16 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-    {items.map(({ question, answer }) => <FaqCard {question} {answer} />)}
+{/* Full-width section root (padding, not margins) so the alternating
+    background band can reach the viewport edges; content stays in the container */}
+<section id={id} class="section-alt py-20 md:py-28">
+  <div class="site-container">
+    <div class="flex justify-center">
+      <p class="section-eyebrow">FAQ</p>
+    </div>
+    <h2 class="h2 mt-8 text-center">{heading}</h2>
+    <div class="mx-auto mt-16 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+      {items.map(({ question, answer }) => <FaqCard {question} {answer} />)}
+    </div>
   </div>
 </section>
 

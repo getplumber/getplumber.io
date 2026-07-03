@@ -1,9 +1,9 @@
 ---
 /**
  * * Quick Start CTA section with 3 steps
- * Based on Cta3.astro design; steps use FeatureCardLarge like PlumberFeatures
+ * Centered like the other landing sections; numbered step cards match the
+ * "How it works" (TheLoop) card style so the page reads as one system.
  */
-import FeatureCard from "@components/FeatureCard/FeatureCardLarge.astro";
 import githubIconBlack from "@images/github-icon-black.svg";
 import githubIconWhite from "@images/github-icon-white.svg";
 import gitlabIcon from "@images/gitlab-icon.svg";
@@ -21,24 +21,20 @@ const providerCtas: ProviderCta[] = [
 ];
 
 interface StepData {
-  icon: string;
   title: string;
   text: string;
 }
 
 const steps: StepData[] = [
   {
-    icon: "tabler/terminal-2",
     title: "Set up Plumber in your repository",
     text: "Add the Plumber CI component to your GitLab pipeline or the Plumber Action to your GitHub workflow, then configure controls: registries, action pinning, branch protection.",
   },
   {
-    icon: "tabler/player-play",
     title: "Run your CI/CD pipeline",
     text: "Plumber runs as part of your pipeline and scans your CI configuration and job or workflow definitions.",
   },
   {
-    icon: "tabler/file-text",
     title: "Get your compliance report",
     text: "View results in the job output or download the report artifact for audit and remediation.",
   },
@@ -47,63 +43,66 @@ const steps: StepData[] = [
 
 <section
   id="plumber-cta"
-  class="border-base-300 dark:border-base-600/60 scroll-mt-20 border-t bg-black/[0.02] py-20 md:py-28 dark:bg-white/[0.015]"
+  class="section-alt border-base-300 dark:border-base-600/60 scroll-mt-20 border-t py-20 md:py-28"
 >
-  <div class="site-container">
-    <div class="flex flex-col">
-      <div class="flex justify-start">
-        <p
-          class="section-eyebrow"
-          data-mos="fade-up"
-          data-mos-anchor="#plumber-cta"
-        >
-          Quick Start
-        </p>
-      </div>
-      <h2 class="h1 mt-8" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#plumber-cta">
-        Get started in minutes
-      </h2>
+  <div class="site-container text-center">
+    <p class="section-eyebrow" data-mos="fade-up" data-mos-anchor="#plumber-cta">Quick Start</p>
+    <h2 class="h2 mt-4" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#plumber-cta">
+      Get started in minutes
+    </h2>
+    <p
+      class="description mx-auto mt-4 max-w-xl"
+      data-mos="fade-up"
+      data-mos-delay="0.2"
+      data-mos-anchor="#plumber-cta"
+    >
+      Set up Plumber in your GitLab CI/CD pipeline or GitHub Actions workflow with just a few
+      simple steps.
+    </p>
+
+    <!-- 2 columns from sm (third card spans full width), 3-up only on lg+
+         so the cards never get cramped at tablet widths -->
+    <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        steps.map((step, idx) => (
+          <div
+            class:list={[
+              "border-base-300 dark:border-base-600/60 dark:bg-base-900 hover:border-primary-300 dark:hover:border-base-500 rounded-2xl border bg-transparent p-6 text-left transition duration-300",
+              idx === 2 && "sm:col-span-2 lg:col-span-1",
+            ]}
+            data-mos="fade-up"
+            data-mos-delay={`${idx * 0.15 + 0.25}`}
+            data-mos-anchor="#plumber-cta"
+          >
+            <div class="text-primary-600 dark:text-primary-400 font-mono text-sm font-bold tracking-wide">
+              0{idx + 1}
+            </div>
+            <h3 class="text-base-900 dark:text-base-100 mt-3 text-lg font-semibold tracking-tight">
+              {step.title}
+            </h3>
+            <p class="text-base-700 dark:text-base-300 mt-1.5 text-sm leading-relaxed opacity-90 dark:opacity-80">
+              {step.text}
+            </p>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- Platform docs: horizontal action bar (not step cards) -->
+    <div
+      class="mx-auto mt-10 max-w-3xl md:mt-12"
+      data-mos="fade-up"
+      data-mos-delay="0.7"
+      data-mos-anchor="#plumber-cta"
+    >
       <p
-        class="description mt-6 max-w-2xl"
-        data-mos="fade-up"
-        data-mos-delay="0.2"
-        data-mos-anchor="#plumber-cta"
+        class="text-base-500 dark:text-base-400 mb-3 text-center text-xs font-medium tracking-wider uppercase"
       >
-        Set up Plumber in your GitLab CI/CD pipeline or GitHub Actions workflow with just a
-        few simple steps.
+        Platform guides
       </p>
-
-      <div class="mt-12 grid gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-4">
-        {
-          steps.map((step, idx) => (
-            <FeatureCard
-              title={step.title}
-              text={step.text}
-              icon={step.icon}
-              compact
-              data-mos="fade-up"
-              data-mos-delay={`${idx * 0.15 + 0.25}`}
-              data-mos-anchor="#plumber-cta"
-            />
-          ))
-        }
-      </div>
-
-      <!-- Platform docs: horizontal action bar (not step cards) -->
       <div
-        class="mt-10 md:mt-12"
-        data-mos="fade-up"
-        data-mos-delay="0.7"
-        data-mos-anchor="#plumber-cta"
+        class="border-base-300 dark:border-base-600/50 dark:bg-base-900/30 divide-base-300 dark:divide-base-600/50 bg-base-100/40 flex flex-col divide-y overflow-hidden rounded-xl border sm:flex-row sm:divide-x sm:divide-y-0"
       >
-        <p
-          class="text-base-500 dark:text-base-400 mb-3 text-center text-xs font-medium tracking-wider uppercase md:text-left"
-        >
-          Platform guides
-        </p>
-        <div
-          class="border-base-300 dark:border-base-600/50 dark:bg-base-900/30 divide-base-300 dark:divide-base-600/50 flex flex-col divide-y overflow-hidden rounded-xl border bg-base-100/40 sm:flex-row sm:divide-x sm:divide-y-0"
-        >
           {
             providerCtas.map((cta) => {
               const isGitlab = cta.href.includes("gitlab");
@@ -161,7 +160,6 @@ const steps: StepData[] = [
               );
             })
           }
-        </div>
       </div>
     </div>
   </div>
