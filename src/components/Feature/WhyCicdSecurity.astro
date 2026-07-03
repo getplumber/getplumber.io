@@ -388,6 +388,12 @@ import { Icon } from "astro-icon/components";
       height: 44px;
     }
 
+    /* the lit columns get breathing room from their 44px cones; the middle
+       column has no cone, so give the gap chip its own spacing to the card */
+    .wsb-chip--gap {
+      margin-bottom: 16px;
+    }
+
     .wsb-track,
     .wsb-flow {
       display: none;
