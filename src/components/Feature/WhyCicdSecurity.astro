@@ -3,10 +3,11 @@
  * "Why CI/CD security matters" — a single illustrated "coverage map" scene.
  *
  * A dark dashboard window (same visual language as the radar mock) shows the
- * software path as three stations. The stations at both ends sit under green
- * floodlights (your scanners); the CI/CD pipeline between them sits in the
- * dark, flagged unmonitored, while AI-generated config and attacks drop
- * straight into it. One look: lit, dark, lit.
+ * software path as three stations. All three chips speak the same language —
+ * the tooling available for that stage: SAST/SCA and DAST/logs floodlight the
+ * ends, "No tool · manual checks" marks the dark middle. The AI angle lives in
+ * the heading and the takeaway (not in the scene), and the dense commit flow
+ * crossing the unwatched middle carries the volume. One look: lit, dark, lit.
  *
  * The window is a self-contained dark mock, so colors are hard-coded (not
  * theme tokens) and read identically in light and dark mode. The accent
@@ -24,7 +25,7 @@ import { Icon } from "astro-icon/components";
   <div class="site-container text-center">
     <p class="section-eyebrow" data-mos="fade-up" data-mos-anchor="#why-security">Why it matters</p>
     <h2 class="h2 mt-4" data-mos="fade-up" data-mos-delay="0.1" data-mos-anchor="#why-security">
-      CI/CD is the <span class="text-primary-500">blind spot</span>
+      CI/CD: the <span class="text-primary-500">blind spot</span> AI is making bigger every day
     </h2>
     <p
       class="description mt-3"
@@ -48,7 +49,7 @@ import { Icon } from "astro-icon/components";
         <span class="wsb-dot" style="background:#e8c21d"></span>
         <span class="wsb-dot" style="background:#00e000"></span>
         <span class="wsb-url">the-security-industry</span>
-        <span class="wsb-badge"><span class="wsb-badge-dot"></span>PARTIAL COVERAGE</span>
+        <span class="wsb-badge"><span class="wsb-badge-dot"></span>2/3 STAGES COVERED</span>
       </div>
 
       <!-- stage -->
@@ -56,8 +57,10 @@ import { Icon } from "astro-icon/components";
         <!-- pipeline track + flowing commits (desktop) -->
         <div class="wsb-track" aria-hidden="true"></div>
         <span class="wsb-flow" style="animation-delay:0s" aria-hidden="true"></span>
-        <span class="wsb-flow" style="animation-delay:-2.3s" aria-hidden="true"></span>
-        <span class="wsb-flow" style="animation-delay:-4.7s" aria-hidden="true"></span>
+        <span class="wsb-flow" style="animation-delay:-1.4s" aria-hidden="true"></span>
+        <span class="wsb-flow" style="animation-delay:-2.8s" aria-hidden="true"></span>
+        <span class="wsb-flow" style="animation-delay:-4.2s" aria-hidden="true"></span>
+        <span class="wsb-flow" style="animation-delay:-5.6s" aria-hidden="true"></span>
         <!-- (each .wsb-flow is a full-width invisible rail whose ::before dot
              rides along as the rail translates; transform-only, no reflow) -->
 
@@ -75,7 +78,7 @@ import { Icon } from "astro-icon/components";
               <span class="wsb-name">Your code</span>
               <span class="wsb-status wsb-status--ok">
                 <Icon name="tabler/check" class="wsb-ic-s" aria-hidden="true" />
-                standard tools exist
+                watched
               </span>
             </div>
           </div>
@@ -83,22 +86,19 @@ import { Icon } from "astro-icon/components";
           <!-- station: CI/CD (dark) -->
           <div class="wsb-col">
             <div class="wsb-top">
-              <span class="wsb-chip wsb-chip--ai">
-                <Icon name="tabler/sparkles" class="wsb-ic" aria-hidden="true" />
-                AI ships code at industrial scale
+              {/* same register as the SAST/DAST chips: this names the (missing)
+                  tooling for the stage, not a threat — the AI angle lives in
+                  the heading and the takeaway line instead */}
+              <span class="wsb-chip wsb-chip--gap">
+                <Icon name="tabler/alert-triangle" class="wsb-ic" aria-hidden="true" />
+                No tool · manual checks
               </span>
-              <!-- three drips: machine-made volume pouring into the pipeline -->
-              <div class="wsb-drops" aria-hidden="true">
-                <div class="wsb-drop"></div>
-                <div class="wsb-drop wsb-drop--d2"></div>
-                <div class="wsb-drop wsb-drop--d3"></div>
-              </div>
             </div>
             <div class="wsb-node wsb-node--blind">
               <span class="wsb-name">CI/CD pipeline</span>
               <span class="wsb-status wsb-status--bad">
                 <Icon name="tabler/alert-triangle" class="wsb-ic-s" aria-hidden="true" />
-                no standard tooling
+                unwatched
               </span>
             </div>
           </div>
@@ -116,7 +116,7 @@ import { Icon } from "astro-icon/components";
               <span class="wsb-name">Your runtime</span>
               <span class="wsb-status wsb-status--ok">
                 <Icon name="tabler/check" class="wsb-ic-s" aria-hidden="true" />
-                standard tools exist
+                watched
               </span>
             </div>
           </div>
@@ -255,10 +255,13 @@ import { Icon } from "astro-icon/components";
     color: #3bff6a;
   }
 
-  .wsb-chip--ai {
-    border-color: rgba(232, 194, 29, 0.4);
-    background: rgba(232, 194, 29, 0.1);
-    color: #e8c21d;
+  /* the tooling gap: same register as the tool chips, but red and dashed —
+     "here, no tool exists" */
+  .wsb-chip--gap {
+    border-color: rgba(255, 45, 61, 0.5);
+    border-style: dashed;
+    background: rgba(255, 45, 61, 0.08);
+    color: #ff2d3d;
   }
 
   .wsb-ic {
@@ -277,39 +280,6 @@ import { Icon } from "astro-icon/components";
     width: 100%;
     clip-path: polygon(44% 0%, 56% 0%, 100% 100%, 0% 100%);
     background: linear-gradient(to bottom, rgba(0, 224, 0, 0.24), rgba(0, 224, 0, 0.02));
-  }
-
-  /* ── threat drops into the dark station ─────────────────────── */
-  /* three staggered drips = industrial volume, not a single leak */
-  .wsb-drops {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-  }
-
-  .wsb-drop {
-    position: relative;
-    width: 2px;
-    overflow: hidden;
-    opacity: 0.85;
-  }
-
-  .wsb-drop::before {
-    content: "";
-    position: absolute;
-    inset: -12px 0 0 0;
-    background: repeating-linear-gradient(to bottom, #ff2d3d 0 6px, transparent 6px 12px);
-    animation: wsb-drip 1.1s linear infinite;
-  }
-
-  .wsb-drop--d2::before {
-    animation-delay: -0.4s;
-  }
-
-  .wsb-drop--d3::before {
-    animation-delay: -0.75s;
   }
 
   /* ── stations ───────────────────────────────────────────────── */
@@ -418,11 +388,6 @@ import { Icon } from "astro-icon/components";
       height: 44px;
     }
 
-    .wsb-drops {
-      flex: none;
-      height: 30px;
-    }
-
     .wsb-track,
     .wsb-flow {
       display: none;
@@ -442,12 +407,6 @@ import { Icon } from "astro-icon/components";
     }
     50% {
       opacity: 0.35;
-    }
-  }
-
-  @keyframes wsb-drip {
-    to {
-      transform: translateY(12px);
     }
   }
 
@@ -481,8 +440,7 @@ import { Icon } from "astro-icon/components";
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .wsb-badge-dot,
-    .wsb-drop::before {
+    .wsb-badge-dot {
       animation: none;
     }
 
