@@ -221,7 +221,7 @@ const innerShellClass =
     document.addEventListener("astro:before-swap", abort, { once: true });
     window.addEventListener("pagehide", abort, { once: true });
 
-    const codeToType = "include:\n  - component: gitlab.com/getplumber/plumber/plumber@v0.3.10";
+    const codeToType = "include:\n  - component: gitlab.com/getplumber/plumber/plumber@v0.3.11";
     let charIndex = 0;
 
     // Create cursor element template
@@ -434,7 +434,7 @@ const innerShellClass =
       o += lg("  ██╔═══╝ ██║     ██║   ██║ ██║╚██╔╝██║██╔══██╗██╔══╝  ██╔══██╗") + "\n";
       o += lg("  ██║     ███████╗╚██████╔╝ ██║ ╚═╝ ██║██████╔╝███████╗██║  ██║") + "\n";
       o += lg("  ╚═╝     ╚══════╝ ╚═════╝  ╚═╝     ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝") + "\n";
-      o += dm("  CI/CD Compliance Scanner for GitLab & GitHub Actions") + "  " + dm("v0.3.88") + "\n";
+      o += dm("  CI/CD Compliance Scanner for GitLab & GitHub Actions") + "  " + dm("v0.4.0") + "\n";
       o += dm("  Join our community: ") + cl("https://getplumber.io/discord", "text-cyan-400") + "\n\n";
 
       o += "Using configuration: .plumber.yaml\n";
