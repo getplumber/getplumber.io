@@ -9,11 +9,18 @@ permissions:
   security-events: write   # required to upload SARIF to Code Scanning
   id-token: write          # required to mint the OIDC id-token for the Plumber Score push
 
+concurrency:
+  group: plumber-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   plumber:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       # gitleaks powers the pipelineMustNotLeakSecretsInConfig control.
       # Checksum-verified release binary (no pipe-to-shell, no mutable tag).
@@ -29,7 +36,7 @@ jobs:
           sudo install gitleaks /usr/local/bin/gitleaks
           rm gitleaks gitleaks.tar.gz
 
-      - uses: getplumber/plumber@a697e9c316b058d279861719c73b87093fb5a60f # v0.3.86
+      - uses: getplumber/plumber@f6aba1ef2a972aef44192a3d1375bbe57205398e # v0.3.88
         with:
           threshold: 90
           score-push: true   # publish the Plumber Score badge (repo name + score become public)

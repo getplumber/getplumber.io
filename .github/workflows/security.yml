@@ -16,10 +16,15 @@ permissions:
   contents: read
   security-events: write
 
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   npm-audit:
     name: NPM Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -36,10 +41,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Both audit steps are enforcing: a new advisory turns the workflow
+      # red (daily schedule gives at most a one-day detection delay).
       - name: Run npm audit
         run: npm audit --audit-level=moderate
-        continue-on-error: true
 
       - name: Run npm audit (production only)
-        run: npm audit --omit=dev --production --audit-level=high
-        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high

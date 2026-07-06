@@ -27,6 +27,7 @@ jobs:
   seo-audit:
     name: SEO Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -59,51 +60,10 @@ jobs:
           path: seo-report.json
           retention-days: 30
 
-      - name: Parse and Comment Results
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
-        with:
-          script: |
-            const fs = require('fs');
-            const report = JSON.parse(fs.readFileSync('seo-report.json', 'utf8'));
-
-            let comment = `## 🔍 SEO Audit Report\n\n`;
-            comment += `**Score:** ${report.score}/100\n`;
-            comment += `**Issues:** ${report.totalIssues} | **Warnings:** ${report.totalWarnings}\n\n`;
-
-            comment += `### Checks Summary\n\n`;
-            for (const [checkName, check] of Object.entries(report.checks)) {
-              const icon = check.status === 'passed' ? '✅' : check.status === 'failed' ? '❌' : '⚠️';
-              comment += `${icon} **${checkName}**: ${check.status}\n`;
-              if (check.issues.length > 0) {
-                comment += `  - Issues: ${check.issues.length}\n`;
-              }
-              if (check.warnings.length > 0) {
-                comment += `  - Warnings: ${check.warnings.length}\n`;
-              }
-            }
-
-            if (report.totalIssues > 0) {
-              comment += `\n### ⚠️ Critical Issues\n\n`;
-              for (const [checkName, check] of Object.entries(report.checks)) {
-                if (check.issues.length > 0) {
-                  comment += `#### ${checkName}\n`;
-                  check.issues.forEach(issue => {
-                    comment += `- ${issue}\n`;
-                  });
-                }
-              }
-            }
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-
+      # The audit step never fails (continue-on-error + `|| true`), so gate on
+      # the report content itself rather than on failure().
       - name: Create Issue on Score Drop
-        if: github.event_name == 'schedule' && failure()
+        if: github.event_name == 'schedule'
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
@@ -117,8 +77,8 @@ jobs:
                 `**Total Issues:** ${report.totalIssues}\n` +
                 `**Total Warnings:** ${report.totalWarnings}\n\n` +
                 `Please review the SEO audit report and address critical issues.\n\n` +
-                `[View Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
-              
+                `[View Full Report](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+
               github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,

@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Keep the SHA-pinned actions fresh: Dependabot bumps the pin and the
+  # version comment together, so pinning never means "frozen forever".
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for routine minor/patch bumps; majors stay individual
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
