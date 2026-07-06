@@ -61,7 +61,7 @@
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-simple-import-sort": "12.1.1",
-    "globals": "16.4.0",
+    "globals": "17.7.0",
     "lodash.debounce": "4.0.8",
     "lodash.throttle": "4.1.1",
     "pagefind": "1.4.0",
