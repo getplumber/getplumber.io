@@ -9,10 +9,17 @@ on:
 permissions:
   contents: read
 
+# One preview deploy per branch: a newer push supersedes (cancels) the
+# in-flight deploy so a stale commit can never finish last and win.
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy-preview:
     name: Deploy Preview
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -28,8 +35,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Pinned exact version: the deploy CLI runs with VERCEL_TOKEN in scope,
+      # so a mutable "latest" would be an unaudited supply-chain input.
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+        run: npm install --global vercel@54.20.1
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}

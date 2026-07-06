@@ -70,7 +70,10 @@ github:
       # Allowlist of additional authorized actions (owner/repo or owner/*).
       # Add an entry here before introducing a third-party action that is
       # neither GitHub-official nor same-org.
-      trustedGithubActions: []
+      trustedGithubActions:
+        # OpenSSF Scorecard (used in .github/workflows/scorecard.yml),
+        # SHA-pinned there since ossf is not a trusted owner.
+        - ossf/scorecard-action
 
     # ===========================================
     # Container images must not use forbidden tags
