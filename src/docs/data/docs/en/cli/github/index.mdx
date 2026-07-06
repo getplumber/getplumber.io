@@ -395,6 +395,12 @@ github:
     reusableWorkflowsMustNotInheritSecrets:
       enabled: true
 
+    # `toJson(secrets)` / `toJSON(secrets)` piped into a run script, env
+    # binding, or action `with:` input. The JSON blob carries every secret
+    # the job can see; log redaction does not cover it. Name secrets instead.
+    workflowMustNotExportEntireSecretsContext:
+      enabled: true
+
     # On GitHub a job's name is `<workflow-file-basename>/<job-id>`
     # (e.g. `codeql-analysis/analyze`). Patterns are globs over that name.
     securityJobsMustNotBeWeakened:

@@ -464,6 +464,14 @@ export const controlCatalog: Record<
         "Closes the gap between an org-wide policy that says \"every repo runs the security suite\" and a per-repo workflow that quietly dropped the `uses:` line. Disabled by default; opt in once the required action set is settled.",
     },
   },
+  workflowMustNotExportEntireSecretsContext: {
+    github: {
+      controlDescription:
+        "Flags a job that serialises the whole `secrets` context with `toJson(secrets)` or `toJSON(secrets)` into a `run:` script, an `env:` binding, or an action `with:` input. Scoped references like `${{ secrets.NPM_TOKEN }}` are the intended pattern and stay silent.",
+      controlWhyItMatters:
+        "GitHub's log redaction masks known secret values, not a JSON blob derived from them, so a single `echo` of the dump leaks every repository, organisation and environment secret the job can see, and a compromised reusable action gets them directly. Pass each secret by name instead.",
+    },
+  },
 };
 
 /** Look up catalog entry for a control + provider combination. */
@@ -801,12 +809,12 @@ github:
   "ISSUE-309": {
     code: "ISSUE-309",
     github: {
-      title: "Entire secrets context exported via toJson(secrets)",
+      title: "Workflow exposes all its secrets at once",
       category: "CI/CD Secrets",
       severity: "critical",
       fixDuration: "quick",
       productScope: "cli",
-      controlName: "Workflows must not export the entire secrets context",
+      controlName: "Workflows must not expose all secrets at once",
       controlConfigKey: "workflowMustNotExportEntireSecretsContext",
       description:
         "A GitHub Actions workflow serialises the whole `secrets` context with `toJson(secrets)` or `toJSON(secrets)` and pipes the result into a step's environment, `run:` script, or `with:` input. The resulting string contains every secret the job has access to (repository, organisation and environment) and travels through whatever downstream consumer the step passes it to (a third-party action, a remote server, a log line). Even with GitHub's automatic log redaction, a single `echo` of the JSON payload has been enough to leak tokens in past supply-chain incidents; a compromised reusable action sees them directly regardless of logging.",
@@ -843,7 +851,7 @@ github:
         "Same shape as ISSUE-213 (github-context dump) but with secrets, so it is one severity higher.",
         "If you genuinely need to enumerate secrets (rare), do it inside an `environment:` with a required reviewer and revoke afterward.",
       ],
-      status: "roadmap",
+      status: "shipping",
       relatedCodes: ["ISSUE-213", "ISSUE-302", "ISSUE-303"],
     },
   },
