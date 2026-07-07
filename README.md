@@ -5,9 +5,11 @@
 **The website for Plumber — the open-source CI/CD compliance CLI and platform for GitLab CI/CD and GitHub Actions — built with Astro, Tailwind CSS, and React.**
 
 [![Plumber Score](https://score.getplumber.io/github.com/getplumber/getplumber.io.svg)](https://score.getplumber.io/github.com/getplumber/getplumber.io)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/getplumber/getplumber.io/badge)](https://scorecard.dev/viewer/?uri=github.com/getplumber/getplumber.io)
 [![Deploy Production](https://github.com/getplumber/getplumber.io/actions/workflows/production.yaml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/production.yaml)
 [![Lint](https://github.com/getplumber/getplumber.io/actions/workflows/lint.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/lint.yml)
 [![Security Scan](https://github.com/getplumber/getplumber.io/actions/workflows/security.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/security.yml)
+[![CodeQL](https://github.com/getplumber/getplumber.io/actions/workflows/codeql.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/codeql.yml)
 [![Plumber](https://github.com/getplumber/getplumber.io/actions/workflows/plumber.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/plumber.yml)
 [![SEO Audit](https://github.com/getplumber/getplumber.io/actions/workflows/seo-audit.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/seo-audit.yml)
 [![Last commit](https://img.shields.io/github/last-commit/getplumber/getplumber.io)](https://github.com/getplumber/getplumber.io/commits)
@@ -18,7 +20,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/getplumber/plumber?style=flat)](https://github.com/getplumber/plumber)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/getplumber/plumber/badge)](https://scorecard.dev/viewer/?uri=github.com/getplumber/plumber)
 
-> Badge notes: **Security Scan** runs `npm audit` daily — it turns red as soon as a published CVE affects one of this site's dependencies. **Compliance** is Plumber dogfooding its own GitHub Action against this repository's workflows (threshold 80).
+> Badge notes: **Plumber Score** and **OpenSSF Scorecard** grade this repository itself — the first is Plumber dogfooding its own GitHub Action against these workflows (threshold 90, see the **Plumber** badge for the run), the second is the [OpenSSF](https://scorecard.dev) supply-chain posture score published weekly by `scorecard.yml`. **Security Scan** runs `npm audit` daily — it turns red as soon as a published CVE affects one of this site's dependencies. **CodeQL** is GitHub's static analysis on every PR, push to main, and weekly. PRs additionally run **Dependency Review**, which blocks introducing dependencies with known vulnerabilities (no badge: it never runs on `main`).
 
 ### Summary of this README
 
@@ -74,7 +76,7 @@ The website features:
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22.12+ (matches `engines` in `package.json` and the Node 22 used in CI)
 - npm
 
 ### Installation & Setup
