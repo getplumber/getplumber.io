@@ -39,19 +39,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Pinned exact version: the deploy CLI runs with VERCEL_TOKEN in scope,
-      # so a mutable "latest" would be an unaudited supply-chain input.
+      # Hash-locked Vercel CLI from the isolated .github/vercel manifest: the
+      # deploy CLI runs with VERCEL_TOKEN in scope, so it must be pinned by
+      # integrity hash — and kept out of the site's root dependency tree.
       - name: Install Vercel CLI
-        run: npm install --global vercel@54.20.1
+        run: npm ci --prefix .github/vercel
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        run: .github/vercel/node_modules/.bin/vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: .github/vercel/node_modules/.bin/vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: .github/vercel/node_modules/.bin/vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       # Tell IndexNow-enabled engines (Bing, and through it AI assistants)
       # that the site changed. Non-blocking: a failed ping must not fail

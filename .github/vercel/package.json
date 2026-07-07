@@ -1,0 +1,8 @@
+{
+  "name": "deploy-tooling",
+  "private": true,
+  "description": "Isolated, hash-locked Vercel CLI for the deploy workflows. Kept out of the site's root dependency tree so its transitive builder advisories (python/rust/gatsby builders a static Astro deploy never runs) don't gate the site's npm audit.",
+  "devDependencies": {
+    "vercel": "54.20.1"
+  }
+}

@@ -6,8 +6,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write   # required to upload SARIF to Code Scanning
-  id-token: write          # required to mint the OIDC id-token for the Plumber Score push
 
 concurrency:
   group: plumber-${{ github.ref }}
@@ -17,6 +15,11 @@ jobs:
   plumber:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    # Write scopes stay job-level (OpenSSF Scorecard flags workflow-level writes)
+    permissions:
+      contents: read
+      security-events: write # required to upload SARIF to Code Scanning
+      id-token: write # required to mint the OIDC id-token for the Plumber Score push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
