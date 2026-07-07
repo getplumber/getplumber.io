@@ -1,0 +1,47 @@
+name: Release
+
+# Semantic-release on every push to main: analyzes conventional commits since
+# the last tag, then creates the git tag + GitHub Release with generated notes.
+# No files are committed back to main, so branch protection stays intact.
+on: # yamllint disable-line rule:truthy
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Serialize releases and never cancel one mid-flight, so tag creation and
+# release publishing cannot interleave between two rapid merges.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # create tags and GitHub Releases
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # Full history + tags: semantic-release walks back to the last release tag
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release

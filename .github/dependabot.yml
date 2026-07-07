@@ -18,3 +18,9 @@ updates:
         update-types:
           - "minor"
           - "patch"
+
+  # Isolated deploy tooling (hash-locked Vercel CLI used by the deploy jobs)
+  - package-ecosystem: "npm"
+    directory: "/.github/vercel"
+    schedule:
+      interval: "weekly"

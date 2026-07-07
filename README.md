@@ -12,6 +12,7 @@
 [![CodeQL](https://github.com/getplumber/getplumber.io/actions/workflows/codeql.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/codeql.yml)
 [![Plumber](https://github.com/getplumber/getplumber.io/actions/workflows/plumber.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/plumber.yml)
 [![SEO Audit](https://github.com/getplumber/getplumber.io/actions/workflows/seo-audit.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/seo-audit.yml)
+[![Site release](https://img.shields.io/github/v/release/getplumber/getplumber.io?label=site%20release)](https://github.com/getplumber/getplumber.io/releases/latest)
 [![Last commit](https://img.shields.io/github/last-commit/getplumber/getplumber.io)](https://github.com/getplumber/getplumber.io/commits)
 
 **Plumber CLI** (the product this site documents):
