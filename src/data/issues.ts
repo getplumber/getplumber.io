@@ -472,6 +472,14 @@ export const controlCatalog: Record<
         "GitHub's log redaction masks known secret values, not a JSON blob derived from them, so a single `echo` of the dump leaks every repository, organisation and environment secret the job can see, and a compromised reusable action gets them directly. Pass each secret by name instead.",
     },
   },
+  releaseWorkflowsMustNotRestoreUntrustedCache: {
+    github: {
+      controlDescription:
+        "Flags a release or publish job that restores a build cache (`actions/cache`, `actions/cache/restore`, or a `setup-*` action's built-in cache) with a key not scoped to the release ref. Release context is a `release` trigger or a canonical publish action such as `pypa/gh-action-pypi-publish` or `softprops/action-gh-release`.",
+      controlWhyItMatters:
+        "Actions caches are shared across branches with a permissive fallback, so a PR run on any feature branch can populate the same key a release job later restores, injecting compromised artefacts into the published package. Weave `github.ref_name` or `github.sha` into the key, or disable caching on publish paths. The May 2026 TanStack attack used this exact fallback.",
+    },
+  },
 };
 
 /** Look up catalog entry for a control + provider combination. */
@@ -3176,46 +3184,69 @@ github:
   "ISSUE-705": {
     code: "ISSUE-705",
     github: {
-      title: "Release workflow primes cache from attacker-controlled artefacts",
+      title: "Release workflow restores a cache with an unscoped key",
       category: "Third-party actions",
       severity: "high",
-      fixDuration: "long",
+      fixDuration: "quick",
       productScope: "cli",
-      controlName: "Release workflow must not poison its build cache",
+      controlName: "Release workflows must not restore an untrusted cache",
       controlConfigKey: "releaseWorkflowsMustNotRestoreUntrustedCache",
       description:
-        "A release/publish workflow restores a build cache primed by an earlier workflow on a less-trusted trigger (typically `pull_request_target` or a build that runs PR-author code).",
+        "A release or publish job restores a build cache whose key is not scoped to the release ref. GitHub Actions caches are shared across branches with a permissive prefix fallback, so a run on any feature branch — including an attacker's PR — can populate the same key (or a `restore-keys` prefix) that the release job later restores.",
       impact:
-        "If the cache contains compiled bytes derived from PR-author-controlled code, the release workflow ships those bytes. The malicious code never appears in the release commit, only in the cache that the trusted build reuses.",
+        "Whoever can open a PR can prime the cache the trusted release build reuses, injecting compromised artefacts into the published package while nothing changes in the release commit. This is the May 2026 TanStack vector. Pinning the cache action by SHA does not help — the poisoned bytes live in the cache, not the action.",
       remediation:
-        "Treat caches as untrusted across triggers. The release workflow should re-build from source rather than restoring a cache primed by an untrusted build.",
-      badExample: `# .github/workflows/release.yml: ❌ Restores PR-built cache
+        "Weave `github.ref_name` / `github.sha` into the cache key AND every `restore-keys` fallback, or disable caching on publish paths (e.g. `cache: false` on a `setup-*` action). The action/script inventory and a per-job allowlist are configurable in `.plumber.yaml`.",
+      badExample: `# .github/workflows/release.yml — ❌ Unscoped key on a release job
+on: [release]
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache@v4
         with:
-          path: dist/
-          key: dist-\${{ github.sha }}   # populated by PR builds
-      - run: ./publish.sh`,
-      badExampleCaption: "`dist/` may have been produced by a PR-author-controlled build.",
-      goodExample: `# .github/workflows/release.yml: ✅ Build from source
+          path: ~/.npm
+          key: deps-\${{ hashFiles('**/package-lock.json') }}   # shared with every branch
+      - uses: JS-DevTools/npm-publish@v3`,
+      badExampleCaption: "A PR run populates `deps-<hash>`; the release job restores it and publishes the result.",
+      goodExample: `# .github/workflows/release.yml — ✅ Key woven with the release ref
+on: [release]
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - run: npm ci && npm run build
-      - run: ./publish.sh`,
-      goodExampleCaption: "The release workflow re-builds from a clean state.",
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: release-\${{ github.ref_name }}-\${{ hashFiles('**/package-lock.json') }}
+      - uses: JS-DevTools/npm-publish@v3
+
+# .plumber.yaml — the inventories and the whitelist are configurable
+github:
+  controls:
+    releaseWorkflowsMustNotRestoreUntrustedCache:
+      enabled: true
+      publishActions:            # actions that mark a job as "release"
+        - JS-DevTools/npm-publish
+        - pypa/gh-action-pypi-publish
+      publishScriptPatterns:     # publish commands in run: scripts
+        - '(?i)cargo\\s+publish'
+      cacheActions:              # which actions restore a cache, and how
+        - {action: actions/cache, mode: always}
+        - {action: actions/setup-go, mode: default, disableInput: cache, disableValue: false}
+        - {action: actions/setup-node, mode: opt-in, enableInput: cache}
+      allowedJobs:               # jobs you have reviewed and accept (glob)
+        - 'docs/*'`,
+      goodExampleCaption: "The key includes `github.ref_name`, so a PR cache can't win the lookup.",
       tips: [
-        "Treat the cache as untrusted whenever the writer could be a different trigger than the reader.",
-        "If reuse is necessary, sign the cache contents and verify the signature before restoring.",
+        "A `restore-keys` prefix fallback must be release-scoped too — a scoped `key` with an unscoped `restore-keys` is still poisonable.",
+        "Release context = a `release` trigger, a publish action (`publishActions`), or a publish command in a script (`publishScriptPatterns`).",
+        "`cacheActions` carries per-action semantics: `always`, `default` (off via `disableInput`/`disableValue`), or `opt-in` (on via `enableInput`). Add your org's cache actions there — nothing is hardcoded.",
+        "`allowedJobs` is a glob over the `<workflow-file>/<job-id>` name — the escape hatch for release jobs you have reviewed and accept.",
+        "`setup-*` actions only cache when their `cache:` input is set; `actions/cache` always restores, so a bogus `cache: false` on it does not exempt it.",
       ],
-      status: "roadmap",
-      relatedCodes: ["ISSUE-802", "ISSUE-804"],
+      status: "shipping",
+      relatedCodes: ["ISSUE-802", "ISSUE-701"],
     },
   },
 

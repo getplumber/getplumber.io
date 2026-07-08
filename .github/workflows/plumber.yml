@@ -39,7 +39,7 @@ jobs:
           sudo install gitleaks /usr/local/bin/gitleaks
           rm gitleaks gitleaks.tar.gz
 
-      - uses: getplumber/plumber@346a5299d477dc0a0e360521df7818c212bbe578 # v0.4.0
+      - uses: getplumber/plumber@2276ce66e45b5abfcca13a22fa971efff518d322 # v0.4.2
         with:
           min-points: 90
           score-push: true   # publish the Plumber Score badge (repo name + score become public)
