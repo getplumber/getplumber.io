@@ -1,7 +1,7 @@
 ---
 title: "GitHub"
-seoTitle: "GitHub Actions Security & Compliance Scanning - Plumber CLI"
-description: "Scan GitHub Actions workflows for security and compliance with the open-source Plumber CLI and GitHub Action: authentication, GitHub controls catalog, issues, SARIF and Code Scanning."
+seoTitle: "GitHub Actions Security Scanning - Plumber CLI"
+description: "Scan GitHub Actions workflows for security with the open-source Plumber CLI and GitHub Action: authentication, GitHub controls catalog, issues, SARIF and Code Scanning."
 sidebar:
   label: "GitHub"
   order: 3
@@ -87,7 +87,7 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
    </Aside>
 
    ```yaml
-   name: Plumber compliance
+   name: Plumber
 
    on:
      push:
@@ -106,7 +106,7 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
          - uses: actions/checkout@v6
          - uses: getplumber/plumber@COMMIT_SHA
            with:
-             score-push: true # if "true": publish a public Plumber Score badge
+             score-push: false # set to "true" to publish a public Plumber Score badge
    ```
 
 3. **Push and check results**: findings appear in the **Code Scanning** tab, the job summary, and the downloadable artifact bundle.
@@ -138,7 +138,7 @@ Override any input to fit your needs:
 | `metadata-token` | - | Optional token (public-repo read) used only to resolve third-party action versions for the known-CVE check, when an action is hosted in an org with an IP allow list that blocks the runner's `GITHUB_TOKEN`. Falls back to an anonymous read when unset |
 | `project` | _(current repo)_ | `owner/repo` to scan remotely (upstream-fetch, no checkout needed) |
 | `github-url` | _(github.com)_ | GitHub Enterprise Server host (e.g. `ghes.example.com`) |
-| `threshold` | `100` | Minimum compliance percentage to pass (0-100) |
+| `threshold` | `100` | Minimum passing percentage (0-100) |
 | `config-file` | _(auto-detect)_ | Path to `.plumber.yaml`. Defaults to repo root; the run fails if absent |
 | `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
 | `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
@@ -146,7 +146,7 @@ Override any input to fit your needs:
 | `score-push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) via CI-native OIDC (**no secret**). The workflow MUST grant `permissions: id-token: write`. Publishes on every run; the service keeps only the default branch for the public badge. Warns (never fails) on error. See [Plumber Score](/docs/plumber-score) |
 | `score-endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
 | `fail-warnings` | `false` | Fail on warnings: unknown configuration keys (exit 2) and "could not verify" checks such as a skipped known-CVE lookup (exit 3). `soft-fail` does not mask exit 3 |
-| `soft-fail` | `false` | Do not fail the job when compliance is below the threshold. Findings are still produced and uploaded |
+| `soft-fail` | `false` | Do not fail the job when the result is below the threshold. Findings are still produced and uploaded |
 | `upload-sarif` | `true` | Upload the SARIF report to GitHub Code Scanning |
 | `upload-artifacts` | `true` | Upload JSON report, PBOM, and CycloneDX SBOM as a workflow artifact |
 | `artifact-name` | `plumber-compliance` | Name of the uploaded artifact bundle |
@@ -159,8 +159,8 @@ Override any input to fit your needs:
 
 | Output | Description |
 |--------|-------------|
-| `compliance` | Overall compliance percentage from the run |
-| `passed` | `true` when compliance is at or above the threshold |
+| `compliance` | Overall passing percentage from the run |
+| `passed` | `true` when the percentage is at or above the threshold |
 | `report` | Path to the JSON report |
 | `sarif` | Path to the SARIF report |
 
@@ -169,7 +169,7 @@ Use outputs in downstream steps:
 ```yaml
 - uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
   id: plumber
-- run: echo "Compliance is ${{ steps.plumber.outputs.compliance }}%"
+- run: echo "Plumber result is ${{ steps.plumber.outputs.compliance }}%"
 ```
 
 ### Code Scanning integration
@@ -267,7 +267,7 @@ When a token-scoped control cannot fully evaluate, Plumber adds a `partialContro
 ]
 ```
 
-When this array is non-empty, at least one control abstained on at least part of its input. Treat the run as suspect rather than trusting the compliance percentage. On a clean run the array is either omitted or empty.
+When this array is non-empty, at least one control abstained on at least part of its input. Treat the run as suspect rather than trusting the reported percentage. On a clean run the array is either omitted or empty.
 
 ### Running a scan
 
@@ -317,7 +317,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
   When using `--output`, results are saved as JSON for programmatic access and CI/CD integration.
 </Aside>
 
-![Plumber CLI output showing compliance results](../img/cli-gh-output.png)
+![Plumber CLI output showing analysis results](../img/cli-gh-output.png)
 
 ### Example Configuration
 
