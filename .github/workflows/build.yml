@@ -1,0 +1,40 @@
+name: Build
+
+# Secret-less production build check: runs on every PR — including Dependabot's,
+# which skip the Deploy Preview workflow (bot-triggered runs get no repository
+# secrets) and would otherwise merge dependency bumps without a build check.
+on: # yamllint disable-line rule:truthy
+  push:
+    branches: [main]
+  pull_request: null
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Astro Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build

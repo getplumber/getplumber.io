@@ -7,6 +7,7 @@
 [![Plumber Score](https://score.getplumber.io/github.com/getplumber/getplumber.io.svg)](https://score.getplumber.io/github.com/getplumber/getplumber.io)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/getplumber/getplumber.io/badge)](https://scorecard.dev/viewer/?uri=github.com/getplumber/getplumber.io)
 [![Deploy Production](https://github.com/getplumber/getplumber.io/actions/workflows/production.yaml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/production.yaml)
+[![Build](https://github.com/getplumber/getplumber.io/actions/workflows/build.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/build.yml)
 [![Lint](https://github.com/getplumber/getplumber.io/actions/workflows/lint.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/lint.yml)
 [![Security Scan](https://github.com/getplumber/getplumber.io/actions/workflows/security.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/security.yml)
 [![CodeQL](https://github.com/getplumber/getplumber.io/actions/workflows/codeql.yml/badge.svg)](https://github.com/getplumber/getplumber.io/actions/workflows/codeql.yml)
