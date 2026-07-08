@@ -18,7 +18,7 @@ Plumber scans your **GitHub Actions** workflows and repository configuration for
 - Missing branch protection
 - [More…](/docs/use-plumber/controls?p=github)
 
-It turns them into a [Plumber Score](/docs/plumber-score) from <span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to <span class="font-bold text-red-400 dark:text-red-300">E</span> that can block CI below a threshold you set.
+It turns them into a [Plumber Score](/docs/plumber-score) from <span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to <span class="font-bold text-red-400 dark:text-red-300">E</span> that can block CI below a minimum score you set.
 
 ## Quick Start
 
@@ -119,7 +119,7 @@ Override any input to fit your needs:
 ```yaml
 - uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
   with:
-    threshold: "80"
+    min-score: "B"
     config-file: configs/strict.plumber.yaml
     controls: actionsMustBePinnedByCommitSha,branchMustBeProtected
     score: "true"
@@ -138,7 +138,9 @@ Override any input to fit your needs:
 | `metadata-token` | - | Optional token (public-repo read) used only to resolve third-party action versions for the known-CVE check, when an action is hosted in an org with an IP allow list that blocks the runner's `GITHUB_TOKEN`. Falls back to an anonymous read when unset |
 | `project` | _(current repo)_ | `owner/repo` to scan remotely (upstream-fetch, no checkout needed) |
 | `github-url` | _(github.com)_ | GitHub Enterprise Server host (e.g. `ghes.example.com`) |
-| `threshold` | `100` | Minimum passing percentage (0-100) |
+| `min-score` | - | Minimum [Plumber Score](/docs/plumber-score) letter to pass (A-E), e.g. `B` fails on C, D, E. The recommended way to gate CI on the score |
+| `min-points` | `100` | Fine-grained gate on score points (0-100). The default (100) fails on any finding; not applied when only `min-score` is set |
+| `threshold` | - | **Deprecated.** Minimum percentage of passing controls (0-100). Use `min-score` / `min-points` instead |
 | `config-file` | _(auto-detect)_ | Path to `.plumber.yaml`. Defaults to repo root; the run fails if absent |
 | `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
 | `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
@@ -146,10 +148,10 @@ Override any input to fit your needs:
 | `score-push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) via CI-native OIDC (**no secret**). The workflow MUST grant `permissions: id-token: write`. Publishes on every run; the service keeps only the default branch for the public badge. Warns (never fails) on error. See [Plumber Score](/docs/plumber-score) |
 | `score-endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
 | `fail-warnings` | `false` | Fail on warnings: unknown configuration keys (exit 2) and "could not verify" checks such as a skipped known-CVE lookup (exit 3). `soft-fail` does not mask exit 3 |
-| `soft-fail` | `false` | Do not fail the job when the result is below the threshold. Findings are still produced and uploaded |
+| `soft-fail` | `false` | Do not fail the job when the score is below the gate. Findings are still produced and uploaded |
 | `upload-sarif` | `true` | Upload the SARIF report to GitHub Code Scanning |
 | `upload-artifacts` | `true` | Upload JSON report, PBOM, and CycloneDX SBOM as a workflow artifact |
-| `artifact-name` | `plumber-compliance` | Name of the uploaded artifact bundle |
+| `artifact-name` | `plumber-report` | Name of the uploaded artifact bundle |
 | `output` | `plumber-report.json` | JSON report output path. Empty to skip |
 | `pbom` | `plumber-pbom.json` | PBOM output path. Empty to skip |
 | `pbom-cyclonedx` | `plumber-cyclonedx-sbom.json` | CycloneDX SBOM output path. Empty to skip |
@@ -159,8 +161,7 @@ Override any input to fit your needs:
 
 | Output | Description |
 |--------|-------------|
-| `compliance` | Overall passing percentage from the run |
-| `passed` | `true` when the percentage is at or above the threshold |
+| `passed` | `true` when the run met its gate (`min-score` / `min-points`, or the deprecated `threshold`) |
 | `report` | Path to the JSON report |
 | `sarif` | Path to the SARIF report |
 
@@ -169,7 +170,7 @@ Use outputs in downstream steps:
 ```yaml
 - uses: getplumber/plumber@COMMIT_SHA   # vX.Y.Z
   id: plumber
-- run: echo "Plumber result is ${{ steps.plumber.outputs.compliance }}%"
+- run: echo "Plumber check passed: ${{ steps.plumber.outputs.passed }}"
 ```
 
 ### Code Scanning integration
@@ -304,7 +305,6 @@ plumber analyze \
   --github-url github.com \
   --project myorg/myrepo \
   --config .plumber.yaml \
-  --threshold 100 \
   --output results.json \
   --print false
 ```

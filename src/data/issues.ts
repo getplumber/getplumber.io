@@ -177,7 +177,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Verifies that no hardcoded job is used in CI/CD pipelines.",
       controlWhyItMatters:
-        "Improves maintainability and ensures compliance with best practices.",
+        "Improves maintainability and keeps pipelines aligned with best practices.",
     },
   },
   includesMustBeUpToDate: {
@@ -193,7 +193,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Verifies that the included refs are using specified tags.",
       controlWhyItMatters:
-        "Prevents reliance on insecure or non-compliant references.",
+        "Prevents reliance on insecure or unapproved references.",
     },
   },
   externalRefsMustNotCollide: {
@@ -215,7 +215,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Verifies that the projects contain specific templates. This control can also allow overriding certain variables in the included templates.",
       controlWhyItMatters:
-        "Ensures pipelines comply with required security and compliance practices.",
+        "Ensures pipelines follow the security practices your policy requires.",
     },
   },
   pipelineMustIncludeComponent: {
@@ -223,7 +223,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Verifies that the projects contain specific GitLab components. This control can also allow overriding certain variables in the included components.",
       controlWhyItMatters:
-        "Ensures pipelines integrate mandatory security and compliance steps.",
+        "Ensures pipelines integrate mandatory security steps.",
     },
   },
   pipelineMustIncludeRequiredPhases: {
@@ -231,7 +231,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Verifies that the CI/CD pipeline includes a group of job types.",
       controlWhyItMatters:
-        "Ensures completeness and compliance of the pipeline execution flow.",
+        "Ensures the pipeline execution flow is complete and matches your policy.",
     },
   },
   pipelineMustNotEnableDebugTrace: {
@@ -269,7 +269,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Detects security scanning jobs (SAST, Secret Detection, Container Scanning, etc.) weakened by `allow_failure: true`, `rules:` overrides with `when: never` / `when: manual`, or `when: manual` at job level.",
       controlWhyItMatters:
-        "Prevents silently neutralized security scans that give a false sense of compliance (OWASP CICD-SEC-4).",
+        "Prevents silently neutralized security scans that give a false sense of security (OWASP CICD-SEC-4).",
     },
     github: {
       controlDescription:
@@ -333,7 +333,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Verifies that MR approval settings are properly configured.",
       controlWhyItMatters:
-        "Ensures compliance with review and security requirements.",
+        "Ensures review and security requirements are enforced.",
     },
   },
   mrApprovalRuleMustCoverAllProtectedBranches: {
@@ -373,7 +373,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Verifies if the projects have a specific project as their source of security policy.",
       controlWhyItMatters:
-        "Ensures compliance with security policy and reduces risk of unmanaged vulnerabilities.",
+        "Ensures the security policy is applied and reduces the risk of unmanaged vulnerabilities.",
     },
   },
   actionsMustBePinnedByCommitSha: {
@@ -976,9 +976,9 @@ github:
       controlName: "Pipeline must not contains hardcoded jobs",
       controlConfigKey: "pipelineMustNotIncludeHardcodedJobs",
       description:
-        "A job in the pipeline configuration is hardcoded, increasing maintainability costs and introducing a compliance risk.",
+        "A job in the pipeline configuration is hardcoded, increasing maintainability costs and introducing a risk of drifting from your organization's standards.",
       impact:
-        "Hardcoded jobs make pipelines harder to maintain and adapt to changes. Moreover, they introduce a risk of being non-compliant with the organization's standards. For instance, if your security check job is hardcoded, you might miss the organization's security standards checks.",
+        "Hardcoded jobs make pipelines harder to maintain and adapt to changes. Moreover, they risk falling out of line with the organization's standards. For instance, if your security check job is hardcoded, you might miss the organization's security standards checks.",
       remediation:
         "Replace the hardcoded job in the project CI/CD configuration with a template or component inclusion.",
       badExample: `# .gitlab-ci.yml: ❌ Jobs defined directly (hardcoded)
@@ -1040,10 +1040,10 @@ variables:
       description:
         "An outdated template is used in the project CI/CD pipeline configuration.",
       impact:
-        "Outdated templates may have known vulnerabilities or lack compliance with current standards. For example, if your security scan template is outdated, it might miss detecting recent threats.",
+        "Outdated templates may have known vulnerabilities or fall behind current standards. For example, if your security scan template is outdated, it might miss detecting recent threats.",
       remediation:
-        "Update the template in your project CI/CD configuration file to the latest version to ensure security and compliance.",
-      badExample: `# .gitlab-ci.yml: ❌ Uses outdated version
+        "Update the template in your project CI/CD configuration file to the latest version to stay secure and aligned with current standards.",
+      badExample: `# .gitlab-ci.yml — ❌ Uses outdated version
 include:
   - component: gitlab.com/components/sast/sast@1.0.0
     # Latest available: 1.5.2
@@ -1122,7 +1122,7 @@ include:
       description:
         "A required CI/CD template, as defined in your Policy controls, is missing in the project pipeline.",
       impact:
-        "Missing templates result in non-compliant and insecure pipeline configurations. For example, if your pipeline is missing a security scan template, vulnerabilities might go undetected.",
+        "Missing templates result in insecure pipeline configurations that don't match your policy. For example, if your pipeline is missing a security scan template, vulnerabilities might go undetected.",
       remediation:
         "Include the missing template in the CI/CD pipeline configuration of the project.",
       badExample: `# .gitlab-ci.yml: ❌ Missing required template
@@ -1167,7 +1167,7 @@ include:
       description:
         "A required CI/CD template, as defined in your Policy controls, has been overridden in the project pipeline.",
       impact:
-        "Overriding required templates can lead to non-compliant and insecure pipelines. For example, overriding a SAST template might bypass mandatory checks.",
+        "Overriding required templates can lead to insecure pipelines that bypass your policy. For example, overriding a SAST template might bypass mandatory checks.",
       remediation:
         "Remove overrides from the project CI/CD configuration. If overrides are relevant, include them in the required template or create a new one.",
       badExample: `# .gitlab-ci.yml: ❌ Overrides required template job
@@ -1309,7 +1309,7 @@ github:
         "Classic Branch Protection and Rulesets are unioned. A code-owner-approval rule defined only in a Ruleset (no classic rule for the same branch) is still seen.",
         "Disabled or evaluate-mode rulesets are ignored automatically. Only enforced rulesets contribute to the effective configuration.",
         "`namePatterns` accepts glob patterns. Common: `[main, master, release/*, v*.*.*]`.",
-        "Pair with ISSUE-505 for per-setting non-compliance (force-push allowed, code-owner approvals missing, etc.).",
+        "Pair with ISSUE-505 for per-setting violations (force-push allowed, code-owner approvals missing, etc.).",
       ],
       relatedCodes: ["ISSUE-505"],
     },
@@ -1326,12 +1326,12 @@ github:
       controlName: "Project must have a security policy source",
       controlConfigKey: "projectMustHaveSecurityPolicySource",
       description:
-        "The project lacks the security policy source defined in your Policy controls, violating compliance requirements.",
+        "The project lacks the security policy source defined in your Policy controls.",
       impact:
-        "Without a security policy source, your project may become non-compliant and vulnerable to risks. For example, if your project lacks a defined security policy source, critical checks might not be enforced.",
+        "Without a security policy source, your project may drift from your policy and become vulnerable to risks. For example, if your project lacks a defined security policy source, critical checks might not be enforced.",
       remediation:
-        "Define the security policy source as defined in your Policy controls on the project to ensure compliance and security.",
-      badExample: `# GitLab project settings: ❌ No security policy source
+        "Define the security policy source as defined in your Policy controls on the project so its required checks are enforced.",
+      badExample: `# GitLab project settings — ❌ No security policy source
 # Secure > Security configuration > Security policy project:
 #   (none)
 #
@@ -1408,7 +1408,7 @@ jobs:
       description:
         "The merge request approval rule is configured with fewer approvers than the minimum required by your Policy controls.",
       impact:
-        "Having insufficient approvals can lead to unreviewed code being merged, increasing the risk of introducing bugs, security vulnerabilities, or non-compliant changes.",
+        "Having insufficient approvals can lead to unreviewed code being merged, increasing the risk of introducing bugs, security vulnerabilities, or changes that violate your policy.",
       remediation:
         "Increase the minimum number of approvals required in the merge request approval rule to meet or exceed the minimum number required by your Policy controls.",
       badExample: `# GitLab project settings: ❌ Insufficient approvals
@@ -1447,10 +1447,10 @@ jobs:
       description:
         "The current merge request approval settings do not align with your Policy controls.",
       impact:
-        "Non-compliance with approval settings may lead to unreviewed code being merged, increasing the risk of introducing bugs, security vulnerabilities, or non-compliant changes.",
+        "Misconfigured approval settings may lead to unreviewed code being merged, increasing the risk of introducing bugs, security vulnerabilities, or changes that violate your policy.",
       remediation:
-        "Update the merge request approval settings of the project to ensure compliance with your Policy controls.",
-      badExample: `# GitLab project settings: ❌ Non-compliant approval settings
+        "Update the merge request approval settings of the project to match your Policy controls.",
+      badExample: `# GitLab project settings — ❌ Approval settings violate the policy
 # Settings > Merge requests > Approvals:
 #
 #   Prevent approval by author:                  false ← Author can approve own MR
@@ -1460,7 +1460,7 @@ jobs:
 # These settings allow the MR author to approve their own changes,
 # and approvals remain valid even after new commits are pushed.`,
       badExampleCaption: "Approval settings allow the author to approve their own MR and don't reset on new commits.",
-      goodExample: `# GitLab project settings: ✅ Compliant approval settings
+      goodExample: `# GitLab project settings — ✅ Approval settings match the policy
 # Settings > Merge requests > Approvals:
 #
 #   Prevent approval by author:                  true
@@ -1530,7 +1530,7 @@ jobs:
       description:
         "The project's CI pipeline does not include all the required actions defined by your configuration.",
       impact:
-        "Missing actions in the pipeline can lead to unverified code being deployed. This increases the risk of security vulnerabilities, compliance issues, and software defects reaching production. For example, if security checks are absent, a vulnerable application can be deployed in production and lead to user data leak.",
+        "Missing actions in the pipeline can lead to unverified code being deployed. This increases the risk of security vulnerabilities, policy violations, and software defects reaching production. For example, if security checks are absent, a vulnerable application can be deployed in production and lead to user data leak.",
       remediation:
         "Ensure that the CI pipeline includes all required validations as defined in your Policy controls.",
       badExample: `# .gitlab-ci.yml: ❌ Missing required pipeline phases
@@ -1596,10 +1596,10 @@ deploy:
       description:
         "The branch protection configuration does not meet the security requirements defined in your Policy controls. The branch settings allow unauthorized access levels, force push capabilities, or bypass code owner approval requirements.",
       impact:
-        "Non-compliant branch protection settings can lead to unauthorized code changes, security vulnerabilities, and compliance issues. This includes risks such as loss of commit history through force push, unauthorized code merges, and direct pushes to protected branches without proper validation.",
+        "Misconfigured branch protection settings can lead to unauthorized code changes, security vulnerabilities, and policy violations. This includes risks such as loss of commit history through force push, unauthorized code merges, and direct pushes to protected branches without proper validation.",
       remediation:
-        "Update the branch protection settings to comply with your Policy controls requirements by enforcing proper access controls, disabling force push, and requiring code owner approvals for all changes.",
-      badExample: `# GitLab settings: ❌ Protection exists but is too permissive
+        "Update the branch protection settings to match your Policy controls requirements by enforcing proper access controls, disabling force push, and requiring code owner approvals for all changes.",
+      badExample: `# GitLab settings — ❌ Protection exists but is too permissive
 # Branch: main
 #   Allowed to push: Developers + Maintainers  (too permissive)
 #   Allow force push: Yes                       (dangerous)
@@ -1626,7 +1626,7 @@ branchMustBeProtected:
   minPushAccessLevel: 40`,
       goodExampleCaption: "Branch protection meets all configured requirements.",
       tips: [
-        "Plumber checks each setting independently; the output shows exactly which settings are non-compliant.",
+        "Plumber checks each setting independently — the output shows exactly which settings violate the policy.",
         "Access levels: 0 = No one, 30 = Developer, 40 = Maintainer.",
         "Force push should almost always be disabled on production branches.",
       ],
@@ -1644,8 +1644,8 @@ branchMustBeProtected:
       impact:
         "A protected-but-misconfigured branch creates a false sense of safety. Reviewers see the green check, the workflow runs, and the UI shows a protection rule, but a critical safeguard (force-push prevention, code-owner review, required checks) is disabled in practice.",
       remediation:
-        "Update whichever source carries the offending setting (the classic rule, a Repository Ruleset, or an inherited Organization Ruleset) so the merged effective configuration matches `.plumber.yaml`. Each non-compliant setting is listed individually in Plumber's output so you know exactly what to change.",
-      badExample: `# GitHub repo settings: ❌ Protection too permissive
+        "Update whichever source carries the offending setting (the classic rule, a Repository Ruleset, or an inherited Organization Ruleset) so the merged effective configuration matches `.plumber.yaml`. Every setting that violates the policy is listed individually in Plumber's output so you know exactly what to change.",
+      badExample: `# GitHub repo settings — ❌ Protection too permissive
 # Settings > Rules > Rulesets > \`main\` ruleset:
 #   Block force pushes: OFF        ← required by policy
 #   Require pull request reviews: ON
@@ -1669,7 +1669,7 @@ github:
 #     Require review from Code Owners: ON`,
       goodExampleCaption: "Each policy setting has a matching ruleset toggle enabled.",
       tips: [
-        "Plumber reports each non-compliant setting individually so you can see exactly what to change.",
+        "Plumber reports each policy violation individually so you can see exactly what to change.",
         "Settings are checked against the merged effective configuration. A rule disabled in classic Branch Protection but enforced by a Ruleset is treated as enforced. Stricter wins.",
         "Force push should be disabled on every long-lived branch.",
         "`codeOwnerApprovalRequired` only takes effect when a `CODEOWNERS` file exists in the repository.",
@@ -1689,12 +1689,12 @@ github:
       controlName: "MR settings must be compliant",
       controlConfigKey: "mrSettingsMustBeCompliant",
       description:
-        "The merge request settings in the project do not comply with the defined configuration, such as incorrect merge methods or merge options.",
+        "The merge request settings in the project do not match the defined configuration, such as incorrect merge methods or merge options.",
       impact:
-        "Non-compliant merge request settings can lead to unauthorized code changes and security vulnerabilities.",
+        "Misconfigured merge request settings can lead to unauthorized code changes and security vulnerabilities.",
       remediation:
-        "Update the merge request settings to comply with your Policy controls by ensuring proper merge methods and merge options.",
-      badExample: `# GitLab project settings: ❌ Non-compliant MR settings
+        "Update the merge request settings to match your Policy controls by ensuring proper merge methods and merge options.",
+      badExample: `# GitLab project settings — ❌ MR settings violate the policy
 # Settings > Merge requests:
 #
 #   Merge method: Merge commit (policy requires: Fast-forward merge)
@@ -1704,13 +1704,13 @@ github:
 # These settings create merge commits that clutter history
 # and allow inconsistent commit messages.`,
       badExampleCaption: "MR settings use merge commits and don't enforce squashing, violating the policy.",
-      goodExample: `# GitLab project settings: ✅ Compliant MR settings
+      goodExample: `# GitLab project settings — ✅ MR settings match the policy
 # Settings > Merge requests:
 #
 #   Merge method: Fast-forward merge
 #   Squash commits: Always (required by policy)
 #   Delete source branch: Enabled by default`,
-      goodExampleCaption: "MR settings comply with the policy: fast-forward merge and always squash.",
+      goodExampleCaption: "MR settings match the policy: fast-forward merge and always squash.",
       tips: [
         "Fast-forward merge keeps a linear history, making it easier to bisect and revert.",
         "Enforcing squash commits ensures each feature is represented as a single atomic commit.",
@@ -1732,7 +1732,7 @@ github:
       description:
         "A required GitLab catalog component, as defined in your Policy controls, is missing in the project pipeline.",
       impact:
-        "Missing components result in non-compliant and insecure pipeline configurations. For example, if your pipeline is missing a security scan component, vulnerabilities might go undetected.",
+        "Missing components result in insecure pipeline configurations that don't match your policy. For example, if your pipeline is missing a security scan component, vulnerabilities might go undetected.",
       remediation:
         "Include the missing GitLab catalog component in the CI/CD pipeline configuration of the project.",
       badExample: `# .gitlab-ci.yml: ❌ Missing required SAST component
@@ -1771,7 +1771,7 @@ include:
       description:
         "A required GitLab catalog component, as defined in your Policy controls, has been overridden in the project pipeline. The following CI/CD keywords are detected as overrides: `after_script`, `allow_failure`, `artifacts`, `before_script`, `cache`, `coverage`, `dast_configuration`, `dependencies`, `environment`, `identity`, `image`, `inherit`, `interruptible`, `manual_confirmation`, `needs`, `pages`, `parallel`, `release`, `resource_group`, `retry`, `rules`, `script`, `secrets`, `services`, `stage`, `tags`, `timeout`, `trigger`, `when`.",
       impact:
-        "Overriding required components can lead to non-compliant and insecure pipelines. For example, overriding a security scan component might bypass mandatory security checks.",
+        "Overriding required components can lead to insecure pipelines that bypass your policy. For example, overriding a security scan component might bypass mandatory security checks.",
       remediation:
         "Remove overrides from the project CI/CD configuration. If overrides are relevant, include them in the required component or create a new one.",
       badExample: `# .gitlab-ci.yml: ❌ Overrides the SAST component's script
@@ -1818,8 +1818,8 @@ include:
       impact:
         "Ignoring role quotas can lead to uncontrolled access to project resources, weakening security and governance policies. For example, if too many users are assigned as Owners or Maintainers, it increases the risk of unauthorized changes and security misconfigurations.",
       remediation:
-        "Review and adjust the members' role assignments in the project to comply with the defined quotas. Ensure that only the necessary members have privileges.",
-      badExample: `# GitLab project members: ❌ Too many Maintainers
+        "Review and adjust the members' role assignments in the project to stay within the defined quotas. Ensure that only the necessary members have privileges.",
+      badExample: `# GitLab project members — ❌ Too many Maintainers
 # Settings > Members:
 #
 #   alice  → Owner
@@ -2130,7 +2130,7 @@ build:
       description:
         "A security scanning job (SAST, Secret Detection, Container Scanning, Dependency Scanning, DAST, License Scanning) has been weakened by overriding its configuration in `.gitlab-ci.yml`. The pipeline still includes the security template but the actual scanning is neutralized.",
       impact:
-        "Weakened security jobs give a false sense of compliance. The pipeline appears to include security scanning, but the scans either never run, require manual intervention, or silently ignore failures. Maps to OWASP CICD-SEC-4 (Poisoned Pipeline Execution).",
+        "Weakened security jobs give a false sense of security. The pipeline appears to include security scanning, but the scans either never run, require manual intervention, or silently ignore failures. Maps to OWASP CICD-SEC-4 (Poisoned Pipeline Execution).",
       remediation:
         "Remove the override that weakens the security job. Security jobs should run automatically on every pipeline and block the pipeline on failure.",
       badExample: `# .gitlab-ci.yml: ❌ Security jobs are weakened
@@ -2200,7 +2200,7 @@ variables:
       description:
         "A security-scan job in a GitHub Actions workflow is neutralized via `continue-on-error: true`, a narrow `if:` condition that never triggers, or a trigger filter that effectively skips it.",
       impact:
-        "A weakened security scan gives a false sense of compliance: the pipeline reports green, but the scan either never ran or its findings were silently ignored. Same OWASP CICD-SEC-4 pattern as on GitLab.",
+        "A weakened security scan gives a false sense of security — the pipeline reports green, but the scan either never ran or its findings were silently ignored. Same OWASP CICD-SEC-4 pattern as on GitLab.",
       remediation:
         "Remove the weakening pattern. Security scans should fail the pipeline, not pass with warnings.",
       badExample: `# .github/workflows/codeql.yml: ❌ Weakened
@@ -2633,8 +2633,8 @@ jobs:
       impact:
         "Ignoring role quotas can lead to uncontrolled access to project resources, weakening security and governance policies. For example, if too many users are assigned as Owners or Maintainers, it increases the risk of unauthorized changes and security misconfigurations.",
       remediation:
-        "Review and adjust the members' role assignments in the group to comply with the defined quotas. Ensure that only the necessary members have privileges.",
-      badExample: `# GitLab group members: ❌ Too many Owners
+        "Review and adjust the members' role assignments in the group to stay within the defined quotas. Ensure that only the necessary members have privileges.",
+      badExample: `# GitLab group members — ❌ Too many Owners
 # Group > Members:
 #
 #   alice  → Owner
@@ -2649,7 +2649,7 @@ jobs:
 #   bob    → Owner
 #   carol  → Maintainer  ← Downgraded to meet quota
 #   dave   → Maintainer  ← Downgraded to meet quota`,
-      goodExampleCaption: "Group member roles are adjusted to comply with the defined quota.",
+      goodExampleCaption: "Group member roles are adjusted to stay within the defined quota.",
       tips: [
         "Group owners inherit owner access to all projects in the group. Limit this role to trusted admins.",
         "Use subgroups to apply different access policies to different teams.",
@@ -4153,7 +4153,7 @@ jobs:
       controlName: "Workflows must include required actions",
       controlConfigKey: "workflowMustIncludeRequiredActions",
       description:
-        "An action or reusable workflow declared as required in `workflowMustIncludeRequiredActions.requiredGroups` is not referenced by any job or step in the project's `.github/workflows/` files. The missing reference means a mandatory security scan, compliance check, or organisation-wide workflow is not actually running on this repository.",
+        "An action or reusable workflow declared as required in `workflowMustIncludeRequiredActions.requiredGroups` is not referenced by any job or step in the project's `.github/workflows/` files. The missing reference means a mandatory security scan, policy check, or organisation-wide workflow is not actually running on this repository.",
       impact:
         "A control that exists in policy but not in the pipeline gives a false sense of coverage. Auditors looking at the org-wide policy see the rule; the repo's actual workflow run does not exercise it. Common cases: a new repo onboarded without copying the security workflow, a refactor that dropped a `uses:` step, or a misspelled action name that resolves to nothing.",
       remediation:
@@ -4190,7 +4190,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: myorg/sast-scan@abc1234567890abc1234567890abc1234567890a
       - uses: myorg/dependency-review@def4567890def4567890def4567890def4567890`,
-      goodExampleCaption: "Both required actions are referenced; the AND group is satisfied and the policy reports 100% compliant.",
+      goodExampleCaption: "Both required actions are referenced; the AND group is satisfied and the control passes.",
       tips: [
         "DNF semantics: the outer list is OR, the inner is AND. `[[a, b], [c]]` reads as `(a AND b) OR c`. Use this when you have a primary security suite plus an all-in-one alternative.",
         "Use `required: a AND b OR c` if the boolean expression feels clearer than nested arrays. AND binds tighter than OR.",

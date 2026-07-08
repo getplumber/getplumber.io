@@ -18,7 +18,7 @@ Plumber scans your **GitLab CI/CD pipelines** and repository configuration for s
 - Missing branch protection
 - [More…](/docs/use-plumber/controls?p=gitlab)
 
-It turns them into a [Plumber Score](/docs/plumber-score) from <span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to <span class="font-bold text-red-400 dark:text-red-300">E</span> that can block pipelines below a threshold you set.
+It turns them into a [Plumber Score](/docs/plumber-score) from <span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to <span class="font-bold text-red-400 dark:text-red-300">E</span> that can block pipelines below a minimum score you set.
 
 ## Quick Start
 
@@ -211,8 +211,8 @@ include:
       branch: develop                            # Analyze a specific branch
       ci_config_path: $CI_CONFIG_PATH            # CI config path (GitLab predefined variable)
 
-      # Policy
-      threshold: 80                              # Minimum % to pass (default: 100)
+      # Gate
+      min_score: "B"                             # Minimum Plumber Score letter to pass (A-E)
       config_file: configs/my-plumber.yaml       # Custom config path
 
       # Output
@@ -247,7 +247,9 @@ The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-co
 | `branch` | `$CI_COMMIT_REF_NAME` | Branch to analyze |
 | `ci_config_path` | `$CI_CONFIG_PATH` | CI configuration file path to analyze. Defaults to the GitLab predefined variable (`.gitlab-ci.yml` unless customized in project settings) |
 | `gitlab_token` | `$GITLAB_TOKEN` | GitLab API token (`read_api` + `read_repository`, or `api` if `mr_comment` / `badge` is enabled) |
-| `threshold` | `100` | Minimum passing % |
+| `min_score` | - | Minimum [Plumber Score](/docs/plumber-score) letter to pass (A-E), e.g. `B` fails on C, D, E. The recommended way to gate CI on the score |
+| `min_points` | `100` | Fine-grained gate on score points (0-100). The default (100) fails on any finding; not applied when only `min_score` is set |
+| `threshold` | `100` | **Deprecated.** Minimum percentage of passing controls. The default (100) is treated as unset; use `min_score` / `min_points` instead |
 | `config_file` | *(auto-detect)* | Path to config file (relative to repo root). Auto-detects `.plumber.yaml`, falls back to default |
 | `output_file` | `plumber-report.json` | Path to write JSON results |
 | `pbom_file` | `plumber-pbom.json` | Path to write the PBOM |
@@ -339,7 +341,6 @@ plumber analyze \
   --gitlab-url https://gitlab.com \
   --project mygroup/myproject \
   --config .plumber.yaml \
-  --threshold 100 \
   --output results.json \
   --print false
 ```

@@ -2,7 +2,7 @@ import type { DocsSiteData } from "../types/configDataTypes";
 
 const docsSiteData: DocsSiteData = {
   title:
-    "Plumber Documentation - Open Source compliance CLI & Platform for GitLab CI/CD and GitHub Actions",
+    "Plumber Documentation - Open Source security CLI & Platform for GitLab CI/CD and GitHub Actions",
   description:
     "Guides to install and use Plumber CLI on GitLab CI/CD and GitHub Actions, plus the Plumber Platform for GitLab.",
   navSocials: [
@@ -32,7 +32,7 @@ const docsSiteData: DocsSiteData = {
   // default image for Open Graph / Twitter card (big link preview)
   defaultImage: {
     src: "/social-media-card.png",
-    alt: "Plumber - CI/CD compliance without effort",
+    alt: "Plumber - CI/CD security without effort",
   },
   // Your information for SEO purposes
   author: {
