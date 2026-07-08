@@ -5,6 +5,11 @@ on:
     branches-ignore:
       - main
       - master
+      # Dependabot-triggered runs only receive Dependabot secrets, so
+      # secrets.VERCEL_TOKEN is empty and `vercel pull` fails — and we don't
+      # want deploy tokens in bot-triggered runs anyway. Dependency bumps are
+      # still build-verified by the Build workflow (pull_request, no secrets).
+      - "dependabot/**"
 
 permissions:
   contents: read
