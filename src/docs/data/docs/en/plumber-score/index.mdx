@@ -1,7 +1,7 @@
 ---
 title: "Plumber Score"
-seoTitle: "Plumber Score: a live CI/CD compliance badge for your repo"
-description: "Plumber Score is an A-E grade for your CI/CD security & compliance, produced on every run of the open-source Plumber CLI, locally or in CI. Publish it from your pipeline and embed it as a live badge in your README."
+seoTitle: "Plumber Score: a live CI/CD security badge for your repo"
+description: "Plumber Score is an A-E grade for your CI/CD security, produced on every run of the open-source Plumber CLI, locally or in CI. Publish it from your pipeline and embed it as a live badge in your README."
 sidebar:
   label: "Plumber Score"
   order: 1
@@ -59,8 +59,7 @@ JSON output to `score.getplumber.io`
 "pipelineImageMetrics": {
     "total": 0
 },
-"compliance": 100,
-"threshold": 100,
+"minPoints": 100,
 "passed": true,
 "plumberScore": {
     "profileId": "scoring-v3",
@@ -80,7 +79,6 @@ JSON output to `score.getplumber.io`
 "actionPinningResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "actionRefsExempt": 35,
@@ -93,7 +91,6 @@ JSON output to `score.getplumber.io`
 "archivedActionsResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "actionRefsArchived": 0,
@@ -105,7 +102,6 @@ JSON output to `score.getplumber.io`
 "authorizedActionSourcesResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "actionRefsTotal": 42,
@@ -115,7 +111,6 @@ JSON output to `score.getplumber.io`
     "version": "0.1.0"
 },
 "branchProtectionResult": {
-    "compliance": 100,
     "data": [
     {
         "allowForcePush": false,
@@ -140,7 +135,6 @@ JSON output to `score.getplumber.io`
 "dangerousTriggersResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "workflowsScanned": 5,
@@ -152,7 +146,6 @@ JSON output to `score.getplumber.io`
 "debugTraceResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "forbiddenFound": 0,
@@ -164,7 +157,6 @@ JSON output to `score.getplumber.io`
 "dockerInDockerResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "dindServicesFound": 0,
@@ -177,7 +169,6 @@ JSON output to `score.getplumber.io`
 "excessivePermissionsResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "jobsTotal": 14,
@@ -189,7 +180,6 @@ JSON output to `score.getplumber.io`
 "imageForbiddenTagsResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "ciInvalid": 0,
@@ -206,7 +196,6 @@ JSON output to `score.getplumber.io`
 "knownVulnerableActionsResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "actionRefsTotal": 7,
@@ -218,7 +207,6 @@ JSON output to `score.getplumber.io`
 "leakedSecretsResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "hitsFound": 0
@@ -229,7 +217,6 @@ JSON output to `score.getplumber.io`
 "permissionsResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "workflowsMissingPermissions": 0,
@@ -241,7 +228,6 @@ JSON output to `score.getplumber.io`
 "pullRequestTargetHeadCheckoutResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "headCheckoutsUnderPrTarget": 0,
@@ -253,7 +239,6 @@ JSON output to `score.getplumber.io`
 "refConfusionResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "actionRefsAmbiguous": 0,
@@ -265,7 +250,6 @@ JSON output to `score.getplumber.io`
 "requiredActionsResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "anySatisfiedGroup": false,
@@ -279,7 +263,6 @@ JSON output to `score.getplumber.io`
 "reusableSecretsResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "reusableCalls": 0,
@@ -291,7 +274,6 @@ JSON output to `score.getplumber.io`
 "securityJobsWeakenedResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "securityJobsFound": 1,
@@ -303,7 +285,6 @@ JSON output to `score.getplumber.io`
 "templateInjectionResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "scriptLinesChecked": 26,
@@ -316,7 +297,6 @@ JSON output to `score.getplumber.io`
 "unverifiedScriptsResult": {
     "ciMissing": false,
     "ciValid": true,
-    "compliance": 100,
     "issues": [],
     "metrics": {
     "jobsChecked": 14,
@@ -488,3 +468,24 @@ than **E**, no matter how clean the rest of the pipeline is.
 
 Want the full per-issue breakdown? Run `plumber analyze --score-point` to see
 every issue code, its weight, and exactly how many points it costs.
+
+## Gate your CI on the score
+
+The score is also what passes or fails a `plumber analyze` run (exit code 1 on
+failure):
+
+- `--min-score <A-E>` is the main gate: the run fails when the letter is below
+  the one you set. `--min-score B` fails on C, D, E.
+- `--min-points <0-100>` is the fine-grained variant for gating on exact
+  points. Without any flag, the default is **100 points**: any finding fails.
+- Set both and both must pass.
+
+```bash
+plumber analyze --min-score B
+```
+
+The same gate is available as `min-score` / `min-points` inputs on the
+[GitHub Action](/docs/cli/github#all-inputs) and `min_score` / `min_points` on
+the [GitLab component](/docs/cli/gitlab). The legacy `--threshold` flag
+(percentage of passing controls) is deprecated: it still works with a warning,
+and its old default is equivalent to the default score gate.

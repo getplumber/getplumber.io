@@ -31,7 +31,9 @@ plumber analyze [flags]
 | `--provider` | No | auto-detect | Force the provider: `github` or `gitlab` (overrides auto-detection; the host is still auto-detected). |
 | `--project` | No* | auto-detect | Project / repo path. GitLab: `group/project`. GitHub: `owner/repo`. |
 | `--config` | No | `.plumber.yaml` | Path to configuration file |
-| `--threshold` | No | `100` | Minimum passing % (0-100) |
+| `--min-score` | No | - | Minimum [Plumber Score](/docs/plumber-score) letter to pass (A-E), e.g. `B` fails on C, D, E. The recommended way to gate CI on the score |
+| `--min-points` | No | `100` | Fine-grained gate on score points (0-100). The default (100) fails on any finding; not applied when only `--min-score` is set |
+| `--threshold` | No | - | **Deprecated.** Minimum percentage of passing controls (0-100). Use `--min-score` / `--min-points`; cannot be combined with them |
 | `--branch` | No | Project default | Branch to analyze |
 | `--print` | No | `true` | Print text output to stdout |
 | `--output`, `-o` | No | - | Write JSON results to file |
@@ -283,8 +285,8 @@ Documentation: https://getplumber.io/docs/use-plumber/issues/ISSUE-412
 
 | Code | Meaning |
 |------|---------|
-| `0` | Passed (result ≥ threshold) |
-| `1` | Threshold failure (result < threshold) |
+| `0` | Passed (the Plumber Score meets the gate) |
+| `1` | Gate failure (score below `--min-score` / `--min-points`, or the deprecated `--threshold` not met) |
 | `2` | Runtime error (config error, network failure, missing token, etc.) |
 | `3` | A check could not be verified and `--fail-warnings` is set (e.g. an action version that could not be resolved) |
 
@@ -356,14 +358,15 @@ By default Plumber prints a colorized, human-readable report to your terminal (`
 | `ciErrors` | array | CI configuration parse errors reported by the provider. Omitted when none. |
 | `pipelineOriginMetrics` | object | Counts and origins of pipeline jobs (hardcoded, from include, from component). |
 | `pipelineImageMetrics` | object | Counts of container images per source / registry. |
-| `compliance` | number | Effective passing percentage (0–100). |
-| `threshold` | number | Threshold from `--threshold` (default 100). |
-| `passed` | boolean | True when `compliance >= threshold`. |
+| `minScore` | string | Letter gate from `--min-score` (A–E). Present only when set. |
+| `minPoints` | number | Points gate from `--min-points` (default 100). Omitted when only `--min-score` gates or the deprecated `--threshold` is used. |
+| `threshold` | number | Deprecated gate from `--threshold`. Present only when that flag is supplied. |
+| `passed` | boolean | True when the active gate is met. |
 | `plumberScore` | object | Scored severity summary (raw points, severity buckets, final points). Present with `--score` / `--score-point`. |
 | `<control>Result` | object | One entry per evaluated control (see below). |
 | `partialControls` | array | Controls that could not fully evaluate. Empty or omitted on a clean run. |
 | `warnings` | array | Non-fatal "could not verify" messages (e.g. a known-CVE check that couldn't resolve an action version). Gated by `--fail-warnings` (exit 3). Omitted when none. |
-| `dataCollectionDegraded` | boolean | True when a collection or enrichment step failed mid-run, so the analysis ran on incomplete data. Treat the run as suspect even if `compliance` reads 100. Omitted when false. |
+| `dataCollectionDegraded` | boolean | True when a collection or enrichment step failed mid-run, so the analysis ran on incomplete data. Treat the run as suspect even if it passed its gate. Omitted when false. |
 | `degradedReasons` | array | Human-readable reasons behind `dataCollectionDegraded`. Omitted when not degraded. |
 | `plumberConfig` | object | Self-describing snapshot of the effective policy: `source`, `effectivePolicy` (the parsed config with comments stripped), and `hash` (sha256 of the canonical policy). Written on every run. |
 
@@ -375,7 +378,6 @@ Each `*Result` block has the same baseline shape. Some controls add a few contro
 |-----|------|-------------|
 | `issues` | array | Findings raised by the control. Each entry carries an `ISSUE-XXX` code, severity, location, and message. |
 | `metrics` | object | Counts the control collected (jobs scanned, images checked, branches inspected, etc.). |
-| `compliance` | number | Per-control passing percentage. |
 | `skipped` | boolean | True when the control was disabled in `.plumber.yaml` or excluded via `--skip-controls`. |
 | `ciValid` | boolean | Same as the top-level field, scoped to what this control needed. |
 | `ciMissing` | boolean | Same as the top-level field, scoped to what this control needed. |
@@ -383,7 +385,7 @@ Each `*Result` block has the same baseline shape. Some controls add a few contro
 
 **`partialControls` entry**
 
-When non-empty, each entry has the shape shown in the [GitHub authentication section](/docs/cli/github#authentication): `control`, `reason`, `affectedBranches` (when relevant), `remediation`. CI gates should fail loud when this array contains anything, even if `compliance` reads 100.
+When non-empty, each entry has the shape shown in the [GitHub authentication section](/docs/cli/github#authentication): `control`, `reason`, `affectedBranches` (when relevant), `remediation`. CI gates should fail loud when this array contains anything, even if `passed` reads true.
 
 <Aside variant="info">
   Stability: keys documented above are stable across 0.3.x minor versions. New keys may be added without notice. Existing keys will not be renamed or removed without a major-version bump.
