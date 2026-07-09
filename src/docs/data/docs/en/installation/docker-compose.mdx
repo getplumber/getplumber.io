@@ -165,7 +165,7 @@ sed -i."" "s/^JOBS_REDIS_PASSWORD=.*/JOBS_REDIS_PASSWORD=\"$(openssl rand -hex 1
 
 #### Step 6: Configure deployment profile
 
-**Option A — Let's Encrypt (automatic certificates):**
+**Option A: Let's Encrypt (automatic certificates)**
 
 ```bash title=".env"
 COMPOSE_PROFILES="letsencrypt,internal-db"
@@ -174,7 +174,7 @@ CERT_RESOLVER="le"
 
 No further action needed! Certificates will be automatically generated at first launch.
 
-**Option B — Custom certificates:**
+**Option B: Custom certificates**
 
 ```bash title=".env"
 COMPOSE_PROFILES="custom-certs,internal-db"

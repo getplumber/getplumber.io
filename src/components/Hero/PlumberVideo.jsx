@@ -810,7 +810,7 @@ function Scene() {
       {/* CAPTIONS */}
       <Caption start={0.3} end={4.7}><Line text="Your pipelines are leaking." /><Line text="You just can't see it." /></Caption>
       <Caption start={4.8} end={7.2}><Line text="Plumber maps every pipeline. Continuously." size={50} /></Caption>
-      <Caption start={7.4} end={9.6}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 14, fontFamily: DISP, fontWeight: 600, fontSize: 46, color: C.ink, letterSpacing: '-0.02em', textShadow: '0 2px 30px rgba(0,0,0,0.85)' }}><span>Every pipeline gets a Plumber Score —</span><GradeChip g="A" size={38} /><span>to</span><GradeChip g="E" size={38} /></div></Caption>
+      <Caption start={7.4} end={9.6}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 14, fontFamily: DISP, fontWeight: 600, fontSize: 46, color: C.ink, letterSpacing: '-0.02em', textShadow: '0 2px 30px rgba(0,0,0,0.85)' }}><span>Every pipeline gets a Plumber Score, from</span><GradeChip g="A" size={38} /><span>to</span><GradeChip g="E" size={38} /></div></Caption>
       <Caption start={10.0} end={12.7}><Line text="A malicious script." /><Line text="Pulling code from an unknown source." size={44} /></Caption>
       <Caption start={13.2} end={15.0}><Line text="Plumber blocks the pipeline before it runs." size={48} /></Caption>
       <Caption start={15.2} end={18.0}><Line text="An autonomous agent gets to work." size={50} /></Caption>

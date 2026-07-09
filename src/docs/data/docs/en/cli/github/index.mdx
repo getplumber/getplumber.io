@@ -433,7 +433,7 @@ github:
 
     # `${{ github.event.* }}` / `${{ github.head_ref }}` written into
     # $GITHUB_ENV or $GITHUB_PATH is sticky and hijacks every later step.
-    # env: binding stops ISSUE-207 but not this — base64-encode the value
+    # env: binding stops ISSUE-207 but not this. Base64-encode the value
     # itself (or use toJSON) so a newline can't open a second variable.
     workflowMustNotWriteUntrustedContentToGitHubEnv:
       enabled: true

