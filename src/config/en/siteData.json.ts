@@ -6,12 +6,12 @@ const siteData: SiteDataProps = {
   // Your website's title and description (meta fields)
   title: "Plumber - CI/CD security for GitLab and GitHub",
   description:
-    "Detect and fix the CI/CD security leaks attackers exploit across GitLab and GitHub, and grade your setup A–E — continuously. Audit-ready for ISO 27001, NIS2, DORA, and SOC 2.",
+    "Continuously detect and fix the CI/CD security leaks attackers exploit across GitLab and GitHub, and grade your setup A–E. Audit-ready for ISO 27001, NIS2, DORA, and SOC 2.",
 
   // Homepage (`/`) — open-source CI/CD security positioning (GitLab + GitHub)
   homepageTitle: "Plumber - Spot & fix CI/CD security leaks for GitLab & GitHub",
   homepageDescription:
-    "The open-source tool that maps your pipelines, detects the CI/CD security leaks attackers exploit, and grades your GitLab and GitHub security A–E — continuously.",
+    "The open-source tool that maps your pipelines, detects the CI/CD security leaks attackers exploit, and continuously grades your GitLab and GitHub security A–E.",
 
   // Your information for blog post purposes
   author: {

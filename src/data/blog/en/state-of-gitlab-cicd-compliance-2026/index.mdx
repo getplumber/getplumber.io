@@ -42,10 +42,10 @@ When we average those grades across the 242 analyzed pipelines, **the open-sourc
 A few things worth pulling out of that distribution:
 
 - **44% of projects are graded B.** That's "one or two high-severity categories failing, few medium ones". It's the band where most healthy projects with a couple of bad habits sit.
-- **24% are D or E** — about **1 in 4**. That's the danger zone: several overlapping security issues at once, the kind of pipeline where a single supply-chain incident would propagate easily.
+- **24% are D or E**, about **1 in 4**. That's the danger zone: several overlapping security issues at once, the kind of pipeline where a single supply-chain incident would propagate easily.
 - **Only 11% earn an A.** They share the same fingerprint: small jobs, a tight set of trusted images, and pipelines composed from [GitLab components](https://docs.gitlab.com/ee/ci/components/) instead of copy-pasted YAML.
 
-That `C` headline is the story of the long tail. The popular OSS world keeps the lights on, but on a security-and-supply-chain axis, it has clear, recurring weak spots — and they are the same weak spots from one project to the next.
+That `C` headline is the story of the long tail. The popular OSS world keeps the lights on, but on a security-and-supply-chain axis, it has clear, recurring weak spots, and they are the same ones from one project to the next.
 
 ## Where pipelines fail the most
 
@@ -83,13 +83,13 @@ Aggregating **every issue Plumber emitted across every project** gives us the cl
 
 ![5,209 total issues: 7 Critical, 691 High, 4,510 Medium, 1 Low](./chart-5-severity-breakdown.png)
 
-**5,209 findings** in total. The mass of that number is Medium severity (most of it is the hardcoded-jobs count), which is expected. The interesting pocket is the **698 High or Critical findings** — what the industry would actually wake up at 3am for:
+**5,209 findings** in total. The mass of that number is Medium severity (most of it is the hardcoded-jobs count), which is expected. The interesting pocket is the **698 High or Critical findings**, the kind the industry would actually wake up at 3am for:
 
-- **349 untrusted image pulls** (ISSUE-101, High) — pipelines pulling from registries that are neither your trusted catalog nor a vetted public host. The single biggest supply-chain entry point.
-- **301 Docker-in-Docker daemons** (ISSUE-412 / ISSUE-413, High) across privileged and insecure-TLS modes — every privileged DinD service on a shared runner is a sandbox-escape away from harvesting every other project's secrets.
-- **35 unverified remote script fetches** (ISSUE-411, High) — jobs that `curl | bash` an external URL at runtime. The blueprint of how `tj-actions/changed-files` propagated.
-- **7 weakened security jobs** (ISSUE-410, Critical under scoring-v3) across **4 projects** — SAST, secret-detection or container-scanning explicitly downgraded with `allow_failure: true` against policy. These are the pipelines that look green while their security gates are silently disabled.
-- **6 job-level overrides of controlled variables** (ISSUE-205, High) — a direct way to disable SAST or redirect security scanners to a fake registry.
+- **349 untrusted image pulls** (ISSUE-101, High): pipelines pulling from registries that are neither your trusted catalog nor a vetted public host. The single biggest supply-chain entry point.
+- **301 Docker-in-Docker daemons** (ISSUE-412 / ISSUE-413, High) across privileged and insecure-TLS modes. Every privileged DinD service on a shared runner is a sandbox-escape away from harvesting every other project's secrets.
+- **35 unverified remote script fetches** (ISSUE-411, High): jobs that `curl | bash` an external URL at runtime. The blueprint of how `tj-actions/changed-files` propagated.
+- **7 weakened security jobs** (ISSUE-410, Critical under scoring-v3) across **4 projects**: SAST, secret-detection or container-scanning explicitly downgraded with `allow_failure: true` against policy. These are the pipelines that look green while their security gates are silently disabled.
+- **6 job-level overrides of controlled variables** (ISSUE-205, High): a direct way to disable SAST or redirect security scanners to a fake registry.
 
 Read together, the message to the industry is consistent: **the security problems on GitLab CI today aren't exotic zero-days, they're configuration**. Untrusted registries, unpinned tags, privileged daemons, weakened scanners, and remote scripts piped into a shell. All of them visible in YAML. All of them invisible in a typical code review.
 
@@ -102,7 +102,7 @@ Some controls fail in very few projects but carry outsized consequences when the
 - **Docker-in-Docker (48 projects)**: every privileged DinD runner is effectively a shared-secret honeypot.
 - **Unverified remote scripts (13 projects)**: `curl https://... | sh` lines in CI hand attackers a direct in-flight tampering vector.
 - **Unsafe variable expansion (6 projects)**: lets an attacker inject shell commands through a crafted branch name, MR title, or commit message.
-- **CI debug trace enabled (0 projects)**: nobody in the cohort still ships `CI_DEBUG_TRACE=true` on the default branch — a small but real win for the ecosystem compared to previous waves.
+- **CI debug trace enabled (0 projects)**: nobody in the cohort still ships `CI_DEBUG_TRACE=true` on the default branch. That's a small but real win for the ecosystem compared to previous waves.
 
 The conclusion isn't that "open source is broken". It's that these issues are **invisible in a code review**. They live in pipeline YAML, sometimes hidden three `include:` levels deep, but a linter designed for CI catches them in seconds.
 

@@ -26,7 +26,7 @@ categories:
 Scale at a glance: ~700 npm packages linked to the campaign, 25k+ malicious GitHub repos auto-created, and large-scale secret leaks (GitHub tokens, AWS/GCP/Azure creds).
 
 ### The Attack Vector: `preinstall` Scripts
-The malware executes during the `preinstall` phase of `npm install`. This is particularly dangerous because it runs immediately when a developer or a CI runner installs dependencies—often before any tests or security scans have a chance to run.
+The malware executes during the `preinstall` phase of `npm install`. This is particularly dangerous because it runs immediately when a developer or a CI runner installs dependencies, often before any tests or security scans have a chance to run.
 
 Once executed, the malware:
 
@@ -73,10 +73,10 @@ Revoke and regenerate npm tokens, GitHub PATs, and SSH keys.
 Rotate AWS/Azure/GCP credentials used in your pipelines.
 
 ### 🛡️ Harden Your Pipelines
-- Disable lifecycle scripts in CI when possible (--ignore-scripts for selected jobs)
+- Disable lifecycle scripts in CI when possible (`--ignore-scripts` for selected jobs)
 - Restrict runner egress to trusted domains
 - Audit GitHub workflows for unauthorized files (discussion.yaml)
-- Pin third-party actions by commit SHA ([ISSUE-701](/docs/cli/issues/ISSUE-701)) and avoid unpinned package installs in workflows ([ISSUE-214](/docs/cli/issues/ISSUE-214)) — both are detected automatically by the [Plumber CLI for GitHub Actions](/docs/cli/github)
+- Pin third-party actions by commit SHA ([ISSUE-701](/docs/cli/issues/ISSUE-701)) and avoid unpinned package installs in workflows ([ISSUE-214](/docs/cli/issues/ISSUE-214)). Both are detected automatically by the [Plumber CLI for GitHub Actions](/docs/cli/github)
 
 For a broader checklist, see our guide on [hardening your GitHub project's supply chain](/blog/harden-github-supply-chain).
 
@@ -84,7 +84,7 @@ For a broader checklist, see our guide on [hardening your GitHub project's suppl
 
 Even though Shai-Hulud targets npm and GitHub, the lesson is universal: **Attackers go where pipelines download, execute, and publish.**
 
-For GitLab users, the same principles apply: lock down what runs during install jobs, scope CI tokens to the minimum, and continuously validate pipelines against your internal standards. The open-source [Plumber CLI scans GitLab CI/CD pipelines](/docs/cli/gitlab) for exactly these gaps — see our [5-minute hands-on walkthrough](/blog/hands-on-cli) to try it on your own project.
+For GitLab users, the same principles apply: lock down what runs during install jobs, scope CI tokens to the minimum, and continuously validate pipelines against your internal standards. The open-source [Plumber CLI scans GitLab CI/CD pipelines](/docs/cli/gitlab) for exactly these gaps. See our [5-minute hands-on walkthrough](/blog/hands-on-cli) to try it on your own project.
 
 
 
@@ -95,7 +95,7 @@ Preventing the next supply-chain incident starts where attackers now hit first: 
 
 Instead of relying on periodic audits or last-minute checklists, organizations need a real-time view of what pipelines actually execute, whether they still follow internal standards, and where drift or non-conformities appear.
 
-With the [Plumber Platform](/platform) teams use the CI/CD Compliance Dashboard to instantly spot which projects are not compliant with security best practices—before those gaps quietly become open doors for the next attack.
+With the [Plumber Platform](/platform) teams use the CI/CD Compliance Dashboard to instantly spot which projects are not compliant with security best practices, before those gaps quietly become open doors for the next attack.
 
 If you want to see what continuous CI/CD compliance looks like in GitLab, you can try Plumber in minutes.
 
