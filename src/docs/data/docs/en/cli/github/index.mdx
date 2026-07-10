@@ -341,6 +341,12 @@ github:
     actionsMustNotBeArchived:
       enabled: true
 
+    # uses: owner/repo@<sha> pinned to a commit the upstream repo confirms
+    # does not exist (a typo or impostor commit). Abstains on any SHA it
+    # cannot verify (private repo, rate limit, network).
+    actionRefsMustExistUpstream:
+      enabled: true
+
     # Cross-references every pinned action against the GitHub Advisory
     # Database under the `actions` ecosystem.
     actionsMustNotCarryKnownCVEs:
