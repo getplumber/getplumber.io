@@ -392,6 +392,14 @@ export const controlCatalog: Record<
         "Archived repos stop receiving patches. Does not inspect reusable-workflow callees, local actions, or runtime installs. PBOM: `archived: true`.",
     },
   },
+  actionRefsMustExistUpstream: {
+    github: {
+      controlDescription:
+        "Flags a step pinned to a 40-character commit SHA that the upstream repository confirms does not exist. Owner-agnostic (first- and third-party alike); non-SHA refs, local `./…` actions, and `docker://` images are out of scope. Requires `gh` / `GH_TOKEN`.",
+      controlWhyItMatters:
+        "A SHA absent upstream is either a typo (the runner falls back to the default branch) or a commit that was removed or never pushed upstream, so the pin resolves nowhere. Fires only when the API confirms the commit is absent from a readable repo; a SHA it cannot verify (private repo, rate limit, network) stays silent, so a valid pin is never mislabeled. It does not detect a fork-network impostor commit (one pushed to a fork of the upstream repo), which GitHub serves as present from the parent.",
+    },
+  },
   githubActionMustComeFromAuthorizedSources: {
     github: {
       controlDescription:
@@ -2768,15 +2776,15 @@ github:
     github: {
       title: "Pinned SHA does not exist in upstream repository",
       category: "Third-party actions",
-      severity: "high",
+      severity: "critical",
       fixDuration: "medium",
       productScope: "cli",
-      controlName: "Pinned SHA must exist upstream",
+      controlName: "Pinned Upstream Actions must exist",
       controlConfigKey: "actionRefsMustExistUpstream",
       description:
         "A workflow pins an action to a SHA that does not exist in the upstream repository's commit history (or in any of its branches/tags).",
       impact:
-        "An impostor SHA means the workflow could be installing a commit from a fork that's later been deleted or renamed. The pinned SHA still resolves on GitHub's CDN for a while but represents code that doesn't belong to the apparent owner anymore.",
+        "A typo (the runner silently falls back to the default branch) or a commit that was removed or never pushed upstream, so the pin resolves nowhere. Fires only when the API confirms the commit is absent from a repo Plumber can read; a SHA it cannot verify (private repo, rate limit, network) is left alone, so a valid pin is never mislabeled. It does not detect a fork-network impostor commit (one pushed to a fork of the upstream repo), which GitHub serves as present from the parent.",
       remediation:
         "Resolve the action's current latest release upstream, copy its real SHA, and update the `uses:` line accordingly.",
       badExample: `# .github/workflows/test.yml: ❌ SHA missing upstream
@@ -2798,7 +2806,6 @@ jobs:
         "Get the right SHA with `gh api repos/OWNER/REPO/git/refs/tags/vX.Y.Z`.",
         "This rule needs upstream lookup: running offline or against a private upstream where the token has no access will report `partialControls` (abstain).",
       ],
-      status: "roadmap",
       relatedCodes: ["ISSUE-701", "ISSUE-708"],
     },
   },
