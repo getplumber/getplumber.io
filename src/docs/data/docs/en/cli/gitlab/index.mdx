@@ -493,6 +493,13 @@ gitlab:
       trustedUrls: []
         # - https://internal-artifacts.example.com/*
 
+    # Optional: run gitleaks over the resolved pipeline configuration to
+    # catch hardcoded secrets. Off by default because gitleaks is a
+    # separate install.
+    pipelineMustNotLeakSecretsInConfig:
+      enabled: false
+      # gitleaksPath: /usr/local/bin/gitleaks
+
     # Detect Docker-in-Docker services and insecure daemon configuration.
     pipelineMustNotUseDockerInDocker:
       enabled: true
