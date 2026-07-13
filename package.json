@@ -22,15 +22,15 @@
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.2.1",
-    "@astrojs/mdx": "^7.0.2",
+    "@astrojs/mdx": "^7.0.3",
     "@astrojs/react": "^6.0.1",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
-    "@astrojs/vercel": "^11.0.2",
+    "@astrojs/vercel": "^11.0.3",
     "@fontsource-variable/inter": "5.2.8",
     "@fontsource/inter": "5.2.8",
-    "@keystatic/astro": "5.1.0",
-    "@keystatic/core": "0.5.50",
+    "@keystatic/astro": "5.2.0",
+    "@keystatic/core": "0.5.51",
     "@pagefind/default-ui": "1.5.2",
     "@tabler/icons": "3.44.0",
     "@tailwindcss/forms": "0.5.11",
@@ -38,7 +38,7 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vercel/analytics": "^2.0.1",
-    "astro": "^7.0.3",
+    "astro": "^7.0.9",
     "astro-auto-import": "0.5.1",
     "astro-expressive-code": "^0.44.0",
     "astro-icon": "1.1.5",
@@ -56,7 +56,7 @@
     "@eslint/js": "10.0.1",
     "@playform/compress": "0.2.3",
     "conventional-changelog-conventionalcommits": "^10.2.1",
-    "eslint": "10.6.0",
+    "eslint": "10.7.0",
     "eslint-plugin-astro": "1.6.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-prettier": "5.5.6",
@@ -67,9 +67,9 @@
     "pagefind": "1.5.2",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "0.8.0",
-    "semantic-release": "^25.0.5",
+    "semantic-release": "^25.0.7",
     "sharp-ico": "^0.1.5",
-    "typescript-eslint": "8.63.0"
+    "typescript-eslint": "8.64.0"
   },
   "overrides": {
     "sharp": "^0.33.0",
@@ -77,7 +77,7 @@
     "chokidar": "^5.0.0",
     "lodash": "^4.17.22",
     "minimatch": "^10.2.1",
-    "eslint": "10.6.0",
+    "eslint": "10.7.0",
     "eslint-plugin-jsx-a11y": {
       "minimatch": "3.1.5"
     },
