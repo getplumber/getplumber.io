@@ -216,7 +216,14 @@ function prevNextFor(provider: Provider): { prev: string | null; next: string | 
   };
 }
 
-/** Convert markdown-style `inline code` to HTML <code> and escape the rest for safe set:html */
+/**
+ * Render the inline-markdown subset used by issue copy for safe set:html:
+ * `code` → <code>, **bold** → <strong>, [text](url) → <a>. Everything is
+ * HTML-escaped first. Only http(s) URLs (external, new tab) and
+ * site-absolute /… paths become links; any other href stays literal.
+ * Not supported (write plain text instead): *italics*, and bold/links
+ * whose label spans a `code` segment — the code-span split runs first.
+ */
 function inlineCodeToHtml(text: string): string {
   const escape = (s: string) =>
     s
@@ -224,13 +231,26 @@ function inlineCodeToHtml(text: string): string {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  const linkClass = "text-emerald-600 dark:text-emerald-400 underline underline-offset-2";
+  const renderProse = (s: string) =>
+    escape(s)
+      .replace(/\[([^\]]+)\]\(([^()\s]+)\)/g, (match, label, href) => {
+        if (/^https?:\/\//.test(href)) {
+          return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="${linkClass}">${label}</a>`;
+        }
+        if (href.startsWith("/")) {
+          return `<a href="${href}" class="${linkClass}">${label}</a>`;
+        }
+        return match;
+      })
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   return text
     .split(/(`[^`]+`)/g)
     .map((part) => {
       if (part.startsWith("`") && part.endsWith("`")) {
         return "<code>" + escape(part.slice(1, -1)) + "</code>";
       }
-      return escape(part);
+      return renderProse(part);
     })
     .join("");
 }

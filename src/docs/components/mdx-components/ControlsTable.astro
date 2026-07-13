@@ -94,11 +94,18 @@ const sortedCategories = [...categoryMap.entries()].sort(
 );
 
 /**
- * Render inline markdown: `code` → <code>, [label](url) → <a>.
+ * Render inline markdown: `code` → <code>, **bold** → <strong>, [label](url) → <a>.
  * Safe because the source data comes entirely from our controlled issues.ts.
+ * Bold runs only outside `code` spans so star-glob patterns in code stay intact.
  */
 function renderInline(text: string): string {
-  return text
+  const bolded = text
+    .split(/(`[^`]+`)/g)
+    .map((part) =>
+      part.startsWith("`") ? part : part.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>"),
+    )
+    .join("");
+  return bolded
     .replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-emerald-600 dark:text-emerald-400 underline underline-offset-2">$1</a>',
