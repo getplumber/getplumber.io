@@ -1,0 +1,126 @@
+---
+title: "Plumber CLI 0.4 Release - What's New"
+description: "Plumber CLI 0.4 adds nine new supply-chain and secret-exposure controls, makes the Plumber Score the build gate, and ships a CI-native score-push badge."
+draft: false
+authors:
+  - plumber
+pubDate: 2026-07-13
+heroImage: ./heroImage.png
+categories:
+  - "releases-cli"
+tocHeadingIcons:
+  the-plumber-score-is-the-gate-now: tabler/award
+  "The Plumber Score is the gate now": tabler/award
+  push-your-score-get-a-live-badge: tabler/cloud
+  "Push your score, get a live badge": tabler/cloud
+  nine-new-controls-and-a-deeper-github-surface: tabler/shield-check
+  "Nine new controls, and a deeper GitHub surface": tabler/shield-check
+  sharper-detection: tabler/zoom
+  "Sharper detection": tabler/zoom
+---
+
+import { Icon } from "astro-icon/components";
+
+**Plumber CLI 0.4 is here, and it lands nine new controls, makes the Plumber Score the build gate, and adds a live badge you can push straight from CI.**
+
+> **A bigger control library, a severity-weighted A-E score that gates your build, and a badge to show it off.**
+
+The [open-source Plumber CLI](https://github.com/getplumber/plumber) scans GitLab CI and GitHub Actions for supply-chain and configuration risk. Four things changed in 0.4:
+
+- **[Nine new controls](#nine-new-controls-and-a-deeper-github-surface)** target supply-chain risk and secret exposure.
+- **[The Plumber Score gates your build](#the-plumber-score-is-the-gate-now)**, replacing the compliance percentage.
+- **[You can publish that score as a live badge from CI](#push-your-score-get-a-live-badge)**, with no secret to manage.
+- **[Detection got more precise](#sharper-detection)**, with fewer false positives and a smarter advisory filter.
+
+## <span class="inline-flex items-center gap-2.5 not-content"><Icon name="tabler/shield-check" class="h-7 w-7 shrink-0" aria-hidden="true" />Nine new controls, and a deeper GitHub surface</span>
+
+Nine new controls landed this cycle, across GitHub and GitLab. They target the supply-chain and secret-exposure classes seen in real incidents over the past year.
+
+<style>{`
+.ctrl-table table { table-layout: fixed; width: 100%; }
+.ctrl-table th:first-child, .ctrl-table td:first-child { width: 46%; overflow-wrap: anywhere; }
+.ctrl-table th:nth-child(2), .ctrl-table td:nth-child(2) { width: 18%; }
+`}</style>
+
+### 🔗 Third-party action supply chain
+
+<div class="ctrl-table">
+
+| Control | Provider | What it catches |
+| --- | --- | --- |
+| **`githubActionMustComeFromAuthorizedSources`** | <span class="not-content inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-medium"><Icon name="tabler/brand-github" class="h-3.5 w-3.5" />GitHub</span> | Actions from owners you did not authorize, with a minimum-stars floor to catch namespace squats |
+| **`actionRefsMustExistUpstream`** | <span class="not-content inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-medium"><Icon name="tabler/brand-github" class="h-3.5 w-3.5" />GitHub</span> | A pinned commit SHA that does not exist upstream, a typo or a removed / never-pushed commit |
+| **`externalRefsMustNotCollide`** | <span class="not-content inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-medium"><Icon name="tabler/brand-github" class="h-3.5 w-3.5" />GitHub</span> <span class="not-content inline-flex items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-300"><Icon name="tabler/brand-gitlab" class="h-3.5 w-3.5" />GitLab</span> | A ref that resolves as both a tag and a branch (ref confusion) |
+| **`releaseWorkflowsMustNotRestoreUntrustedCache`** | <span class="not-content inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-medium"><Icon name="tabler/brand-github" class="h-3.5 w-3.5" />GitHub</span> | A release job restoring a build cache whose key is not scoped to the release ref, the cache-poisoning vector behind the May 2026 TanStack attack |
+
+</div>
+
+### 🔑 Secret exposure and untrusted code
+
+<div class="ctrl-table">
+
+| Control | Provider | What it catches |
+| --- | --- | --- |
+| **`pullRequestTargetMustNotCheckoutHead`** | <span class="not-content inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-medium"><Icon name="tabler/brand-github" class="h-3.5 w-3.5" />GitHub</span> | `pull_request_target` workflows that check out and run PR-author code with secrets in scope |
+| **`workflowMustNotWriteUntrustedContentToGitHubEnv`** | <span class="not-content inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-medium"><Icon name="tabler/brand-github" class="h-3.5 w-3.5" />GitHub</span> | Untrusted `${{ github.event.* }}` written into `$GITHUB_ENV` / `$GITHUB_PATH` |
+| **`workflowMustNotExportEntireSecretsContext`** | <span class="not-content inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-medium"><Icon name="tabler/brand-github" class="h-3.5 w-3.5" />GitHub</span> | `toJSON(secrets)` dumping every secret at once instead of by name |
+| **`pipelineMustNotExecuteUnverifiedScripts`** | <span class="not-content inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-medium"><Icon name="tabler/brand-github" class="h-3.5 w-3.5" />GitHub</span> <span class="not-content inline-flex items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-300"><Icon name="tabler/brand-gitlab" class="h-3.5 w-3.5" />GitLab</span> | `curl \| bash` and the wider megalodon-style remote-fetch-and-run class |
+| **`pipelineMustNotLeakSecretsInConfig`** | <span class="not-content inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-medium"><Icon name="tabler/brand-github" class="h-3.5 w-3.5" />GitHub</span> <span class="not-content inline-flex items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-300"><Icon name="tabler/brand-gitlab" class="h-3.5 w-3.5" />GitLab</span> | Hardcoded secrets in pipeline YAML, via a bundled gitleaks pass |
+
+</div>
+
+The full control list, with per-control configuration and an issue page for every code, lives in the controls reference for [GitHub](/docs/use-plumber/controls?p=github) and [GitLab](/docs/use-plumber/controls?p=gitlab).
+
+## <span class="inline-flex items-center gap-2.5 not-content"><Icon name="tabler/award" class="h-7 w-7 shrink-0" aria-hidden="true" />The Plumber Score is the gate now</span>
+
+Plumber reported two numbers: a **compliance percentage** (how many controls passed) and the **Plumber Score** (severity-weighted points from 0 to 100, plus an **A-E** letter, with a critical-issue malus). The percentage was easy to game. Twenty trivial passing checks and one critical secret leak still reads as "95% compliant," which is exactly the wrong signal.
+
+0.4 makes the Plumber Score the default gate and deprecates the percentage:
+
+- **Gate on the score.** Use `--min-points` (0-100) or `--min-score` (A-E). The default gate fails on any finding, matching the old strict behaviour, but now the failure reason is a real risk number rather than a ratio of checks.
+- **The JSON report and the GitHub Action no longer expose `compliance`.** `passed` now means "the score gate was met." The default artifact name is `plumber-report`.
+- **A run with nothing to score fails closed.** An empty or provider-mismatched `.plumber.yaml`, a `--skip-controls` filter that removes every check, or a GitLab project with no pipeline file, fails instead of reporting a perfect score off zero checks. Where an empty run is expected, use `soft-fail`, which still reports findings but keeps the CI job green.
+
+This is the one breaking change in 0.4.0, and it is deliberate: a green check should mean the pipeline is low-risk, not that it passed whichever checks happened to run.
+
+<Admonition variant="info">
+The full points model, severity weights, and the critical malus are documented in the [scoring specification](https://github.com/getplumber/plumber/blob/main/docs/scoring.md).
+</Admonition>
+
+## <span class="inline-flex items-center gap-2.5 not-content"><Icon name="tabler/cloud" class="h-7 w-7 shrink-0" aria-hidden="true" />Push your score, get a live badge</span>
+
+Scores are more useful when they are visible. 0.4 adds **score push**: when Plumber runs in CI, it can publish the default branch's score to the hosted service at `score.getplumber.io` and hand you a self-updating **A-E badge** for your README. It is the only way to get an **official Plumber Score**.
+
+- **No secret to manage.** Publishing uses CI-native OIDC, so there is no token to store or rotate.
+- **CI only.** A local `plumber analyze` never publishes, and a scan targeting a foreign repo is skipped automatically.
+- **Opt-in and off by default.** Enabling it makes your score and repository name public, and only the default branch's score is shown.
+
+Turning it on is one input in your pipeline plus a badge line in your README. The step-by-step for both GitHub and GitLab lives in the [Plumber Score docs](/docs/plumber-score#publish-your-score).
+
+## <span class="inline-flex items-center gap-2.5 not-content"><Icon name="tabler/zoom" class="h-7 w-7 shrink-0" aria-hidden="true" />Sharper detection</span>
+
+Plumber did not only add controls this cycle. Existing ones got more precise, which matters just as much: a control that cries wolf trains people to ignore it.
+
+- **Fewer false positives.** Dangerous-trigger detection recognizes fork guards and author-association checks, template-injection is scoped to free-text event fields, and the `curl | interpreter` check flags a real remote fetch target rather than any piped local variable.
+- **A smarter advisory filter.** The known-CVE check resolves SHA-pinned action refs to a version, and treats a moving major tag such as `v4` as the version span it can float across rather than a single point.
+- **A hardened CLI.** Configuration and CI-file reads are bounded, and terminal and merge-request output is escaped, so a crafted repository cannot corrupt a run or an operator's terminal.
+
+Every new control is a Rego rule on the same OPA policy engine Plumber already uses, so it inherits the shared scoring model, JSON output, and issue codes with no new machinery.
+
+## ⬆️ How to update
+
+- **CLI:** `brew update && brew upgrade plumber`, or install via [mise, release binaries, or Docker](/docs/cli/installation).
+- **GitHub Actions:** bump the [Plumber action](/docs/cli/github#run-with-github-actions); to publish a badge, add `permissions: id-token: write` and set `score-push: true`.
+- **GitLab CI:** bump to the latest [component catalog](https://gitlab.com/explore/catalog/getplumber/plumber) entry; set `score_push: true` to publish.
+- **Gates:** if you pinned a compliance threshold, move to `--min-points` / `--min-score`; the deprecated `--threshold` still works in the meantime. A run where no control evaluates (an empty config or a skip-all filter) fails closed, so use `soft-fail` (findings still reported, job stays green) where that is intentional.
+- **Config:** run `plumber config generate` or `plumber config init` to pick up the new controls, then tune per provider.
+- **Verify binaries:** deploying release binaries to production? Verify their SLSA attestations first — see [verifying release binaries](/docs/cli/installation#verify-release-binaries).
+
+---
+
+<Admonition variant="info">
+Versions
+- Plumber CLI: `v0.4.2`
+- GitLab component: latest [catalog](https://gitlab.com/explore/catalog/getplumber/plumber)
+- Platform note: GitHub Actions scanning is CLI-only in this line; Plumber Platform for GitHub follows later.
+</Admonition>

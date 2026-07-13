@@ -136,3 +136,17 @@ section: "api"
     </Aside>
   </TabsContent>
 </Tabs>
+
+## Verify release binaries
+
+Every release binary is published with a SLSA build-provenance attestation. Before you run a downloaded binary in production or CI, verify it against the upstream repository. The commands below always resolve to the **latest** release, so you are never pinned to a stale version:
+
+```bash
+# Downloads the latest release asset, then verifies its provenance
+gh release download --repo getplumber/plumber --pattern 'plumber-linux-amd64'
+gh attestation verify plumber-linux-amd64 --repo getplumber/plumber
+```
+
+<Aside variant="info">
+  The [GitHub Action](/docs/cli/github#run-with-github-actions) runs this check for you (`verify-attestation: true` by default); disable it only for air-gapped or GHES runners that cannot reach the sigstore transparency log.
+</Aside>
