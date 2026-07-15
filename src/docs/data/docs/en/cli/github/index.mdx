@@ -352,6 +352,15 @@ github:
     actionsMustNotCarryKnownCVEs:
       enabled: true
 
+    # Reads each third-party action's OWN source: flags an action that
+    # fetches a script from a moving ref (a branch, not a tag/SHA) and runs
+    # it with no checksum — a SHA pin on the action cannot reach that code.
+    # anchore/scan-action → grype's install.sh from `main` is the canonical
+    # case. Obfuscated decode-then-run is graded critical; an unfetchable
+    # source is surfaced as could-not-verify, never a silent pass.
+    actionsMustNotExecuteMutableRemoteCode:
+      enabled: true
+
     # Release/publish job that restores a build cache whose key is not
     # scoped to the release ref. Actions caches are shared across branches,
     # so a PR-populated cache (key or restore-keys prefix) can be injected
