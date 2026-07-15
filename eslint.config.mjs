@@ -63,6 +63,11 @@ export default defineConfig([
       "astro/jsx-a11y/anchor-is-valid": "off", // Disable anchor-is-valid rule for Astro files as this is a template
       "@typescript-eslint/no-unused-expressions": "off",
       "astro/jsx-a11y/no-noninteractive-tabindex": "off",
+      // eslint-plugin-astro 3.0 promoted this rule to error in its recommended
+      // config. The vendored starwind UI components (and a few docs components)
+      // export `tv()` variant configs from their frontmatter; these are local
+      // helpers, not importable across .astro files, so the rule is noise here.
+      "astro/no-exports-from-components": "off",
     },
   },
 
