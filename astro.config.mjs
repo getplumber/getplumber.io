@@ -60,6 +60,7 @@ export default defineConfig({
       imports: [
         // https://github.com/delucis/astro-auto-import
         "@components/Admonition/Admonition.astro",
+        "@components/ReleaseVersions/ReleaseVersions.astro",
         "@components/OriginalAuthor/OriginalAuthor.astro",
         "@/docs/components/mdx-components/Aside.astro",
         "@/docs/components/mdx-components/Badge.astro",
@@ -70,6 +71,7 @@ export default defineConfig({
         "@/docs/components/mdx-components/TabsList.astro",
         "@/docs/components/mdx-components/TabsTrigger.astro",
         "@/docs/components/mdx-components/IssuesList.astro",
+        "@/docs/components/mdx-components/NewControlsTable.astro",
         "@/docs/components/mdx-components/ProviderTabs.astro",
         "@/docs/components/mdx-components/ProductScopeBadge.astro",
       ],

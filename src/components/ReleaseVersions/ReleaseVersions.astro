@@ -1,0 +1,64 @@
+---
+import Admonition from "@components/Admonition/Admonition.astro";
+import {
+  PLUMBER_GITHUB_ACTION_URL,
+  PLUMBER_GITHUB_RELEASES_LATEST_URL,
+  PLUMBER_GITLAB_CATALOG_URL,
+} from "@js/plumberGithubRepo";
+
+// Generic version footer for CLI release notes. The Plumber CLI version is
+// resolved to the latest release in the browser (see plumberCliVersion.ts), so
+// this component takes no version prop and never goes stale.
+const linkClass =
+  "font-medium text-primary-600 underline decoration-primary-500/40 underline-offset-2 transition hover:decoration-primary-500 dark:text-primary-400";
+---
+
+<Admonition variant="info">
+  <p class="text-sm font-semibold">Versions</p>
+  <ul>
+    <li>
+      Plumber CLI:{" "}
+      <a
+        href={PLUMBER_GITHUB_RELEASES_LATEST_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class={linkClass}
+      >
+        <span data-plumber-cli-version class="font-mono">
+          <span
+            class="inline-block h-3 w-12 animate-pulse rounded bg-base-400/40 align-middle dark:bg-base-500/40"
+            aria-hidden="true"></span>
+        </span>
+      </a>
+    </li>
+    <li>
+      GitLab component:{" "}
+      <a
+        href={PLUMBER_GITLAB_CATALOG_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class={linkClass}
+      >
+        latest catalog
+      </a>
+    </li>
+    <li>
+      GitHub Action:{" "}
+      <a
+        href={PLUMBER_GITHUB_ACTION_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class={linkClass}
+      >
+        Plumber on the GitHub Marketplace
+      </a>
+    </li>
+  </ul>
+</Admonition>
+
+<script>
+  import { initPlumberCliVersion } from "@js/plumberCliVersion";
+
+  initPlumberCliVersion();
+  document.addEventListener("astro:after-swap", initPlumberCliVersion);
+</script>

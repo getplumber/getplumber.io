@@ -4,3 +4,9 @@ export const PLUMBER_GITHUB_REPO = "getplumber/plumber";
 export const PLUMBER_GITHUB_REPO_URL = `https://github.com/${PLUMBER_GITHUB_REPO}`;
 
 export const PLUMBER_GITHUB_RELEASES_LATEST_URL = `${PLUMBER_GITHUB_REPO_URL}/releases/latest`;
+
+/** GitHub Marketplace listing for the Plumber Action. */
+export const PLUMBER_GITHUB_ACTION_URL = "https://github.com/marketplace/actions/plumber-score";
+
+/** GitLab CI/CD component catalog entry. */
+export const PLUMBER_GITLAB_CATALOG_URL = "https://gitlab.com/explore/catalog/getplumber/plumber";
