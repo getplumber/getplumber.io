@@ -35,7 +35,7 @@ plumber analyze [flags]
 | `--min-points` | No | `100` | Fine-grained gate on score points (0-100). The default (100) fails on any finding; not applied when only `--min-score` is set |
 | `--threshold` | No | - | **Deprecated.** Minimum percentage of passing controls (0-100). Use `--min-score` / `--min-points`; cannot be combined with them |
 | `--branch` | No | Project default | Branch to analyze |
-| `--print` | No | `true` | Print text output to stdout |
+| `--print` | No | `true` | Print the human-readable report and, on a terminal, the progress bar. Log verbosity is `--verbose`; file outputs (`--output`, `--sarif`, ...) are unaffected |
 | `--output`, `-o` | No | - | Write JSON results to file |
 | `--pbom` | No | - | Write PBOM (Pipeline Bill of Materials) to file |
 | `--pbom-cyclonedx` | No | - | Write PBOM in CycloneDX SBOM format |
@@ -51,7 +51,7 @@ plumber analyze [flags]
 | `--skip-controls` | No | - | Skip listed controls (comma-separated). Cannot be used with `--controls` |
 | `--fail-warnings` | No | `false` | Fail on warnings: configuration warnings such as unknown keys (exit 2) and "could not verify" warnings such as a skipped known-CVE check (exit 3) |
 | `--ci-config-path` | No | auto-detect | Override CI configuration file path. Defaults to project CI config path from GitLab settings (usually `.gitlab-ci.yml`) |
-| `--verbose`, `-v` | No | `false` | Enable verbose/debug output |
+| `--verbose`, `-v` | No | `false` | Enable debug logging on stderr (`level=debug`); replaces the progress bar. Independent of `--print` |
 
 <Aside variant="info">
   \* Auto-detected from git remote (requires `origin`) if not specified. Supports both SSH and HTTPS remote URLs.

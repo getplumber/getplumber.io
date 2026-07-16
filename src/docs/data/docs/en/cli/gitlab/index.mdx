@@ -254,11 +254,11 @@ The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-co
 | `output_file` | `plumber-report.json` | Path to write JSON results |
 | `pbom_file` | `plumber-pbom.json` | Path to write the PBOM |
 | `pbom_cyclonedx_file` | `plumber-cyclonedx-sbom.json` | Path to write the CycloneDX SBOM (auto-uploaded as a GitLab report) |
-| `print_output` | `true` | Print text output to stdout |
+| `print_output` | `true` | Print the human-readable analysis report in the job log. Does not affect log verbosity (`verbose`) or file outputs |
 | `stage` | `.pre` | Pipeline stage for the job. `.pre` runs before all other stages but requires at least one job in a regular stage. If Plumber is the only job, set this to `test` or another stage |
 | `image` | `getplumber/plumber:0.1` | Docker image to use |
 | `allow_failure` | `false` | Allow the job to fail without blocking |
-| `verbose` | `false` | Enable debug output |
+| `verbose` | `false` | Enable debug logging (`level=debug` lines) for troubleshooting. Independent of `print_output` |
 | `mr_comment` | `false` | Post/update a Plumber comment on the merge request (requires `api` scope) |
 | `badge` | `false` | Create/update a Plumber letter-score badge (requires `api` scope; default branch only) |
 | `score` | `false` | Deprecated no-op. The Plumber score is shown by default now; kept so pipelines that already set it do not break. Use `score_point` for the full points breakdown |
