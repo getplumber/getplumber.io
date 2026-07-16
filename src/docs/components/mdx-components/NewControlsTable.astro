@@ -37,17 +37,22 @@ type Row = {
   description: string;
 };
 
-const rows: Row[] = keys.map((key) => {
-  const providers = PROVIDER_ORDER.filter((p) => controlCatalog[key]?.[p]);
-  const primary = providers[0];
-  const name =
-    (primary && controlNameFor(key, primary)) ??
-    controlNameFor(key, "github") ??
-    controlNameFor(key, "gitlab") ??
-    key;
-  const description = primary ? (controlCatalog[key]?.[primary]?.controlDescription ?? "") : "";
-  return { key, name, providers, description };
-});
+const rows: Row[] = keys
+  .map((key) => {
+    const providers = PROVIDER_ORDER.filter((p) => controlCatalog[key]?.[p]);
+    const primary = providers[0];
+    const name =
+      (primary && controlNameFor(key, primary)) ??
+      controlNameFor(key, "github") ??
+      controlNameFor(key, "gitlab") ??
+      key;
+    const description = primary ? (controlCatalog[key]?.[primary]?.controlDescription ?? "") : "";
+    return { key, name, providers, description };
+  })
+  // A key with no catalog entry belongs to a removed control (e.g.
+  // ISSUE-301 after #310): skip the row rather than render an empty
+  // description. Mirrors ControlsTable's missing-entry behaviour.
+  .filter((row) => row.providers.length > 0);
 
 /**
  * Render inline markdown: `code` -> <code>, **bold** -> <strong>,

@@ -441,12 +441,6 @@ github:
     workflowMustNotExportEntireSecretsContext:
       enabled: true
 
-    # Optional: run gitleaks over every workflow file to catch hardcoded
-    # secrets. Off by default because gitleaks is a separate install.
-    pipelineMustNotLeakSecretsInConfig:
-      enabled: false
-      # gitleaksPath: /usr/local/bin/gitleaks
-
     # On GitHub a job's name is `<workflow-file-basename>/<job-id>`
     # (e.g. `codeql-analysis/analyze`). Patterns are globs over that name.
     securityJobsMustNotBeWeakened:

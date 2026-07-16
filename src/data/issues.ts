@@ -23,7 +23,7 @@ export type FixDuration =
   | "long"
   | "extended";
 export type ProductScope = "all" | "cli" | "platform";
-export type ControlStatus = "shipping" | "roadmap";
+export type ControlStatus = "shipping" | "roadmap" | "removed";
 
 export interface IssueProviderContent {
   title: string;
@@ -68,6 +68,9 @@ export interface IssueProviderContent {
    * Omit for "shipping" (the default).
    */
   status?: ControlStatus;
+  /** Markdown shown in a warning banner on the detail page when status
+   * is "removed" — explains why and links the advisory/issue. */
+  removedNote?: string;
 }
 
 export interface IssueDoc {
@@ -79,8 +82,11 @@ export interface IssueDoc {
 /** Roadmap issues and the "On the roadmap" docs section are hidden until enabled. */
 export const SHOW_ROADMAP = false;
 
-/** Whether this provider block is shown in lists, tabs, and detail panels. */
+/** Whether this provider block is shown in lists, tabs, and detail panels.
+ * "removed" content is never shown: the issue's detail route still exists
+ * (old CLI docUrls must not 404) but redirects to the issues index. */
 export function isVisibleProviderContent(content: IssueProviderContent): boolean {
+  if (content.status === "removed") return false;
   return SHOW_ROADMAP || content.status !== "roadmap";
 }
 
@@ -156,20 +162,6 @@ export const controlCatalog: Record<
         "Verifies that CI/CD variables used in a project have the masked field enabled.",
       controlWhyItMatters:
         "Prevents variable values from being exposed in pipeline logs, reducing the risk of leaks.",
-    },
-  },
-  pipelineMustNotLeakSecretsInConfig: {
-    gitlab: {
-      controlDescription:
-        "Pipes the resolved `.gitlab-ci.yml` (with all `include:`s merged) through [gitleaks](https://gitleaks.io). Any high-confidence match against the built-in or a custom rule set surfaces as a Critical finding with the secret value redacted to first/last 4 chars.",
-      controlWhyItMatters:
-        "Catches the most common credential-leak path (someone pastes a token into the YAML \u201cjust to test\u201d). Detection is opt-in because gitleaks must be installed separately; once enabled, redaction guarantees the raw secret never reaches the JSON report.",
-    },
-    github: {
-      controlDescription:
-        "Scans every file under `.github/workflows/` with [gitleaks](https://gitleaks.io). Each high-confidence match becomes a Critical finding carrying only a redacted preview of the secret; the raw value is replaced in the collector before any output sees it.",
-      controlWhyItMatters:
-        "GitHub repositories are public-by-default for many open-source projects, and even private repos are visible to every collaborator and fork. A token committed to a workflow leaks the moment the file is pushed; rotation is the only fix. Opt-in because gitleaks is an external dependency.",
     },
   },
   pipelineMustNotIncludeHardcodedJobs: {
@@ -818,7 +810,7 @@ github:
         "For variables that cannot be masked due to format, consider using an external secrets manager.",
         "Combine with protection (see ISSUE-201) for full coverage.",
       ],
-      relatedCodes: ["ISSUE-201", "ISSUE-301"],
+      relatedCodes: ["ISSUE-201"],
     },
   },
 
@@ -883,7 +875,7 @@ github:
       controlName: "Pipeline must not leak secrets in configuration",
       controlConfigKey: "pipelineMustNotLeakSecretsInConfig",
       description:
-        "The resolved pipeline configuration contains a pattern that matches a hardcoded secret (API token, private key, password, or other credential) embedded directly in the YAML. Plumber resolves the full merged `.gitlab-ci.yml` (with every `include:` followed) and pipes the result through [gitleaks](https://gitleaks.io); any high-confidence match against the built-in rule catalog (or a custom rule set provided via `gitleaksConfigPath`) surfaces as an ISSUE-301 finding. The detected value never leaves the scanner: each finding's `preview` carries a redacted form with the first and last four characters visible and the middle replaced with asterisks.",
+        "The resolved pipeline configuration contains a pattern that matches a hardcoded secret (API token, private key, password, or other credential) embedded directly in the YAML. Plumber resolved the full merged `.gitlab-ci.yml` (with every `include:` followed) and piped the result through [gitleaks](https://gitleaks.io); any high-confidence match against the rule catalog surfaced as an ISSUE-301 finding. The detected value never left the scanner: each finding's `preview` carried a redacted form with the first and last four characters visible and the middle replaced with asterisks.",
       impact:
         "Secrets committed to pipeline configuration are exposed to everyone with read access to the repository, appear in version history forever (rotation is the only fix, not deletion), and are forwarded to every runner that executes the pipeline. A leaked API key can enable unauthorised access to cloud services, data exfiltration, billing abuse, or lateral movement into production systems.",
       remediation:
@@ -915,23 +907,15 @@ api-call:
 
 # In GitLab: Settings > CI/CD > Variables
 # Add: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN
-# Set Protected: true, Masked: true for each
-
-# .plumber.yaml
-gitlab:
-  controls:
-    pipelineMustNotLeakSecretsInConfig:
-      enabled: true
-      # gitleaksPath: /usr/local/bin/gitleaks       # default: $PATH
-      # gitleaksConfigPath: .gitleaks.toml          # default: built-in rules`,
+# Set Protected: true, Masked: true for each`,
       goodExampleCaption: "Secrets stay in protected variables; the YAML is safe to share.",
       tips: [
-        "Detection is opt-in: the control requires [gitleaks](https://github.com/gitleaks/gitleaks) on `$PATH` (or set `gitleaksPath`). If the binary is missing, plumber emits a warning and the control routes through the SKIPPED lane rather than failing the run or silently passing.",
         "If a secret was ever committed, treat it as compromised and rotate it immediately; deletion does not remove it from history.",
-        "Use a custom `.gitleaks.toml` via `gitleaksConfigPath` to narrow rules to your stack, or to allowlist legitimate matches (e.g. dummy values in test pipelines).",
         "Pair with pre-commit hooks (`gitleaks protect --staged`) so the next leak is caught before it lands in git.",
       ],
-      status: "shipping",
+      status: "removed",
+      removedNote:
+        "This control was removed from Plumber and no longer produces findings: secret detection is out of scope for the product, and the integration executed an external binary (gitleaks) during analysis. See the [security advisory GHSA-w2xj-4v44-6rqr](https://github.com/getplumber/plumber/security/advisories/GHSA-w2xj-4v44-6rqr) and [issue #310](https://github.com/getplumber/plumber/issues/310) for details. The ISSUE-301 code is retired and will not be reused.",
       relatedCodes: ["ISSUE-201", "ISSUE-202"],
     },
     github: {
@@ -943,7 +927,7 @@ gitlab:
       controlName: "Workflow must not leak secrets in configuration",
       controlConfigKey: "pipelineMustNotLeakSecretsInConfig",
       description:
-        "A file under `.github/workflows/` contains a pattern that matches a hardcoded secret (API token, private key, password, or other credential) embedded directly in the YAML. Plumber pipes every workflow file through [gitleaks](https://gitleaks.io); any high-confidence match against the built-in rule catalog (or a custom rule set provided via `gitleaksConfigPath`) surfaces as an ISSUE-301 finding. The detected value never leaves the scanner: each finding's `preview` carries a redacted form with the first and last four characters visible and the middle replaced with asterisks.",
+        "A file under `.github/workflows/` contains a pattern that matches a hardcoded secret (API token, private key, password, or other credential) embedded directly in the YAML. Plumber piped every workflow file through [gitleaks](https://gitleaks.io); any high-confidence match against the rule catalog surfaced as an ISSUE-301 finding. The detected value never left the scanner: each finding's `preview` carried a redacted form with the first and last four characters visible and the middle replaced with asterisks.",
       impact:
         "Secrets committed to workflow files are exposed to every collaborator, every fork, and the entire commit history. Public repositories make the leak instantly indexable by attacker tooling; private repositories still expose it to every member of the org and every workflow that runs against the repo. Rotation is the only fix.",
       remediation:
@@ -969,23 +953,14 @@ jobs:
         run: ./scripts/publish.sh
 
 # In GitHub: Settings > Secrets and variables > Actions
-# Add: SLACK_WEBHOOK, STRIPE_KEY (repository or environment-scoped)
-
-# .plumber.yaml
-github:
-  controls:
-    pipelineMustNotLeakSecretsInConfig:
-      enabled: true
-      # gitleaksPath: /usr/local/bin/gitleaks       # default: $PATH
-      # gitleaksConfigPath: .gitleaks.toml          # default: built-in rules`,
+# Add: SLACK_WEBHOOK, STRIPE_KEY (repository or environment-scoped)`,
       goodExampleCaption: "Each secret stays inside GitHub's vault and is masked in logs.",
       tips: [
-        "Detection is opt-in: the control requires [gitleaks](https://github.com/gitleaks/gitleaks) on `$PATH` (or set `gitleaksPath`). When the binary is missing or the scan fails, plumber emits a warning and routes the control through the SKIPPED lane rather than silently passing.",
-        "Public repos are scanned by gitleaks-as-a-service on every push by GitHub itself, but that is detection after the fact. This control catches the leak before it merges.",
-        "Use a custom `.gitleaks.toml` via `gitleaksConfigPath` to allowlist synthetic test values (the slack/stripe patterns in plumber's own scenario battery are deliberately allowed in a local scratch config).",
         "Pair with pre-commit hooks (`gitleaks protect --staged`) and GitHub's push-protection rules so the next leak is caught before it lands on a branch.",
       ],
-      status: "shipping",
+      status: "removed",
+      removedNote:
+        "This control was removed from Plumber and no longer produces findings: secret detection is out of scope for the product, and the integration executed an external binary (gitleaks) during analysis. See the [security advisory GHSA-w2xj-4v44-6rqr](https://github.com/getplumber/plumber/security/advisories/GHSA-w2xj-4v44-6rqr) and [issue #310](https://github.com/getplumber/plumber/issues/310) for details. The ISSUE-301 code is retired and will not be reused.",
       relatedCodes: ["ISSUE-203"],
     },
   },
@@ -1965,7 +1940,7 @@ deploy:
         "Configure `pipelineMustNotEnableDebugTrace.forbiddenVariables` to also flag other sensitive debug variables.",
         "Consider setting up CI job log retention policies to limit exposure window.",
       ],
-      relatedCodes: ["ISSUE-201", "ISSUE-202", "ISSUE-301"],
+      relatedCodes: ["ISSUE-201", "ISSUE-202"],
     },
     github: {
       title: "Workflow enables runner debug logging",
@@ -2017,7 +1992,7 @@ github:
         "If either toggle ever shipped to main, rotate every secret the affected workflow could read. Extend `forbiddenVariables` for custom runner diagnostics.",
       ],
       status: "shipping",
-      relatedCodes: ["ISSUE-301", "ISSUE-213"],
+      relatedCodes: ["ISSUE-213"],
     },
   },
 
@@ -2075,7 +2050,7 @@ release:
         "Escape `$` as `\\\\$` and `{`/`}` as `\\\\{`/`\\\\}` in `allowedPatterns` regex.",
         "Indirect aliasing (`variables: { B: $CI_COMMIT_BRANCH }` then `sh -c $B`) is not tracked (known limitation).",
       ],
-      relatedCodes: ["ISSUE-203", "ISSUE-301"],
+      relatedCodes: ["ISSUE-203"],
     },
   },
 
@@ -3184,7 +3159,7 @@ github:
         "If a credential ever was hardcoded, rotate it immediately; it's in the git history.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-301", "ISSUE-302"],
+      relatedCodes: ["ISSUE-302"],
     },
   },
 
@@ -3785,7 +3760,7 @@ jobs:
         "Look at the callee's `on: workflow_call: secrets:` block to know exactly what to pass.",
         "If you author the reusable workflow, list each `secrets:` block explicitly, and never accept `inherit` unconditionally.",
       ],
-      relatedCodes: ["ISSUE-309", "ISSUE-301", "ISSUE-801"],
+      relatedCodes: ["ISSUE-309", "ISSUE-801"],
     },
   },
 
@@ -3826,7 +3801,7 @@ jobs:
         "Any non-trivial transformation of a secret in YAML is a smell. Move the logic into a shell step where the redactor still applies.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-309", "ISSUE-301"],
+      relatedCodes: ["ISSUE-309"],
     },
   },
 
@@ -3923,7 +3898,7 @@ jobs:
         "Branch / tag restrictions on the environment make the gate tamper-proof from PR-author code.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-802", "ISSUE-309", "ISSUE-301"],
+      relatedCodes: ["ISSUE-802", "ISSUE-309"],
     },
   },
 
@@ -4019,7 +3994,7 @@ jobs:
         "Never upload the entire workspace as an artifact. Always narrow the path.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-801", "ISSUE-309", "ISSUE-301"],
+      relatedCodes: ["ISSUE-801", "ISSUE-309"],
     },
   },
 
@@ -4073,7 +4048,7 @@ jobs:
         "If you must use dynamic indexing, validate the index against an allowlist before the lookup.",
       ],
       status: "roadmap",
-      relatedCodes: ["ISSUE-305", "ISSUE-309", "ISSUE-301"],
+      relatedCodes: ["ISSUE-305", "ISSUE-309"],
     },
   },
 
