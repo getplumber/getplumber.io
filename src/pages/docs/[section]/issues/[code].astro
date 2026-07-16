@@ -93,11 +93,18 @@ type PanelDescriptor = {
   content: IssueProviderContent;
 };
 
+// Removed content stays out of every list (isVisibleProviderContent is
+// false) but must still render here: findings emitted by older CLI
+// versions carry this page's URL as their docUrl, and the reader needs
+// the removal notice — not a silent redirect.
+const showOnDetailPage = (content: IssueProviderContent) =>
+  isVisibleProviderContent(content) || content.status === "removed";
+
 const panels: PanelDescriptor[] = [];
-if (gitlab && isVisibleProviderContent(gitlab)) {
+if (gitlab && showOnDetailPage(gitlab)) {
   panels.push({ id: "gitlab", label: "GitLab", icon: "tabler/brand-gitlab", content: gitlab });
 }
-if (github && isVisibleProviderContent(github)) {
+if (github && showOnDetailPage(github)) {
   panels.push({ id: "github", label: "GitHub", icon: "tabler/brand-github", content: github });
 }
 
@@ -373,6 +380,15 @@ const structuredData = {
                   ⏳ Roadmap
                 </span>
               )}
+              {c.status === "removed" && (
+                <span
+                  class="inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset bg-red-100 text-red-800 ring-red-300 dark:bg-red-900/40 dark:text-red-200 dark:ring-red-700/50"
+                  title="This control was removed from Plumber and no longer produces findings. The issue code is retired."
+                >
+                <Icon name="tabler/cancel" color="currentColor" size="16px" />
+                  Removed
+                </span>
+              )}
               <span
                 class="inline-flex items-center rounded-md bg-muted px-2.5 h-[28px] text-sm text-muted-foreground ring-1 ring-border"
                 title="Category of the control that raised this issue"
@@ -390,6 +406,16 @@ const structuredData = {
               >
             </p>
           </header>
+
+          {c.status === "removed" && (
+            <div
+              class="mb-8 rounded-lg border border-red-300 bg-red-50 p-4 leading-relaxed text-red-900 dark:border-red-700/50 dark:bg-red-900/20 dark:text-red-100"
+              set:html={inlineCodeToHtml(
+                c.removedNote ??
+                  "This control was removed from Plumber and no longer produces findings. The issue code is retired and will not be reused.",
+              )}
+            />
+          )}
 
           <section id={`what-is-this-${p.id}`} class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
             <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">

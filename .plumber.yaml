@@ -7,24 +7,6 @@
 version: "2.0"
 github:
   controls:
-    # ── Pipeline must not leak secrets in configuration ─────────────
-    #
-    # Runs gitleaks against every workflow file under
-    # .github/workflows/ to detect hardcoded secrets (API tokens,
-    # private keys, passwords) committed directly into the YAML.
-    # Requires gitleaks to be installed and available on PATH (or
-    # configured via gitleaksPath). Disabled by default because
-    # gitleaks is an external dependency.
-    pipelineMustNotLeakSecretsInConfig:
-      # Enabled: CI installs a checksum-verified gitleaks binary (see
-      # .github/workflows/plumber.yml). If gitleaks is absent (e.g. a local
-      # run), the control degrades to a warning instead of failing.
-      enabled: true
-      # Path to the gitleaks binary. Defaults to "gitleaks" (PATH lookup).
-      # gitleaksPath: /usr/local/bin/gitleaks
-      # Optional path to a custom gitleaks configuration file.
-      # gitleaksConfigPath: /path/to/gitleaks.toml
-
     # ===========================================
     # Actions must be pinned by commit SHA
     # ===========================================
