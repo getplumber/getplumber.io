@@ -1,0 +1,114 @@
+---
+/**
+ * Renders a compact "new controls" table for a release note, driven entirely by
+ * the structured data in `src/data/issues.ts`. The article passes the list of
+ * control config keys; the humanized control name, provider coverage, and the
+ * "What it checks" description are all looked up from the catalog, so nothing is
+ * hardcoded or duplicated against the docs Controls page.
+ *
+ * Usage in MDX:
+ *   <NewControlsTable keys={["pullRequestTargetMustNotCheckoutHead", ...]} />
+ */
+import { Icon } from "astro-icon/components";
+import { issues, controlCatalog, type Provider } from "@/data/issues";
+
+interface Props {
+  keys: string[];
+}
+
+const { keys } = Astro.props;
+
+// Provider display order: GitHub first, then GitLab.
+const PROVIDER_ORDER: Provider[] = ["github", "gitlab"];
+
+/** Humanized control name for a config key, preferring the given provider. */
+function controlNameFor(key: string, provider: Provider): string | undefined {
+  for (const doc of Object.values(issues)) {
+    const content = doc[provider];
+    if (content && content.controlConfigKey === key) return content.controlName;
+  }
+  return undefined;
+}
+
+type Row = {
+  key: string;
+  name: string;
+  providers: Provider[];
+  description: string;
+};
+
+const rows: Row[] = keys.map((key) => {
+  const providers = PROVIDER_ORDER.filter((p) => controlCatalog[key]?.[p]);
+  const primary = providers[0];
+  const name =
+    (primary && controlNameFor(key, primary)) ??
+    controlNameFor(key, "github") ??
+    controlNameFor(key, "gitlab") ??
+    key;
+  const description = primary ? (controlCatalog[key]?.[primary]?.controlDescription ?? "") : "";
+  return { key, name, providers, description };
+});
+
+/**
+ * Render inline markdown: `code` -> <code>, **bold** -> <strong>,
+ * [label](url) -> <a>. Source data is our own controlled catalog. Mirrors the
+ * ControlsTable renderer so the copy reads identically to the docs page.
+ */
+function renderInline(text: string): string {
+  const bolded = text
+    .split(/(`[^`]+`)/g)
+    .map((part) =>
+      part.startsWith("`") ? part : part.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>"),
+    )
+    .join("");
+  return bolded
+    .replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-emerald-600 dark:text-emerald-400 underline underline-offset-2">$1</a>',
+    )
+    .replace(
+      /`([^`]+)`/g,
+      '<code class="bg-muted px-1 py-0.5 rounded text-[0.8em] font-mono">$1</code>',
+    );
+}
+---
+
+<div class="not-content my-4 overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
+    <thead>
+      <tr class="border-border border-b">
+        <th class="text-muted-foreground w-[30%] px-3 py-2 text-left font-semibold">Control</th>
+        <th class="text-muted-foreground w-[110px] px-3 py-2 text-left font-semibold">Provider</th>
+        <th class="text-muted-foreground px-3 py-2 text-left font-semibold">What it checks</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((row) => (
+          <tr class="border-border/60 hover:bg-muted/30 border-b transition-colors">
+            <td class="text-foreground/90 px-3 py-2.5 align-top font-medium">{row.name}</td>
+            <td class="px-3 py-2.5 align-top">
+              <span class="inline-flex flex-wrap gap-1">
+                {row.providers.includes("github") && (
+                  <span class="inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-medium">
+                    <Icon name="tabler/brand-github" class="h-3.5 w-3.5" />
+                    GitHub
+                  </span>
+                )}
+                {row.providers.includes("gitlab") && (
+                  <span class="inline-flex items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-300">
+                    <Icon name="tabler/brand-gitlab" class="h-3.5 w-3.5" />
+                    GitLab
+                  </span>
+                )}
+              </span>
+            </td>
+            <td class="text-foreground/80 px-3 py-2.5 align-top text-[0.85em] leading-snug">
+              <span set:html={renderInline(row.description)} />
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
