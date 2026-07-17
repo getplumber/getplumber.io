@@ -2,7 +2,7 @@
 
 ![Plumber logo](src/assets/images/plumber-banner.svg)
 
-**The website for Plumber — the open-source CI/CD compliance CLI and platform for GitLab CI/CD and GitHub Actions — built with Astro, Tailwind CSS, and React.**
+**The website for Plumber, the open-source CI/CD security CLI and platform for GitLab CI/CD and GitHub Actions, built with Astro, Tailwind CSS, and React.**
 
 [![Plumber Score](https://score.getplumber.io/github.com/getplumber/getplumber.io.svg)](https://score.getplumber.io/github.com/getplumber/getplumber.io)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/getplumber/getplumber.io/badge)](https://scorecard.dev/viewer/?uri=github.com/getplumber/getplumber.io)
@@ -22,7 +22,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/getplumber/plumber?style=flat)](https://github.com/getplumber/plumber)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/getplumber/plumber/badge)](https://scorecard.dev/viewer/?uri=github.com/getplumber/plumber)
 
-> Badge notes: **Plumber Score** and **OpenSSF Scorecard** grade this repository itself — the first is Plumber dogfooding its own GitHub Action against these workflows (threshold 90, see the **Plumber** badge for the run), the second is the [OpenSSF](https://scorecard.dev) supply-chain posture score published weekly by `scorecard.yml`. **Security Scan** runs `npm audit` daily — it turns red as soon as a published CVE affects one of this site's dependencies. **CodeQL** is GitHub's static analysis on every PR, push to main, and weekly. PRs additionally run **Dependency Review**, which blocks introducing dependencies with known vulnerabilities (no badge: it never runs on `main`).
+> Badge notes: **Plumber Score** and **OpenSSF Scorecard** grade this repository itself: the first is Plumber dogfooding its own GitHub Action against these workflows (threshold 90, see the **Plumber** badge for the run), the second is the [OpenSSF](https://scorecard.dev) supply-chain posture score published weekly by `scorecard.yml`. **Security Scan** runs `npm audit` daily; it turns red as soon as a published CVE affects one of this site's dependencies. **CodeQL** is GitHub's static analysis on every PR, push to main, and weekly. PRs additionally run **Dependency Review**, which blocks introducing dependencies with known vulnerabilities (no badge: it never runs on `main`).
 
 ### Summary of this README
 
@@ -56,11 +56,11 @@
 
 ## 📋 Summary
 
-This is the documentation and marketing website for **Plumber** - a tool for analyzing GitLab CI/CD pipelines and GitHub Actions workflows for security and compliance issues. Plumber helps you:
+This is the documentation and marketing website for **Plumber** - the open-source tool that maps your GitLab CI/CD pipelines and GitHub Actions workflows, detects the CI/CD security leaks attackers look for, and grades your CI/CD security with a Plumber score. Plumber helps you:
 
 - Map out complex CI/CD landscapes
-- Detect CI/CD security issues
-- Ensure supply chain compliance
+- Detect the CI/CD security leaks attackers exploit
+- Grade your CI/CD security with a Plumber score
 - Spot CI/CD technical debt
 - Avoid supply chain attacks
 
@@ -292,7 +292,7 @@ Write in Markdown/MDX format.
 ![Alt text](./other-image.png)
 ```
 
-> ⚠️ **Do not start the body with a `# Title` heading.** The blog layout renders the frontmatter `title` as the page's single `<h1>` automatically — a markdown H1 would create a duplicate. Start your headings at `##`.
+> ⚠️ **Do not start the body with a `# Title` heading.** The blog layout renders the frontmatter `title` as the page's single `<h1>` automatically; a markdown H1 would create a duplicate. Start your headings at `##`.
 
 #### 3. Frontmatter Fields
 
@@ -347,7 +347,7 @@ src/data/blog/en/release-1.4.0/
 └── screenshot.png     # Optional screenshots
 ```
 
-Use the same frontmatter as any blog article. Use the **`releases-platform`** category for Platform releases or **`releases-cli`** for CLI releases — the blog page filter buttons match on those exact ids:
+Use the same frontmatter as any blog article. Use the **`releases-platform`** category for Platform releases or **`releases-cli`** for CLI releases (the blog page filter buttons match on those exact ids):
 
 ```mdx
 ---
@@ -463,7 +463,7 @@ Write your docs here in Markdown/MDX.
 | Field             | Type    | Required | Description                       |
 | ----------------- | ------- | -------- | --------------------------------- |
 | `title`           | string  | ✅       | Page title (also the visible H1)  |
-| `seoTitle`        | string  | ❌       | Meta `<title>` override — use for keyword-rich titles without changing the visible H1 |
+| `seoTitle`        | string  | ❌       | Meta `<title>` override - use for keyword-rich titles without changing the visible H1 |
 | `description`     | string  | ❌       | SEO description                   |
 | `sidebar.label`   | string  | ❌       | Sidebar text (defaults to title)  |
 | `sidebar.order`   | number  | ❌       | Sidebar position                  |
@@ -566,7 +566,7 @@ See existing docs for reference:
 - `src/docs/data/docs/en/cli/` - Open Source CLI tab (installation, gitlab, github)
 - `src/docs/data/docs/en/use-plumber/` - Controls, issues, register-templates, roles-permissions
 
-**Routing note:** only sections listed in `src/docs/config/en/sidebarNavData.json.ts` are built. Shared content under `use-plumber/` (controls, issues) is also served under `/docs/cli/*` aliases — those aliases are the canonical URLs (see [SEO & AEO Conventions](#-seo--aeo-conventions)).
+**Routing note:** only sections listed in `src/docs/config/en/sidebarNavData.json.ts` are built. Shared content under `use-plumber/` (controls, issues) is also served under `/docs/cli/*` aliases; those aliases are the canonical URLs (see [SEO & AEO Conventions](#-seo--aeo-conventions)).
 
 ---
 
@@ -740,27 +740,27 @@ The site carries structured data and answer-engine endpoints. Keep these invaria
 
 ### Titles & headings
 
-- **Blog**: the layout renders the frontmatter `title` as the only `<h1>` — never start a post body with `# Title`. Titles get a `| Plumber` suffix automatically unless they already contain "Plumber".
+- **Blog**: the layout renders the frontmatter `title` as the only `<h1>`; never start a post body with `# Title`. Titles get a `| Plumber` suffix automatically unless they already contain "Plumber".
 - **Docs**: `title` is both the meta title and the visible H1. Use the optional `seoTitle` frontmatter field when the search-engine title should be longer/keyword-richer than the page heading.
 
 ### Canonical URLs & redirects
 
 - Shared Platform/CLI docs content (`use-plumber/controls`, `use-plumber/issues*`) is served at **both** `/docs/use-plumber/*` and `/docs/cli/*`. The **CLI URL is canonical**: `getCanonicalDocsPathname()` in `src/docs/js/docsUtils.ts` sets the canonical tag and must stay in sync with the sitemap filter in `src/docs/js/sitemapUtils.ts`.
-- **Never delete a public URL without adding a 301** in `vercel.json` (`redirects` array). Redirects live in `vercel.json` — not in `astro.config.mjs`, whose `redirects` option crashes the Vercel adapter.
+- **Never delete a public URL without adding a 301** in `vercel.json` (`redirects` array). Redirects live in `vercel.json`, not in `astro.config.mjs`, whose `redirects` option crashes the Vercel adapter.
 
 ### Structured data (JSON-LD)
 
-- `src/js/jsonLD.ts` — Organization (+ `sameAs` social profiles) & WebSite on every page; BlogPosting on posts.
-- `src/components/Seo/SoftwareAppJsonLd.astro` — SoftwareApplication markup on the homepage; keep in sync with product positioning.
+- `src/js/jsonLD.ts` - Organization (+ `sameAs` social profiles) & WebSite on every page; BlogPosting on posts.
+- `src/components/Seo/SoftwareAppJsonLd.astro` - SoftwareApplication markup on the homepage; keep in sync with product positioning.
 - `src/components/Faq/FaqSection.astro` (landing pages) and `src/docs/components/mdx-components/DocsFaq.astro` (docs MDX) render FAQ content **and** emit FAQPage JSON-LD. FAQ copy lives in `src/config/en/faqData.json.ts`.
-- When emitting JSON-LD that contains HTML, escape `<` (`.replace(/</g, "\\u003c")`) — otherwise the HTML compressor fails on the page.
+- When emitting JSON-LD that contains HTML, escape `<` (`.replace(/</g, "\\u003c")`), otherwise the HTML compressor fails on the page.
 
 ### AI crawler endpoints (AEO)
 
-- `/llms.txt` — curated markdown index (key pages, docs, blog) generated from content collections.
-- `/llms-full.txt` — full docs content in one file.
+- `/llms.txt` - curated markdown index (key pages, docs, blog) generated from content collections.
+- `/llms-full.txt` - full docs content in one file.
 - Both are driven by `src/js/llmsTxtUtils.ts`; its `ROUTED_DOCS_SECTIONS` list must match the tabs in `sidebarNavData.json.ts` when docs sections are added or removed.
-- `robots.txt` allows all crawlers via `User-agent: *` — do not add per-bot groups (a bot matching a specific group ignores the `*` rules).
+- `robots.txt` allows all crawlers via `User-agent: *`; do not add per-bot groups (a bot matching a specific group ignores the `*` rules).
 
 ### Auditing
 
@@ -1005,8 +1005,8 @@ npm run dev
 
 ### Plumber
 
-- **Plumber CLI**: Open-source GitLab CI/CD compliance tool
-- **Plumber Platform**: Full-featured compliance and security platform
+- **Plumber CLI**: Open-source CI/CD security tool for GitLab and GitHub
+- **Plumber Platform**: Full-featured CI/CD security platform
 - **Discord Community**: Join for support and discussions
 - **Support Email**: hello@getplumber.io
 

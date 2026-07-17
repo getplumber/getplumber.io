@@ -565,7 +565,9 @@ function outputJSON() {
 
 // Main execution
 async function main() {
-  console.log('Starting SEO audit...\n');
+  // Progress goes to stderr so stdout stays pure JSON when the output is
+  // redirected to a file (the SEO Audit workflow parses it with JSON.parse).
+  console.error('Starting SEO audit...\n');
   
   await Promise.all([
     checkRobotsTxt(),
