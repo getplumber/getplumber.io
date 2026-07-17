@@ -29,13 +29,13 @@ const GRADE: Record<string, { bg: string; fg: string }> = {
 const LETTERS = ["A", "B", "C", "D", "E"] as const;
 
 // Aggregate KPIs — snapshot from getplumber.io/radar (/api/stats, all providers)
-const projectsScanned = 8247;
+const projectsScanned = 15010;
 const avgScore = "D";
 const issueSeverity = [
-  { label: "Critical", count: 10096, color: "#df4b2c" },
-  { label: "High", count: 79867, color: "#ef8a1a" },
-  { label: "Medium", count: 44102, color: "#e8c21d" },
-  { label: "Low", count: 5, color: "#a1a1aa" },
+  { label: "Critical", count: 17805, color: "#df4b2c" },
+  { label: "High", count: 127752, color: "#ef8a1a" },
+  { label: "Medium", count: 66427, color: "#e8c21d" },
+  { label: "Low", count: 6, color: "#a1a1aa" },
 ];
 
 // Per-row severity badge order + colors (match the KPI strip)
