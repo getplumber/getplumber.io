@@ -406,6 +406,37 @@ github:
       enabled: true
 
     # ===========================================
+    # Actions must pin commits that exist upstream
+    # ===========================================
+    # Flags `uses: owner/repo@<sha>` references pinned to a 40-character
+    # commit SHA that the upstream repository confirms does not exist:
+    # either a typo (the runner silently falls back to the default
+    # branch) or a commit that was removed or never pushed upstream.
+    #
+    # Scope note: this does NOT detect a fork-network "impostor commit"
+    # (one pushed to a fork of the upstream repo). GitHub serves those
+    # with HTTP 200 from the parent, so they read as present; the control
+    # flags only SHAs the API reports as absent.
+    #
+    # Fires ONLY when the GitHub API confirms the commit is absent from a
+    # repository Plumber can read. A SHA it could not verify
+    # (private/missing repo, rate limit, network error) stays silent, so
+    # a valid pin is never flagged. Non-SHA refs (tags, branches) are out
+    # of scope here; mutable-ref concerns are
+    # actionsMustBePinnedByCommitSha's job.
+    #
+    # Scope: committed `.github/workflows/*.{yml,yaml}` only; step-level
+    # `uses: owner/repo@<sha>`. Job-level reusable-workflow refs are not
+    # yet covered. Requires GitHub API auth (`gh` / GH_TOKEN); without it
+    # the rule abstains (no finding).
+    #
+    # This repo pins every action by SHA, so this control is the check
+    # that those SHAs are real — the failure mode it catches (a typo
+    # falling back to the default branch) is silent otherwise.
+    actionRefsMustExistUpstream:
+      enabled: true
+
+    # ===========================================
     # Actions must not carry known CVEs
     # ===========================================
     # Cross-references every `uses: owner/repo@ref` against the GitHub
@@ -433,6 +464,25 @@ github:
     # Does not see: org/repo Variables, runtime `$GITHUB_ENV` writes, or
     # actions nested inside composite actions you do not call directly.
     actionsMustNotCarryKnownCVEs:
+      enabled: true
+
+    # ===========================================
+    # Actions must not execute mutable remote code
+    # ===========================================
+    # Flags a third-party action that, even pinned by commit SHA, fetches
+    # and executes a script from a MOVING ref (main/master/HEAD) of
+    # another repository at runtime. Pinning the action's own ref does
+    # not make its execution immutable: the fetched code can change with
+    # nothing committed where the pin can see it. The canonical case is
+    # anchore/scan-action, which runs `raw.githubusercontent.com/anchore/
+    # grype/main/install.sh`. Driven by the collector's per-action source
+    # analysis (needs API metadata enrichment). Config-free; toggle via
+    # `enabled`.
+    #
+    # New in CLI v0.4.12. This repo's only non-first-party action refs
+    # are getplumber/plumber and ossf/scorecard-action; both verified
+    # clean when the control was enabled (0 mutable remote exec found).
+    actionsMustNotExecuteMutableRemoteCode:
       enabled: true
 
     # ===========================================
