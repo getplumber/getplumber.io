@@ -452,37 +452,63 @@ const structuredData = {
             <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
               <span>🔧</span> How to fix
             </h2>
-            <p class="text-foreground/80 leading-relaxed mb-6" set:html={inlineCodeToHtml(c.remediation)} />
+            <p
+              class:list={["text-foreground/80 leading-relaxed", c.remediationSteps && c.remediationSteps.length > 0 ? "mb-5" : "mb-6"]}
+              set:html={inlineCodeToHtml(c.remediation)}
+            />
 
-            <div class="mb-6">
-              <div class="inline-block ">
-                <span
-                  class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 ring-1 ring-red-300 dark:ring-red-800/50"
-                  >✗ Before</span
-                >
-                <span class="text-sm text-muted-foreground">{c.badExampleCaption}</span>
-              </div>
-              <ExpressiveCode
-                code={c.badExample}
-                lang="yaml"
-                class="overflow-x-auto rounded-lg text-sm leading-relaxed"
-              />
-            </div>
+            {c.remediationSteps && c.remediationSteps.length > 0 && (
+              <ol class="mb-6 list-none space-y-4 pl-0">
+                {c.remediationSteps.map((step, i) => (
+                  <li class="flex items-start gap-3">
+                    <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-xs font-semibold text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-700/50">
+                      {i + 1}
+                    </span>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-foreground leading-relaxed" set:html={inlineCodeToHtml(step.title)} />
+                      {step.detail && (
+                        <p
+                          class="mt-1 text-sm text-muted-foreground leading-relaxed"
+                          set:html={inlineCodeToHtml(step.detail)}
+                        />
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
 
-            <div class="mb-6">
-              <div class="inline-block">
-                <span
-                  class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-800/50"
-                  >✓ After</span
-                >
-                <span class="text-sm text-muted-foreground">{c.goodExampleCaption}</span>
+            {c.badExample && (
+              <div class="mb-6">
+                <div class="inline-block ">
+                  <span
+                    class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 ring-1 ring-red-300 dark:ring-red-800/50"
+                  >✗ Before</span>
+                  <span class="text-sm text-muted-foreground">{c.badExampleCaption}</span>
+                </div>
+                <ExpressiveCode
+                  code={c.badExample}
+                  lang="yaml"
+                  class="overflow-x-auto rounded-lg text-sm leading-relaxed"
+                />
               </div>
-              <ExpressiveCode
-                code={c.goodExample}
-                lang="yaml"
-                class="overflow-x-auto rounded-lg text-sm leading-relaxed"
-              />
-            </div>
+            )}
+
+            {c.goodExample && (
+              <div class="mb-6">
+                <div class="inline-block">
+                  <span
+                    class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-800/50"
+                  >✓ After</span>
+                  <span class="text-sm text-muted-foreground">{c.goodExampleCaption}</span>
+                </div>
+                <ExpressiveCode
+                  code={c.goodExample}
+                  lang="yaml"
+                  class="overflow-x-auto rounded-lg text-sm leading-relaxed"
+                />
+              </div>
+            )}
           </section>
 
           {c.tips.length > 0 && (
