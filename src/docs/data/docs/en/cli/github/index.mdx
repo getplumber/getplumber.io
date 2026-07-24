@@ -73,7 +73,7 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
    ```bash
    plumber config generate
    # or:
-   curl -fsSL https://raw.githubusercontent.com/getplumber/plumber/main/.plumber.yaml -o .plumber.yaml
+   curl -fsSL https://raw.githubusercontent.com/getplumber/plumber/main/defaultConfig/.plumber.yaml -o .plumber.yaml
    ```
 
 2. **Add the action to your workflow** (e.g. `.github/workflows/plumber.yml`):
@@ -532,7 +532,7 @@ github:
       codeOwnerApprovalRequired: true
 ```
 
-See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) for every option, the [Installation](/docs/cli/installation) page, and the [CLI Reference](/docs/cli/reference) for the provider-agnostic commands and output formats.
+See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) for every option, the [Installation](/docs/cli/installation) page, and the [CLI Reference](/docs/cli/reference) for the provider-agnostic commands and output formats.
 
 ## Reference
 

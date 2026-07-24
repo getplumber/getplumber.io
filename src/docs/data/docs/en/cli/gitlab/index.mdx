@@ -71,7 +71,7 @@ Two ways to scan a GitLab project:
    ```bash
    plumber config generate
    # or:
-   curl -fsSL https://raw.githubusercontent.com/getplumber/plumber/main/.plumber.yaml -o .plumber.yaml
+   curl -fsSL https://raw.githubusercontent.com/getplumber/plumber/main/defaultConfig/.plumber.yaml -o .plumber.yaml
    ```
 
 2. **Create a GitLab token**
@@ -275,9 +275,9 @@ The component resolves your configuration in priority order:
 
 1. **`config_file` input set** uses your specified path (relative to repo root).
 2. **`.plumber.yaml` in repo root** uses your repo's config file.
-3. **No config found** uses the [default](https://github.com/getplumber/plumber/blob/main/.plumber.yaml) embedded in the container.
+3. **No config found** uses the [default](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) embedded in the container.
 
-To author one, run `plumber config generate` (see the [CLI Reference](/docs/cli/reference#command-reference)) or create it manually from the [default config](https://github.com/getplumber/plumber/blob/main/.plumber.yaml). The CycloneDX SBOM the component writes is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx).
+To author one, run `plumber config generate` (see the [CLI Reference](/docs/cli/reference#command-reference)) or create it manually from the [default config](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml). The CycloneDX SBOM the component writes is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx).
 
 
 ## Authentication
