@@ -25,6 +25,16 @@ export type FixDuration =
 export type ProductScope = "all" | "cli" | "platform";
 export type ControlStatus = "shipping" | "roadmap" | "removed";
 
+/**
+ * One ordered step in a UI / click-through remediation. `title` is the action
+ * to take; `detail` holds optional sub-settings or caveats. Both fields
+ * support the inline-markdown subset (`code`, **bold**, [links](…)).
+ */
+export interface RemediationStep {
+  title: string;
+  detail?: string;
+}
+
 export interface IssueProviderContent {
   title: string;
   category: string;
@@ -43,12 +53,26 @@ export interface IssueProviderContent {
   descriptionPoints?: string[];
   impact: string;
   remediation: string;
-  /** YAML/config example showing the problematic configuration */
-  badExample: string;
-  badExampleCaption: string;
-  /** YAML/config example showing the fixed configuration */
-  goodExample: string;
-  goodExampleCaption: string;
+  /**
+   * Structured, ordered fix instructions rendered as a numbered list in the
+   * "How to fix" section. Use this for UI / click-through fixes where a
+   * config example would be misleading (e.g. toggling settings in the
+   * GitHub/GitLab web UI). Each step has a `title` (the action) and an
+   * optional `detail` (sub-settings, caveats). Both support inline `code`,
+   * **bold**, and [links](…). When set, the `remediation` string is treated
+   * as a short intro sentence above the list.
+   */
+  remediationSteps?: RemediationStep[];
+  /**
+   * YAML/config example showing the problematic configuration. Optional:
+   * omit (together with `goodExample`) when the fix is UI-based and a config
+   * diff would be misleading. Use `remediationSteps` instead.
+   */
+  badExample?: string;
+  badExampleCaption?: string;
+  /** YAML/config example showing the fixed configuration. Optional; see `badExample`. */
+  goodExample?: string;
+  goodExampleCaption?: string;
   /** Additional tips or notes */
   tips: string[];
   /**
@@ -1279,38 +1303,42 @@ branchMustBeProtected:
       impact:
         "Without protection on the matching branches, anyone with write access can push directly, force-push, rewrite history, or delete the branch. Required reviews, code-owner approvals, and status checks are all bypassed.",
       remediation:
-        "Add protection through either mechanism. Classic Branch Protection lives under Settings > Branches; Repository Rulesets live under Settings > Rules > Rulesets (rulesets inherited from the organization count too). Plumber merges all sources, stricter wins, so a rule defined in one mechanism contributes to the effective configuration even if the other has nothing for the same branch.",
-      badExample: `# GitHub repo settings: ❌ No protection on \`main\`
-# Settings > Rules > Rulesets:
-#   (no ruleset targeting \`main\`)
-#
-# Anyone with Write access can:
-#   - push directly to \`main\`
-#   - force-push and rewrite history
-#   - delete the branch
-
-# .plumber.yaml
-github:
-  controls:
-    branchMustBeProtected:
-      enabled: true
-      namePatterns: [main, release/*]
-      allowForcePush: false
-      requirePullRequestReviews: true`,
-      badExampleCaption: "`main` has no ruleset; the protection policy is not satisfied.",
-      goodExample: `# GitHub repo settings: ✅ Ruleset enforces review + no force-push
-# Settings > Rules > Rulesets > New branch ruleset:
-#   Target: main
-#   Rules:
-#     - Restrict deletions
-#     - Block force pushes
-#     - Require a pull request before merging
-#         · Required approvals: 1
-#         · Dismiss stale approvals on new push
-#         · Require review from Code Owners
-#     - Require status checks to pass before merging
-#         · build, test, codeql`,
-      goodExampleCaption: "Ruleset enforces review + bans force-push + requires status checks.",
+        "This is a settings change in the GitHub web UI, not a code or `.plumber.yaml` change. The `.plumber.yaml` config only tells Plumber which branches to check. Protect the branch through **either** mechanism: a **Repository Ruleset** (recommended for new setups) or **classic Branch Protection**. Plumber reads both and merges them, so a rule defined in one is enough to satisfy the policy.",
+      remediationSteps: [
+        {
+          title: "Open **Settings > Rules > Rulesets** and click **New branch ruleset**.",
+          detail:
+            "Rulesets are the modern mechanism and are recommended here. Prefer the classic UI instead? Use **Settings > Branches > Add branch ruleset**, where the settings below map one-to-one.",
+        },
+        {
+          title: "Name the ruleset and set **Enforcement status** to **Active**.",
+          detail:
+            "Disabled and evaluate-mode rulesets are ignored by Plumber; only an active ruleset counts as protection.",
+        },
+        {
+          title: "Under **Target branches**, add every branch this policy covers.",
+          detail:
+            "Match the branches in your `namePatterns` (for example `main` and `release/*`). Use **Include by pattern** for wildcards like `release/*`.",
+        },
+        {
+          title: "Enable **Restrict deletions** and **Block force pushes**.",
+          detail: "This stops the branch from being deleted or having its history rewritten.",
+        },
+        {
+          title: "Enable **Require a pull request before merging**.",
+          detail:
+            "Set **Required approvals** to at least 1, tick **Dismiss stale pull request approvals when new commits are pushed**, and, if you use a `CODEOWNERS` file, **Require review from Code Owners**.",
+        },
+        {
+          title: "Optionally enable **Require status checks to pass** and add your checks.",
+          detail: "For example `build`, `test`, and `codeql`, so failing pipelines can't be merged.",
+        },
+        {
+          title: "Click **Create** to save the ruleset.",
+          detail:
+            "Re-run Plumber to confirm the finding clears. The branch is now protected and the policy is satisfied.",
+        },
+      ],
       tips: [
         "Plumber needs `Administration: Read` (fine-grained PAT) or `repo` scope (classic) to read protection rules at all. Without it the rule reports `partialControls` (abstain), not a pass.",
         "Classic Branch Protection and Rulesets are unioned. A code-owner-approval rule defined only in a Ruleset (no classic rule for the same branch) is still seen.",
