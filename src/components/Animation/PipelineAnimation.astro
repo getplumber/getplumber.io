@@ -221,6 +221,7 @@ const innerShellClass =
     document.addEventListener("astro:before-swap", abort, { once: true });
     window.addEventListener("pagehide", abort, { once: true });
 
+    // pinned plumber version
     const codeToType = "include:\n  - component: gitlab.com/getplumber/plumber/plumber@v0.4.13";
     let charIndex = 0;
 
@@ -434,6 +435,7 @@ const innerShellClass =
       o += lg("  ██╔═══╝ ██║     ██║   ██║ ██║╚██╔╝██║██╔══██╗██╔══╝  ██╔══██╗") + "\n";
       o += lg("  ██║     ███████╗╚██████╔╝ ██║ ╚═╝ ██║██████╔╝███████╗██║  ██║") + "\n";
       o += lg("  ╚═╝     ╚══════╝ ╚═════╝  ╚═╝     ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝") + "\n";
+      // pinned plumber version
       o += dm("  CI/CD Compliance Scanner for GitLab & GitHub Actions") + "  " + dm("v0.4.13") + "\n";
       o += dm("  Join our community: ") + cl("https://getplumber.io/discord", "text-cyan-400") + "\n\n";
 

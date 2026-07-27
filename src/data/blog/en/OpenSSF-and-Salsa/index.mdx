@@ -57,7 +57,7 @@ Every Plumber release generates build provenance attestations using GitHub's [`a
 You should verify attestations before deploying a binary to production, in automated deployment pipelines, and after any security incident to confirm previously deployed binaries are genuine.
 
 ```bash
-# Download the binary from the release page
+# Download the pinned plumber version from the release page
 gh release download v0.4.13 --repo getplumber/plumber \
   --pattern 'plumber-linux-amd64'
 
