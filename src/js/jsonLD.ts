@@ -24,12 +24,19 @@ export interface BreadcrumbItem {
   item?: string;
 }
 
+/** One Q&A pair for FAQPage markup. Answers must be visible on the page. */
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
 export interface DocsProps {
   type: "docs";
   headline: string; // should match the page's visible H1
   description?: string;
   canonicalUrl: URL;
   breadcrumbs: BreadcrumbItem[];
+  faq?: FaqItem[];
 }
 
 export type JsonLDProps = BlogProps | GeneralProps | DocsProps;
@@ -125,7 +132,7 @@ export default function jsonLDGenerator(props: JsonLDProps) {
     // Per-page TechArticle + BreadcrumbList for documentation pages, bundled
     // into one @graph with the site Organization/WebSite so the entities
     // cross-reference (publisher, isPartOf). Big ranking signal for tool docs.
-    const { headline, description, canonicalUrl, breadcrumbs } = props as DocsProps;
+    const { headline, description, canonicalUrl, breadcrumbs, faq } = props as DocsProps;
     const baseUrl = getBaseUrl();
     const organization = buildOrganization(baseUrl);
     const webSite = buildWebSite(baseUrl, organization["@id"] as string);
@@ -159,7 +166,23 @@ export default function jsonLDGenerator(props: JsonLDProps) {
       })),
     };
 
-    const docsGraph = [organization, webSite, techArticle, breadcrumbList];
+    const docsGraph: Record<string, unknown>[] = [
+      organization,
+      webSite,
+      techArticle,
+      breadcrumbList,
+    ];
+    if (faq && faq.length > 0) {
+      docsGraph.push({
+        "@type": "FAQPage",
+        "@id": `${pageUrl}#faq`,
+        mainEntity: faq.map((f) => ({
+          "@type": "Question",
+          name: f.question,
+          acceptedAnswer: { "@type": "Answer", text: f.answer },
+        })),
+      });
+    }
     // Escape "<" so embedded text can't break the <script> block and so
     // @playform/compress can process the output (see SoftwareAppJsonLd).
     return `<script type="application/ld+json">${JSON.stringify({

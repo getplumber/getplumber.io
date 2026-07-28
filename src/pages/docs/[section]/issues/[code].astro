@@ -292,6 +292,42 @@ function configKeyExample(provider: Provider, configKey: string): string {
 // (Controls → Issues → CODE) with absolute, resolvable URLs, prefixed by Home.
 // TechArticle headline matches the default provider's visible H1.
 const siteBase = (Astro.site?.toString() ?? "").replace(/\/$/, "");
+
+// FAQPage data derived from the visible sections (What is this? / Impact /
+// How to fix), phrased as the questions people search for. The answers must
+// stay in sync with what the page renders. Skipped for removed issues,
+// whose page is a retirement notice rather than guidance.
+const faqPlainText = (parts: (string | undefined)[]) =>
+  parts
+    .filter(Boolean)
+    .join(" ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+const faq =
+  defaultContent.status === "removed"
+    ? undefined
+    : [
+        {
+          question: `What is "${defaultPageTitle}" (${code})?`,
+          answer: faqPlainText([
+            defaultContent.description,
+            ...(defaultContent.descriptionPoints ?? []),
+          ]),
+        },
+        {
+          question: `Why is "${defaultPageTitle}" a CI/CD security risk?`,
+          answer: faqPlainText([defaultContent.impact]),
+        },
+        {
+          question: `How do you fix "${defaultPageTitle}"?`,
+          answer: faqPlainText([
+            defaultContent.remediation,
+            ...(defaultContent.remediationSteps ?? []).map((step) => step.title),
+          ]),
+        },
+      ];
+
 const structuredData = {
   headline: defaultPageTitle,
   breadcrumbs: [
@@ -300,6 +336,7 @@ const structuredData = {
     { name: "Issues", item: `${siteBase}${docsBase}/issues` },
     { name: code },
   ],
+  faq,
 };
 ---
 

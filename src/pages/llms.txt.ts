@@ -31,9 +31,9 @@ The open-source CLI scans a repository locally or in CI (GitLab CI/CD and GitHub
 
 ## Key pages
 
-- [Plumber CLI (homepage)](${baseUrl}/): Open-source CI/CD compliance CLI for GitLab and GitHub
+- [Plumber CLI (homepage)](${baseUrl}/): Open-source CI/CD security CLI for GitHub and GitLab
 - [GitHub repository](https://github.com/getplumber/plumber): Source code, releases, and issue tracker
-- [Plumber Radar](${baseUrl}/radar): Live compliance scan of the open-source GitLab ecosystem
+- [Plumber Radar](${baseUrl}/radar): Live CI/CD security scan of public open-source projects
 
 ## Documentation
 

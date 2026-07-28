@@ -9,7 +9,7 @@ import type { MarkdownHeading } from "astro";
 import SidebarNav from "@/docs/components/nav/SidebarNav.astro";
 import TableOfContents from "@/docs/components/table-of-contents/TableOfContents.astro";
 import TocLink from "@/docs/components/table-of-contents/TocLink.astro";
-import type { BreadcrumbItem } from "@/js/jsonLD";
+import type { BreadcrumbItem, FaqItem } from "@/js/jsonLD";
 
 import BaseLayoutDocs from "./BaseLayoutDocs.astro";
 
@@ -23,6 +23,7 @@ interface Props {
   structuredData?: {
     headline?: string;
     breadcrumbs?: BreadcrumbItem[];
+    faq?: FaqItem[];
   };
 }
 

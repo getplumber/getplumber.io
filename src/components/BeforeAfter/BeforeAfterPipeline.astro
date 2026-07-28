@@ -1,9 +1,9 @@
 ---
 /**
  * Animated 3-step "How it works" illustration.
- * Step 1: CI/CD config with compliance issues
+ * Step 1: CI/CD config with security issues
  * Step 2: Plumber CLI/Platform scans & analyzes
- * Step 3: Config is compliant, secure, audit-ready
+ * Step 3: Config is secure and audit-ready
  *
  * variant="cli"      → single file, CLI branding (supports `provider` toggle)
  * variant="platform" → stacked files, Platform branding (GitLab only)
@@ -235,7 +235,7 @@ const subColor = isPlatform
           }
         </p>
         <p class:list={["s-sub", subColor]}>
-          {isPlatform ? "across all projects" : "with compliance issues"}
+          {isPlatform ? "across all projects" : "with security issues"}
         </p>
       </div>
     </div>
@@ -296,7 +296,7 @@ const subColor = isPlatform
           <div class="dash-card cfg-ok">
             <div class="cfg-bar">
               <span class="cfg-dots"><span /><span /><span /></span>
-              <span class="cfg-name">Compliance Overview</span>
+              <span class="cfg-name">Security Overview</span>
             </div>
             <div class="dash-body">
               <div class="dash-chart pill-seq-1">
@@ -512,7 +512,7 @@ const subColor = isPlatform
 
       <div class="s-caption">
         <p class:list={["s-label", labelColor]}>
-          {isPlatform ? "Full visibility" : "Compliant & secure"}
+          {isPlatform ? "Full visibility" : "Secure & audit-ready"}
         </p>
         <p class:list={["s-sub", subColor]}>
           {
