@@ -4,7 +4,7 @@ import { ClientRouter } from "astro:transitions";
 
 import Seo from "@/docs/components/seo/Seo.astro";
 import siteSettings from "@/docs/config/siteSettings.json";
-import type { BreadcrumbItem } from "@/js/jsonLD";
+import type { BreadcrumbItem, FaqItem } from "@/js/jsonLD";
 
 export interface Props {
   title: string;
@@ -14,6 +14,7 @@ export interface Props {
   structuredData?: {
     headline?: string;
     breadcrumbs?: BreadcrumbItem[];
+    faq?: FaqItem[];
   };
 }
 
