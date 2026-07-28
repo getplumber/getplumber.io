@@ -50,10 +50,10 @@ const results = {
 };
 
 // Utility functions
-function fetchUrl(url) {
+function fetchUrl(url, headers = {}) {
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith('https') ? https : http;
-    protocol.get(url, (res) => {
+    protocol.get(url, { headers }, (res) => {
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
@@ -219,10 +219,25 @@ async function checkSitemap() {
           // Basic validation
           if (response.body.includes('<urlset') || response.body.includes('<sitemapindex')) {
             results.checks.sitemap.passed.push('Sitemap appears to be valid XML');
-            
-            // Count URLs
-            const urlMatches = response.body.match(/<url>/g);
-            const urlCount = urlMatches ? urlMatches.length : 0;
+
+            // Count URLs. A sitemap index lists child sitemaps, not <url>
+            // entries, so follow each child and sum their counts.
+            let urlCount = 0;
+            if (response.body.includes('<sitemapindex')) {
+              const childUrls = [...response.body.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1].trim());
+              for (const childUrl of childUrls) {
+                try {
+                  const child = await fetchUrl(childUrl);
+                  if (child.statusCode === 200) {
+                    urlCount += (child.body.match(/<url>/g) || []).length;
+                  }
+                } catch (e) {
+                  // Unreachable child sitemap; counted as zero
+                }
+              }
+            } else {
+              urlCount = (response.body.match(/<url>/g) || []).length;
+            }
             if (urlCount > 0) {
               results.checks.sitemap.passed.push(`Found ${urlCount} URL(s) in sitemap`);
             } else {
@@ -395,8 +410,11 @@ async function checkStructuredData() {
 
 async function checkPerformance() {
   try {
-    const response = await fetchUrl(SITE_URL);
-    
+    // Send Accept-Encoding, otherwise the server (correctly) responds
+    // uncompressed and the compression check is a false negative. Only
+    // headers are inspected here, so the compressed body is never parsed.
+    const response = await fetchUrl(SITE_URL, { 'Accept-Encoding': 'gzip, deflate, br' });
+
     if (response.statusCode !== 200) {
       results.checks.performance.issues.push(`Homepage not accessible (Status: ${response.statusCode})`);
       results.checks.performance.status = 'failed';
@@ -422,10 +440,11 @@ async function checkPerformance() {
     }
     
     // Check for security headers
+    // x-xss-protection is deliberately absent: the header is deprecated and
+    // modern guidance is to not send it (CSP supersedes it).
     const securityHeaders = {
       'x-content-type-options': 'nosniff',
       'x-frame-options': 'DENY or SAMEORIGIN',
-      'x-xss-protection': '1; mode=block',
       'strict-transport-security': 'HSTS',
     };
     
@@ -466,7 +485,9 @@ async function checkAccessibility() {
     
     // Check for alt attributes on images (basic check)
     const imgTags = html.match(/<img[^>]+>/gi) || [];
-    const imgsWithoutAlt = imgTags.filter(img => !img.match(/alt=["']/i));
+    // Minified HTML collapses an intentionally empty alt (decorative images)
+    // to a bare `alt` attribute with no value — that still counts as present.
+    const imgsWithoutAlt = imgTags.filter(img => !img.match(/\salt(=|\s|\/|>)/i));
     if (imgsWithoutAlt.length > 0) {
       results.checks.accessibility.warnings.push(`Found ${imgsWithoutAlt.length} image(s) without alt attribute`);
     } else if (imgTags.length > 0) {
