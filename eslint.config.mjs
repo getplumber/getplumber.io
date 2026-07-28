@@ -25,6 +25,18 @@ export default defineConfig([
   js.configs.recommended,
   tseslint.configs.recommended,
 
+  // Pin the tsconfig root: temporary git worktrees (e.g. .claude/worktrees/)
+  // contain a second tsconfig.json, and without an explicit root the
+  // typescript-eslint project service refuses to pick one and every file
+  // fails with "multiple candidate TSConfigRootDirs".
+  {
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+
   {
     plugins: {
       prettier: prettier,
@@ -85,6 +97,7 @@ export default defineConfig([
       ".github/",
       ".netlify/",
       ".changeset/",
+      ".claude/",
     ],
   },
 ]);
