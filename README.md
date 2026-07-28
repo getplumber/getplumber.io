@@ -189,8 +189,7 @@ The website features:
 │   │   ├── blog/          # Blog posts (by language)
 │   │   │   └── en/
 │   │   ├── authors/       # Author profiles
-│   │   ├── otherPages/    # Additional pages (privacy, terms)
-│   │   └── codeToggles/   # Code example toggles
+│   │   └── otherPages/    # Additional pages (privacy, terms)
 │   ├── docs/              # Documentation system
 │   │   ├── components/    # Docs-specific components
 │   │   │   └── mdx-components/  # MDX components (Aside, Badge, Tabs, etc.)

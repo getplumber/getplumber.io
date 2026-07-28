@@ -68,22 +68,6 @@ const pagesCollection = defineCollection({
     }),
 });
 
-// each code toggle section is it's own content file
-const codeToggleCollection = defineCollection({
-  loader: glob({
-    pattern: "**/[^_]*{md,mdx}",
-    base: "./src/data/codeToggles",
-    retainBody: false,
-  }),
-  schema: () =>
-    z.object({
-      language: z.string(),
-      order: z.number(),
-      icon: z.string().optional(),
-      draft: z.boolean().optional(),
-    }),
-});
-
 const docsCollection = defineCollection({
   loader: glob({
     pattern: "**/[^_]*{md,mdx}",
@@ -127,5 +111,4 @@ export const collections = {
   docs: docsCollection,
   authors: authorsCollection,
   otherPages: pagesCollection,
-  codeToggles: codeToggleCollection,
 };
