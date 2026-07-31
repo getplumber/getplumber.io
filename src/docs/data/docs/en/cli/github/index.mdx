@@ -104,7 +104,7 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
        runs-on: ubuntu-24.04
        steps:
          - uses: actions/checkout@v6
-         - uses: getplumber/plumber@b6fe9f309d4242b82ce83e6e69c563c09792ca97 # pinned plumber version: v0.4.22
+         - uses: getplumber/plumber@d3a48e9d701a2ca1f7aa108b7d854e01c0f125c6 # pinned plumber version: v0.4.24
            with:
              score-push: false # set to "true" to publish a public Plumber Score badge
    ```
@@ -117,7 +117,7 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
 Override any input to fit your needs:
 
 ```yaml
-- uses: getplumber/plumber@b6fe9f309d4242b82ce83e6e69c563c09792ca97 # pinned plumber version: v0.4.22
+- uses: getplumber/plumber@d3a48e9d701a2ca1f7aa108b7d854e01c0f125c6 # pinned plumber version: v0.4.24
   with:
     min-score: "B"
     config-file: configs/strict.plumber.yaml
@@ -168,7 +168,7 @@ Override any input to fit your needs:
 Use outputs in downstream steps:
 
 ```yaml
-- uses: getplumber/plumber@b6fe9f309d4242b82ce83e6e69c563c09792ca97 # pinned plumber version: v0.4.22
+- uses: getplumber/plumber@d3a48e9d701a2ca1f7aa108b7d854e01c0f125c6 # pinned plumber version: v0.4.24
   id: plumber
 - run: echo "Plumber check passed: ${{ steps.plumber.outputs.passed }}"
 ```
@@ -191,7 +191,7 @@ When `upload-sarif` is `true` (the default), the action uploads a SARIF 2.1.0 re
 For GHES, pass the host via `github-url`:
 
 ```yaml
-- uses: getplumber/plumber@b6fe9f309d4242b82ce83e6e69c563c09792ca97 # pinned plumber version: v0.4.22
+- uses: getplumber/plumber@d3a48e9d701a2ca1f7aa108b7d854e01c0f125c6 # pinned plumber version: v0.4.24
   with:
     github-url: ghes.example.com
     verify-attestation: "false"
@@ -204,7 +204,7 @@ Set `verify-attestation: "false"` if the runner cannot reach the sigstore transp
 **Scan a remote repo without cloning:**
 
 ```yaml
-- uses: getplumber/plumber@b6fe9f309d4242b82ce83e6e69c563c09792ca97 # pinned plumber version: v0.4.22
+- uses: getplumber/plumber@d3a48e9d701a2ca1f7aa108b7d854e01c0f125c6 # pinned plumber version: v0.4.24
   with:
     project: my-org/other-repo
     github-token: ${{ secrets.PLUMBER_PAT }}
@@ -213,7 +213,7 @@ Set `verify-attestation: "false"` if the runner cannot reach the sigstore transp
 **Run only SHA-pinning and permissions checks:**
 
 ```yaml
-- uses: getplumber/plumber@b6fe9f309d4242b82ce83e6e69c563c09792ca97 # pinned plumber version: v0.4.22
+- uses: getplumber/plumber@d3a48e9d701a2ca1f7aa108b7d854e01c0f125c6 # pinned plumber version: v0.4.24
   with:
     controls: actionsMustBePinnedByCommitSha,workflowsMustDeclarePermissions
 ```
@@ -221,7 +221,7 @@ Set `verify-attestation: "false"` if the runner cannot reach the sigstore transp
 **Soft-fail in PRs, hard-fail on main:**
 
 ```yaml
-- uses: getplumber/plumber@b6fe9f309d4242b82ce83e6e69c563c09792ca97 # pinned plumber version: v0.4.22
+- uses: getplumber/plumber@d3a48e9d701a2ca1f7aa108b7d854e01c0f125c6 # pinned plumber version: v0.4.24
   with:
     soft-fail: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}
 ```
