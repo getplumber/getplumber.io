@@ -148,7 +148,7 @@ If you run a self-hosted GitLab instance, you need your own copy of the componen
 
        ```yaml
        include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@3c5638133b513b7276bbbf24fc5e6d5b66e3bfbe # pinned plumber version: v0.4.24
+         - component: gitlab.example.com/infrastructure/plumber/plumber@6b1be0674f6eb9633615fed459e84abb1344a1ae # pinned plumber version: v0.4.26
        ```
 
        To update: re-import or manually pull upstream changes.
@@ -191,7 +191,7 @@ If you run a self-hosted GitLab instance, you need your own copy of the componen
 
        ```yaml
        include:
-         - component: gitlab.example.com/infrastructure/plumber/plumber@3c5638133b513b7276bbbf24fc5e6d5b66e3bfbe # pinned plumber version: v0.4.24
+         - component: gitlab.example.com/infrastructure/plumber/plumber@6b1be0674f6eb9633615fed459e84abb1344a1ae # pinned plumber version: v0.4.26
        ```
     </Steps>
   </TabsContent>
@@ -203,7 +203,7 @@ Override any input to fit your needs:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@3c5638133b513b7276bbbf24fc5e6d5b66e3bfbe # pinned plumber version: v0.4.24
+  - component: gitlab.com/getplumber/plumber/plumber@6b1be0674f6eb9633615fed459e84abb1344a1ae # pinned plumber version: v0.4.26
     inputs:
       # Target (defaults to current project)
       server_url: https://gitlab.example.com   # Self-hosted GitLab
@@ -521,7 +521,7 @@ Or via the GitLab CI component:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@3c5638133b513b7276bbbf24fc5e6d5b66e3bfbe # pinned plumber version: v0.4.24
+  - component: gitlab.com/getplumber/plumber/plumber@6b1be0674f6eb9633615fed459e84abb1344a1ae # pinned plumber version: v0.4.26
     inputs:
       mr_comment: true  # Requires api scope on token
 ```
@@ -550,7 +550,7 @@ Or via the GitLab CI component:
 
 ```yaml
 include:
-  - component: gitlab.com/getplumber/plumber/plumber@3c5638133b513b7276bbbf24fc5e6d5b66e3bfbe # pinned plumber version: v0.4.24
+  - component: gitlab.com/getplumber/plumber/plumber@6b1be0674f6eb9633615fed459e84abb1344a1ae # pinned plumber version: v0.4.26
     inputs:
       badge: true  # Requires api scope on token
 ```
