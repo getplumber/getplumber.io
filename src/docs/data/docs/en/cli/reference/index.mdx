@@ -41,6 +41,8 @@ plumber analyze [flags]
 | `--pbom-cyclonedx` | No | - | Write PBOM in CycloneDX SBOM format |
 | `--sarif` | No | - | Write SARIF 2.1.0 results to file (for GitHub Code Scanning / GitLab Security Dashboard) |
 | `--glsast` | No | - | Write a GitLab SAST report (`gl-sast-report.json`) for the GitLab Security Dashboard / MR widget |
+| `--csv` | No | - | Write results to a CSV file: every control with its `status`, plus one row per finding for failing controls |
+| `--ocsf` | No | - | Write OCSF Compliance Finding results (JSON array, schema 1.8.0) for OCSF consumers and GRC platforms |
 | `--mr-comment` | No | `false` | Post/update a Plumber comment on the merge request (MR pipelines only; requires `api` scope) |
 | `--badge` | No | `false` | Create/update a Plumber badge on the project (requires `api` scope; only runs on default branch) |
 | `--score` | No | `false` | Show the Plumber score banner (letter, points, bar, severity counts) on stdout, and include points + score in the JSON, PBOM, and CycloneDX output |
@@ -317,6 +319,8 @@ By default Plumber prints a colorized, human-readable report to your terminal (`
 | CycloneDX SBOM | `--pbom-cyclonedx` | CycloneDX 1.5 (JSON) | Standard SBOM for security tooling such as Grype, Trivy, and Dependency-Track |
 | SARIF | `--sarif` | SARIF 2.1.0 | Findings for GitHub Code Scanning and the GitLab Security Dashboard |
 | GitLab SAST report | `--glsast` | GitLab SAST report schema v15.0.4 (`gl-sast-report.json`) | Findings for the GitLab Security Dashboard and the merge-request security widget |
+| CSV | `--csv` | Every control with its status, plus a row per finding ([columns below](#csv-columns)) | Spreadsheet tools, ad-hoc analysis, per-control history |
+| OCSF | `--ocsf` | OCSF 1.8.0 Compliance Finding (JSON array) | One event per control with an explicit pass/fail/warning/skipped status, for OCSF consumers and GRC platforms |
 
 **Outputs that post back to the provider (not files):**
 
@@ -376,17 +380,82 @@ Each `*Result` block has the same baseline shape. Some controls add a few contro
 
 | Key | Type | Description |
 |-----|------|-------------|
-| `issues` | array | Findings raised by the control. Each entry carries an `ISSUE-XXX` code, severity, location, and message. |
+| `controlName` | string | The block's stable `.plumber.yaml` control name (e.g. `actionsMustBePinnedByCommitSha`). Together with each issue's `code`, one of the two identifiers safe to build an external mapper against. Lives once on the block; every issue inside it belongs to this control. |
+| `status` | string | Explicit evaluation verdict: `passed` (evaluated, no findings), `failed` (evaluated, findings raised), `skipped` (never ran: disabled or filtered out), or `error` (could not be fully evaluated: missing/invalid CI config or degraded data collection; an empty `issues` list in this state means "could not tell", not "compliant"). Use this instead of inferring pass from an empty `issues` array. |
+| `issues` | array | Findings raised by the control (see the entry shape below). |
 | `metrics` | object | Counts the control collected (jobs scanned, images checked, branches inspected, etc.). |
-| `skipped` | boolean | True when the control was disabled in `.plumber.yaml` or excluded via `--skip-controls`. |
+| `skipped` | boolean | True when the control was disabled in `.plumber.yaml` or excluded via `--skip-controls`. Kept for backward compatibility; `status: "skipped"` mirrors it. |
 | `ciValid` | boolean | Same as the top-level field, scoped to what this control needed. |
 | `ciMissing` | boolean | Same as the top-level field, scoped to what this control needed. |
 | `version` | string | Schema version of the control's output block. |
+
+**`issues` entry**
+
+Each entry describes one finding. Beyond the keys below, a rule adds its own structured payload naming what it flagged (`uses` for an action reference, `tag` and `link` for a container image, `branchName`, `variableName`, and so on).
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `code` | string | The `ISSUE-XXX` code. |
+| `fingerprint` | string | Stable identifier for this finding, for tracking it across runs ([see below](#finding-fingerprint)). |
+| `job` | string | The job, branch, include, or file the finding relates to, depending on the finding type. |
+| `step` | string | GitHub only: the workflow step's `name:`, when the author gave the step one. Distinguishes two steps in the same job that reference the same action. Omitted for unnamed steps and on GitLab. |
+| `url` | string | Clickable link to the affected file and line on the provider, or the local path outside CI. |
+| `docUrl` | string | Link to the issue's documentation page. |
+
+To track a control across runs (history, remediation state, trend dashboards), key on the pair `controlName` + `status`: `controlName` is the check's stable identity and `status` its verdict for that run. To track one individual finding within a control, use its `fingerprint`.
 
 **`partialControls` entry**
 
 When non-empty, each entry has the shape shown in the [GitHub authentication section](/docs/cli/github#authentication): `control`, `reason`, `affectedBranches` (when relevant), `remediation`. CI gates should fail loud when this array contains anything, even if `passed` reads true.
 
 <Aside variant="info">
-  Stability: keys documented above are stable across 0.3.x minor versions. New keys may be added without notice. Existing keys will not be renamed or removed without a major-version bump.
+  Stability: keys documented above are stable across minor versions. New keys may be added without notice. Existing keys will not be renamed or removed without a major-version bump.
+</Aside>
+
+### CSV columns
+
+`plumber analyze --csv results.csv` writes one header row followed by **every control in the catalog**, not just the ones that found something. A control that passed, was skipped, or could not be evaluated gets a single summary row; a control that failed gets one row per finding. Non-failing controls are listed first, then the failing ones with their findings, so the clean posture reads at the top and the problems are grouped at the bottom.
+
+Because every control is present on every run, a clean scan is a full report rather than an empty file, and an empty `code` column never has to be interpreted as "compliant".
+
+Column order is fixed and will not change:
+
+| Column | Description |
+|--------|-------------|
+| `code` | `ISSUE-XXX` code. Empty on summary rows (passed, skipped, error), since those describe a control rather than a finding |
+| `fingerprint` | Stable per-finding identifier ([see below](#finding-fingerprint)). Empty on summary rows |
+| `controlName` | Stable `.plumber.yaml` control name (e.g. `actionsMustBePinnedByCommitSha`). Always present |
+| `status` | The control's verdict for this run: `passed`, `failed`, `skipped`, or `error`. Always present. Every row of a failing control carries `failed` |
+| `severity` | `critical`, `high`, `medium`, or `low`. Empty on summary rows |
+| `message` | Finding message on a `failed` row; the skip or error reason on a `skipped` / `error` row; empty on a `passed` row |
+| `context` | The job, branch, include, or file the finding relates to, depending on the finding type. Not always a CI job name, so it isn't called `job` |
+| `file` | Path of the affected file, relative to the repo root. Empty for repo-level findings (e.g. branch protection) |
+| `line` | Line number in `file`. Empty when there's no file, or the finding isn't line-scoped |
+| `url` | Clickable link to the affected file/line on the provider, or the local path outside CI |
+| `docUrl` | Link to the issue's documentation page |
+
+To build per-control history, group on `controlName` and read `status` for each run. To follow one specific finding, use `fingerprint`.
+
+Codeless findings (none currently exist) are skipped, since they have no stable identifier to report against.
+
+### Finding fingerprint
+
+Every finding carries a `fingerprint`: a short, stable identifier for that one finding, so you can tell across runs whether it is the same problem, a new one, or resolved. `controlName` answers "how is this check doing"; `fingerprint` answers "is this particular finding still there".
+
+The same value appears in every format, so a finding can be correlated between them:
+
+| Format | Where |
+|--------|-------|
+| JSON | `fingerprint` on each issue entry |
+| CSV | `fingerprint` column |
+| SARIF | `partialFingerprints["plumber/v1"]` (the field GitHub Code Scanning uses to track an alert across runs) |
+| GitLab SAST | an `identifiers[]` entry of type `plumber-fingerprint` |
+| OCSF | `fingerprint` on each `unmapped.plumber_findings[]` record |
+
+It is derived from what the finding is *about* rather than how it is worded: the issue code, the file, the job, the subject the rule flagged (an action reference, a branch, an image, a variable), and the workflow step name when there is one. Line numbers are deliberately excluded, so editing unrelated code above a finding does not change its fingerprint.
+
+For the exact recipe, the subject-key priority, and worked examples of each case (a rule with a structured subject, the same action used twice in one job, the message fallback, repository-level findings), see [docs/FINGERPRINT.md](https://github.com/getplumber/plumber/blob/main/docs/FINGERPRINT.md).
+
+<Aside variant="info">
+  A fingerprint is a tracking identity, not a primary key. Two steps in one job that reference the same action with no `name:` are indistinguishable and share a fingerprint. Group by it; do not assume one row per value.
 </Aside>
