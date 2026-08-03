@@ -324,16 +324,6 @@ const innerShellClass =
     }
 
     // Color and formatting helpers for CLI output
-    function sectionColor(pct: number): string {
-      if (pct <= 0) return "text-red-400";
-      if (pct >= 100) return "text-green-400";
-      return "text-yellow-400";
-    }
-
-    function tableCompColor(pct: number): string {
-      return pct >= 100 ? "text-green-400" : "text-red-400";
-    }
-
     function sevBadge(sev: string): string {
       const map: Record<string, string> = {
         CRIT: '<span class="bg-red-500 text-white"> CRIT </span>',
@@ -361,69 +351,64 @@ const innerShellClass =
     const bd = (s: string) => `<span class="font-bold text-base-200">${s}</span>`;
     const cl = (s: string, c: string) => `<span class="${c}">${s}</span>`;
 
-    // Fixed-size SVGs (Tabler-style paths) so ASCII table right border stays aligned (Unicode ✓/✗ are not monospace-wide)
-    const CLI_STATUS_SVG_PASS =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cli-table-status-svg" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg>';
+    // Fixed-size SVG (Tabler-style path) for the FAILED status marker (matches the CLI's ✗)
     const CLI_STATUS_SVG_FAIL =
       '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cli-table-status-svg" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>';
 
-    function complianceStatusCell(passed: boolean): string {
-      const cls = passed ? "text-green-400" : "text-red-400";
-      const svg = passed ? CLI_STATUS_SVG_PASS : CLI_STATUS_SVG_FAIL;
-      return `<span class="inline-flex w-[6ch] shrink-0 justify-start align-middle ${cls} cli-table-status-cell">${svg}</span>`;
-    }
-
-    function complianceDashCell(): string {
-      return `<span class="inline-flex w-[6ch] shrink-0 justify-start text-base-500 cli-table-status-cell">-</span>`;
-    }
-
-    // Generate CLI output matching the plumber report format
+    // Generate CLI output matching the plumber report format (v0.4.x layout:
+    // run-header block, Passed/Skipped/Failed control groups, score-gated
+    // summary, Plumber Score banner)
     function generateCliOutput() {
       let o = "";
 
       // Inline helpers for section building
-      const divider = () => dm("──────────────────────────────────────────────────");
-      function sectionHead(name: string, pct: number) {
+      const divider = () => dm("────────────────────");
+      function groupHead(icon: string, name: string, color: string) {
         o += divider() + "\n";
-        o += bd(name) + " " + cl(`(${pct.toFixed(1)}% compliant)`, sectionColor(pct)) + "\n";
-        o += divider() + "\n";
+        o += cl(icon, color) + " " + cl(name, "font-bold " + color) + "\n";
+        o += divider() + "\n\n";
       }
-      function sectionSkipped(name: string) {
-        o += divider() + "\n";
-        o += bd(name) + " " + dm("(skipped)") + "\n";
-        o += divider() + "\n";
+      function passedLine(name: string) {
+        o += "  " + cl("✓", "text-green-400") + " " + name + "\n";
+      }
+      function skippedLine(name: string) {
+        o += "  " + dm("•") + " " + name + " " + dm("(disabled in configuration)") + "\n";
+      }
+      function failedHead(name: string, count: number) {
+        const n = count === 1 ? "1 issue" : `${count} issues`;
+        o += "  " + cl("✗", "text-red-400") + " " + bd(name) + " " + cl(`(${n})`, "text-red-400") + "\n";
       }
       function stat(label: string, value: string) {
-        o += `  ${label}: ${value}\n`;
+        o += `      ${label}: ${value}\n`;
       }
-      function issueHdr(text: string) {
-        o += "\n  " + cl(text, "text-yellow-400") + "\n";
+      function issuesHdr() {
+        o += "\n      " + cl("Issues Found:", "text-yellow-400") + "\n";
       }
       // Docs links per issue code; "at" locations use the short relative form
       // and long issue texts are pre-broken into continuation lines so no line
-      // outgrows the ASCII tables (keeps the report free of a horizontal
+      // outgrows the ASCII table (keeps the report free of a horizontal
       // scrollbar at every breakpoint).
       const DOCS_URL = "https://getplumber.io/docs/cli/issues/";
       function issueLines(sev: string, code: string, text: string | string[]) {
         const lines = Array.isArray(text) ? text : [text];
-        o += `    ${sevBadge(sev)} [${code}] ${lines[0]}\n`;
+        o += `        ${sevBadge(sev)} [${code}] ${lines[0]}\n`;
         for (let i = 1; i < lines.length; i++) {
-          o += `      ${lines[i]}\n`;
+          o += `          ${lines[i]}\n`;
         }
       }
       function issue(sev: string, code: string, text: string | string[]) {
         issueLines(sev, code, text);
-        o += `      ${dm("↳ docs: " + DOCS_URL + code)}\n`;
+        o += `         ${dm("↳ docs: " + DOCS_URL + code)}\n`;
       }
       function issueAt(sev: string, code: string, text: string | string[], line: number) {
         issueLines(sev, code, text);
-        o += `      ${dm("↳ at .gitlab-ci.yml:" + line)}\n`;
-        o += `      ${dm("↳ docs: " + DOCS_URL + code)}\n`;
+        o += `         ${dm("↳ at .gitlab-ci.yml:" + line)}\n`;
+        o += `         ${dm("↳ docs: " + DOCS_URL + code)}\n`;
       }
       function issueSub(sev: string, code: string, text: string, sub: string) {
-        o += `    ${sevBadge(sev)} [${code}] ${text}\n`;
-        o += `      └─ ${sub}\n`;
-        o += `      ${dm("↳ docs: " + DOCS_URL + code)}\n`;
+        issueLines(sev, code, text);
+        o += `         └─ ${sub}\n`;
+        o += `         ${dm("↳ docs: " + DOCS_URL + code)}\n`;
       }
 
       // PLUMBER ASCII logo
@@ -439,18 +424,101 @@ const innerShellClass =
       o += dm("  CI/CD Compliance Scanner for GitLab & GitHub Actions") + "  " + dm("v0.4.26") + "\n";
       o += dm("  Join our community: ") + cl("https://getplumber.io/discord", "text-cyan-400") + "\n\n";
 
-      o += "Using configuration: .plumber.yaml\n";
-      o += "Analyzing project: getplumber/examples/go-build-test-non-compliant on https://gitlab.com\n";
-      o += "\n";
-      o += bd("Project: getplumber/examples/go-build-test-non-compliant") + "\n\n";
+      // Run header block: project, platform, config file, CI-config source
+      o += "  " + dm("Project  ") + "  " + bd("getplumber/examples/go-build-test-non-compliant") + "\n";
+      o += "  " + dm("Platform ") + "  " + bd("GitLab · https://gitlab.com") + "\n";
+      o += "  " + dm("Config   ") + "  " + bd(".plumber.yaml") + "\n";
+      o += "  " + dm("CI config") + "  " + bd("fetched from GitLab") + "\n\n";
 
-      // Container images must not use forbidden tags (pinned by digest)
-      sectionHead("Container images must not use forbidden tags (pinned by digest)", 0);
+      // Passing controls collapse to names only
+      groupHead("✓", "Passed Controls (2)", "text-green-400");
+      passedLine("Includes must not use forbidden versions");
+      passedLine("Pipeline must not enable debug trace");
+      o += "\n";
+
+      // Skipped controls with their skip reason
+      groupHead("•", "Skipped Controls (2)", "text-base-500");
+      skippedLine("Includes must not use ambiguous tag/branch refs");
+      skippedLine("Pipeline must include required templates");
+      o += "\n";
+
+      // Failing controls in full detail, least-critical first (the worst
+      // control prints last, closest to the prompt — matches the CLI sort)
+      groupHead("✗", "Failed Controls (11)", "text-red-400");
+
+      failedHead("Includes must be up to date", 2);
+      stat("Total Includes", "9");
+      stat("Outdated", "2");
+      issuesHdr();
+      issueAt("LOW", "ISSUE-403", "gitlab.com/components/sast/sast uses version '3.3.0' (latest: 3.4.0)", 54);
+      issueAt("LOW", "ISSUE-403", "gitlab.com/components/secret-detection/secret-detection uses version '2.2.0' (latest: 2.3.0)", 53);
+      o += "\n";
+
+      failedHead("Pipeline must include required components", 1);
+      stat("Requirement Groups", "1");
+      stat("Satisfied Groups", "1");
+      issuesHdr();
+      issue("MED", "ISSUE-409", ['required component "components/secret-detection/secret-detection" is imported', "but 1 of its job(s) are overridden locally"]);
+      o += "\n";
+
+      failedHead("Pipeline must not use unsafe variable expansion", 1);
+      stat("Jobs Checked", "46");
+      stat("Script Lines Checked", "59");
+      stat("Unsafe Expansions", "1");
+      issuesHdr();
+      issueAt("MED", "ISSUE-204", ["$CI_COMMIT_BRANCH in job 'build' after_script:", 'sh -c "docker build --build-arg BRANCH=$CI_COMMIT_BRANCH ."'], 21);
+      o += "\n";
+
+      failedHead("Pipeline must not include hardcoded jobs", 5);
+      stat("Total Jobs", "46");
+      stat("Hardcoded Jobs", "5");
+      issuesHdr();
+      issueAt("MED", "ISSUE-401", 'job "build" is hardcoded (not sourced from include/component/template)', 21);
+      issueAt("MED", "ISSUE-401", 'job "build_image_dind_only" is hardcoded (not sourced from include/component/template)', 85);
+      issueAt("MED", "ISSUE-401", 'job "build_image_insecure" is hardcoded (not sourced from include/component/template)', 74);
+      issueAt("MED", "ISSUE-401", 'job "lint" is hardcoded (not sourced from include/component/template)', 45);
+      issueAt("MED", "ISSUE-401", 'job "test" is hardcoded (not sourced from include/component/template)', 33);
+      o += "\n";
+
+      failedHead("Container images must come from authorized sources", 1);
+      stat("Total Images", "19");
+      stat("Authorized", "18");
+      stat("Unauthorized", "1");
+      issuesHdr();
+      issueAt("HIGH", "ISSUE-101", ['job "plumber" uses image from untrusted source:', "docker.io/getplumber/plumber@sha256:c636659887c96c5bbcde4a3262fe80fa67013ecceee9ace7e1e378447a25a8cc"], 57);
+      o += "\n";
+
+      failedHead("Pipeline must not execute unverified scripts", 1);
+      stat("Jobs Checked", "46");
+      stat("Script Lines Checked", "59");
+      stat("Unverified Scripts", "1");
+      issuesHdr();
+      issueAt("HIGH", "ISSUE-411", "Job 'lint' script: curl https://internal-artifacts.example.com/test | bash", 45);
+      o += "\n";
+
+      failedHead("Pipeline must not override job variables", 1);
+      stat("Variables Checked", "18");
+      stat("Overridden Found", "1");
+      issuesHdr();
+      issue("HIGH", "ISSUE-205", 'SAST_DISABLED = "true" (global variables)');
+      o += "\n";
+
+      failedHead("Pipeline must not use Docker-in-Docker", 3);
+      stat("Jobs Checked", "46");
+      stat("DinD Services Found", "2");
+      stat("Insecure Daemon Config", "3");
+      issuesHdr();
+      issueAt("HIGH", "ISSUE-412", 'job "build_image_dind_only" uses Docker-in-Docker service "docker:dind"', 85);
+      issueAt("HIGH", "ISSUE-412", 'job "build_image_insecure" uses Docker-in-Docker service "docker:dind"', 74);
+      issueAt("HIGH", "ISSUE-413", ["Job 'build_image_insecure': DOCKER_TLS_CERTDIR is empty (TLS disabled);", "DOCKER_HOST uses non-TLS port 2375 (tcp://docker:2375)"], 74);
+      o += "\n";
+
+      failedHead("Container images must not use forbidden tags (pinned by digest)", 19);
       stat("Total Images", "19");
       stat("Pinned By Digest", "1");
       stat("Not Pinned By Digest", "18");
       stat("Using Forbidden Tags", "1");
-      issueHdr("Issues Found:");
+      issuesHdr();
       issueAt("MED", "ISSUE-102", "Job 'lint' uses forbidden tag 'latest' (image: docker.io/golangci/golangci-lint:latest)", 45);
       issueAt("HIGH", "ISSUE-103", ['job ".ds-analyzer" uses image without digest pinning:', "registry.gitlab.com/security-products/:6$DS_IMAGE_SUFFIX"], 65);
       issueAt("HIGH", "ISSUE-103", ['job ".secret-analyzer" uses image without digest pinning:', "registry.gitlab.com/security-products/secrets:7"], 66);
@@ -472,127 +540,25 @@ const innerShellClass =
       issueAt("HIGH", "ISSUE-103", 'job "test" uses image without digest pinning: docker.io/golang:1.22', 33);
       o += "\n";
 
-      // Container images must come from authorized sources
-      sectionHead("Container images must come from authorized sources", 0);
-      stat("Total Images", "19");
-      stat("Authorized", "18");
-      stat("Unauthorized", "1");
-      issueHdr("Issues Found:");
-      issueAt("HIGH", "ISSUE-101", ['job "plumber" uses image from untrusted source:', "docker.io/getplumber/plumber@sha256:c636659887c96c5bbcde4a3262fe80fa67013ecceee9ace7e1e378447a25a8cc"], 57);
+      failedHead("Security jobs must not be weakened", 2);
+      stat("Security Jobs Found", "20");
+      stat("Weakened Jobs", "2");
+      issuesHdr();
+      issueAt("CRIT", "ISSUE-410", ['security job "secret_detection" is weakened:', "rules overridden with 'when: manual', job will not run"], 68);
+      issueAt("CRIT", "ISSUE-410", ['security job "secret_detection" is weakened:', "when: manual prevents the scan from running automatically"], 68);
       o += "\n";
 
-      // Branch must be protected
-      sectionHead("Branch must be protected", 0);
+      failedHead("Branch must be protected", 4);
       stat("Total Branches", "7");
       stat("Branches to Protect", "4");
       stat("Protected Branches", "1");
       stat("Unprotected", "3");
       stat("Non-Compliant", "1");
-      issueHdr("Issues Found:");
+      issuesHdr();
       issueSub("HIGH", "ISSUE-505", "Branch 'main' has non-compliant protection settings", "Force push is allowed (should be disabled)");
       issue("CRIT", "ISSUE-501", 'branch "dev" must be protected');
       issue("CRIT", "ISSUE-501", 'branch "master" must be protected');
       issue("CRIT", "ISSUE-501", 'branch "production" must be protected');
-      o += "\n";
-
-      // Pipeline must not include hardcoded jobs
-      sectionHead("Pipeline must not include hardcoded jobs", 0);
-      stat("Total Jobs", "46");
-      stat("Hardcoded Jobs", "5");
-      issueHdr("Issues Found:");
-      issueAt("MED", "ISSUE-401", 'job "build" is hardcoded (not sourced from include/component/template)', 21);
-      issueAt("MED", "ISSUE-401", 'job "build_image_dind_only" is hardcoded (not sourced from include/component/template)', 85);
-      issueAt("MED", "ISSUE-401", 'job "build_image_insecure" is hardcoded (not sourced from include/component/template)', 74);
-      issueAt("MED", "ISSUE-401", 'job "lint" is hardcoded (not sourced from include/component/template)', 45);
-      issueAt("MED", "ISSUE-401", 'job "test" is hardcoded (not sourced from include/component/template)', 33);
-      o += "\n";
-
-      // Includes must not use ambiguous tag/branch refs (skipped)
-      sectionSkipped("Includes must not use ambiguous tag/branch refs");
-      o += "  " + dm("Status: SKIPPED (disabled in configuration)") + "\n\n";
-
-      // Includes must be up to date
-      sectionHead("Includes must be up to date", 0);
-      stat("Total Includes", "9");
-      stat("Outdated", "2");
-      issueHdr("Issues Found:");
-      issueAt("LOW", "ISSUE-403", "gitlab.com/components/sast/sast uses version '3.3.0' (latest: 3.4.0)", 54);
-      issueAt("LOW", "ISSUE-403", "gitlab.com/components/secret-detection/secret-detection uses version '2.2.0' (latest: 2.3.0)", 53);
-      o += "\n";
-
-      // Includes must not use forbidden versions
-      sectionHead("Includes must not use forbidden versions", 100);
-      stat("Total Includes", "9");
-      stat("Using Authorized Versions", "9");
-      stat("Using Forbidden Versions", "0");
-      o += "\n";
-
-      // Pipeline must include required components
-      sectionHead("Pipeline must include required components", 0);
-      stat("Requirement Groups", "1");
-      stat("Satisfied Groups", "1");
-      issueHdr("Issues Found:");
-      issue("MED", "ISSUE-409", ['required component "components/secret-detection/secret-detection" is imported', "but 1 of its job(s) are overridden locally"]);
-      o += "\n";
-
-      // Pipeline must include required templates (skipped)
-      sectionSkipped("Pipeline must include required templates");
-      o += "  " + dm("Status: SKIPPED (disabled in configuration)") + "\n\n";
-
-      // Pipeline must not enable debug trace
-      sectionHead("Pipeline must not enable debug trace", 100);
-      stat("Variables Checked", "126");
-      stat("Forbidden Found", "0");
-      o += "\n";
-
-      // Pipeline must not use unsafe variable expansion
-      sectionHead("Pipeline must not use unsafe variable expansion", 0);
-      stat("Jobs Checked", "46");
-      stat("Script Lines Checked", "59");
-      stat("Unsafe Expansions", "1");
-      issueHdr("Issues Found:");
-      issueAt("MED", "ISSUE-204", ["$CI_COMMIT_BRANCH in job 'build' after_script:", 'sh -c "docker build --build-arg BRANCH=$CI_COMMIT_BRANCH ."'], 21);
-      o += "\n";
-
-      // Security jobs must not be weakened
-      sectionHead("Security jobs must not be weakened", 0);
-      stat("Security Jobs Found", "20");
-      stat("Weakened Jobs", "2");
-      issueHdr("Issues Found:");
-      issueAt("CRIT", "ISSUE-410", ['security job "secret_detection" is weakened:', "rules overridden with 'when: manual', job will not run"], 68);
-      issueAt("CRIT", "ISSUE-410", ['security job "secret_detection" is weakened:', "when: manual prevents the scan from running automatically"], 68);
-      o += "\n";
-
-      // Pipeline must not execute unverified scripts
-      sectionHead("Pipeline must not execute unverified scripts", 0);
-      stat("Jobs Checked", "46");
-      stat("Script Lines Checked", "59");
-      stat("Unverified Scripts", "1");
-      issueHdr("Issues Found:");
-      issueAt("HIGH", "ISSUE-411", "Job 'lint' script: curl https://internal-artifacts.example.com/test | bash", 45);
-      o += "\n";
-
-      // Pipeline must not leak secrets in configuration (skipped)
-      sectionSkipped("Pipeline must not leak secrets in configuration");
-      o += "  " + dm("Status: SKIPPED (disabled in configuration)") + "\n\n";
-
-      // Pipeline must not override job variables
-      sectionHead("Pipeline must not override job variables", 0);
-      stat("Variables Checked", "18");
-      stat("Overridden Found", "1");
-      issueHdr("Issues Found:");
-      issue("HIGH", "ISSUE-205", 'SAST_DISABLED = "true" (global variables)');
-      o += "\n";
-
-      // Pipeline must not use Docker-in-Docker
-      sectionHead("Pipeline must not use Docker-in-Docker", 0);
-      stat("Jobs Checked", "46");
-      stat("DinD Services Found", "2");
-      stat("Insecure Daemon Config", "3");
-      issueHdr("Issues Found:");
-      issueAt("HIGH", "ISSUE-412", 'job "build_image_dind_only" uses Docker-in-Docker service "docker:dind"', 85);
-      issueAt("HIGH", "ISSUE-412", 'job "build_image_insecure" uses Docker-in-Docker service "docker:dind"', 74);
-      issueAt("HIGH", "ISSUE-413", ["Job 'build_image_insecure': DOCKER_TLS_CERTDIR is empty (TLS disabled);", "DOCKER_HOST uses non-TLS port 2375 (tcp://docker:2375)"], 74);
       o += "\n";
 
       // Summary
@@ -604,6 +570,8 @@ const innerShellClass =
       o +=
         "  Status: " +
         `<span class="inline-flex items-center gap-1 text-red-400 font-bold"><span>FAILED</span>${CLI_STATUS_SVG_FAIL}</span>` +
+        " " +
+        dm("(score E — 0.0/100 pts, required ≥ 100 pts)") +
         "\n\n";
 
       // Controls table — column widths follow the real CLI output (longest
@@ -642,81 +610,9 @@ const innerShellClass =
       o += "  " + ctrlBot + "\n";
       o += "  " + dm("↳ docs: https://getplumber.io/docs/cli/issues/&lt;code&gt;") + "\n\n";
 
-      // Compliance table
-      const compTop = cy("╭" + "─".repeat(NAME_W + 2) + "┬" + "─".repeat(12) + "┬" + "─".repeat(8) + "╮");
-      const compSep = cy("├" + "─".repeat(NAME_W + 2) + "┼" + "─".repeat(12) + "┼" + "─".repeat(8) + "┤");
-      const compBot = cy("╰" + "─".repeat(NAME_W + 2) + "┴" + "─".repeat(12) + "┴" + "─".repeat(8) + "╯");
-      o += "  " + bd("Compliance") + "\n";
-      o += "  " + compTop + "\n";
-      o += "  " + cy("│") + ` ${"Control".padEnd(NAME_W)} ` + cy("│") + ` ${"Compliance".padEnd(10)} ` + cy("│") + ` ${"Status".padEnd(6)} ` + cy("│") + "\n";
-      o += "  " + compSep + "\n";
-
-      const compRows: [string, number][] = [
-        ["Branch must be protected", 0],
-        ["Security jobs must not be weakened", 0],
-        ["Container images must not use forbidden tags (pinned by digest)", 0],
-        ["Pipeline must not use Docker-in-Docker", 0],
-        ["Container images must come from authorized sources", 0],
-        ["Pipeline must not execute unverified scripts", 0],
-        ["Pipeline must not override job variables", 0],
-        ["Pipeline must not include hardcoded jobs", 0],
-        ["Pipeline must include required components", 0],
-        ["Pipeline must not use unsafe variable expansion", 0],
-        ["Includes must be up to date", 0],
-        ["Includes must not use forbidden versions", 100],
-        ["Pipeline must not enable debug trace", 100],
-      ];
-
-      compRows.forEach(([name, pct]) => {
-        const n = (name as string).padEnd(NAME_W);
-        const pctStr = (pct.toFixed(1) + "%").padEnd(10);
-        const pctCl = tableCompColor(pct);
-        o +=
-          "  " +
-          cy("│") +
-          ` ${n} ` +
-          cy("│") +
-          ` ${cl(pctStr, pctCl)} ` +
-          cy("│") +
-          ` ${complianceStatusCell(pct >= 100)} ` +
-          cy("│") +
-          "\n";
-      });
-
-      // Skipped rows
-      [
-        "Includes must not use ambiguous tag/branch refs",
-        "Pipeline must include required templates",
-        "Pipeline must not leak secrets in configuration",
-      ].forEach((name) => {
-        o +=
-          "  " +
-          cy("│") +
-          ` ${name.padEnd(NAME_W)} ` +
-          cy("│") +
-          ` ${"-".padEnd(10)} ` +
-          cy("│") +
-          ` ${complianceDashCell()} ` +
-          cy("│") +
-          "\n";
-      });
-
-      // Total
-      o +=
-        "  " +
-        cy("│") +
-        ` ${bd("Total (required: 100%)".padEnd(NAME_W))} ` +
-        cy("│") +
-        ` ${cl("15.4%".padEnd(10), "text-red-400")} ` +
-        cy("│") +
-        ` ${complianceStatusCell(false)} ` +
-        cy("│") +
-        "\n";
-      o += "  " + compBot + "\n\n";
-
-      // Plumber Score section
+      // Plumber Score banner
       const longDivider = dm(" ──────────────────────────────────────────────────────────────────────────────");
-      o += longDivider + "\n";
+      o += "\n" + longDivider + "\n";
       o += " " + bd("Plumber Score") + "\n\n";
 
       const scoreE = (s: string) => cl(s, "text-red-400");
@@ -725,18 +621,9 @@ const innerShellClass =
       o += " " + scoreE("█████╗  ") + "  " + dm("░░░░░░░░░░░░░░░░░░░░░░░░░░░░") + "\n";
       o += " " + scoreE("██╔══╝  ") + "  " + cl("Critical", "text-red-400") + " — at least one Critical issue or heavy accumulated losses\n";
       o += " " + scoreE("███████╗") + "\n";
-      o +=
-        " " +
-        scoreE("╚══════╝") +
-        "  " +
-        cl("●", "text-red-500") +
-        " Critical 5   " +
-        cl("●", "text-orange-400") +
-        " High 25   " +
-        cl("●", "text-yellow-400") +
-        " Medium 8   " +
-        cl("●", "text-blue-400") +
-        " Low 2\n\n";
+      o += " " + scoreE("╚══════╝") + "  🔴 Critical 5   🟠 High 25   🟡 Medium 8   🔵 Low 2\n\n";
+
+      o += longDivider + "\n";
 
       return o;
     }
@@ -759,25 +646,6 @@ const innerShellClass =
         ["Includes must be up to date", "ISSUE-403", "Low", 2],
       ];
 
-      const complianceData: [string, number, boolean][] = [
-        ["Branch must be protected", 0, false],
-        ["Security jobs must not be weakened", 0, false],
-        ["Container images must not use forbidden tags (pinned by digest)", 0, false],
-        ["Pipeline must not use Docker-in-Docker", 0, false],
-        ["Container images must come from authorized sources", 0, false],
-        ["Pipeline must not execute unverified scripts", 0, false],
-        ["Pipeline must not override job variables", 0, false],
-        ["Pipeline must not include hardcoded jobs", 0, false],
-        ["Pipeline must include required components", 0, false],
-        ["Pipeline must not use unsafe variable expansion", 0, false],
-        ["Includes must be up to date", 0, false],
-        ["Includes must not use forbidden versions", 100, false],
-        ["Pipeline must not enable debug trace", 100, false],
-        ["Includes must not use ambiguous tag/branch refs", -1, true],
-        ["Pipeline must include required templates", -1, true],
-        ["Pipeline must not leak secrets in configuration", -1, true],
-      ];
-
       function mobileSevBadge(sev: string): string {
         const map: Record<string, [string, string]> = {
           Critical: ["bg-red-500 text-white", "Critical"],
@@ -790,7 +658,7 @@ const innerShellClass =
         return `<span class="${entry[0]} text-[10px] px-1 rounded leading-tight">${entry[1]}</span>`;
       }
 
-      // Status + critical codes
+      // Status + score gate + critical codes
       lines.push(
         '<div class="space-y-4">' +
           '<div class="pb-2 border-b border-base-600/30">' +
@@ -799,6 +667,7 @@ const innerShellClass =
           '<span class="text-red-400 font-semibold inline-flex items-center gap-1">FAILED' +
           CLI_STATUS_SVG_FAIL +
           "</span>" +
+          '<span class="text-base-500 text-xs">score E — 0.0/100 pts</span>' +
           "</div>" +
           '<div class="flex flex-col gap-0.5 mt-1">' +
           '<div class="flex items-center gap-2">' +
@@ -808,9 +677,18 @@ const innerShellClass =
           "</div></div>",
       );
 
-      // Controls section header
+      // Passed / skipped counts (compact stand-in for the desktop group sections)
       lines.push(
-        '<div><h3 class="text-base-400 font-semibold mb-2">Controls</h3><div class="space-y-1.5">',
+        '<div class="flex flex-wrap gap-x-3 gap-y-0.5 text-xs">' +
+          '<span class="text-green-400">✓ Passed 2</span>' +
+          '<span class="text-base-500">• Skipped 2</span>' +
+          '<span class="text-red-400">✗ Failed 11</span>' +
+          "</div>",
+      );
+
+      // Failed controls section header
+      lines.push(
+        '<div><h3 class="text-base-400 font-semibold mb-2">Failed Controls (11)</h3><div class="space-y-1.5">',
       );
 
       // Controls rows (one per line for typing effect)
@@ -825,41 +703,10 @@ const innerShellClass =
         );
       });
 
-      // Close Controls, open Compliance
+      // Close Failed Controls, then Plumber Score + close wrappers
       lines.push("</div></div>");
       lines.push(
-        '<div><h3 class="text-base-400 font-semibold mb-2">Compliance</h3><div class="space-y-1.5">',
-      );
-
-      // Compliance rows
-      complianceData.forEach(([name, pct, skipped]) => {
-        let row = '<div class="flex items-center justify-between gap-2">';
-        row += `<span class="text-base-300 text-xs min-w-0">${name}</span>`;
-        row += '<div class="flex items-center gap-1.5 shrink-0">';
-        if (skipped) {
-          row += '<span class="text-base-500 text-xs">-</span>';
-        } else {
-          const pctCl = pct >= 100 ? "text-green-400" : "text-red-400";
-          const icon = pct >= 100 ? CLI_STATUS_SVG_PASS : CLI_STATUS_SVG_FAIL;
-          row += `<span class="${pctCl} text-xs">${pct.toFixed(1)}%</span>`;
-          row += `<span class="${pctCl} text-xs inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center">${icon}</span>`;
-        }
-        row += "</div></div>";
-        lines.push(row);
-      });
-
-      // Total row + Plumber Score + close wrappers
-      lines.push(
-        '<div class="flex items-center justify-between gap-2 pt-2 border-t border-base-600/30">' +
-          '<span class="text-base-300 text-xs font-semibold">Total (required: 100%)</span>' +
-          '<div class="flex items-center gap-1.5">' +
-          '<span class="text-red-400 text-xs font-semibold">15.4%</span>' +
-          '<span class="text-red-400 text-xs inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center">' +
-          CLI_STATUS_SVG_FAIL +
-          "</span>" +
-          "</div></div>" +
-          "</div></div>" +
-          '<div class="pt-2 border-t border-base-600/30">' +
+        '<div class="pt-2 border-t border-base-600/30">' +
           '<h3 class="text-base-400 font-semibold mb-2">Plumber Score</h3>' +
           '<div class="flex items-center gap-3">' +
           '<span class="text-red-400 font-mono text-6xl font-bold leading-none">E</span>' +
@@ -869,10 +716,10 @@ const innerShellClass =
           "</div>" +
           "</div>" +
           '<div class="flex flex-wrap gap-2 mt-1.5 text-xs">' +
-          '<span class="text-red-500">● Critical 5</span>' +
-          '<span class="text-orange-400">● High 25</span>' +
-          '<span class="text-yellow-400">● Medium 8</span>' +
-          '<span class="text-blue-400">● Low 2</span>' +
+          "<span>🔴 Critical 5</span>" +
+          "<span>🟠 High 25</span>" +
+          "<span>🟡 Medium 8</span>" +
+          "<span>🔵 Low 2</span>" +
           "</div>" +
           "</div>" +
           "</div>",
