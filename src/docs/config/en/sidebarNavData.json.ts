@@ -57,6 +57,7 @@ const sidebarNavData: DocsSidebarNavData = {
         {
           id: "use-plumber",
           title: "Use Plumber",
+          navLinks: [{ text: "API Reference", href: "/docs/api-reference" }],
         },
       ],
     },
