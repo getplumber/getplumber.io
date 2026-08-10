@@ -68,15 +68,7 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
 ## Run with GitHub Actions
 
 <Steps>
-1. **Ensure a `.plumber.yaml` exists** in your repo root. Generate one with the [CLI](/docs/cli/installation) if you have it installed, or download the default:
-
-   ```bash
-   plumber config generate
-   # or:
-   curl -fsSL https://raw.githubusercontent.com/getplumber/plumber/main/defaultConfig/.plumber.yaml -o .plumber.yaml
-   ```
-
-2. **Add the action to your workflow** (e.g. `.github/workflows/plumber.yml`):
+1. **Add the action to your workflow** (e.g. `.github/workflows/plumber.yml`):
 
    <Aside variant="tip">
 
@@ -109,7 +101,28 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
              score-push: false # set to "true" to publish a public Plumber Score badge
    ```
 
-3. **Push and check results**: findings appear in the **Code Scanning** tab, the job summary, and the downloadable artifact bundle.
+2. **Push and check results**: findings appear in the **Code Scanning** tab, the job summary, and the downloadable artifact bundle.
+
+3. **Optionally tune the policy with a `.plumber.yaml`**
+
+   Without one, the action runs Plumber's built-in default policy, so you can stop here. To tune the policy, the recommended way is a small overlay that [extends Plumber's baseline](/docs/cli/reference#configuration) and lists only what you change:
+
+   ```bash
+   plumber config generate --overlay
+   ```
+
+   ```yaml
+   extends: plumber:default
+   version: "2.0"
+
+   github:
+     controls:
+       actionsMustBePinnedByCommitSha:
+         trustedOwners:
+           - myorg
+   ```
+
+   `plumber config generate` (without `--overlay`) writes the full self-contained template instead. See the three configuration modes in the [CLI Reference](/docs/cli/reference#configuration).
 </Steps>
 
 ### Customizing the action
@@ -141,7 +154,7 @@ Override any input to fit your needs:
 | `min-score` | - | Minimum [Plumber Score](/docs/plumber-score) letter to pass (A-E), e.g. `B` fails on C, D, E. The recommended way to gate CI on the score |
 | `min-points` | `100` | Fine-grained gate on score points (0-100). The default (100) fails on any finding; not applied when only `min-score` is set |
 | `threshold` | - | **Deprecated.** Minimum percentage of passing controls (0-100). Use `min-score` / `min-points` instead |
-| `config-file` | _(auto-detect)_ | Path to `.plumber.yaml`. Defaults to repo root; the run fails if absent |
+| `config-file` | _(auto-detect)_ | Path to a `.plumber.yaml`. Default: the repo's `.plumber.yaml` if present, otherwise the [built-in default config](/docs/cli/reference#no-configuration) (zero-config runs work out of the box) |
 | `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
 | `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
 | `score` | `true` | Include the full points breakdown. The Plumber score is shown by default; set `false` for the banner without the per-issue-code breakdown |
@@ -321,9 +334,10 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ### Example Configuration
 
-The `github.controls:` section of a schema v2 `.plumber.yaml`:
+The `github.controls:` section of a schema v2 `.plumber.yaml`. With `extends: plumber:default` on top, this file is an [overlay](/docs/cli/reference#configuration): every control keeps its baseline setting and you list only what you change. Without `extends`, the file is the complete policy and a control left out does not run.
 
 ```yaml
+extends: plumber:default
 version: "2.0"
 
 github:
@@ -541,7 +555,7 @@ github:
       codeOwnerApprovalRequired: true
 ```
 
-See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) for every option, the [Installation](/docs/cli/installation) page, and the [CLI Reference](/docs/cli/reference) for the provider-agnostic commands and output formats.
+See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) for every option, the [configuration modes](/docs/cli/reference#configuration) (no config, extended, full) and provider-agnostic commands and output formats in the [CLI Reference](/docs/cli/reference), and the [Installation](/docs/cli/installation) page.
 
 ## Reference
 
