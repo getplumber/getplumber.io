@@ -66,23 +66,15 @@ Two ways to scan a GitLab project:
 ## Run with the GitLab CI component
 
 <Steps>
-1. **Ensure a `.plumber.yaml` exists** in your repo root. Generate one with the [CLI](/docs/cli/installation) if you have it installed, or download the default:
-
-   ```bash
-   plumber config generate
-   # or:
-   curl -fsSL https://raw.githubusercontent.com/getplumber/plumber/main/defaultConfig/.plumber.yaml -o .plumber.yaml
-   ```
-
-2. **Create a GitLab token**
+1. **Create a GitLab token**
 
    Use a token with `read_api` + `read_repository` scopes (or `api` if you enable `mr_comment` / `badge`), as described under [Authentication](#authentication) below.
 
-3. **Add the token to your project**
+2. **Add the token to your project**
 
    Go to **Settings → CI/CD → Variables** and add it as `GITLAB_TOKEN` (masked recommended).
 
-4. **Add the component to your `.gitlab-ci.yml`**
+3. **Add the component to your `.gitlab-ci.yml`**
 
    <Aside variant="info">
 
@@ -109,9 +101,31 @@ Two ways to scan a GitLab project:
 
    Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
 
-5. **Run your pipeline**
+4. **Run your pipeline**
 
    Plumber now runs on every pipeline (default branch, tags, and open merge requests) and reports issues.
+
+5. **Optionally tune the policy with a `.plumber.yaml`**
+
+   Without one, the component runs Plumber's built-in default policy, so you can stop here. To tune the policy, the recommended way is a small overlay that [extends Plumber's baseline](/docs/cli/reference#configuration) and lists only what you change:
+
+   ```bash
+   plumber config generate --overlay
+   ```
+
+   ```yaml
+   extends: plumber:default
+   version: "2.0"
+
+   gitlab:
+     controls:
+       containerImageMustNotUseForbiddenTags:
+         tags:
+           - latest
+           - dev
+   ```
+
+   `plumber config generate` (without `--overlay`) writes the full self-contained template instead. See the three configuration modes in the [CLI Reference](/docs/cli/reference#configuration).
 </Steps>
 
 ### Hosting on self-hosted GitLab
@@ -277,7 +291,7 @@ The component resolves your configuration in priority order:
 2. **`.plumber.yaml` in repo root** uses your repo's config file.
 3. **No config found** uses the [default](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) embedded in the container.
 
-To author one, run `plumber config generate` (see the [CLI Reference](/docs/cli/reference#command-reference)) or create it manually from the [default config](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml). The CycloneDX SBOM the component writes is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx).
+To author one, run `plumber config generate --overlay` for a minimal file that [extends Plumber's baseline](/docs/cli/reference#configuration) (recommended), or `plumber config generate` for the full self-contained [default config](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) (see the [CLI Reference](/docs/cli/reference#command-reference)). The CycloneDX SBOM the component writes is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx).
 
 
 ## Authentication
@@ -357,9 +371,10 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ### Configuration
 
-The `gitlab.controls:` section of a schema v2 `.plumber.yaml`:
+The `gitlab.controls:` section of a schema v2 `.plumber.yaml`. With `extends: plumber:default` on top, this file is an [overlay](/docs/cli/reference#configuration): every control keeps its baseline setting and you list only what you change. Without `extends`, the file is the complete policy and a control left out does not run.
 
 ```yaml
+extends: plumber:default
 version: "2.0"
 
 gitlab:

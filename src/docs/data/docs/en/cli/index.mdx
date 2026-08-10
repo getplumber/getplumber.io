@@ -16,7 +16,7 @@ Plumber is an open-source CLI that scans your **GitLab CI/CD pipelines** and **G
 - Missing branch protection
 - [More…](/docs/use-plumber/controls)
 
-It turns them into a [Plumber Score](/docs/plumber-score) from <span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to <span class="font-bold text-red-400 dark:text-red-300">E</span> that can block your pipeline below a minimum score you set. Write one `.plumber.yaml` policy and scan both providers.
+It turns them into a [Plumber Score](/docs/plumber-score) from <span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to <span class="font-bold text-red-400 dark:text-red-300">E</span> that can block your pipeline below a minimum score you set. It runs with zero configuration out of the box; to tune the policy, write one `.plumber.yaml` that [extends Plumber's baseline](/docs/cli/reference#configuration) with just what you change, and scan both providers with it.
 
 Pick your platform:
 
@@ -42,4 +42,4 @@ Pick your platform:
   </a>
 </div>
 
-Both providers share one command set and output format. The full **[CLI Reference](/docs/cli/reference)** documents every `analyze` flag, the config commands, exit codes, and the JSON / PBOM / CycloneDX output.
+Both providers share one command set and output format. The full **[CLI Reference](/docs/cli/reference)** documents the three [configuration modes](/docs/cli/reference#configuration) (no config, extended, full), every `analyze` flag, the config commands, exit codes, and the JSON / PBOM / CycloneDX output.
