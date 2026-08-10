@@ -4858,4 +4858,80 @@ or email security@my-org.example. We aim to acknowledge within 48 hours.
     },
   },
 
+  "ISSUE-414": {
+    code: "ISSUE-414",
+    gitlab: {
+      title: "Components must come from authorized sources",
+      category: "Pipeline Composition",
+      severity: "high",
+      fixDuration: "short",
+      controlName: "componentMustComeFromAuthorizedSources",
+      controlConfigKey: "componentMustComeFromAuthorizedSources",
+      productScope: "cli",
+      description:
+        "An `include: component:` reference is pulled from a source that is not trusted: not on an explicit allowlist, not under the scanned project's own namespace, and not on the same GitLab instance (when that trust is enabled).",
+      impact:
+        "Components run arbitrary code with the job's full context — variables, secrets, and CI_JOB_TOKEN. This is the GitLab analogue of a GitHub Actions \"pwn request\": an untrusted component source is a direct supply-chain entry point into every pipeline that includes it.",
+      remediation:
+        "Include components only from a trusted source: add the source to `.plumber.yaml` under `componentMustComeFromAuthorizedSources.trustedComponents`, or rely on `trustSameGroupComponents` / `trustSameInstanceComponents` if it already lives in your own namespace or instance.",
+      badExample: `include:
+  - component: gitlab.com/attacker/evil-components/backdoor@1.0.0
+
+build:
+  script:
+    - echo build`,
+      badExampleCaption: "Component pulled from an untrusted external namespace",
+      goodExample: `include:
+  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/secret-detection@1.0.0
+
+build:
+  script:
+    - echo build`,
+      goodExampleCaption: "Component trusted: lives under the project's own namespace",
+      tips: [
+        "trustSameGroupComponents (default true) trusts components under the scanned project's own root namespace.",
+        "trustSameInstanceComponents defaults to true on self-hosted GitLab, false on gitlab.com — a self-hosted instance is already inside the org's trust boundary the way a multi-tenant SaaS host is not.",
+        "Add third-party components you rely on to trustedComponents as an explicit allowlist (wildcards and $VAR/${VAR} notation supported).",
+      ],
+      relatedCodes: ["ISSUE-415"],
+    },
+  },
+
+  "ISSUE-415": {
+    code: "ISSUE-415",
+    gitlab: {
+      title: "Functions must come from authorized sources",
+      category: "Pipeline Composition",
+      severity: "high",
+      fixDuration: "short",
+      controlName: "functionMustComeFromAuthorizedSources",
+      controlConfigKey: "functionMustComeFromAuthorizedSources",
+      productScope: "cli",
+      description:
+        "A `run:` step function reference (the `func:` keyword, or the deprecated `step:` alias) is pulled from a source that is not trusted: not on an explicit allowlist and not under the scanned project's own namespace (when that trust is enabled).",
+      impact:
+        "Functions run arbitrary code with the job's full context, the same supply-chain exposure as CI/CD components (ISSUE-414). An untrusted function source lets an attacker-controlled namespace execute code inside the pipeline's trust boundary.",
+      remediation:
+        "Reference functions only from a trusted source: add the source to `.plumber.yaml` under `functionMustComeFromAuthorizedSources.trustedFunctions`, or rely on `trustSameGroupFunctions` if it already lives in your own namespace.",
+      badExample: `build:
+  run:
+    - name: say_hi
+      func: registry.gitlab.com/attacker/evil/backdoor:1`,
+      badExampleCaption: "Function pulled from an untrusted external namespace",
+      goodExample: `build:
+  run:
+    - name: say_hi
+      func: gitlab.com/namespace/my-functions/echo:1.0.0
+      inputs:
+        message: "Hi Sally!"`,
+      goodExampleCaption: "Function trusted: lives under the project's own namespace",
+      tips: [
+        "trustSameGroupFunctions (default true) trusts functions hosted on the scanned GitLab instance, under the project's own root namespace.",
+        "The shipped default allowlists $CI_TEMPLATE_REGISTRY_HOST/$CI_PROJECT_PATH/* (both $VAR and ${VAR} notation) so a project's own function registry is trusted out of the box.",
+        "A deprecated reference form (step: instead of func:, or a deprecated git-repository ref) is tracked separately as a terminal stat — it does not by itself trigger this control.",
+        "Local (filesystem-path) function references are always out of scope.",
+      ],
+      relatedCodes: ["ISSUE-414"],
+    },
+  },
 };
