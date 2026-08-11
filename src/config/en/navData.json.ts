@@ -18,7 +18,7 @@ const navConfig: navItem[] = [
         title: "Documentation",
         items: [
           { text: "Plumber Score", link: "/docs/plumber-score", icon: "tabler/award" },
-          { text: "Platform", link: "/docs/getting-started", icon: "tabler/file-text" },
+          { text: "Platform", link: "/docs/installation", icon: "tabler/file-text" },
           { text: "Open Source CLI", link: "/docs/cli", icon: "tabler/terminal-2" },
         ],
       },

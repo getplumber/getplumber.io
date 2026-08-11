@@ -1,0 +1,62 @@
+---
+title: "Configuration"
+seoTitle: "Configure the Plumber CLI - .plumber.yaml and config modes"
+description: "Tune the Plumber CLI with one .plumber.yaml: run with zero config, extend the baseline, or manage a full config, plus the plumber config commands."
+sidebar:
+  label: "Configuration"
+  order: 5
+section: "api"
+---
+
+Plumber reads its policy from `.plumber.yaml` (override the path with `--config`). There are three ways to run it:
+
+| Case | What you write | What runs |
+|------|----------------|-----------|
+| [No configuration](#no-configuration) | Nothing | Plumber's built-in default configuration |
+| [Extended configuration](#extended-configuration-recommended) (**recommended**) | A few-line overlay starting with `extends: plumber:default` | Your overrides, deep-merged onto Plumber's baseline |
+| [Full configuration](#full-configuration) | A complete `.plumber.yaml` without `extends` | Exactly your file; the baseline is not consulted |
+
+## No configuration
+
+`plumber analyze` works with no setup at all. When there is no `.plumber.yaml` and no explicit `--config`, Plumber runs with the default configuration embedded in the binary and prints a one-line notice on stderr. A terminal and a CI job behave identically: there is no interactive prompt. Inspect what runs in this mode with `plumber config view`.
+
+If you pass `--config` and the file does not exist, that is a hard error; Plumber never silently substitutes the default for a file you named.
+
+## Extended configuration (recommended)
+
+Add `extends: plumber:default` to make your `.plumber.yaml` a **sparse overlay** on Plumber's shipped baseline. You write only what you change; everything else is inherited, and new controls Plumber ships in future releases apply automatically without touching your file:
+
+```yaml
+extends: plumber:default
+version: "2.0"
+
+github:
+  controls:
+    githubActionMustComeFromAuthorizedSources:
+      includePlumberDefaults: true # keep Plumber's curated trusted orgs (default)
+      trustedGithubActions:
+        - myorg
+```
+
+A section left empty in an overlay inherits the baseline rather than wiping it. On allowlist controls (authorized sources, trusted owners, and so on), `includePlumberDefaults: true` (the default) unions your entries with Plumber's curated list; set it to `false` to use only your own list.
+
+The commands built for this mode:
+
+- [`plumber config generate --overlay`](/docs/cli/reference#plumber-config-generate) writes a minimal overlay starter.
+- [`plumber config resolve`](/docs/cli/reference#plumber-config-resolve) prints the full effective configuration an overlay expands to.
+- [`plumber config view --explain`](/docs/cli/reference#plumber-config-view) shows, per control, whether the value comes from the baseline or your overlay.
+- [`plumber config slim`](/docs/cli/reference#plumber-config-slim) collapses an existing full config into a minimal overlay.
+
+## Full configuration
+
+A `.plumber.yaml` **without** `extends` is a complete, self-contained policy: what is in the file is exactly what runs, and a control you leave out does not run. Nothing is inherited, so new controls Plumber ships stay off until you add them; you own and maintain the whole file (~1000 lines for the complete template).
+
+Author one with [`plumber config generate`](/docs/cli/reference#plumber-config-generate) (the full commented template) or [`plumber config init`](/docs/cli/reference#plumber-config-init) (interactive wizard). This is the right mode when your policy must be fully explicit, with nothing inherited; for auditing, [`plumber config resolve`](/docs/cli/reference#plumber-config-resolve) turns an overlay into an equivalent full file you can commit.
+
+## Managing config files
+
+Beyond writing YAML by hand, Plumber ships commands to create, inspect, and maintain your configuration.
+
+- **Create:** [`plumber config init`](/docs/cli/reference#plumber-config-init) walks an interactive wizard to a minimal file; [`plumber config generate`](/docs/cli/reference#plumber-config-generate) writes the full commented template, or a minimal overlay starter with `--overlay`.
+- **Inspect:** [`plumber config view`](/docs/cli/reference#plumber-config-view) prints the effective configuration; [`plumber config diff`](/docs/cli/reference#plumber-config-diff) shows what you changed from the defaults; [`plumber config resolve`](/docs/cli/reference#plumber-config-resolve) expands an overlay into its full effective form.
+- **Maintain:** [`plumber config migrate`](/docs/cli/reference#plumber-config-migrate) upgrades a v1 file to the v2 schema; [`plumber config slim`](/docs/cli/reference#plumber-config-slim) collapses a full config into a minimal overlay; [`plumber config validate`](/docs/cli/reference#plumber-config-validate) checks a file for unknown keys and typos.

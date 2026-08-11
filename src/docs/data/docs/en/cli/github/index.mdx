@@ -5,8 +5,6 @@ description: "Scan GitHub Actions workflows for security with the open-source Pl
 sidebar:
   label: "GitHub"
   order: 3
-  indent: true
-  icon: "tabler/brand-github"
 section: "api"
 ---
 import { Icon } from "astro-icon/components";
@@ -154,7 +152,7 @@ Override any input to fit your needs:
 | `min-score` | - | Minimum [Plumber Score](/docs/plumber-score) letter to pass (A-E), e.g. `B` fails on C, D, E. The recommended way to gate CI on the score |
 | `min-points` | `""` | Fine-grained gate on score points (0-100). The default (100) fails on any finding; not applied when only `min-score` is set. Empty means the CLI default gate of 100 points |
 | `threshold` | - | **Deprecated.** Minimum percentage of passing controls (0-100). Use `min-score` / `min-points` instead |
-| `config-file` | _(auto-detect)_ | Path to a `.plumber.yaml`. Default: the repo's `.plumber.yaml` if present, otherwise the [built-in default config](/docs/cli/reference#no-configuration) (zero-config runs work out of the box) |
+| `config-file` | _(auto-detect)_ | Path to a `.plumber.yaml`. Default: the repo's `.plumber.yaml` if present, otherwise the [built-in default config](/docs/cli/configuration#no-configuration) (zero-config runs work out of the box) |
 | `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
 | `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
 | `score` | `false` | Add the full per-issue-code points breakdown on top of the score banner. Off by default; set `true` to include it |
