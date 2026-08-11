@@ -1,5 +1,5 @@
 ---
-title: "Installation"
+title: "CLI Installation"
 seoTitle: "Install the Plumber CLI - Homebrew, mise, Docker, or Binary"
 description: "Install the open-source Plumber CI/CD security CLI on macOS, Linux, or in CI via Homebrew, mise, prebuilt binary, Docker, or build from source."
 sidebar:
@@ -36,12 +36,20 @@ section: "api"
     **Install a specific version:**
 
     ```bash
-    brew install getplumber/plumber/plumber@v0.4.36 # pinned plumber version
+    brew install getplumber/plumber/plumber@0.4.36 # pinned plumber version
     ```
 
     <Aside variant="info">
-      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@v0.4.36/bin/plumber`) or run `brew link plumber@v0.4.36` to add it to your PATH. {/* pinned plumber version */}
+      Versioned formulas are keg-only. Use the full path (e.g., `/usr/local/opt/plumber@0.4.36/bin/plumber`) or run `brew link plumber@0.4.36` to add it to your PATH. {/* pinned plumber version */}
     </Aside>
+
+    **Verify:**
+
+    ```bash
+    plumber version
+    ```
+
+    Note: it is `plumber version` (a subcommand); `plumber --version` is not a flag and exits with an error.
   </TabsContent>
 
   <TabsContent value="mise">
@@ -52,6 +60,12 @@ section: "api"
     <Aside variant="info">
       Requires [mise activation](https://mise.jdx.dev/getting-started.html#activate-mise) in your shell, or run with `mise exec -- plumber`.
     </Aside>
+
+    **Verify:**
+
+    ```bash
+    plumber version
+    ```
   </TabsContent>
 
   <TabsContent value="binary">
@@ -93,6 +107,12 @@ section: "api"
     curl -LO https://github.com/getplumber/plumber/releases/latest/download/checksums.txt
     sha256sum -c checksums.txt --ignore-missing
     ```
+
+    **Verify:**
+
+    ```bash
+    plumber version
+    ```
   </TabsContent>
 
   <TabsContent value="docker">
@@ -121,6 +141,12 @@ section: "api"
       --github-url github.com \
       --project myorg/myrepo
     ```
+
+    **Verify:**
+
+    ```bash
+    docker run --rm getplumber/plumber:latest version
+    ```
   </TabsContent>
 
   <TabsContent value="source">
@@ -134,6 +160,12 @@ section: "api"
     <Aside variant="info">
       Requires Go 1.24+ and Make.
     </Aside>
+
+    **Verify:**
+
+    ```bash
+    plumber version
+    ```
   </TabsContent>
 </Tabs>
 

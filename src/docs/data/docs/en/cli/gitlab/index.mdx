@@ -99,6 +99,13 @@ Two ways to scan a GitLab project:
          score_push: false # if "true": publish a public Plumber Score badge
    ```
 
+   <Aside variant="info">
+     The pinned commit SHAs in these snippets refer to
+     [gitlab.com/getplumber/plumber](https://gitlab.com/getplumber/plumber), the GitLab mirror
+     that hosts the CI component. The mirror has its own commit history: its SHAs are
+     intentionally different from the GitHub repository's SHAs for the same release tag.
+   </Aside>
+
    Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
 
 4. **Run your pipeline**
@@ -268,9 +275,10 @@ The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-co
 | `output_file` | `plumber-report.json` | Path to write JSON results |
 | `pbom_file` | `plumber-pbom.json` | Path to write the PBOM |
 | `pbom_cyclonedx_file` | `plumber-cyclonedx-sbom.json` | Path to write the CycloneDX SBOM (auto-uploaded as a GitLab report) |
+| `glsast_file` | `gl-sast-report.json` | Write a GitLab SAST report and upload it via `artifacts:reports:sast`, feeding the Security Dashboard and the MR security widget |
 | `print_output` | `true` | Print the human-readable analysis report in the job log. Does not affect log verbosity (`verbose`) or file outputs |
 | `stage` | `.pre` | Pipeline stage for the job. `.pre` runs before all other stages but requires at least one job in a regular stage. If Plumber is the only job, set this to `test` or another stage |
-| `image` | `getplumber/plumber:0.1` | Docker image to use |
+| `image` | digest-pinned `getplumber/plumber` image tracking the latest release | Docker image to use |
 | `allow_failure` | `false` | Allow the job to fail without blocking |
 | `verbose` | `false` | Enable debug logging (`level=debug` lines) for troubleshooting. Independent of `print_output` |
 | `mr_comment` | `false` | Post/update a Plumber comment on the merge request (requires `api` scope) |
@@ -318,6 +326,12 @@ plumber analyze
 plumber analyze --gitlab-url https://gitlab.com --project mygroup/myproject
 ```
 
+Plumber auto-detects the provider from your git remote. If your repo's remote does not match the CI provider you want to audit (mirrors, migrations, repos hosted on one platform but running CI on another), force it:
+
+```bash
+plumber analyze --provider gitlab
+```
+
 ### Self-Hosted GitLab
 
 ```bash
@@ -356,7 +370,7 @@ plumber analyze \
   --project mygroup/myproject \
   --config .plumber.yaml \
   --output results.json \
-  --print false
+  --print=false
 ```
 
 ### Output
@@ -541,7 +555,7 @@ include:
       mr_comment: true  # Requires api scope on token
 ```
 
-![Merge request comment showing Plumber results](../img/merge-request-comments.png)
+{/* TODO(follow-up): re-add a screenshot regenerated from a current build; tracked in PR body */}
 
 **Features:**
 - Shows the Plumber letter-score badge (A–E) and a short score line; with `score_point`, adds the full points breakdown
@@ -637,6 +651,7 @@ The complete, always-current catalogs and command reference:
 | Two pipelines on the same push | Add [`workflow:rules`](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines) to prevent duplicate branch + MR pipelines (see [Run with the GitLab CI component](#run-with-the-gitlab-ci-component)) |
 | Component job skipped on branch | The component runs only on merge request events, the default branch, and tags |
 | Score badge not published | `score_push` publishes on every CI run, but the **public badge** only reflects your default branch (the service filters by the OIDC branch claim; MR/tag pipelines publish without touching it). A local run never publishes. The push warns, never fails, when the OIDC id-token is unavailable. See [Plumber Score](/docs/plumber-score) |
+| Scan targets the wrong provider | The git remote points elsewhere; add `--provider gitlab` |
 
 <Aside variant="info">
   **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](/discord).

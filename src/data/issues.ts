@@ -1350,8 +1350,8 @@ branchMustBeProtected:
     },
   },
 
-  "ISSUE-601": {
-    code: "ISSUE-601",
+  "ISSUE-422": {
+    code: "ISSUE-422",
     gitlab: {
       title: "Missing security policy source on project",
       category: "Security Source",
@@ -1385,12 +1385,13 @@ branchMustBeProtected:
         "Security policy sources can be managed at the group level to apply to all projects at once.",
         "Check GitLab documentation for supported security policy types (scan execution, scan result, etc.).",
       ],
+      status: "roadmap",
       relatedCodes: ["ISSUE-407"],
     },
   },
 
-  "ISSUE-422": {
-    code: "ISSUE-422",
+  "ISSUE-601": {
+    code: "ISSUE-601",
     github: {
       title: "Workflow has no explicit name",
       category: "Pipeline Composition",
@@ -1425,7 +1426,6 @@ jobs:
       tips: [
         "Keep the name short and stable, because branch protection rules reference it by exact string match.",
       ],
-      status: "roadmap",
       relatedCodes: [],
     },
   },
@@ -1889,7 +1889,7 @@ include:
       severity: "high",
       fixDuration: "medium",
       controlName: "Container images must be pinned by digest",
-      controlConfigKey: "containerImagesMustBePinnedByDigest",
+      controlConfigKey: "containerImageMustNotUseForbiddenTags",
       productScope: "cli",
       description:
         "When digest pinning is enabled in your configuration, every container image must be referenced by its SHA256 digest (`image@sha256:...`). This image is using a tag reference instead.",
@@ -1917,11 +1917,12 @@ build:
 
 # .plumber.yaml
 controls:
-  containerImagesMustBePinnedByDigest:
-    enabled: true`,
+  containerImageMustNotUseForbiddenTags:
+    enabled: true
+    containerImagesMustBePinnedByDigest: true`,
       goodExampleCaption: "SHA256 digest ensures the exact image content is always used.",
       tips: [
-        "Enable digest pinning in `.plumber.yaml` with `containerImagesMustBePinnedByDigest: true`.",
+        "Enable digest pinning by setting `containerImagesMustBePinnedByDigest: true` as a sub-option of the `containerImageMustNotUseForbiddenTags` control in `.plumber.yaml`.",
         "Use `crane digest <image>:<tag>` (from `go-containerregistry`) for a quick digest lookup.",
         "Consider automating digest updates with tools like Renovate or Dependabot.",
       ],

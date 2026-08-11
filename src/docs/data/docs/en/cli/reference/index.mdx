@@ -116,6 +116,8 @@ plumber analyze [flags]
 | `PLUMBER_METADATA_TOKEN` | No (GitHub) | Token used only to resolve third-party action versions for the known-CVE check (ISSUE-703). Set it when an action is hosted in an org with an IP allow list that blocks the runner's `GITHUB_TOKEN`; a public-repository read scope is enough. Takes precedence over `GH_TOKEN` for that lookup and carries the higher authenticated rate limit. When unset, Plumber falls back to an anonymous read. |
 | `PLUMBER_NO_UPDATE_CHECK` | No | Set to any value (e.g., `1`) to disable the automatic version check. |
 
+Every `plumber analyze` flag can also be set through an environment variable following the convention `PLUMBER_ANALYZE_<FLAG>` with the flag name uppercased and dashes replaced by underscores (for example `PLUMBER_ANALYZE_MIN_SCORE=B`, `PLUMBER_ANALYZE_OUTPUT=report.json`). Flags take precedence over environment variables. The exact variable for each flag is shown in `plumber analyze --help`.
+
 ### `plumber config init`
 
 Interactive wizard to create a **minimal** `.plumber.yaml`: pick policy areas (container images, pipeline composition, branch protection, variables) and only those controls are written. For each selected area, prompts cover the tunable fields in the schema (lists, booleans, GitLab access levels, `required` expressions for catalog components and file templates, and so on).
@@ -337,6 +339,24 @@ Configuration validation warnings:
   - Unknown key "allowForcePushes" in control "branchMustBeProtected". Did you mean "allowForcePush"?
 ```
 
+### `plumber completion`
+
+Generate a shell completion script for bash, zsh, fish, or PowerShell:
+
+```bash
+plumber completion zsh > "${fpath[1]}/_plumber"   # zsh example
+```
+
+Run `plumber completion --help` for per-shell installation instructions.
+
+### `plumber version`
+
+Print the CLI version:
+
+```bash
+plumber version
+```
+
 ### `plumber explain`
 
 Look up detailed information for an issue code directly from the terminal.
@@ -389,7 +409,8 @@ Documentation: https://getplumber.io/docs/use-plumber/issues/ISSUE-412
 | `0` | Passed (the Plumber Score meets the gate) |
 | `1` | Gate failure (score below `--min-score` / `--min-points`, or the deprecated `--threshold` not met) |
 | `2` | Runtime error (config error, network failure, missing token, etc.) |
-| `3` | A check could not be verified and `--fail-warnings` is set (e.g. an action version that could not be resolved) |
+| `3` | Data collection was degraded (some controls could not be verified): always exits 3, regardless of the score gate |
+| `3` | `--fail-warnings` is set and warnings occurred (e.g. an action version that could not be resolved) |
 
 ## Automatic Version Check
 
@@ -469,7 +490,7 @@ By default Plumber prints a colorized, human-readable report to your terminal (`
 | `<control>Result` | object | One entry per evaluated control (see below). |
 | `partialControls` | array | Controls that could not fully evaluate. Empty or omitted on a clean run. |
 | `warnings` | array | Non-fatal "could not verify" messages (e.g. a known-CVE check that couldn't resolve an action version). Gated by `--fail-warnings` (exit 3). Omitted when none. |
-| `dataCollectionDegraded` | boolean | True when a collection or enrichment step failed mid-run, so the analysis ran on incomplete data. Treat the run as suspect even if it passed its gate. Omitted when false. |
+| `dataCollectionDegraded` | boolean | True when a collection or enrichment step failed mid-run, so the analysis ran on incomplete data. A degraded run always exits with code 3, regardless of the score gate, so it never exits 0. Omitted when false. |
 | `degradedReasons` | array | Human-readable reasons behind `dataCollectionDegraded`. Omitted when not degraded. |
 | `plumberConfig` | object | Self-describing snapshot of the effective policy: `source`, `effectivePolicy` (the parsed config with comments stripped and, for an [overlay config](#extended-configuration-recommended), `extends` fully resolved), and `hash` (sha256 of the canonical policy). Written on every run. |
 
