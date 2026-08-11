@@ -15,7 +15,7 @@ export async function generateDocsMenuItems(): Promise<navDropdownItem> {
       },
       {
         text: "Platform",
-        link: "/docs/getting-started",
+        link: "/docs/installation",
       },
     ],
   };

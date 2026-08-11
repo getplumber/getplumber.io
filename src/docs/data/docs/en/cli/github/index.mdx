@@ -14,7 +14,7 @@ Plumber scans your **GitHub Actions** workflows and repository configuration for
 - Unpinned actions
 - Untrusted input in shell scripts
 - Missing branch protection
-- [More…](/docs/use-plumber/controls?p=github)
+- [More…](/docs/cli/controls?p=github)
 
 It turns them into a [Plumber Score](/docs/plumber-score) from <span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to <span class="font-bold text-red-400 dark:text-red-300">E</span> that can block CI below a minimum score you set.
 
@@ -103,7 +103,7 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
 
 3. **Optionally tune the policy with a `.plumber.yaml`**
 
-   Without one, the action runs Plumber's built-in default policy, so you can stop here. To tune the policy, the recommended way is a small overlay that [extends Plumber's baseline](/docs/cli/reference#configuration) and lists only what you change:
+   Without one, the action runs Plumber's built-in default policy, so you can stop here. To tune the policy, the recommended way is a small overlay that [extends Plumber's baseline](/docs/cli/configuration) and lists only what you change:
 
    ```bash
    plumber config generate --overlay
@@ -120,7 +120,7 @@ Best for trying Plumber on one repo, checks before you push, security-team audit
            - myorg
    ```
 
-   `plumber config generate` (without `--overlay`) writes the full self-contained template instead. See the three configuration modes in the [CLI Reference](/docs/cli/reference#configuration).
+   `plumber config generate` (without `--overlay`) writes the full self-contained template instead. See the three configuration modes in the [CLI Configuration](/docs/cli/configuration) guide.
 </Steps>
 
 ### Customizing the action
@@ -332,7 +332,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ### Example Configuration
 
-The `github.controls:` section of a schema v2 `.plumber.yaml`. With `extends: plumber:default` on top, this file is an [overlay](/docs/cli/reference#configuration): every control keeps its baseline setting and you list only what you change. Without `extends`, the file is the complete policy and a control left out does not run.
+The `github.controls:` section of a schema v2 `.plumber.yaml`. With `extends: plumber:default` on top, this file is an [overlay](/docs/cli/configuration): every control keeps its baseline setting and you list only what you change. Without `extends`, the file is the complete policy and a control left out does not run.
 
 ```yaml
 extends: plumber:default
@@ -553,7 +553,7 @@ github:
       codeOwnerApprovalRequired: true
 ```
 
-See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) for every option, the [configuration modes](/docs/cli/reference#configuration) (no config, extended, full) and provider-agnostic commands and output formats in the [CLI Reference](/docs/cli/reference), and the [Installation](/docs/cli/installation) page.
+See the [full configuration reference](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) for every option, the [configuration modes](/docs/cli/configuration) (no config, extended, full) and provider-agnostic commands and output formats in the [CLI Reference](/docs/cli/reference), and the [Installation](/docs/cli/installation) page.
 
 ## Reference
 
@@ -569,7 +569,7 @@ The complete, always-current catalogs and command reference:
     </div>
   </a>
 
-  <a href="/docs/use-plumber/controls?p=github" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+  <a href="/docs/cli/controls?p=github" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
     <div class="flex flex-col space-y-2 p-6">
       <div class="text-lg font-semibold tracking-tight text-card-foreground">
         <Icon name="tabler/list-check" size="22px" class="inline align-text-bottom mr-1" /> Controls
