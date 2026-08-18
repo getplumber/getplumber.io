@@ -1,0 +1,127 @@
+---
+/**
+ * Interactive OpenAPI reference for the Plumber Platform API, rendered with
+ * Scalar (https://github.com/scalar/scalar).
+ *
+ * The spec is read from /openapi.yaml (committed at public/openapi.yaml). This
+ * repo does not own the spec content: another repository pushes updated
+ * versions of the file automatically, and this page simply renders whatever is
+ * currently committed. No build-time fetching, no sync workflow.
+ *
+ * Scalar brings its own three-panel layout (sidebar, content, try-it client),
+ * so the page uses the base docs shell (nav + footer) without the docs
+ * sidebar, and Scalar fills the full width below the site nav.
+ */
+import BaseLayoutDocs from "@/docs/layouts/BaseLayoutDocs.astro";
+
+const title = "API Reference";
+const description =
+  "Interactive reference for the Plumber Platform API: browse endpoints, schemas and examples, and try requests directly from the docs.";
+---
+
+<BaseLayoutDocs title={title} description={description} sectionId="main">
+  <div class="min-h-[calc(100vh-var(--nav-height))]">
+    <div id="api-reference"></div>
+    <noscript>
+      <div class="mx-auto max-w-2xl px-4 py-16 text-center">
+        <p class="text-lg font-medium">The interactive API reference requires JavaScript.</p>
+        <p class="text-muted-foreground mt-2">
+          You can still read the raw OpenAPI specification at
+          <a href="/openapi.yaml" class="text-primary underline">/openapi.yaml</a>.
+        </p>
+      </div>
+    </noscript>
+  </div>
+</BaseLayoutDocs>
+
+<script>
+  import "@scalar/api-reference/style.css";
+
+  import { createApiReference } from "@scalar/api-reference";
+
+  const getMode = () => (document.documentElement.classList.contains("dark") ? "dark" : "light");
+
+  const configuration = {
+    url: "/openapi.yaml",
+    // The site nav has its own theme toggle; Scalar follows it (see below).
+    hideDarkModeToggle: true,
+    // Colors come from the site palette via --scalar-* overrides in the style
+    // block below; "default" keeps Scalar's neutral fallbacks for the rest.
+    theme: "default",
+    // Use the site's self-hosted Inter instead of Scalar's CDN fonts.
+    withDefaultFonts: false,
+    // Do not send usage data or route try-it requests through scalar.com.
+    telemetry: false,
+    // Scalar's dev toolbar, AI agent and MCP generator are scalar.com services
+    // (shown on localhost by default); disable them everywhere.
+    showToolbar: "never",
+    showDeveloperTools: "never",
+    agent: { disabled: true },
+    mcp: { disabled: true },
+  } as const;
+
+  const scalar = createApiReference("#api-reference", {
+    ...configuration,
+    forceDarkModeState: getMode(),
+  });
+
+  // Keep Scalar's dark mode in sync with the site theme toggle (.dark on <html>)
+  const observer = new MutationObserver(() => {
+    scalar.updateConfiguration({
+      ...configuration,
+      forceDarkModeState: getMode(),
+    });
+  });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+</script>
+
+<style is:global>
+  /* Offset Scalar's sticky sidebar/header math for the fixed site nav */
+  html {
+    --scalar-custom-header-height: var(--nav-height);
+  }
+
+  /*
+   * Map Scalar's theme variables onto the site palette. The site tokens
+   * (--background, --foreground, ...) already switch with the .dark class on
+   * <html>, so one definition covers both modes; Scalar's own light/dark
+   * classes are kept in sync from the script above for its internal styles.
+   * The `html` prefix outranks Scalar's injected .light-mode/.dark-mode rules.
+   */
+  html .light-mode,
+  html .dark-mode {
+    --scalar-font:
+      "Inter Variable", "Inter", -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto",
+      "Helvetica", "Arial", sans-serif;
+    --scalar-font-code:
+      "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
+
+    --scalar-color-1: var(--foreground);
+    --scalar-color-2: color-mix(in srgb, var(--foreground) 84%, var(--background));
+    --scalar-color-3: var(--muted-foreground);
+    --scalar-color-accent: var(--primary);
+
+    --scalar-background-1: var(--background);
+    --scalar-background-2: var(--card);
+    --scalar-background-3: var(--accent);
+    --scalar-background-accent: color-mix(in srgb, var(--primary) 12%, transparent);
+
+    --scalar-border-color: var(--border);
+
+    --scalar-radius: calc(var(--radius) - 0.25rem);
+    --scalar-radius-lg: var(--radius);
+    --scalar-radius-xl: calc(var(--radius) + 0.25rem);
+
+    /* Sidebar follows the same palette as the docs sidebar */
+    --scalar-sidebar-background-1: var(--background);
+    --scalar-sidebar-color-1: var(--foreground);
+    --scalar-sidebar-color-2: var(--muted-foreground);
+    --scalar-sidebar-border-color: var(--border);
+    --scalar-sidebar-item-hover-background: var(--accent);
+    --scalar-sidebar-item-active-background: var(--accent);
+    --scalar-sidebar-color-active: var(--primary);
+    --scalar-sidebar-search-background: var(--input);
+    --scalar-sidebar-search-border-color: var(--border);
+    --scalar-sidebar-search-color: var(--muted-foreground);
+  }
+</style>
