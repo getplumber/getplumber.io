@@ -21,16 +21,16 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "^7.2.1",
-    "@astrojs/mdx": "^7.0.4",
-    "@astrojs/react": "^6.0.1",
+    "@astrojs/markdown-remark": "^7.2.4",
+    "@astrojs/mdx": "^7.0.7",
+    "@astrojs/react": "^6.0.4",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
-    "@astrojs/vercel": "^11.0.5",
+    "@astrojs/vercel": "^11.0.7",
     "@fontsource-variable/inter": "5.3.0",
     "@fontsource/inter": "5.3.0",
     "@keystatic/astro": "5.2.0",
-    "@keystatic/core": "0.6.4",
+    "@keystatic/core": "0.6.8",
     "@pagefind/default-ui": "1.5.2",
     "@tabler/icons": "3.46.0",
     "@tailwindcss/forms": "0.5.11",
@@ -41,7 +41,7 @@
     "astro": "^7.2.0",
     "astro-auto-import": "0.5.2",
     "astro-expressive-code": "^0.44.1",
-    "astro-icon": "1.1.5",
+    "astro-icon": "1.2.0",
     "astro-seo": "^1.1.0",
     "motion-on-scroll": "^1.0.0",
     "react": "19.2.8",
@@ -52,16 +52,16 @@
     "tw-animate-css": "1.4.0"
   },
   "devDependencies": {
-    "@astrojs/ts-plugin": "^1.10.10",
+    "@astrojs/ts-plugin": "^1.10.11",
     "@eslint/js": "10.0.1",
     "@playform/compress": "0.2.5",
-    "conventional-changelog-conventionalcommits": "^10.2.1",
-    "eslint": "10.8.1",
+    "conventional-changelog-conventionalcommits": "^10.4.0",
+    "eslint": "10.9.0",
     "eslint-plugin-astro": "3.1.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-prettier": "5.5.6",
     "eslint-plugin-simple-import-sort": "14.0.0",
-    "globals": "17.9.0",
+    "globals": "17.11.0",
     "lodash.debounce": "4.0.8",
     "lodash.throttle": "4.1.1",
     "pagefind": "1.5.2",
@@ -69,7 +69,7 @@
     "prettier-plugin-tailwindcss": "0.8.1",
     "semantic-release": "^25.0.9",
     "sharp-ico": "^0.1.5",
-    "typescript-eslint": "8.66.0"
+    "typescript-eslint": "8.67.0"
   },
   "//": "overrides note: @semantic-release/npm is stubbed with @semantic-release/error because this site never publishes to npm, the plugin is not in .releaserc.json, and its `npm` dependency bundles vulnerable tar/brace-expansion copies that overrides cannot patch. Remove the stub if npm publishing is ever needed.",
   "overrides": {
@@ -82,7 +82,7 @@
     "chokidar": "^5.0.0",
     "lodash": "^4.17.22",
     "minimatch": "^10.2.1",
-    "eslint": "10.8.1",
+    "eslint": "10.9.0",
     "eslint-plugin-jsx-a11y": {
       "minimatch": "3.1.5"
     },
