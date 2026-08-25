@@ -8,6 +8,8 @@
   "overrides": {
     "@tootallnate/once": "^2.0.0",
     "ajv": "^8.20.0",
+    "fast-uri": "^3.1.5",
+    "ip-address": "^10.3.1",
     "sandbox": "npm:noop2@^2.0.0",
     "js-yaml": "^4.3.0",
     "minimatch": "^10.2.1",
