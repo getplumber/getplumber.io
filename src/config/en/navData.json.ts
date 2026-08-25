@@ -13,16 +13,7 @@ import { type navItem } from "../types/configDataTypes";
 const navConfig: navItem[] = [
   {
     text: "Docs",
-    megaMenuColumns: [
-      {
-        title: "Documentation",
-        items: [
-          { text: "Plumber Score", link: "/docs/plumber-score", icon: "tabler/award" },
-          { text: "Platform", link: "/docs/getting-started", icon: "tabler/file-text" },
-          { text: "Open Source CLI", link: "/docs/cli", icon: "tabler/terminal-2" },
-        ],
-      },
-    ],
+    link: "/docs/getting-started",
   },
   {
     text: "Blog",

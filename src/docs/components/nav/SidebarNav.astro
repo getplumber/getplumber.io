@@ -237,39 +237,44 @@ if (sidebarTabs) {
 }
 
 // Group docs by their top-level directory
-const docsBySection = sectionFilteredDocs.reduce(
-  (acc, doc) => {
-    // Get the top-level directory from the doc.id
-    const [section] = doc.id.split("/");
-    if (!acc[section]) {
-      acc[section] = [];
-    }
+// Skip docs hidden from the sidebar nav (they still build; used for pages aliased into another tab)
+const docsBySection = sectionFilteredDocs
+  .filter((doc) => doc.data.sidebar?.hidden !== true)
+  .reduce(
+    (acc, doc) => {
+      // Get the top-level directory from the doc.id
+      const [section] = doc.id.split("/");
+      if (!acc[section]) {
+        acc[section] = [];
+      }
 
-    acc[section].push({
-      contentId: doc.id,
-      text: doc.data.sidebar?.label ? doc.data.sidebar.label : doc.data.title,
-      link: `/${docsRoute}/${doc.id}`,
-      order: doc.data.sidebar?.order,
-      indent: resolveSidebarIndent(doc, section),
-      badge: doc.data.sidebar?.badge,
-      icon: doc.data.sidebar?.icon,
-    });
-    return acc;
-  },
-  {} as Record<
-    string,
-    Array<{
-      contentId: string;
-      text: string;
-      link: string;
-      order?: number;
-      indent?: boolean;
-      label?: string;
-      badge?: { text: string; variant: "tip" | "caution" | "danger" | "info" };
-      icon?: string;
-    }>
-  >,
-);
+      acc[section].push({
+        contentId: doc.id,
+        text: doc.data.sidebar?.label ? doc.data.sidebar.label : doc.data.title,
+        link: `/${docsRoute}/${doc.id}`,
+        order: doc.data.sidebar?.order,
+        grouped: doc.data.sidebar?.grouped,
+        indent: resolveSidebarIndent(doc, section),
+        badge: doc.data.sidebar?.badge,
+        icon: doc.data.sidebar?.icon,
+      });
+      return acc;
+    },
+    {} as Record<
+      string,
+      Array<{
+        contentId: string;
+        text: string;
+        link: string;
+        order?: number;
+        grouped?: boolean;
+        indent?: boolean;
+        label?: string;
+        badge?: { text: string; variant: "tip" | "caution" | "danger" | "info" };
+        icon?: string;
+      }>
+    >,
+  );
 
 // Get ordered section IDs from the current tab sections and create a Map for faster lookups
 const orderedSectionIds = currentTabSections.map((section) => section.id);
@@ -295,6 +300,20 @@ const sections = Object.keys(docsBySection).sort((a, b) => {
 // Sort docs within each section
 for (const section of sections) {
   docsBySection[section].sort((a, b) => compareSidebarItems(a, b, currLocale));
+}
+
+// Consecutive sections sharing a `group` render nested under one bold group
+// heading (e.g. Platform > Installation / Usage); others render standalone
+type SidebarRenderEntry = { group?: string; ids: string[] };
+const renderEntries: SidebarRenderEntry[] = [];
+for (const id of sections) {
+  const group = getSectionById(id, sectionId, currLocale)?.group;
+  const last = renderEntries[renderEntries.length - 1];
+  if (group && last?.group === group) {
+    last.ids.push(id);
+  } else {
+    renderEntries.push({ group, ids: [id] });
+  }
 }
 ---
 
@@ -341,12 +360,95 @@ for (const section of sections) {
   {/* Section Content */}
   <div id={`${sectionId}-content`} role="tabpanel">
     {
-      sections.map((section) => (
+      renderEntries.map((entry) => {
+        if (entry.group) {
+          return (
+            <div class="mb-8">
+              <h2 class="mb-2 text-lg font-semibold md:text-base">{entry.group}</h2>
+              <div class="border-border ml-0.5 space-y-5 border-l pl-3">
+                {entry.ids.map((section) => {
+                  // Pages marked grouped:false lift out of the section's sub-list
+                  // and render as direct links at the group level, placed before
+                  // or after the sub-list according to their sidebar order
+                  const all = docsBySection[section];
+                  const inner = all.filter((d) => d.grouped !== false);
+                  const minInner = Math.min(...inner.map((d) => d.order ?? Infinity));
+                  const pre = all.filter(
+                    (d) => d.grouped === false && (d.order ?? Infinity) < minInner,
+                  );
+                  const post = all.filter(
+                    (d) => d.grouped === false && (d.order ?? Infinity) >= minInner,
+                  );
+                  const renderLifted = (docs: typeof all) => (
+                    <ul class="space-y-2">
+                      {docs.map((doc) => (
+                        <SidebarLink
+                          link={doc.link}
+                          text={doc.text}
+                          badge={doc.badge}
+                          icon={doc.icon}
+                          highlightDescendants={doc.contentId === "use-plumber/issues"}
+                        />
+                      ))}
+                    </ul>
+                  );
+                  return (
+                    <div class="space-y-5">
+                      {pre.length > 0 && renderLifted(pre)}
+                      {inner.length > 0 && (
+                        <div>
+                          <h3 class="text-foreground mb-2 text-base font-medium md:text-sm">
+                            {getSectionTitle(section, sectionId, currLocale)}
+                          </h3>
+                          <ul class="border-border ml-0.5 space-y-2 border-l pl-3">
+                            {inner.map((doc) => (
+                              <SidebarLink
+                                link={doc.link}
+                                text={doc.text}
+                                indent={doc.indent}
+                                badge={doc.badge}
+                                icon={doc.icon}
+                                highlightDescendants={doc.contentId === "use-plumber/issues"}
+                              />
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {post.length > 0 && renderLifted(post)}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        }
+
+        const section = entry.ids[0];
+        const sectionNavLinks = getSectionById(section, sectionId, currLocale)?.navLinks ?? [];
+        // A section with a single page and no extra links collapses to one
+        // link line labeled with the section title (no heading + duplicate)
+        if (docsBySection[section].length === 1 && sectionNavLinks.length === 0) {
+          const doc = docsBySection[section][0];
+          return (
+            <div class="mb-8">
+              <ul class="space-y-2">
+                <SidebarLink
+                  link={doc.link}
+                  text={getSectionTitle(section, sectionId, currLocale)}
+                  badge={doc.badge}
+                  icon={doc.icon}
+                  emphasis
+                />
+              </ul>
+            </div>
+          );
+        }
+        return (
         <div class="mb-8">
           <h2 class="mb-2 text-lg font-semibold md:text-base">
             {getSectionTitle(section, sectionId, currLocale)}
           </h2>
-          <ul class="space-y-2">
+          <ul class="border-border ml-0.5 space-y-2 border-l pl-3">
             {docsBySection[section].map((doc) => (
               <SidebarLink
                 link={doc.link}
@@ -357,7 +459,7 @@ for (const section of sections) {
                 highlightDescendants={doc.contentId === "use-plumber/issues"}
               />
             ))}
-            {getSectionById(section, sectionId, currLocale)?.navLinks?.map((item) => {
+            {sectionNavLinks.map((item) => {
               const link = getLocalizedRoute(
                 currLocale,
                 resolveSharedDocsHref(item.href, sectionId),
@@ -376,7 +478,8 @@ for (const section of sections) {
             })}
           </ul>
         </div>
-      ))
+        );
+      })
     }
   </div>
 

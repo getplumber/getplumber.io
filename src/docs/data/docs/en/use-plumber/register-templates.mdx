@@ -1,9 +1,9 @@
 ---
-title: CI/CD templates
-description: Learn how to register and manage CI/CD templates in Plumber.
+title: Import CI/CD templates
+description: Learn how to register and import CI/CD templates into your Plumber catalog.
 sidebar:
   order: 3
-  label: Register Templates
+  label: Import CI/CD templates
 ---
 
 <Aside variant="info">
@@ -30,7 +30,7 @@ sourced from a git repository.
 
 2. In this repository:
     <Steps>
-    1. Create [R2 file](#%EF%B8%8F-template-r2-file)
+    1. Create [`.r2.yml` file](#️-template-r2yml-file)
     2. Create [CI/CD configuration](#%EF%B8%8F-template-cicd-conf)
     3. _(optional)_ Create [documentation file](#-template-documentation)
     4. _(optional)_ Setup [versioning](#-template-versioning)
@@ -39,7 +39,7 @@ sourced from a git repository.
 
 3. Login on Plumber
 
-4. In `CI/CD Catalog > Import R2 templates` page: import your repository
+4. In `CI/CD Catalog > Import templates` page: import your repository
 
 </Steps>
 
@@ -67,9 +67,9 @@ sourced from a git repository.
 
 </Steps>
 
-## ⚙️ Template R2 file
+## ⚙️ Template `.r2.yml` file
 
-Each template on Plumber must have its own R2 file. It defines template
+Each template on Plumber must have its own `.r2.yml` file. It defines template
 metadata.
 
 - It can be located anywhere in a repository
@@ -78,7 +78,7 @@ metadata.
 - The file name is the template name
 
 <Aside variant="tip">
-**Example of R2 file `docker_build.r2.yml` for the template `docker_build`**
+**Example of `.r2.yml` file `docker_build.r2.yml` for the template `docker_build`**
 
 ```yaml
 files:
@@ -117,7 +117,7 @@ repository
 <Aside variant="info">
 **(*) Relative path**
 
-Path of files is relative from the location of the R2 file
+Path of files is relative from the location of the `.r2.yml` file
 </Aside>
 
 <Aside variant="info">
@@ -272,9 +272,7 @@ in Plumber:
 
 In order to **create automatically versioning** tags for your templates, you
 have to create a [changelog file](#-template-changelog) for each templates and
-add the template
-[template_release](https://r2devops.io/catalog/gitlab/r2devops/hub/template_release) in your
-repository CI/CD configuration.
+add the `template_release` template in your repository CI/CD configuration.
 
 ## 🏗 Template changelog
 

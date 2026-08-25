@@ -3,7 +3,7 @@ title: Docker compose
 description: This page describes how to set up a self-managed instance of Plumber using Docker-compose.
 sidebar:
   order: 2
-  label: ➡️ Docker Compose
+  label: Docker Compose
 ---
 
 This page describes how to set up a self-managed instance of Plumber using
@@ -64,7 +64,7 @@ Run the interactive installer on your server:
 curl -fsSL https://raw.githubusercontent.com/getplumber/platform/main/install.sh | bash
 ```
 
-Choose **"Production"** when prompted. The installer will guide you through:
+Choose option **1 (Production)**: type `1` and press Enter. The installer will guide you through:
 
 1. **Domain name** configuration
 2. **GitLab OIDC** application setup
@@ -158,10 +158,12 @@ GITLAB_OAUTH2_CLIENT_SECRET="<application-secret>"
 Generate random secrets and set them in your `.env` file:
 
 ```bash
-sed -i."" "s/^SECRET_KEY=.*/SECRET_KEY=\"$(openssl rand -hex 32)\"/" .env
-sed -i."" "s/^JOBS_DB_PASSWORD=.*/JOBS_DB_PASSWORD=\"$(openssl rand -hex 16)\"/" .env
-sed -i."" "s/^JOBS_REDIS_PASSWORD=.*/JOBS_REDIS_PASSWORD=\"$(openssl rand -hex 16)\"/" .env
+perl -pi -e "s/^SECRET_KEY=.*/SECRET_KEY=\"$(openssl rand -hex 32)\"/" .env
+perl -pi -e "s/^JOBS_DB_PASSWORD=.*/JOBS_DB_PASSWORD=\"$(openssl rand -hex 16)\"/" .env
+perl -pi -e "s/^JOBS_REDIS_PASSWORD=.*/JOBS_REDIS_PASSWORD=\"$(openssl rand -hex 16)\"/" .env
 ```
+
+These commands edit `.env` in place and leave no backup file behind.
 
 #### Step 6: Configure deployment profile
 

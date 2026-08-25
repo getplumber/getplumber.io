@@ -1,116 +1,96 @@
 ---
-title: Plumber Platform
-seoTitle: Get Started with Plumber - CI/CD Security Platform
-description: "Get started with the Plumber Platform: connect GitHub or GitLab, audit your CI/CD pipelines for security gaps, and remediate drift continuously."
+title: Get your first Plumber Score
+seoTitle: Get Started with Plumber - Scan your CI/CD in 2 minutes
+description: "Install the open-source Plumber CLI and get a security score for your GitHub Actions or GitLab CI/CD pipelines in under two minutes."
 sidebar:
   order: 1
-  label: Introduction
+  label: Getting Started
 ---
-import DocsFaq from "@/docs/components/mdx-components/DocsFaq.astro";
 
-Plumber is a CI/CD security platform that continuously maps, audits, and
-remediates security gaps in your GitHub Actions workflows and GitLab CI/CD
-pipelines, so you stay ready for ISO 27001, NIS2, DORA, and SOC 2 audits.
+Plumber scans your CI/CD pipelines for security problems and grades them from
+<span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to
+<span class="font-bold text-red-400 dark:text-red-300">E</span>. Two steps to your
+first score:
 
-## Secure Your CI/CD Pipelines
+## 1. Install
 
-**CI/CD pipelines are the backbone of your software supply chain, and
-ensuring their security is a challenging and time-consuming
-task. Plumber automates this process for you.**
+<Tabs defaultValue="macos">
+  <TabsList>
+    <TabsTrigger value="macos">macOS</TabsTrigger>
+    <TabsTrigger value="linux">Linux</TabsTrigger>
+  </TabsList>
+  <TabsContent value="macos">
+    ```bash
+    brew tap getplumber/plumber
+    brew install plumber
+    ```
+  </TabsContent>
+  <TabsContent value="linux">
+    ```bash
+    brew tap getplumber/plumber
+    brew install plumber
+    ```
+  </TabsContent>
+</Tabs>
 
-- Your CI/CD mapped and fully monitored
-- 90% less manual effort to keep CI/CD secure
-- Always audit-ready
+No Homebrew? [All install methods →](/docs/cli/installation)
 
-{/* ## What we're building, and why it matters
+## 2. Get your first score
 
-<iframe
-  width="560"
-  height="315"
-  src="https://www.youtube.com/embed/kjqPoTq8QAA"
-  title="YouTube video player"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-  allowFullScreen
-  style={{maxWidth: '100%', height: '315px'}}
-></iframe> */}
+Plumber needs to be authenticated with your provider:
 
-## Quick Installation Guide
+- **GitHub** ([details](/docs/cli/github#authentication)):
+  - already logged in with the `gh` CLI? Nothing to do, Plumber finds it automatically
+  - otherwise set `GH_TOKEN`
+- **GitLab**: set `GITLAB_TOKEN` ([details](/docs/cli/gitlab#authentication))
 
+Then run from any repo that has GitHub Actions workflows or a `.gitlab-ci.yml`:
 
-<div class="not-content grid gap-6 sm:grid-cols-2 my-8">
-  <div class="bg-card text-card-foreground rounded-2xl border shadow-sm hover:border-primary/50 transition-colors">
+```bash
+cd path/to/your/repo
+plumber analyze
+```
+
+## Go further
+
+<div class="not-content grid gap-6 min-[1230px]:grid-cols-2 my-8">
+  <div class="group relative rounded-2xl border bg-card text-card-foreground shadow-sm transition-colors hover:border-primary/50">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight">🐳 Docker Compose</div>
-      <div class="text-muted-foreground text-sm">Production-ready deployment with automatic Let's Encrypt or custom certificates.</div>
-      <div class="pt-2">
-        <a href="/docs/installation/docker-compose" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
+      <div class="text-xl font-semibold tracking-tight text-card-foreground">Gate your CI</div>
+      <div class="text-muted-foreground text-sm">Add Plumber to GitHub Actions or the GitLab CI component and block pipelines below your minimum score.</div>
+      <div class="pt-2 text-primary text-base font-medium flex gap-4">
+        <a href="/docs/cli/github" class="hover:underline after:absolute after:inset-0 whitespace-nowrap">GitHub Actions →</a>
+        <a href="/docs/cli/gitlab" class="hover:underline relative whitespace-nowrap">GitLab CI →</a>
       </div>
     </div>
   </div>
-
-  <div class="bg-card text-card-foreground rounded-2xl border shadow-sm hover:border-primary/50 transition-colors">
+  <a href="/docs/plumber-score" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight">🚀 Kubernetes</div>
-      <div class="text-muted-foreground text-sm">Enterprise-grade deployment on Kubernetes using Helm charts.</div>
-      <div class="pt-2">
-        <a href="/docs/installation/kubernetes" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
+      <div class="text-xl font-semibold tracking-tight text-card-foreground">Understand your score</div>
+      <div class="text-muted-foreground text-sm">How the A to E grade and the points system work.</div>
+      <div class="pt-2 text-primary text-base font-medium group-hover:underline">Plumber Score →</div>
+    </div>
+  </a>
+  <div class="group relative rounded-2xl border bg-card text-card-foreground shadow-sm transition-colors hover:border-primary/50">
+    <div class="flex flex-col space-y-2 p-6">
+      <div class="text-xl font-semibold tracking-tight text-card-foreground">Tune the controls</div>
+      <div class="text-muted-foreground text-sm">One .plumber.yaml that extends the baseline with just what you change. See every control in the catalog.</div>
+      <div class="pt-2 text-primary text-base font-medium flex gap-4">
+        <a href="/docs/cli/configuration" class="hover:underline after:absolute after:inset-0 whitespace-nowrap">Configuration →</a>
+        <a href="/docs/cli/controls" class="hover:underline relative whitespace-nowrap">Controls catalog →</a>
       </div>
     </div>
   </div>
-
-  <div class="bg-card text-card-foreground rounded-2xl border shadow-sm hover:border-primary/50 transition-colors">
+  <a href="/docs/installation" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight">⏱️ Docker Compose Local</div>
-      <div class="text-muted-foreground text-sm">Quick local setup for testing and development on your computer.</div>
-      <div class="pt-2">
-        <a href="/docs/installation/docker-compose-local" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
-      </div>
+      <div class="text-xl font-semibold tracking-tight text-card-foreground">Monitor continuously</div>
+      <div class="text-muted-foreground text-sm">The self-hosted Plumber Platform: dashboards, issue lifecycle, team roles, always-on auditing.</div>
+      <div class="pt-2 text-primary text-base font-medium group-hover:underline">Platform installation →</div>
     </div>
-  </div>
-
-  <div class="bg-card text-card-foreground rounded-2xl border shadow-sm hover:border-primary/50 transition-colors">
-    <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight">🕸 Podman</div>
-      <div class="text-muted-foreground text-sm">Community-supported deployment using Podman containers (production and local).</div>
-      <div class="pt-2">
-        <a href="/docs/installation/podman" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
-      </div>
-    </div>
-  </div>
+  </a>
 </div>
 
+## Community & support
 
-## Frequently Asked Questions
-
-<DocsFaq
-  items={[
-    {
-      question: "Do I need the open-source CLI to use the Platform?",
-      answer: `No. The Platform connects directly to your GitLab or GitHub organization and
-        audits projects on its own. The <a href="/docs/cli">open-source CLI</a> uses the same
-        controls and is handy for scanning a single repository locally or in a CI job.`,
-    },
-    {
-      question: "Which providers does Plumber support?",
-      answer: `Plumber audits <a href="/docs/cli/gitlab">GitLab CI/CD pipelines</a> (self-managed
-        and gitlab.com) and <a href="/docs/cli/github">GitHub Actions workflows</a>, with a
-        shared catalog of <a href="/docs/use-plumber/controls">security controls</a> across
-        both providers.`,
-    },
-    {
-      question: "Where should I start?",
-      answer: `Pick an <a href="/docs/installation">installation method</a> (Docker Compose,
-        Kubernetes, or Podman), connect your first group or organization, and review the
-        issues raised by your first audit. Each issue links to a step-by-step remediation
-        guide.`,
-    },
-  ]}
-/>
-
-## Community
-- We love talking with our users. Join our [Discord
-  community](/discord)
-
-## Support
-- Open a ticket by sending an email to [help@plumber.helpscoutapp.com](mailto:help@plumber.helpscoutapp.com)
-- Ask help to community on [Discord Server](/discord)
+- Join our [Discord community](/discord)
+- Open a ticket: [help@plumber.helpscoutapp.com](mailto:help@plumber.helpscoutapp.com)

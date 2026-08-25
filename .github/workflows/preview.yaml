@@ -13,6 +13,8 @@ on:
 
 permissions:
   contents: read
+  # Lets the deploy job post the preview URL on the branch's open PR
+  pull-requests: write
 
 # One preview deploy per branch: a newer push supersedes (cancels) the
 # in-flight deploy so a stale commit can never finish last and win.
@@ -53,4 +55,27 @@ jobs:
         run: .github/vercel/node_modules/.bin/vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
-        run: .github/vercel/node_modules/.bin/vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        id: deploy
+        run: |
+          URL=$(.github/vercel/node_modules/.bin/vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Preview: $URL"
+
+      # Surface the preview URL on the PR itself (sticky: edits the bot's
+      # last comment on later pushes instead of stacking new ones). The
+      # workflow triggers on push, so the PR is looked up from the branch.
+      - name: Comment preview URL on PR
+        if: ${{ steps.deploy.outputs.url != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.deploy.outputs.url }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          PR=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -n "$PR" ] && [ "$PR" != "null" ]; then
+            BODY="🔍 **Vercel preview** for \`$GITHUB_SHA\`: $URL"
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --edit-last --body "$BODY" \
+              || gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+          else
+            echo "No open PR for branch $BRANCH; skipping comment."
+          fi

@@ -5,8 +5,6 @@ description: "Scan GitLab CI/CD pipelines for security with the open-source Plum
 sidebar:
   label: "GitLab"
   order: 4
-  indent: true
-  icon: "tabler/brand-gitlab"
 section: "api"
 ---
 import { Icon } from "astro-icon/components";
@@ -16,7 +14,7 @@ Plumber scans your **GitLab CI/CD pipelines** and repository configuration for s
 - Unverified remote scripts
 - Weakened security jobs
 - Missing branch protection
-- [More…](/docs/use-plumber/controls?p=gitlab)
+- [More…](/docs/cli/controls?p=gitlab)
 
 It turns them into a [Plumber Score](/docs/plumber-score) from <span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to <span class="font-bold text-red-400 dark:text-red-300">E</span> that can block pipelines below a minimum score you set.
 
@@ -99,6 +97,13 @@ Two ways to scan a GitLab project:
          score_push: false # if "true": publish a public Plumber Score badge
    ```
 
+   <Aside variant="info">
+     The pinned commit SHAs in these snippets refer to
+     [gitlab.com/getplumber/plumber](https://gitlab.com/getplumber/plumber), the GitLab mirror
+     that hosts the CI component. The mirror has its own commit history: its SHAs are
+     intentionally different from the GitHub repository's SHAs for the same release tag.
+   </Aside>
+
    Get the latest version from the [CI/CD Catalog](https://gitlab.com/explore/catalog/getplumber/plumber).
 
 4. **Run your pipeline**
@@ -107,7 +112,7 @@ Two ways to scan a GitLab project:
 
 5. **Optionally tune the policy with a `.plumber.yaml`**
 
-   Without one, the component runs Plumber's built-in default policy, so you can stop here. To tune the policy, the recommended way is a small overlay that [extends Plumber's baseline](/docs/cli/reference#configuration) and lists only what you change:
+   Without one, the component runs Plumber's built-in default policy, so you can stop here. To tune the policy, the recommended way is a small overlay that [extends Plumber's baseline](/docs/cli/configuration) and lists only what you change:
 
    ```bash
    plumber config generate --overlay
@@ -125,7 +130,7 @@ Two ways to scan a GitLab project:
            - dev
    ```
 
-   `plumber config generate` (without `--overlay`) writes the full self-contained template instead. See the three configuration modes in the [CLI Reference](/docs/cli/reference#configuration).
+   `plumber config generate` (without `--overlay`) writes the full self-contained template instead. See the three configuration modes in the [CLI Configuration](/docs/cli/configuration) guide.
 </Steps>
 
 ### Hosting on self-hosted GitLab
@@ -268,9 +273,10 @@ The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-co
 | `output_file` | `plumber-report.json` | Path to write JSON results |
 | `pbom_file` | `plumber-pbom.json` | Path to write the PBOM |
 | `pbom_cyclonedx_file` | `plumber-cyclonedx-sbom.json` | Path to write the CycloneDX SBOM (auto-uploaded as a GitLab report) |
+| `glsast_file` | `gl-sast-report.json` | Write a GitLab SAST report and upload it via `artifacts:reports:sast`, feeding the Security Dashboard and the MR security widget |
 | `print_output` | `true` | Print the human-readable analysis report in the job log. Does not affect log verbosity (`verbose`) or file outputs |
 | `stage` | `.pre` | Pipeline stage for the job. `.pre` runs before all other stages but requires at least one job in a regular stage. If Plumber is the only job, set this to `test` or another stage |
-| `image` | `getplumber/plumber:0.1` | Docker image to use |
+| `image` | digest-pinned `getplumber/plumber` image tracking the latest release | Docker image to use |
 | `allow_failure` | `false` | Allow the job to fail without blocking |
 | `verbose` | `false` | Enable debug logging (`level=debug` lines) for troubleshooting. Independent of `print_output` |
 | `mr_comment` | `false` | Post/update a Plumber comment on the merge request (requires `api` scope) |
@@ -291,7 +297,7 @@ The component resolves your configuration in priority order:
 2. **`.plumber.yaml` in repo root** uses your repo's config file.
 3. **No config found** uses the [default](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) embedded in the container.
 
-To author one, run `plumber config generate --overlay` for a minimal file that [extends Plumber's baseline](/docs/cli/reference#configuration) (recommended), or `plumber config generate` for the full self-contained [default config](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) (see the [CLI Reference](/docs/cli/reference#command-reference)). The CycloneDX SBOM the component writes is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx).
+To author one, run `plumber config generate --overlay` for a minimal file that [extends Plumber's baseline](/docs/cli/configuration) (recommended), or `plumber config generate` for the full self-contained [default config](https://github.com/getplumber/plumber/blob/main/defaultConfig/.plumber.yaml) (see the [CLI Reference](/docs/cli/reference#command-reference)). The CycloneDX SBOM the component writes is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx).
 
 
 ## Authentication
@@ -316,6 +322,12 @@ plumber analyze
 
 # Explicit project
 plumber analyze --gitlab-url https://gitlab.com --project mygroup/myproject
+```
+
+Plumber auto-detects the provider from your git remote. If your repo's remote does not match the CI provider you want to audit (mirrors, migrations, repos hosted on one platform but running CI on another), force it:
+
+```bash
+plumber analyze --provider gitlab
 ```
 
 ### Self-Hosted GitLab
@@ -356,7 +368,7 @@ plumber analyze \
   --project mygroup/myproject \
   --config .plumber.yaml \
   --output results.json \
-  --print false
+  --print=false
 ```
 
 ### Output
@@ -371,7 +383,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ### Configuration
 
-The `gitlab.controls:` section of a schema v2 `.plumber.yaml`. With `extends: plumber:default` on top, this file is an [overlay](/docs/cli/reference#configuration): every control keeps its baseline setting and you list only what you change. Without `extends`, the file is the complete policy and a control left out does not run.
+The `gitlab.controls:` section of a schema v2 `.plumber.yaml`. With `extends: plumber:default` on top, this file is an [overlay](/docs/cli/configuration): every control keeps its baseline setting and you list only what you change. Without `extends`, the file is the complete policy and a control left out does not run.
 
 ```yaml
 extends: plumber:default
@@ -541,7 +553,7 @@ include:
       mr_comment: true  # Requires api scope on token
 ```
 
-![Merge request comment showing Plumber results](../img/merge-request-comments.png)
+{/* TODO(follow-up): re-add a screenshot regenerated from a current build; tracked in PR body */}
 
 **Features:**
 - Shows the Plumber letter-score badge (A–E) and a short score line; with `score_point`, adds the full points breakdown
@@ -600,7 +612,7 @@ The complete, always-current catalogs and command reference:
     </div>
   </a>
 
-  <a href="/docs/use-plumber/controls?p=gitlab" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+  <a href="/docs/cli/controls?p=gitlab" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
     <div class="flex flex-col space-y-2 p-6">
       <div class="text-lg font-semibold tracking-tight text-card-foreground">
         <Icon name="tabler/list-check" size="22px" class="inline align-text-bottom mr-1" /> Controls
@@ -637,6 +649,7 @@ The complete, always-current catalogs and command reference:
 | Two pipelines on the same push | Add [`workflow:rules`](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines) to prevent duplicate branch + MR pipelines (see [Run with the GitLab CI component](#run-with-the-gitlab-ci-component)) |
 | Component job skipped on branch | The component runs only on merge request events, the default branch, and tags |
 | Score badge not published | `score_push` publishes on every CI run, but the **public badge** only reflects your default branch (the service filters by the OIDC branch claim; MR/tag pipelines publish without touching it). A local run never publishes. The push warns, never fails, when the OIDC id-token is unavailable. See [Plumber Score](/docs/plumber-score) |
+| Scan targets the wrong provider | The git remote points elsewhere; add `--provider gitlab` |
 
 <Aside variant="info">
   **Need help?** Open an issue on [GitHub](https://github.com/getplumber/plumber/issues) or join our [Discord](/discord).

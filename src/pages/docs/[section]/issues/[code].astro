@@ -74,6 +74,10 @@ if (!isSharedSection) {
   return Astro.redirect("/404");
 }
 
+// `tabId` only distinguishes the /docs/cli vs /docs/use-plumber URL prefix for
+// docsBase below; it is not a real sidebar tab id (there is only one tab,
+// CLI_DOCS_TAB_ID, since the single-sidebar merge), so the sidebar itself is
+// always given the real tab id further down.
 const tabId = section === CLI_DOCS_PREFIX ? CLI_DOCS_TAB_ID : "main";
 const docsBase = getSharedDocsBasePath(tabId);
 
@@ -343,7 +347,7 @@ const structuredData = {
 <DocsLayoutStandalone
   title={`${defaultPageTitle} (${code}) | Plumber Docs`}
   description={defaultContent.description}
-  sectionId={tabId}
+  sectionId={CLI_DOCS_TAB_ID}
   headings={pageHeadings}
   structuredData={structuredData}
 >
