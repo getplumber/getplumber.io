@@ -336,7 +336,7 @@ export const controlCatalog: Record<
         "Prevents direct push and force-push attacks on protected refs even when half the protection lives in classic Branch Protection and the other half in a Ruleset.",
     },
   },
-  mrApprovalRulesMustHaveAtLeastNApprovals: {
+  mergeRequestApprovalRulesMustRequireMinimumApprovals: {
     gitlab: {
       controlDescription:
         "Verifies that the project merge request approval rules that cover all protected branches have a minimum number of approval requirements.",
@@ -344,15 +344,15 @@ export const controlCatalog: Record<
         "Prevents unreviewed code from being merged, reducing security risks.",
     },
   },
-  mrApprovalSettingsMustBeCompliant: {
+  mergeRequestApprovalSettingsMustBeCompliant: {
     gitlab: {
       controlDescription:
-        "Verifies that MR approval settings are properly configured.",
+        "Verifies that the project's merge request approval settings meet your expectations: who may approve (authors, committers), whether approval rules can be overridden per merge request, whether approving requires re-authentication, and what happens to approvals when a commit is added. Requires GitLab Premium or Ultimate.",
       controlWhyItMatters:
-        "Ensures review and security requirements are enforced.",
+        "Approval settings sit above every approval rule: if authors can approve their own merge requests or approvals survive new commits, the review requirement can be satisfied without anyone reviewing the code that ships.",
     },
   },
-  mrApprovalRuleMustCoverAllProtectedBranches: {
+  mergeRequestApprovalRulesMustCoverAllProtectedBranches: {
     gitlab: {
       controlDescription:
         "Verifies that the protected branches have at least one approval rule.",
@@ -360,7 +360,7 @@ export const controlCatalog: Record<
         "Ensures protected branches cannot bypass review processes.",
     },
   },
-  mrSettingsMustBeCompliant: {
+  mergeRequestSettingsMustBeCompliant: {
     gitlab: {
       controlDescription:
         "Verifies that the project's merge request settings are correct in terms of merge method, resolving differences, squashing, etc.",
@@ -510,6 +510,14 @@ export const controlCatalog: Record<
         "Flags a release or publish job that restores a build cache (`actions/cache`, `actions/cache/restore`, or a `setup-*` action's built-in cache) with a key not scoped to the release ref. Release context is a `release` trigger or a canonical publish action such as `pypa/gh-action-pypi-publish` or `softprops/action-gh-release`.",
       controlWhyItMatters:
         "Actions caches are shared across branches with a permissive fallback, so a PR run on any feature branch can populate the same key a release job later restores, injecting compromised artefacts into the published package. Weave `github.ref_name` or `github.sha` into the key, or disable caching on publish paths. The May 2026 TanStack attack used this exact fallback.",
+    },
+  },
+  checkoutMustNotPersistCredentials: {
+    github: {
+      controlDescription:
+        "Flags an `actions/checkout` step that does not set `persist-credentials: false`, which leaves the GITHUB_TOKEN written into the cloned repository's `.git/config`. The finding is graded by whether the token can actually leave the job: ISSUE-307 (low) when the credential merely persists, ISSUE-310 (high) when a later `actions/upload-artifact` step uploads a `.git`-inclusive path and packs the token into a downloadable artifact.",
+      controlWhyItMatters:
+        "A persisted credential on its own dies with the job, so it is hygiene rather than an exposure. It becomes a real leak the moment the workspace root is uploaded as an artifact: artifacts are downloadable, anonymously on public repositories, and the token comes with them. This is the ArtiPACKED pattern. Either fix closes it \u2014 `persist-credentials: false`, or a scoped upload path such as `dist/` instead of `.`.",
     },
   },
 };
@@ -760,7 +768,7 @@ github:
       category: "CI/CD Variables",
       severity: "medium",
       fixDuration: "quick",
-      productScope: "platform",
+      productScope: "all",
       controlName: "CI/CD variables must be protected",
       controlConfigKey: "cicdVariablesMustBeProtected",
       description:
@@ -805,7 +813,7 @@ github:
       category: "CI/CD Variables",
       severity: "medium",
       fixDuration: "quick",
-      productScope: "platform",
+      productScope: "all",
       controlName: "CI/CD variables must be masked",
       controlConfigKey: "cicdVariablesMustBeMasked",
       description:
@@ -1357,7 +1365,7 @@ branchMustBeProtected:
       category: "Security Source",
       severity: "critical",
       fixDuration: "quick",
-      productScope: "platform",
+      productScope: "all",
       controlName: "Project must have a security policy source",
       controlConfigKey: "projectMustHaveSecurityPolicySource",
       description:
@@ -1437,9 +1445,9 @@ jobs:
       category: "Access and Authorization",
       severity: "high",
       fixDuration: "quick",
-      productScope: "platform",
-      controlName: "MR approval rules must have at least N approvals required",
-      controlConfigKey: "mrApprovalRulesMustHaveAtLeastNApprovals",
+      productScope: "all",
+      controlName: "MR approval rules must require a minimum number of approvals",
+      controlConfigKey: "mergeRequestApprovalRulesMustRequireMinimumApprovals",
       description:
         "The merge request approval rule is configured with fewer approvers than the minimum required by your Policy controls.",
       impact:
@@ -1461,7 +1469,7 @@ jobs:
 #   Approvals required: 2   ← Meets minimum requirement`,
       goodExampleCaption: "Approval rule meets the minimum number of required approvals.",
       tips: [
-        "Set the minimum in your Plumber Platform policy under `mrApprovalRulesMustHaveAtLeastNApprovals.minimumApprovals`.",
+        "Set the minimum in `.plumber.yaml` under `mergeRequestApprovalRulesMustRequireMinimumApprovals.minimumRequiredApprovals`.",
         "Consider requiring different approval counts for different branch patterns (e.g., more for `main`).",
         "Combine with code owner approvals for critical areas of your codebase.",
       ],
@@ -1476,15 +1484,15 @@ jobs:
       category: "Access and Authorization",
       severity: "high",
       fixDuration: "quick",
-      productScope: "platform",
+      productScope: "all",
       controlName: "MR approval settings must be compliant",
-      controlConfigKey: "mrApprovalSettingsMustBeCompliant",
+      controlConfigKey: "mergeRequestApprovalSettingsMustBeCompliant",
       description:
-        "The current merge request approval settings do not align with your Policy controls.",
+        "The project's merge request approval settings do not meet the expectations you configured. Each expectation is optional: a setting you leave unset is not checked.",
       impact:
-        "Misconfigured approval settings may lead to unreviewed code being merged, increasing the risk of introducing bugs, security vulnerabilities, or changes that violate your policy.",
+        "Approval settings apply above every approval rule. When authors or committers can approve, when rules can be overridden inside a merge request, or when approvals survive new commits, the review requirement can be satisfied without anyone reviewing the code that actually ships.",
       remediation:
-        "Update the merge request approval settings of the project to match your Policy controls.",
+        "Update the project's approval settings under Settings > Merge requests to match the expectations in your configuration.",
       badExample: `# GitLab project settings — ❌ Approval settings violate the policy
 # Settings > Merge requests > Approvals:
 #
@@ -1503,8 +1511,10 @@ jobs:
 #   Remove all approvals when commits are added: true`,
       goodExampleCaption: "Approval settings prevent self-approval and reset on new commits.",
       tips: [
+        "Merge request approval settings require GitLab Premium or Ultimate. On Free the API returns defaults rather than an error, so the control cannot tell the tier apart from a genuinely unlocked project. It ships disabled for that reason. Enable it only on Premium or Ultimate projects.",
+        "Set your expectations in `.plumber.yaml` under `mergeRequestApprovalSettingsMustBeCompliant`. Each one is optional: `preventApprovalByAuthor`, `preventApprovalsByCommitters`, `preventEditingApprovalRulesInMR` and `requireReAuthToApprove` are only checked when set to `true`.",
+        "`behaviorWhenCommitIsAdded` is a minimum on the ladder `keep_approvals` < `remove_approvals_by_code_owners` < `remove_all_approvals`, so a stricter project than you asked for still passes.",
         "Enable 'Prevent approval by author' to ensure code is reviewed by someone other than the author.",
-        "'Remove all approvals when commits are added' ensures the latest changes are always reviewed.",
         "These settings can also be enforced at the group level for consistency.",
       ],
       relatedCodes: ["ISSUE-502", "ISSUE-504"],
@@ -1518,9 +1528,9 @@ jobs:
       category: "Access and Authorization",
       severity: "high",
       fixDuration: "quick",
-      productScope: "platform",
-      controlName: "An MR approval rule must be defined to cover all protected branches",
-      controlConfigKey: "mrApprovalRuleMustCoverAllProtectedBranches",
+      productScope: "all",
+      controlName: "MR approval rules must cover all protected branches",
+      controlConfigKey: "mergeRequestApprovalRulesMustCoverAllProtectedBranches",
       description:
         "There is no merge request approval rule configured in the project that applies to all protected branches.",
       impact:
@@ -1720,9 +1730,9 @@ github:
       category: "Access and Authorization",
       severity: "medium",
       fixDuration: "quick",
-      productScope: "platform",
+      productScope: "all",
       controlName: "MR settings must be compliant",
-      controlConfigKey: "mrSettingsMustBeCompliant",
+      controlConfigKey: "mergeRequestSettingsMustBeCompliant",
       description:
         "The merge request settings in the project do not match the defined configuration, such as incorrect merge methods or merge options.",
       impact:
@@ -4127,7 +4137,7 @@ jobs:
     github: {
       title: "Checkout persists credentials in .git/config",
       category: "CI/CD Secrets",
-      severity: "high",
+      severity: "low",
       fixDuration: "quick",
       productScope: "cli",
       controlName: "Checkout must not persist credentials",
@@ -4135,7 +4145,7 @@ jobs:
       description:
         "A workflow calls `actions/checkout` without `persist-credentials: false`, which leaves the GITHUB_TOKEN bound to `.git/config` for the rest of the job.",
       impact:
-        "A later `actions/upload-artifact` of the checkout directory bundles the credentials inside the artifact zip, visible to anyone who can read the artifact. This is the 'artipacked' leak pattern from 2023.",
+        "On its own this is latent: the token is discarded when the job ends. It becomes a demonstrable leak when a later `actions/upload-artifact` step bundles `.git` into the artifact zip \u2014 that escalation is reported separately as ISSUE-310 (high). The other route, a persisted credential harvested by fork-controlled code, is covered by ISSUE-802 and ISSUE-804.",
       remediation:
         "Set `persist-credentials: false` on every `actions/checkout` step unless you have a specific reason to keep the credentials configured.",
       badExample: `# .github/workflows/build.yml: ❌ Credentials remain in .git/config
@@ -4166,8 +4176,58 @@ jobs:
         "If a subsequent step needs to push back to the repo, configure git credentials explicitly via `git remote set-url origin https://x-access-token:$GH_TOKEN@github.com/...`.",
         "Never upload the entire workspace as an artifact. Always narrow the path.",
       ],
-      status: "roadmap",
-      relatedCodes: ["ISSUE-801", "ISSUE-309"],
+      status: "shipping",
+      relatedCodes: ["ISSUE-310", "ISSUE-801", "ISSUE-309"],
+    },
+  },
+  "ISSUE-310": {
+    code: "ISSUE-310",
+    github: {
+      title: "Persisted checkout credentials packed into an uploaded artifact",
+      category: "CI/CD Secrets",
+      severity: "high",
+      fixDuration: "quick",
+      productScope: "cli",
+      controlName: "Checkout must not persist credentials",
+      controlConfigKey: "checkoutMustNotPersistCredentials",
+      description:
+        "A job runs `actions/checkout` with credential persistence enabled and a later `actions/upload-artifact` step uploads a `.git`-inclusive path \u2014 the workspace root, `.`, or any path naming `.git`.",
+      impact:
+        "The GITHUB_TOKEN written into `.git/config` is packed into the artifact, which is downloadable \u2014 anonymously on public repositories. This is the canonical 'ArtiPACKED' leak: unlike ISSUE-307, the credential does not merely linger, it leaves the job.",
+      remediation:
+        "Set `persist-credentials: false` on the `actions/checkout` step, or upload a scoped path that excludes `.git` (`path: dist/` rather than `path: .`). Either one alone closes it.",
+      badExample: `# .github/workflows/build.yml: \u274c Token shipped inside the artifact
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4   # persist-credentials defaults to true
+      - run: ./build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          path: .   # the workspace root includes .git/config`,
+      badExampleCaption:
+        "Anyone who can download the artifact reads the workflow's GITHUB_TOKEN out of .git/config.",
+      goodExample: `# .github/workflows/build.yml: \u2705 Either fix closes it
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - run: ./build.sh
+      - uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        with:
+          path: dist/   # scoped, no .git`,
+      goodExampleCaption:
+        "No credential in .git/config, and the artifact is scoped to build output.",
+      tips: [
+        "Scoping the upload path is the more durable fix: it also keeps build artifacts free of source history and secrets files.",
+        "If a later step must push back, set the remote URL explicitly with a scoped token rather than relying on the checkout's persisted credential.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-307", "ISSUE-801", "ISSUE-309"],
     },
   },
 
