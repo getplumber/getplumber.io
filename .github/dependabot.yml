@@ -18,6 +18,13 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # 10.3+ requires conventional-changelog-writer@9, which
+      # @semantic-release/release-notes-generator (<= 14.x) does not ship;
+      # bumping it breaks the release job's generateNotes step. Drop this
+      # ignore once release-notes-generator depends on writer 9.
+      - dependency-name: "conventional-changelog-conventionalcommits"
+        versions: [">10.2.1"]
 
   # Isolated deploy tooling (hash-locked Vercel CLI used by the deploy jobs)
   - package-ecosystem: "npm"
