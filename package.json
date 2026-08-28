@@ -55,7 +55,7 @@
     "@astrojs/ts-plugin": "^1.10.11",
     "@eslint/js": "10.0.1",
     "@playform/compress": "0.2.5",
-    "conventional-changelog-conventionalcommits": "^10.4.0",
+    "conventional-changelog-conventionalcommits": "10.2.1",
     "eslint": "10.9.0",
     "eslint-plugin-astro": "3.1.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
