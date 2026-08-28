@@ -311,6 +311,24 @@ plumber analyze --skip-controls actionsMustNotCarryKnownCVEs
 
 Controls not selected are reported as **skipped** in the output. The `--controls` and `--skip-controls` flags are mutually exclusive.
 
+<Aside variant="caution">
+  `--controls` **narrows** the controls enabled in `.plumber.yaml`; it does not enable a disabled one. Naming only controls that are disabled in your configuration leaves zero controls to run, and a run that evaluates nothing fails the gate (exit 1). Check what is enabled with `plumber config view`.
+</Aside>
+
+### Inventory Only, No Compliance Verdict
+
+To collect the pipeline inventory without evaluating any control, use `--no-controls`:
+
+```bash
+plumber analyze --pbom-cyclonedx pbom.cdx --no-controls --print=false
+```
+
+It overrides whatever `.plumber.yaml` enables, exits `0` as long as data collection succeeded, computes no score, and reports every control as `skipped` rather than `passed` in the JSON, CSV and OCSF outputs. `--sarif` and `--glsast` are deliberately not written: an empty security report clears previously-reported alerts. See [Artifact-only runs](/docs/cli/reference#artifact-only-runs).
+
+<Aside variant="info">
+  The GitHub Action has no `no-controls` input yet. Set `PLUMBER_ANALYZE_NO_CONTROLS: "true"` in the job or step `env:` to reach the same behaviour through the Action.
+</Aside>
+
 ### Silent Mode (JSON Only)
 
 ```bash

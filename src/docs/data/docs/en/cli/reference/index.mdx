@@ -98,6 +98,7 @@ plumber analyze [flags]
 | `--score-endpoint` | No | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the minted OIDC audience follows this value so it always matches the target |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
 | `--skip-controls` | No | - | Skip listed controls (comma-separated). Cannot be used with `--controls` |
+| `--no-controls` | No | `false` | Run **no** control at all: collect the pipeline, write the requested inventory artifacts, and skip evaluation entirely. Overrides the controls enabled in `.plumber.yaml`. No score, no gate. Cannot be combined with `--controls` / `--skip-controls`. See [Artifact-only runs](#artifact-only-runs) |
 | `--fail-warnings` | No | `false` | Fail on warnings: configuration warnings such as unknown keys (exit 2) and "could not verify" warnings such as a skipped known-CVE check (exit 3) |
 | `--ci-config-path` | No | auto-detect | Override CI configuration file path. Defaults to project CI config path from GitLab settings (usually `.gitlab-ci.yml`) |
 | `--verbose`, `-v` | No | `false` | Enable debug logging on stderr (`level=debug`); replaces the progress bar. Independent of `--print` |
@@ -386,7 +387,7 @@ Documentation: https://getplumber.io/docs/use-plumber/issues/ISSUE-412
 
 | Code | Meaning |
 |------|---------|
-| `0` | Passed (the Plumber Score meets the gate) |
+| `0` | Passed (the Plumber Score meets the gate), or [`--no-controls`](#artifact-only-runs) with data collection intact |
 | `1` | Gate failure (score below `--min-score` / `--min-points`, or the deprecated `--threshold` not met) |
 | `2` | Runtime error (config error, network failure, missing token, etc.) |
 | `3` | A check could not be verified and `--fail-warnings` is set (e.g. an action version that could not be resolved) |
@@ -433,6 +434,34 @@ By default Plumber prints a colorized, human-readable report to your terminal (`
   The GitHub Action and GitLab CI component write the JSON report, native PBOM, CycloneDX SBOM, and SARIF by default and upload them as build artifacts. See the [GitHub](/docs/cli/github) and [GitLab](/docs/cli/gitlab) pages.
 </Aside>
 
+### Artifact-only runs
+
+Sometimes you want the inventory and nothing else: a PBOM of what your pipeline pulls in, with no compliance verdict attached. `--no-controls` is that mode.
+
+```bash
+plumber analyze --pbom-cyclonedx pbom.cdx --no-controls --print=false
+```
+
+Plumber still collects the pipeline (the inventory *is* the collected data), then skips policy evaluation entirely. It overrides whatever `.plumber.yaml` enables, so the same configuration keeps working for a normal `plumber analyze` in another job: no second config file, no edit.
+
+**Nothing the run produces claims a verdict.** That is the point of the mode, and it is enforced in every output:
+
+| Output | Under `--no-controls` |
+|--------|-----------------------|
+| Terminal | States plainly that no control ran and that there is no Plumber Score, where the grade would normally be |
+| JSON (`--output`) | `noControls: true`, no `plumberScore`, and every `*Result` block is `status: "skipped"` instead of `passed` |
+| CSV (`--csv`), OCSF (`--ocsf`) | Every control reports `skipped` (OCSF `Skipped`), never `passed` / `Pass` |
+| PBOM, CycloneDX | The collected inventory only: images, includes and upstream versions, with no per-image or per-include compliance flags |
+| SARIF (`--sarif`), GitLab SAST (`--glsast`) | **Not written.** An empty SARIF is what makes GitHub Code Scanning clear previously-reported alerts, and an empty GitLab SAST report shows a clean Security Dashboard. Writing either from a run that evaluated nothing would dismiss real alerts |
+
+Flags that read or publish a verdict have nothing to act on and are ignored, with a one-line notice naming them: `--min-points`, `--min-score`, `--threshold`, `--score`, `--score-point`, `--badge`, `--score-push`, `--mr-comment`, plus the two security reports above. No badge is created or updated, and no score is published.
+
+**Exit codes.** The run exits `0` when data collection succeeded. It still fails with exit `3` when it did not: a degraded collection, a `.gitlab-ci.yml` that was fetched but does not parse, or (on GitLab) no CI configuration at all. In each of those cases the inventory would be empty, and an empty PBOM must not ship as if it were complete.
+
+<Aside variant="info">
+  Like every other `analyze` flag, `--no-controls` can also be set through its environment variable, `PLUMBER_ANALYZE_NO_CONTROLS=true`. That is the way to reach it from the [GitHub Action](/docs/cli/github) and the [GitLab CI component](/docs/cli/gitlab), which do not expose a dedicated input for it.
+</Aside>
+
 ### PBOM & CycloneDX
 
 `--pbom` writes Plumber's native, pipeline-specific inventory; `--pbom-cyclonedx` writes the same inventory as a [CycloneDX 1.5](https://cyclonedx.org/docs/1.5/json/) SBOM, compatible with tools like Grype, Trivy, and Dependency-Track. With the [GitLab CI component](/docs/cli/gitlab#run-with-the-gitlab-ci-component), the CycloneDX file is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx).
@@ -465,6 +494,7 @@ By default Plumber prints a colorized, human-readable report to your terminal (`
 | `minPoints` | number | Points gate from `--min-points` (default 100). Omitted when only `--min-score` gates or the deprecated `--threshold` is used. |
 | `threshold` | number | Deprecated gate from `--threshold`. Present only when that flag is supplied. |
 | `passed` | boolean | True when the active gate is met. |
+| `noControls` | boolean | True when the run used [`--no-controls`](#artifact-only-runs), so nothing was evaluated. Every `*Result` block is `status: "skipped"` and `plumberScore` is absent. Omitted on a normal run. Key on this to tell "nothing was checked" apart from "everything was checked and is clean". |
 | `plumberScore` | object | Scored severity summary (raw points, severity buckets, final points). Present with `--score` / `--score-point`. |
 | `<control>Result` | object | One entry per evaluated control (see below). |
 | `partialControls` | array | Controls that could not fully evaluate. Empty or omitted on a clean run. |
@@ -483,7 +513,7 @@ Each `*Result` block has the same baseline shape. Some controls add a few contro
 | `status` | string | Explicit evaluation verdict: `passed` (evaluated, no findings), `failed` (evaluated, findings raised), `skipped` (never ran: disabled or filtered out), or `error` (could not be fully evaluated: missing/invalid CI config or degraded data collection; an empty `issues` list in this state means "could not tell", not "compliant"). Use this instead of inferring pass from an empty `issues` array. |
 | `issues` | array | Findings raised by the control (see the entry shape below). |
 | `metrics` | object | Counts the control collected (jobs scanned, images checked, branches inspected, etc.). |
-| `skipped` | boolean | True when the control was disabled in `.plumber.yaml` or excluded via `--skip-controls`. Kept for backward compatibility; `status: "skipped"` mirrors it. |
+| `skipped` | boolean | True when the control was disabled in `.plumber.yaml`, excluded via `--skip-controls`, or never run because of [`--no-controls`](#artifact-only-runs). Kept for backward compatibility; `status: "skipped"` mirrors it. |
 | `ciValid` | boolean | Same as the top-level field, scoped to what this control needed. |
 | `ciMissing` | boolean | Same as the top-level field, scoped to what this control needed. |
 | `version` | string | Schema version of the control's output block. |

@@ -348,6 +348,38 @@ plumber analyze --skip-controls branchMustBeProtected
 
 Controls not selected are reported as **skipped** in the output. The `--controls` and `--skip-controls` flags are mutually exclusive.
 
+<Aside variant="caution">
+  `--controls` **narrows** the controls enabled in `.plumber.yaml`; it does not enable a disabled one. Naming only controls that are disabled in your configuration leaves zero controls to run, and a run that evaluates nothing fails the gate (exit 1). Check what is enabled with `plumber config view`.
+</Aside>
+
+### PBOM Only, No Compliance Verdict
+
+To inventory the pipeline without evaluating any control, use `--no-controls`. It overrides whatever `.plumber.yaml` enables, so the same configuration keeps working for a normal `plumber analyze` in another job.
+
+```yaml
+plumber-pbom:
+  image: getplumber/plumber:latest
+  variables:
+    GITLAB_TOKEN: $PLUMBER_TOKEN
+  script:
+    - plumber analyze
+        --gitlab-url $CI_SERVER_URL
+        --project $CI_PROJECT_PATH
+        --branch $CI_COMMIT_REF_NAME
+        --pbom-cyclonedx pbom.cdx
+        --no-controls
+        --print=false
+  artifacts:
+    reports:
+      cyclonedx: pbom.cdx
+```
+
+The run exits `0` as long as data collection succeeded, computes no score, and reports every control as `skipped` rather than `passed` in the JSON, CSV and OCSF outputs. See [Artifact-only runs](/docs/cli/reference#artifact-only-runs) for the full behaviour, including which flags are ignored and why `--sarif` / `--glsast` are not written.
+
+<Aside variant="info">
+  The GitLab CI component has no `no_controls` input yet. Set the `PLUMBER_ANALYZE_NO_CONTROLS: "true"` CI/CD variable on the job to reach the same behaviour through the component.
+</Aside>
+
 ### Silent Mode (JSON Only)
 
 ```bash
