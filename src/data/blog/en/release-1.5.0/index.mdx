@@ -1,0 +1,51 @@
+---
+title: "Plumber 1.5 Release - What's New"
+description: "Introducing Plumber 1.5: portfolios that follow your GitLab groups automatically, and policies you can narrow by technology or topic."
+draft: false
+authors:
+  - plumber
+pubDate: 2026-09-06
+heroImage: ./heroImage.png
+categories:
+  - "releases-platform"
+---
+
+**We're excited to announce Plumber 1.5:**
+
+> **⚡ Govern by rule, not by hand**
+
+**This release makes your scope maintain itself. Portfolios can follow a GitLab group and pick up new projects on their own, and policies can target just the projects a rule actually applies to.**
+
+## 📁 Dynamic Portfolios
+
+A portfolio can now follow a GitLab group. New projects join it on their own, so the scope stays current without anyone maintaining it. Hand-picked projects still work, and can be combined with a rule in the same portfolio.
+
+**What you get:**
+- **Auto-include a group**: Every project under it belongs to the portfolio, including subgroups and projects created later
+- **Exclusions**: Drop individual projects without giving up the rule, and put them back at any time
+- **Live resolved scope**: See how many projects and groups a rule brings in before you save it
+
+## 🎯 Technology and Topic Filters on Policies
+
+A policy used to apply to every project in its scope. That forced a choice between one policy that fits everyone loosely and a portfolio per technology. Filters remove that trade-off, and can be combined to require both a topic and a technology or to accept either one. Only projects are filtered, so the groups a policy targets stay governed exactly as picked.
+
+**What you get:**
+- **Filter by technology**: Target only the projects where a language passes a share you choose, for example Go at 40% or more
+- **Filter by GitLab topic**: Target only the projects carrying a topic such as `prod`, matched case-insensitively so `Prod` finds `prod`
+- **Count before you commit**: See how many of the targeted projects match, with a warning when a filter would leave a policy governing nothing
+
+## ⚙️ Minor Updates
+
+- **Reliability**: A worker restart during an analysis no longer strands the run, the remaining work is picked up automatically
+- **Performance**: Faster cleanup of historical analysis data
+- **Security**: Resolved package CVEs for enhanced security
+- **Fix**: Various bug fixes and stability improvements
+
+---
+
+<Admonition variant="info">
+Versions
+- Backend: `v2.43.2`
+- Frontend: `v2.37.1`
+- Helm chart: `v1.5.0`
+</Admonition>
