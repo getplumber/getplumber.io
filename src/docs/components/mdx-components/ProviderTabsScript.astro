@@ -1,4 +1,4 @@
----
+<script is:inline>
 /**
  * Provider-tab toggle script shared between the controls and issues
  * documentation pages. Renders a single inline `<script>` that:
@@ -11,9 +11,17 @@
  * Wrapped in an `.astro` file so MDX pages can use it without running
  * into the MDX parser's interpretation of `{` characters inside a
  * script tag.
+ *
+ * This comment deliberately lives inside the script rather than in an
+ * `.astro` frontmatter fence. Vite's rolldown dependency scanner (vite
+ * 8.3, shipped with astro 7.3) mis-parses a frontmatter block that
+ * contains only a comment, treating the prose as code. That aborts the
+ * whole dependency scan, so vite silently skips pre-bundling, leaves
+ * CommonJS packages un-interoped, and the Keystatic admin at
+ * `/keystatic` then fails to hydrate with "lodash/debounce.js does not
+ * provide an export named 'default'". Keep this file free of a
+ * comment-only frontmatter fence.
  */
----
-<script is:inline>
   (function () {
     const STORAGE_KEY = "plumber:docs:provider";
 
