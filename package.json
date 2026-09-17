@@ -21,8 +21,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "^7.2.4",
-    "@astrojs/mdx": "^7.0.7",
+    "@astrojs/markdown-remark": "^7.3.1",
+    "@astrojs/mdx": "^8.0.1",
     "@astrojs/react": "^6.0.4",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
@@ -38,7 +38,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vercel/analytics": "^2.0.1",
-    "astro": "^7.2.0",
+    "astro": "^7.3.3",
     "astro-auto-import": "0.5.2",
     "astro-expressive-code": "^0.44.1",
     "astro-icon": "1.2.0",
@@ -74,7 +74,7 @@
   "//": "overrides note: @semantic-release/npm is stubbed with @semantic-release/error because this site never publishes to npm, the plugin is not in .releaserc.json, and its `npm` dependency bundles vulnerable tar/brace-expansion copies that overrides cannot patch. Remove the stub if npm publishing is ever needed.",
   "overrides": {
     "@semantic-release/npm": "npm:@semantic-release/error@^4.0.0",
-    "sharp": "^0.35.0",
+    "sharp": "^0.35.4",
     "@playform/compress": {
       "svgo": "^4.0.2",
       "deepmerge-ts": "^8.0.2"
@@ -95,7 +95,7 @@
     "esbuild": "^0.28.1",
     "undici": "^7.28.0",
     "tar": "^7.5.22",
-    "js-yaml": "^4.3.0",
+    "js-yaml": "^4.3.2",
     "@babel/core": "^7.29.7",
     "vite": "^8.1.0",
     "@keystatic/astro": {
