@@ -13,6 +13,8 @@ on:
 
 permissions:
   contents: read
+  # The deploy step posts the preview URL back on the branch's pull request.
+  pull-requests: write
 
 # One preview deploy per branch: a newer push supersedes (cancels) the
 # in-flight deploy so a stale commit can never finish last and win.
@@ -53,4 +55,35 @@ jobs:
         run: .github/vercel/node_modules/.bin/vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
-        run: .github/vercel/node_modules/.bin/vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        id: deploy
+        run: |
+          url="$(.github/vercel/node_modules/.bin/vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})"
+          echo "Preview: $url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Preview deployment: $url" >> "$GITHUB_STEP_SUMMARY"
+
+      # Surface the preview URL on the pull request (one comment per PR, updated
+      # on every push). The workflow runs on push, so a PR opened long after the
+      # push gets its URL on the next push only.
+      - name: Post the preview URL on the pull request
+        if: steps.deploy.outputs.url != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.url }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          pr="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number --jq '.[0].number // empty')"
+          if [ -z "$pr" ]; then
+            echo "No open pull request for $BRANCH, skipping the comment."
+            exit 0
+          fi
+          marker="<!-- deploy-preview-url -->"
+          body="$(printf '%s\n**Preview deployment** for %s: %s' "$marker" "${SHA:0:7}" "$PREVIEW_URL")"
+          existing="$(gh api "repos/$GITHUB_REPOSITORY/issues/$pr/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n 1)"
+          if [ -n "$existing" ]; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$existing" -f body="$body" > /dev/null
+          else
+            gh pr comment "$pr" --repo "$GITHUB_REPOSITORY" --body "$body"
+          fi
