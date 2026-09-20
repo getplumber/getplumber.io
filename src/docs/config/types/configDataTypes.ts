@@ -43,6 +43,19 @@ export interface DocsSiteSettingsProps {
 
 // --------------------------------------------------------
 // documentation section types
+/**
+ * One sidebar section.
+ *
+ * Rendering rule (one rule, applied everywhere, see SidebarNav.astro):
+ * - a section holding **several pages** renders its title as a non-link heading,
+ *   with its pages as link entries below it;
+ * - a section holding **exactly one page** renders as a single link entry carrying
+ *   the section title, with the same page-link typography and active state as every
+ *   other page link (never heading styling).
+ *
+ * So what is bold is never clickable, and what is clickable always looks like a page
+ * link. Group headings (`group`) are unaffected: they stay non-link headings.
+ */
 export interface DocsSection {
   /**
    * Unique identifier for the section. This should match the folder name under src/data/docs/
@@ -52,6 +65,14 @@ export interface DocsSection {
    * Display title for the section
    */
   title: string;
+  /**
+   * Fold this section by default: the heading becomes a disclosure control
+   * (`details`/`summary`, keyboard operable, works without JavaScript) and its pages are
+   * hidden until it is opened. A collapsed section opens automatically when the page being
+   * viewed belongs to it. Only meaningful for a multi-page section: a single-page section
+   * is one link and has nothing to fold.
+   */
+  collapsed?: boolean;
   /**
    * Optional parent group label. Consecutive sections sharing the same group render
    * nested under one bold group heading in the sidebar (e.g. "Platform").
