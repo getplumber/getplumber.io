@@ -8,17 +8,29 @@ sidebar:
 
 This reference explains the global configuration options for Plumber. All configuration is managed through environment variables.
 
+<Aside variant="caution">
+On Docker Compose installs these values are set inside `compose.yml` itself; changing them in `.env` has no effect. Edit the compose file if you must override them.
+</Aside>
+
+## Deployment profile & images
+
+- **`DOMAIN_NAME`**: The public hostname of your Plumber instance (e.g., `plumber.mydomain.com`). Set on Production Docker Compose installs; not used on Local installs
+- **`COMPOSE_PROFILES`**: Docker Compose profiles to enable. Production only: `letsencrypt` or `custom-certs`, optionally combined with `internal-db` (e.g., `letsencrypt,internal-db`)
+- **`CERT_RESOLVER`**: The Traefik certificate resolver name. Production only: `le` when using Let's Encrypt, empty when using custom certificates
+- **`FRONTEND_IMAGE_TAG`** / **`BACKEND_IMAGE_TAG`**: The frontend and backend image versions to deploy; default to the latest release via `versions.env`
+- **`GITLEAKS_PATH`**: The path to the gitleaks binary inside the backend/worker containers. **Fixed by the images**
+
 ## API Configuration
 
-- **`JOBS_LISTEN_ADDR`**: The address on which the backend listens (e.g., `localhost`)
-- **`JOBS_LISTEN_PORT`**: The port on which the backend listens (e.g., `3000`)
+- **`JOBS_LISTEN_ADDR`**: The address on which the backend listens (e.g., `localhost`). **Fixed by the Docker Compose deployment**
+- **`JOBS_LISTEN_PORT`**: The port on which the backend listens (e.g., `3000`). **Fixed by the Docker Compose deployment**
 - **`JOBS_API_DOMAIN`**: The base URL for the backend API (e.g., `https://api.example.com`)
 - **`JOBS_FRONTEND_URL`**: The URL of the frontend application (e.g., `https://app.example.com`)
 - **`JOBS_CORS_ORIGIN`**: Specifies allowed CORS origins. Use `*` to allow all origins
 
 ## Session and Security
 
-- **`JOBS_SESSION_TTL`**: The validity duration of a user session (e.g., `24h`). **Required**
+- **`JOBS_SESSION_TTL`**: The validity duration of a user session (e.g., `24h`). **Fixed by the Docker Compose deployment**
 - **`SECRET_KEY`**: The encryption key for sensitive data (must be a hexadecimal string). Ensure this is securely generated and kept private. **Required**
 
 ## Analysis Configuration
@@ -40,8 +52,8 @@ This reference explains the global configuration options for Plumber. All config
 
 ## Logging
 
-- **`LOG_LEVEL`**: The logging level. Possible values: `error`, `warn`, `info`, `debug`. Default: `info`
-- **`LOG_FORMATTER`**: The log output format. Possible values: `json`, `text`. Default: `json`
+- **`LOG_LEVEL`**: The logging level. Possible values: `error`, `warn`, `info`, `debug`. **Fixed by the Docker Compose deployment**
+- **`LOG_FORMATTER`**: The log output format. Possible values: `json`, `text`. **Fixed by the Docker Compose deployment**
 
 ## GitLab Integration
 
@@ -68,13 +80,13 @@ This reference explains the global configuration options for Plumber. All config
 
 ## Redis Database
 
-- **`JOBS_REDIS_HOST`**: The host address of the Redis database. **Required**
-- **`JOBS_REDIS_PORT`**: The port of the Redis database. **Required**
-- **`JOBS_REDIS_DB`**: The database index for Redis (e.g., `0`). **Required**
-- **`JOBS_REDIS_USER`**: The username for Redis authentication. Optional
+- **`JOBS_REDIS_HOST`**: The host address of the Redis database. **Fixed by the Docker Compose deployment**
+- **`JOBS_REDIS_PORT`**: The port of the Redis database. **Fixed by the Docker Compose deployment**
+- **`JOBS_REDIS_DB`**: The database index for Redis (e.g., `0`). **Fixed by the Docker Compose deployment**
+- **`JOBS_REDIS_USER`**: The username for Redis authentication. **Fixed by the Docker Compose deployment**
 - **`JOBS_REDIS_PASSWORD`**: The password for Redis authentication. Optional
 - **`JOBS_REDIS_CERT`**: The certificate path for Redis TLS connections. Optional
-- **`JOBS_REDIS_SET_NAMESPACES_TTL`**: The TTL for cached user namespaces (e.g., `60s`). **Required**
+- **`JOBS_REDIS_SET_NAMESPACES_TTL`**: The TTL for cached user namespaces (e.g., `60s`). **Fixed by the Docker Compose deployment**
 - **`JOBS_REDIS_LIST_TASK_ANALYSIS_TTL`**: TTL for analysis task lists. Default: `2h`
 - **`JOBS_REDIS_LIST_TASK_FIX_TTL`**: TTL for fix task lists. Default: `1h`
 
