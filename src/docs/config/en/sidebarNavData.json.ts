@@ -45,6 +45,12 @@ const sidebarNavData: DocsSidebarNavData = {
           title: "Usage",
           group: "Platform",
         },
+        // Last section, outside the Platform group: the v1 install guides kept
+        // for existing installations (new installs use the v2 Installation section)
+        {
+          id: "legacy",
+          title: "Legacy (v1)",
+        },
       ],
     },
   ],
