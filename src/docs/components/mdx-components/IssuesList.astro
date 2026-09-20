@@ -1,11 +1,18 @@
 ---
 /**
  * Renders the full list of Plumber issues grouped by category,
- * with a GitLab/GitHub tab toggle at the top. Both lists are rendered
- * server-side; the inactive one is hidden via class. The active tab is
+ * with a GitLab / GitHub / All tab toggle at the top. Every list is rendered
+ * server-side; the inactive ones are hidden via class. The active tab is
  * persisted to localStorage under "plumber:docs:provider" and synced
- * to the URL as `?p=gitlab|github` so links into the issue detail page
+ * to the URL as `?p=gitlab|github|all` so links into the issue detail page
  * preserve the choice.
+ *
+ * The "All" panel lists each issue code exactly once: a code appears when it
+ * is visible for at least one provider, carries the badges of the providers
+ * where it is visible, and takes its title, category and severity from
+ * GitLab when GitLab has it, from GitHub otherwise. Titles go through
+ * issueDisplayTitle, so a shared code reads with the GitLab wording and only a
+ * code with a deliberately provider-specific title carries a GitHub note.
  *
  * Used in the Issues index page (use-plumber/issues.mdx).
  */
@@ -21,7 +28,7 @@ import {
   type Provider,
   SHOW_ROADMAP,
 } from "@/data/issues";
-import ProductScopeBadge from "@/docs/components/mdx-components/ProductScopeBadge.astro";
+import ProviderBadge from "@/docs/components/mdx-components/ProviderBadge.astro";
 import Aside from "@/docs/components/mdx-components/Aside.astro";
 import { isCliDocsPath } from "@/docs/js/docsUtils";
 
@@ -43,22 +50,18 @@ export const severityBadge: Record<string, string> = {
   low: "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 ring-blue-300 dark:ring-blue-700/50",
 };
 
-export const fixDurationBadge: Record<string, string> = {
-  "very quick":
-    "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 ring-emerald-300/70 dark:ring-emerald-700/60",
-  immediate:
-    "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 ring-emerald-300/70 dark:ring-emerald-700/60",
-  quick:
-    "bg-primary/10 text-primary dark:text-primary ring-primary/40",
-  medium:
-    "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 ring-yellow-300/70 dark:ring-yellow-700/60",
-  long:
-    "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 ring-orange-300/70 dark:ring-orange-700/60",
-  extended:
-    "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 ring-red-300/70 dark:ring-red-700/60",
+type Row = {
+  code: string;
+  /** The block the row's category, severity and status are read from. */
+  content: IssueProviderContent;
+  title: string;
+  /** Combined panel only: the providers this code is visible for. */
+  providers?: Provider[];
+  /** Combined panel only: the GitHub wording when it differs from `title`. */
+  altTitle?: string;
+  /** The provider the detail link opens on. */
+  linkProvider: Provider;
 };
-
-type Row = { code: string; content: IssueProviderContent; title: string };
 
 function sortCategoryEntries(entries: [string, Row[]][]): [string, Row[]][] {
   return [...entries].sort(([a], [b]) => {
@@ -80,14 +83,11 @@ function groupByCategory(rows: Row[]): Map<string, Row[]> {
   return grouped;
 }
 
-const providers: { id: Provider; label: string; icon: string }[] = [
-  { id: "gitlab", label: "GitLab", icon: "tabler/brand-gitlab" },
-  { id: "github", label: "GitHub", icon: "tabler/brand-github" },
-];
+type PanelId = Provider | "all";
 
 // Within a provider, rows are split into a shipping group (status !== "roadmap")
 // and a roadmap group. Each group is then category-grouped. We do this on the
-// component side rather than mixing both into one list per category — interlacing
+// component side rather than mixing both into one list per category: interlacing
 // shipping/roadmap rows inside a single category section made the active controls
 // hard to spot under the noise of the much-longer roadmap list.
 type ProviderGroups = { shipping: Map<string, Row[]>; roadmap: Map<string, Row[]> };
@@ -105,36 +105,81 @@ function splitByStatus(rows: Row[]): ProviderGroups {
   return { shipping: groupByCategory(shipping), roadmap: groupByCategory(roadmap) };
 }
 
-const groupedByProvider: Record<Provider, ProviderGroups> = {
-  gitlab: splitByStatus(
-    Object.entries(issues)
-      .filter(([, doc]) => doc.gitlab != null && isVisibleProviderContent(doc.gitlab))
-      .map(([code, doc]) => ({
-        code,
-        content: doc.gitlab!,
-        title: issueDisplayTitle(doc, "gitlab")!,
-      })),
-  ),
-  github: splitByStatus(
-    Object.entries(issues)
-      .filter(([, doc]) => doc.github != null && isVisibleProviderContent(doc.github))
-      .map(([code, doc]) => ({
-        code,
-        content: doc.github!,
-        title: issueDisplayTitle(doc, "github")!,
-      })),
-  ),
-};
+function visibleProviders(doc: (typeof issues)[string]): Provider[] {
+  const out: Provider[] = [];
+  if (doc.gitlab && isVisibleProviderContent(doc.gitlab)) out.push("gitlab");
+  if (doc.github && isVisibleProviderContent(doc.github)) out.push("github");
+  return out;
+}
 
-// Default provider for SSR (the inline script swaps based on URL/storage).
-const defaultProvider: Provider = "gitlab";
+// Every visible code once, GitLab-first for the copy it displays. Both titles
+// go through issueDisplayTitle, the site-wide rule: a code held by both
+// providers reads with the GitLab wording on both tabs, so only the codes in
+// PROVIDER_SPECIFIC_ISSUE_TITLES can produce a differing GitHub note here.
+// Roadmap classification (splitByStatus, below) reads the primary block's
+// status, GitLab's when GitLab holds the code; that is inert while
+// SHOW_ROADMAP is false, since a roadmap block is not visible in the first
+// place, and it only decides which of the two lists a row lands in if the
+// flag is ever turned on.
+const combinedRows: Row[] = Object.entries(issues)
+  .map(([code, doc]) => ({ code, doc, providers: visibleProviders(doc) }))
+  .filter(({ providers }) => providers.length > 0)
+  .map(({ code, doc, providers }) => {
+    const primary = providers[0];
+    const gitlabTitle = providers.includes("gitlab") ? issueDisplayTitle(doc, "gitlab")! : undefined;
+    const githubTitle = providers.includes("github") ? issueDisplayTitle(doc, "github")! : undefined;
+    const title = gitlabTitle ?? githubTitle!;
+    return {
+      code,
+      content: doc[primary]!,
+      title,
+      providers,
+      altTitle: githubTitle && githubTitle !== title ? githubTitle : undefined,
+      linkProvider: primary,
+    };
+  });
+
+const panels: { id: PanelId; label: string; groups: ProviderGroups }[] = [
+  {
+    id: "gitlab",
+    label: "GitLab",
+    groups: splitByStatus(
+      Object.entries(issues)
+        .filter(([, doc]) => doc.gitlab != null && isVisibleProviderContent(doc.gitlab))
+        .map(([code, doc]) => ({
+          code,
+          content: doc.gitlab!,
+          title: issueDisplayTitle(doc, "gitlab")!,
+          linkProvider: "gitlab" as Provider,
+        })),
+    ),
+  },
+  {
+    id: "github",
+    label: "GitHub",
+    groups: splitByStatus(
+      Object.entries(issues)
+        .filter(([, doc]) => doc.github != null && isVisibleProviderContent(doc.github))
+        .map(([code, doc]) => ({
+          code,
+          content: doc.github!,
+          title: issueDisplayTitle(doc, "github")!,
+          linkProvider: "github" as Provider,
+        })),
+    ),
+  },
+  { id: "all", label: "All", groups: splitByStatus(combinedRows) },
+];
+
+// Default panel for SSR (the inline script swaps based on URL/storage).
+const defaultProvider: PanelId = "gitlab";
 ---
 
-{showProviderTabs && <ProviderTabs defaultProvider={defaultProvider} />}
+{showProviderTabs && <ProviderTabs defaultProvider={defaultProvider} includeAll={true} />}
 
 {
-  providers.map((p) => {
-    const groups = groupedByProvider[p.id];
+  panels.map((p) => {
+    const groups = p.groups;
     const hasShipping = groups.shipping.size > 0;
     const hasRoadmap = groups.roadmap.size > 0;
     const hasContent = hasShipping || hasRoadmap;
@@ -154,7 +199,7 @@ const defaultProvider: Provider = "gitlab";
 
         {!hasContent && (
           <p class="text-sm text-muted-foreground">
-            No {p.label} issues yet.
+            {p.id === "all" ? "No issues yet." : `No ${p.label} issues yet.`}
           </p>
         )}
 
@@ -177,7 +222,7 @@ const defaultProvider: Provider = "gitlab";
               <div class="flex flex-col">
                 {entries.map((entry) => (
                   <a
-                    href={`${docsBase}/issues/${entry.code}?p=${p.id}`}
+                    href={`${docsBase}/issues/${entry.code}?p=${entry.linkProvider}`}
                     class="group flex flex-col gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 hover:border-muted-foreground/40 hover:bg-muted/70 transition-all md:flex-row md:items-center md:gap-3"
                   >
                     <div class="flex min-w-0 items-center gap-3 md:flex-1">
@@ -188,19 +233,18 @@ const defaultProvider: Provider = "gitlab";
                         {entry.code}
                       </span>
                       <span class="flex-1 min-w-0 text-xs md:text-sm text-foreground/80 group-hover:text-foreground transition-colors leading-snug">
-                        {entry.title}
+                        <span title={entry.altTitle ? `GitHub: ${entry.altTitle}` : undefined}>
+                          {entry.title}
+                        </span>
+                        {entry.altTitle && (
+                          <span class="block text-[11px] text-muted-foreground">
+                            GitHub: {entry.altTitle}
+                          </span>
+                        )}
                       </span>
                     </div>
                     <div class="flex flex-wrap items-center gap-1.5 md:shrink-0">
-                      <ProductScopeBadge
-                        scope={
-                          entry.content.productScope === "cli"
-                            ? "cli"
-                            : entry.content.productScope === "platform"
-                              ? "platform"
-                              : "all"
-                        }
-                      />
+                      {entry.providers?.map((id) => <ProviderBadge provider={id} />)}
                       {SHOW_ROADMAP && entry.content.status === "roadmap" && (
                         <span
                           class="inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 ring-amber-300 dark:ring-amber-700/50"
@@ -215,15 +259,6 @@ const defaultProvider: Provider = "gitlab";
                       >
                         <Icon name="tabler/alert-triangle" color="currentColor" size="15px" />
                         {entry.content.severity.charAt(0).toUpperCase() + entry.content.severity.slice(1)}
-                      </span>
-                      <span
-                        class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${
-                          fixDurationBadge[entry.content.fixDuration] ?? "bg-muted text-muted-foreground ring-border"
-                        }`}
-                        title="Approximate time needed to fix this issue"
-                      >
-                        <Icon name="tabler/clock" color="currentColor" size="15px" />
-                        {(entry.content.fixDuration.charAt(0).toUpperCase() + entry.content.fixDuration.slice(1)).replace("quick", "Quick")}
                       </span>
                     </div>
                   </a>

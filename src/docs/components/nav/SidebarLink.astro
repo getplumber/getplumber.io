@@ -65,8 +65,10 @@ const currentPath =
     class:list={[
       "docs-nav__link--sidebar docs-primary-focus block text-base md:text-sm",
       {
-        // styling for current active page link
-        "text-foreground font-medium": currentPath,
+        // Current page: accent colour on a soft pill. Section headings are bold
+        // foreground text, so weight alone would not tell the two apart.
+        "-mx-2 -my-0.5 rounded-md bg-primary/10 px-2 py-0.5 font-medium text-primary hover:text-primary":
+          currentPath,
       },
     ]}
   >

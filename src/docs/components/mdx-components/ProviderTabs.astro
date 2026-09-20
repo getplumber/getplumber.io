@@ -3,20 +3,33 @@
  * GitLab / GitHub provider switcher for controls, issues list, and issue detail pages.
  * Uses Tailwind utilities (not a scoped <style> block) so MDX pages include layout correctly.
  * Active state is driven by `aria-selected`; ProviderTabsScript toggles that attribute.
+ *
+ * Catalog pages that also render a combined panel (every control or issue once,
+ * whichever provider it comes from) pass `includeAll`; the extra "All" tab, first
+ * in the row, then drives the `data-provider-panel="all"` block. Pages without such a panel (the
+ * issue detail page) leave it off, and the switcher stays a two-way toggle.
  */
 import { Icon } from "astro-icon/components";
 
+export type ProviderTabId = "gitlab" | "github" | "all";
+
 interface Props {
-  defaultProvider?: "gitlab" | "github";
+  defaultProvider?: ProviderTabId;
+  /** Render the third "All" tab (only on pages that render an `all` panel). */
+  includeAll?: boolean;
   class?: string;
 }
 
-const { defaultProvider = "gitlab" } = Astro.props;
+const { defaultProvider = "gitlab", includeAll = false } = Astro.props;
 
-const providers = [
-  { id: "gitlab" as const, label: "GitLab", icon: "tabler/brand-gitlab" },
-  { id: "github" as const, label: "GitHub", icon: "tabler/brand-github" },
+const providers: { id: ProviderTabId; label: string; icon: string }[] = [
+  { id: "gitlab", label: "GitLab", icon: "tabler/brand-gitlab" },
+  { id: "github", label: "GitHub", icon: "tabler/brand-github" },
 ];
+
+if (includeAll) {
+  providers.unshift({ id: "all", label: "All", icon: "tabler/layout-grid" });
+}
 
 const tabClass =
   "provider-tab inline-flex shrink-0 items-center gap-2.5 rounded-lg border px-5 py-2.5 text-[15px] font-semibold leading-tight transition-all border-transparent text-muted-foreground hover:border-border hover:bg-background/70 hover:text-foreground aria-selected:border-border aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-md aria-selected:ring-2 aria-selected:ring-emerald-500/50 aria-selected:ring-offset-2 aria-selected:ring-offset-background";
