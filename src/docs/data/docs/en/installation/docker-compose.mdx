@@ -12,31 +12,24 @@ This page describes how to set up a self-managed instance of the Plumber Platfor
 
 ## 💻 Requirements
 
-- **GitLab instance version >= 15.7** (17.7 or later recommended, see
-  [Requirements](/docs/installation#-requirements))
-- The system requires a Linux server. It runs in 🐳 Docker containers using a Docker Compose
-  configuration. Specifications:
-   - OS: **Ubuntu** or **Debian** (tested and supported)
-   - Hardware
-      - CPU x86_64/amd64 with at least 2 cores
-      - 4 GB RAM
-      - 100 GB of storage for Plumber
-   - Network
-      - Users must be able to reach the Plumber server on TCP ports 80 and 443
-      - The Plumber server must be able to reach your GitLab instance
-      - The installation process requires write access to the DNS zone to set up the Plumber domain
-   - Installed software
-      - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-      - [Docker](https://docs.docker.com/engine/install/) with the **Compose plugin >= 2.20.2**
-      - OpenSSL (used to generate the secrets)
+On top of the [common requirements](/docs/installation#-requirements) (GitLab version, network
+access, DNS), this method needs a Linux server running the stack in 🐳 Docker containers:
+
+- OS: **Ubuntu** or **Debian** (tested and supported)
+- Hardware: CPU x86_64/amd64 with at least 2 cores, 4 GB RAM, and 100 GB of storage for Plumber
+- Installed software:
+   - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+   - [Docker](https://docs.docker.com/engine/install/) with the **Compose plugin >= 2.20.2**
+   - OpenSSL (used to generate the secrets)
 
 <details>
 <summary>⚠️ <strong>Windows / WSL</strong></summary>
 
-Plumber's install scripts are designed for native Linux environments (Ubuntu, Debian).
-Some users have successfully installed Plumber through **WSL (Windows Subsystem for Linux)**, but we do not officially support this setup.
-Depending on your WSL configuration, how you cloned the repository, and your Git settings, you may need to adjust script files manually.
-If you see CRLF-related errors (for example `bad interpreter: /bin/bash^M`), or `\r` convert line endings with `dos2unix`.
+Plumber's install scripts target native Linux (Ubuntu, Debian). **WSL (Windows Subsystem for
+Linux)** has worked for some users, but we do not officially support it: depending on your WSL
+setup, how you cloned the repository and your Git settings, you may have to fix the scripts by
+hand. On a CRLF error (for example `bad interpreter: /bin/bash^M`, or a stray `\r`), convert the
+line endings with `dos2unix`.
 
 </details>
 
@@ -77,10 +70,10 @@ The prompts then come in this order:
 3. **Connection scope**: the whole GitLab instance (the OAuth application is created by an
    instance Admin) or one root group (the application is created in that group, and you give its
    exact path, the `full_path` as GitLab shows it).
-4. **GitLab OAuth application**: the installer prints the link to the right Applications page and
-   the exact values to fill in, including the redirect URI
-   `https://<your_plumber_domain>/api/v1/auth/callback`, then asks for the **Application ID** and
-   the **Secret**.
+4. **[GitLab OAuth application](/docs/installation#gitlab-oauth-application)**: the installer
+   prints the link to the right Applications page and the exact values to fill in, including the
+   redirect URI `https://<your_plumber_domain>/api/v1/auth/callback`, then asks for the
+   **Application ID** and the **Secret**.
 5. **GitLab access token** (optional): a group or personal token with the `api` scope, used by
    Plumber to read your projects and pipelines. It is stored encrypted in the database, never in
    `.env`. With a group scope it also resolves the root group immediately. You can skip it and add
@@ -97,8 +90,8 @@ The prompts then come in this order:
 The installer then generates the secrets, writes `.env`, re-runs the checks against it and asks
 **Start Plumber now?**. On yes it runs `docker compose up -d`, waits for the backend to answer
 `/readyz` (the first boot runs the database migrations) and configures the GitLab connection with
-`plumber-bootstrap`. Open `https://<your_plumber_domain>` and sign in: the first GitLab account
-that signs in becomes the organisation Admin.
+`plumber-bootstrap`. Open `https://<your_plumber_domain>` and sign in with GitLab: the [first
+account that signs in becomes the organisation Admin](/docs/installation#gitlab-oauth-application).
 
 <Aside variant="caution">
 The installer refuses to run when a `.env` already exists in the directory. That file holds
@@ -255,8 +248,8 @@ reachable. Fix what it reports before starting.
 
 #### Step 7: Configure the GitLab connection
 
-Create the GitLab OAuth application first (redirect URI
-`https://<your_plumber_domain>/api/v1/auth/callback`, confidential, scope `api`), then run
+Create the [GitLab OAuth application](/docs/installation#gitlab-oauth-application) first
+(redirect URI `https://<your_plumber_domain>/api/v1/auth/callback`), then run
 `plumber-bootstrap` once, inside the backend container:
 
 ```bash
@@ -273,22 +266,17 @@ putting it on the command line, so it stays out of your shell history and out of
 - To store the GitLab access token in the same run, export `PLUMBER_BOOTSTRAP_TOKEN` the same way
   and add `-e PLUMBER_BOOTSTRAP_TOKEN` to the command.
 
-The command refuses an instance that is already configured, so it is safe to retry on a fresh
-install.
-
 #### Step 8: First login
 
-Open `https://<your_plumber_domain>` and sign in with GitLab. The **first account that signs in
-becomes the organisation Admin**; it is the account that finishes the setup (access token, SMTP,
-licence) in `Settings`.
+Open `https://<your_plumber_domain>` and sign in with GitLab: the [first account that signs in
+becomes the organisation Admin](/docs/installation#gitlab-oauth-application).
 
   </TabsContent>
 </Tabs>
 
 ## ⏫ Update
 
-To update your self-managed instance to a new version, run the update script from the repository
-root:
+To move to a new version, run the update script from the repository root:
 
 ```bash
 ./scripts/update.sh
@@ -313,22 +301,19 @@ and run `docker compose up -d`. **Never downgrade the database by hand.**
 
 ## 🔄 Backup and restore
 
-Data required to fully backup and restore a Plumber system are the following:
+A full backup of a Plumber system holds three things:
 
-- Configuration file: `.env` (it holds the encryption key)
-- The PostgreSQL database
-- The custom CA certificates, if you use any
+- `.env`, the configuration file (it holds the encryption key)
+- the PostgreSQL database
+- the custom CA certificates, if you use any
 
-All these data can be easily backed up and restored using 2 scripts from the installation git
-repository:
-
-- `scripts/backup.sh`
-- `scripts/restore.sh`
+Two scripts in the installation repository cover both directions: `scripts/backup.sh` and
+`scripts/restore.sh`.
 
 ### 💽 Backup
 
-To backup the system, go to your installation git repository and run the following command, where
-`18` is the PostgreSQL version you run:
+From your installation repository, run the backup script, where `18` is the PostgreSQL version
+you run:
 
 ```bash
 ./scripts/backup.sh 18
@@ -349,26 +334,23 @@ is, and never restore a dump with a different `.env`.
 </Aside>
 
 <Aside variant="info">
-You can use a cron job to perform regular backups.
-Here is a cron job that launch a backup every day at 2am:
+A cron job keeps backups regular. This one runs every day at 2am:
 ```bash
 0 2 * * * /plumber-platform/scripts/backup.sh 18
 ```
-It can be added to your crontab with the command `crontab -e`. Check more
-information about cron jobs
-[here](https://help.ubuntu.com/community/CronHowto).
+Add it to your crontab with `crontab -e` (see this
+[cron how-to](https://help.ubuntu.com/community/CronHowto)).
 </Aside>
 
 ### 🛳️ Restore
 
-To restore a backup from scratch on a new system, follow this process:
+To restore a backup on a fresh system:
 
 <Steps>
 
-1. Be sure that your new system is compliant with
-   [requirements](#-requirements)
+1. Check the new system against the [requirements](#-requirements)
 
-2. Copy the backup file on your new server
+2. Copy the backup file onto it
 
 3. Clone the installation repository
    ```bash
@@ -376,8 +358,8 @@ To restore a backup from scratch on a new system, follow this process:
    cd plumber-platform
    ```
 
-4. If the IP address of your server changed from your previous installation,
-   update your DNS records. See [Configure your DNS](#1-configure-your-dns)
+4. If the server's IP address changed, update your DNS records. See
+   [Configure your DNS](#1-configure-your-dns)
 
 5. Start the stack
    ```bash

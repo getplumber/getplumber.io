@@ -12,19 +12,17 @@ This page describes how to run a self-managed instance of the Plumber Platform o
 
 ## 💻 Requirements
 
-- **GitLab instance version >= 15.7** (17.7 or later recommended, see
-  [Requirements](/docs/installation#-requirements))
+On top of the [common requirements](/docs/installation#-requirements) (GitLab version, network
+access, DNS), this method needs:
+
 - **A PostgreSQL instance** (or let the chart deploy PostgreSQL 18 for you)
 - **A Redis instance** (or let the chart deploy Redis 8.4 for you)
 - A Kubernetes cluster with:
   - One ingress controller (e.g. [Nginx](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx) or [Traefik](https://artifacthub.io/packages/helm/traefik/traefik))
   - A certificate manager with an ACME provider: [cert-manager](https://artifacthub.io/packages/helm/cert-manager/cert-manager)
   - _If you let the chart deploy PostgreSQL_: the ability to provision persistent volumes
-- Your local environment with CLI to interact with the Kubernetes API:
-  - [Helm](https://github.com/helm/helm) 3
-  - [Kubectl](https://github.com/kubernetes/kubectl)
-- Write access to the DNS zone of the domain to use with Plumber
-- A user account on the GitLab instance
+- [Helm](https://github.com/helm/helm) 3 and [Kubectl](https://github.com/kubernetes/kubectl) on
+  your machine, to talk to the Kubernetes API
 
 ## 🛠️ Installation
 
@@ -44,8 +42,8 @@ together.
 1. ### 📄 Configure the domain name
 
    <Aside variant="info">
-   You need a domain to run Plumber. For example, if you have the domain name
-   `mydomain.com` then the Plumber URL will be `https://plumber.mydomain.com`
+   Plumber needs a domain of its own: with `mydomain.com`, the Plumber URL is typically
+   `https://plumber.mydomain.com`.
    </Aside>
 
    Create the DNS record
@@ -57,23 +55,14 @@ together.
    </Steps>
 
    <Aside variant="caution">
-   **One host serves both apps.** The browser calls the API same-origin, so the chart's Ingress
-   routes `/api` to the backend and `/` to the frontend on the single `ingress.host`. Do not put
-   the frontend and the API on two hostnames.
+   **One host serves both apps** ([why](/docs/installation#infrastructure)): the chart's Ingress
+   routes `/api` to the backend and `/` to the frontend on the single `ingress.host`.
    </Aside>
 
 2. ### 🦊 Create the GitLab OAuth application
 
-   Plumber uses GitLab as an OAuth2 provider to authenticate users. Open the Applications page of
-   your GitLab instance (`Admin > Applications`) or of the root group you want to connect
-   (`Settings > Applications`), and create an application with the following information:
-
-   <Steps>
-   1. Name: `Plumber`
-   2. Redirect URI: `https://<your_plumber_domain>/api/v1/auth/callback`
-   3. Confidential: `true` (let the box checked)
-   4. Scopes: `api`
-   </Steps>
+   Create the [GitLab OAuth application](/docs/installation#gitlab-oauth-application) with the
+   redirect URI `https://<your_plumber_domain>/api/v1/auth/callback`.
 
    Store the `Application ID` and `Secret` somewhere safe: they are used by the first-run
    bootstrap below, and they end up encrypted in the Platform database, never in your values file.
@@ -115,15 +104,13 @@ together.
 
 4. ### ⚙️ Configure your values
 
-   This section describes how to configure your custom values file. The default
-   `values.yaml` is available
-   [here](https://github.com/getplumber/plumber-platform/blob/main/charts/plumber-platform/values.yaml),
-   where every key is commented. A [full example](#-configuration-example) is available at the end
-   of this page.
+   Every key is commented in the chart's
+   [default `values.yaml`](https://github.com/getplumber/plumber-platform/blob/main/charts/plumber-platform/values.yaml),
+   and a [full example](#-configuration-example) closes this page.
 
    <Aside variant="info">
-   For the following sections, we assume that your custom value file will be
-   located in your current directory and be named `custom_values.yaml`
+   The sections below assume your own values file sits in the current directory, named
+   `custom_values.yaml`.
    </Aside>
 
    **Minimal values**
@@ -174,7 +161,7 @@ together.
 
    **PostgreSQL**
 
-   You can either let the chart deploy a PostgreSQL instance or use an external one.
+   Let the chart deploy a PostgreSQL instance, or point it at an external one.
 
    **Option A: Deploy PostgreSQL via the chart**
 
@@ -182,9 +169,8 @@ together.
    `StatefulSet`, its `Service` and a `PersistentVolumeClaim` for the data directory.
 
    <Aside variant="caution">
-   The bundled PostgreSQL is intended for evaluation, development, and
-   small self-managed deployments. For production workloads we recommend
-   using a managed database via **Option B**.
+   The bundled PostgreSQL is meant for evaluation, development and small self-managed
+   deployments. For production, use a managed database through **Option B**.
    </Aside>
 
    ```yaml
@@ -267,7 +253,7 @@ together.
    **(Optional) Add your custom Certificate Authority**
 
    If your GitLab instance (or your SMTP server) presents a privately-signed certificate, give the
-   chart your root CA. You can either:
+   chart your root CA. Two ways:
 
    <Steps>
    1. Reference an existing `Secret` (`existingSecret`) or `ConfigMap` (`configMapName`) holding
@@ -363,13 +349,13 @@ together.
    failed while the Job is still waiting for the backend.
    </Aside>
 
-   The Job refuses an instance that is already configured, so it is safe to leave enabled. Check
-   it with `kubectl logs -n plumber job/plumber-plumber-platform-bootstrap`.
+   Leaving the Job enabled is safe: like the command, it refuses an instance that is already
+   configured. Check it with `kubectl logs -n plumber job/plumber-plumber-platform-bootstrap`.
 
 7. ### 👤 First login
 
-   Open `https://<your_plumber_domain>` and sign in with GitLab. The **first account that signs in
-   becomes the organisation Admin**.
+   Open `https://<your_plumber_domain>` and sign in with GitLab: the [first account that signs in
+   becomes the organisation Admin](/docs/installation#gitlab-oauth-application).
 
 </Steps>
 

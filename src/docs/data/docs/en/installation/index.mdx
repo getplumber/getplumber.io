@@ -14,10 +14,10 @@ continuous governance.
 
 ## What you get
 
-Analysis stays where it belongs: in the open-source
-[Plumber CLI](/docs/cli/installation), running inside your pipelines. The Platform never
-re-runs an analysis and never produces a verdict of its own. Your pipelines **push** their
-results to it with their own native CI OIDC token (`id_tokens`), and the Platform:
+Analysis stays where it belongs: in the open-source [Plumber CLI](/docs/cli/installation),
+running inside your pipelines. The Platform never re-runs an analysis and never produces a
+verdict of its own. Your pipelines **push** their results to it with their own native CI OIDC
+token (`id_tokens`), and the Platform:
 
 - keeps the score and the findings of every project, on the default branch and per branch
 - applies your **policies** and **portfolios** to the estate, and proves coverage
@@ -63,12 +63,6 @@ GitLab mints for them, and the Platform verifies it.
     </div>
   </div>
 </div>
-
-## Installation methods
-
-- [🐳 Docker Compose](/docs/installation/docker-compose) (recommended)
-- [🐳 Docker Compose Local](/docs/installation/docker-compose-local) (for testing on your computer)
-- [🚀 Kubernetes with Helm](/docs/installation/kubernetes)
 
 Everything is published from the
 [getplumber/plumber-platform](https://github.com/getplumber/plumber-platform) repository: the
@@ -117,7 +111,7 @@ split the frontend and the API across two hostnames.
 
 ## GitLab OAuth application
 
-Both installation methods need a GitLab OAuth application: it is how users sign in to Plumber.
+Every installation method needs a GitLab OAuth application: it is how users sign in to Plumber.
 Create it before you start (the Docker Compose installer prints the link and the exact values),
 on the whole instance (`Admin > Applications`) or in the root group you want to connect
 (`Settings > Applications`):
@@ -130,10 +124,13 @@ on the whole instance (`Admin > Applications`) or in the root group you want to 
 | Scopes | `api` |
 
 The application id and secret, the GitLab access token, SMTP and the licence are **stored
-encrypted in the Platform database**, never in `.env` or in a values file. They are configured
-once by the `plumber-bootstrap` command during the install, or later in `Settings` as an Admin.
+encrypted in the Platform database**, never in `.env` or in a values file. `plumber-bootstrap`
+stores the OAuth credentials and, optionally, the access token during the install; SMTP and the
+licence are set later in Settings as an Admin. Each installation method has its own invocation;
+it refuses an instance that is already configured, so running it again is safe.
 
-The **first GitLab account that signs in becomes the organisation Admin**.
+The **first GitLab account that signs in becomes the organisation Admin**: it is the account
+that finishes the setup (access token, SMTP, licence).
 
 ## v1 or v2?
 
@@ -141,8 +138,8 @@ This documentation covers **v2**, the current line of the Plumber Platform (repo
 [getplumber/plumber-platform](https://github.com/getplumber/plumber-platform), images
 `platform-backend` and `platform-frontend`, Helm chart `plumber-platform`).
 
-The previous line (**v1**) keeps living, unchanged, in the separate repository
-[getplumber/platform](https://github.com/getplumber/platform) with its own Helm chart `plumber`.
+**v1** lives on unchanged in the separate repository
+[getplumber/platform](https://github.com/getplumber/platform), with its own Helm chart `plumber`.
 Its guides are kept under [Legacy (v1)](/docs/legacy/v1/installation).
 
 <Aside variant="caution">

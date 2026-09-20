@@ -8,7 +8,7 @@ sidebar:
 section: "api"
 ---
 
-The provider-agnostic reference for the Plumber CLI. The `analyze` command takes provider-specific flags and tokens; the config commands, `plumber explain`, exit codes, and output formats behave identically for both GitLab and GitHub. For installation, see the [Installation](/docs/cli/installation) page. For provider specifics, see the [GitHub](/docs/cli/github) and [GitLab](/docs/cli/gitlab) pages.
+The provider-agnostic reference for the Plumber CLI. Only the `analyze` command takes provider-specific flags and tokens; the config commands, `plumber explain`, exit codes, and output formats behave identically on GitLab and GitHub. See the [Installation](/docs/cli/installation) page to install the CLI, and the [GitHub](/docs/cli/github) and [GitLab](/docs/cli/gitlab) pages for provider specifics.
 
 ## Configuration
 
@@ -49,7 +49,7 @@ plumber analyze [flags]
 | `--badge` | No | `false` | Create/update a Plumber badge on the project (requires `api` scope; only runs on default branch) |
 | `--score` | No | `false` | **Deprecated no-op.** The score banner (letter, points, bar, severity counts) and the score in the JSON, PBOM and CycloneDX output are produced by default; the flag is still accepted so existing invocations do not break |
 | `--score-point` | No | `false` | Add the full per-issue-code points breakdown (`Code / Severity / Count / Weight / Cap / Loss`) to stdout and the MR comment, on top of the default banner |
-| `--score-push` | No | `false` | Publish this repo's Plumber Score to the hosted badge service. Runs in **CI only** (needs a CI-native OIDC id-token; a local run is a no-op). Publishes on every run; the score service keeps only your default branch for the public badge. See [Plumber Score](/docs/plumber-score) |
+| `--score-push` | No | `false` | Publish this repo's Plumber Score to the hosted badge service. Runs in **CI only** (needs a CI-native OIDC id-token; a local run is a no-op). Every run that has score push enabled publishes its result for its branch. The public badge and the project's score follow the default branch only: a merge-request or pull-request run is stored under its branch and never changes the badge. See [Plumber Score](/docs/plumber-score) |
 | `--score-endpoint` | No | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the minted OIDC audience follows this value so it always matches the target |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
 | `--skip-controls` | No | - | Skip listed controls (comma-separated). Cannot be used with `--controls` |
