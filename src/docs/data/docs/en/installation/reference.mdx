@@ -1,0 +1,179 @@
+---
+title: Configuration Reference
+description: This reference explains the configuration options of the Plumber Platform backend. All configuration is managed through environment variables.
+sidebar:
+  grouped: false
+  order: 10
+  label: Reference
+---
+
+This reference explains the configuration options of the Plumber Platform backend. All
+configuration is managed through environment variables, named `PLUMBER_*`.
+
+<Aside variant="info">
+Credentials are **not** configured here. The GitLab OAuth application, the GitLab access token,
+SMTP and the licence are stored encrypted in the Platform database, set once by
+`plumber-bootstrap` or later in `Settings` as an Admin.
+</Aside>
+
+<Aside variant="caution">
+On Docker Compose installs, `compose.yml` already sets most of these from a handful of `.env`
+variables (`DOMAIN_NAME`, `GITLAB_URL`, the secrets, the profile). Variables the compose file pins
+directly, such as `PLUMBER_BASE_URL`, `PLUMBER_OIDC_AUDIENCE`, `PLUMBER_LISTEN_*` and
+`PLUMBER_COOKIE_SECURE`, are derived there: edit the compose file if you must override them. On
+Kubernetes, the chart maps `platform.*` values onto the same variables, and `backend.extraEnv`
+sets anything else.
+</Aside>
+
+## Required configuration
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_BASE_URL` | `http://localhost:8080` | The public origin of this install, no trailing slash. It is what the browser, the OAuth redirect and the pipelines address |
+| `PLUMBER_TOKEN_ENCRYPTION_KEY` | (none) | AES-256-GCM key sealing every stored GitLab secret and token: **exactly 64 hex characters** (`openssl rand -hex 32`). Cannot be rotated in place, back it up |
+| `PLUMBER_DB_HOST` | `localhost` | PostgreSQL host |
+| `PLUMBER_DB_PORT` | `5432` | PostgreSQL port |
+| `PLUMBER_DB_USER` | `plumber` | PostgreSQL user |
+| `PLUMBER_DB_PASSWORD` | `plumber` | PostgreSQL password. Always set your own |
+| `PLUMBER_DB_NAME` | `plumber` | PostgreSQL database name |
+| `PLUMBER_REDIS_ADDR` | `localhost:6379` | Redis address, `host:port` |
+| `PLUMBER_REDIS_URL` | (empty) | Redis connection URL (`redis://` or `rediss://`), an alternative to `PLUMBER_REDIS_ADDR`. **Never set both** |
+| `PLUMBER_OIDC_AUDIENCE` | (empty) | The `aud` claim CI OIDC tokens must carry, byte-identical to what pipelines request. Empty rejects every push |
+| `PLUMBER_OIDC_ALLOWED_ISSUERS` | (empty) | Comma-separated GitLab base URLs allowed to push results |
+
+## Network
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_LISTEN_ADDR` | `0.0.0.0` | Address the backend listens on |
+| `PLUMBER_LISTEN_PORT` | `8080` | Port the backend listens on |
+| `PLUMBER_COOKIE_SECURE` | `false` | Mark the session cookie `Secure`. Keep it true behind TLS |
+| `PLUMBER_TRUST_FORWARDED_FOR` | `false` | Trust `X-Forwarded-For` for per-IP rate limits. Keep it true behind a reverse proxy or an ingress |
+| `PLUMBER_TRUSTED_PROXY_CIDRS` | (empty) | Extra trusted proxy CIDRs, beyond the private ranges already trusted |
+| `PLUMBER_BASE_URL_REJECT_PRIVATE` | `false` | Reject a base URL that resolves to a private address |
+
+## Database TLS and pooling
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_DB_SSLMODE` | `disable` | One of `disable`, `allow`, `prefer`, `require`, `verify-ca`, `verify-full` |
+| `PLUMBER_DB_SSLROOTCERT` | (empty) | Path to the CA certificate. Unreadable means a fatal error at startup |
+| `PLUMBER_DB_SSLCERT` | (empty) | Path to the client certificate. Unreadable means a fatal error at startup |
+| `PLUMBER_DB_SSLKEY` | (empty) | Path to the client key. Unreadable means a fatal error at startup |
+| `PLUMBER_DB_TIMEZONE` | `UTC` | Timezone for database operations |
+| `PLUMBER_DB_MAX_OPEN_CONNS` | `10` | Maximum open connections in the pool |
+| `PLUMBER_DB_MAX_IDLE_CONNS` | `5` | Maximum idle connections in the pool |
+| `PLUMBER_DB_CONN_MAX_LIFETIME` | `1h` | Maximum lifetime of a pooled connection |
+
+## Sessions and logs
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_SESSION_TTL` | `168h` | Validity of a user session |
+| `PLUMBER_ROLE_CACHE_TTL` | `5m` | How long a user's resolved role is cached |
+| `PLUMBER_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` |
+| `PLUMBER_LOG_FORMAT` | `json` | `text` for human-readable logs; anything else is JSON |
+
+## Trust
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_PROVIDER_CA_BUNDLE` | (empty) | Path to a PEM bundle trusted when calling GitLab |
+| `PLUMBER_REPORT_SMTP_CA_BUNDLE` | (empty) | Path to a PEM bundle trusted when calling the SMTP server |
+| `PLUMBER_REPORT_SMTP_REJECT_PRIVATE_RELAY` | `false` | Refuse an SMTP relay that resolves to a private address |
+
+## Update check
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_UPDATE_CHECK_URL` | `https://raw.githubusercontent.com/getplumber/plumber-platform/main/latest.json` | Manifest polled to tell you a newer release exists. Must be `https://`, or the literal `off` to disable it (air-gapped installs) |
+| `PLUMBER_UPDATE_CHECK_CRON` | `0 6 * * *` | When to poll it (5-field cron, UTC) |
+| `PLUMBER_UPDATE_CHECK_TIMEOUT` | `5s` | Timeout of the poll |
+
+## Background work
+
+All cron expressions are 5-field and evaluated in UTC.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_SYNC_CRON` | `20 1 * * *` | Daily synchronisation of the project inventory from GitLab |
+| `PLUMBER_SYNC_TIMEOUT` | `20m` | Deadline of a whole sync run |
+| `PLUMBER_SYNC_DETECT_TIMEOUT` | `10s` | Deadline of the per-project detection step during a sync |
+| `PLUMBER_REDETECT_BATCH` | `100` | Projects re-detected per sync run; `0` disables re-detection |
+| `PLUMBER_SYNC_MAX_VANISH_PERCENT` | `30` | Safety brake: abort a sync that would remove more than this share of projects |
+| `PLUMBER_SYNC_MAX_VANISH_COUNT` | `10` | Safety brake: the absolute count below which the percentage brake does not apply |
+| `PLUMBER_WATCHDOG_CRON` | `*/15 * * * *` | Sweep for runs that never reported back |
+| `PLUMBER_RUNNING_TIMEOUT` | `15m` | After this, a running analysis is considered interrupted |
+| `PLUMBER_SCORE_ROLLUP_CRON` | `0 * * * *` | Hourly score rollup |
+| `PLUMBER_SNAPSHOT_TIMEOUT` | `60s` | Deadline of a configuration snapshot |
+| `PLUMBER_RESOLVE_TIMEOUT` | `10s` | Deadline of one resolved-control lookup |
+| `PLUMBER_RESOLVE_MAX_CONCURRENT` | `2` | Concurrent resolved-control lookups |
+| `PLUMBER_RETRIGGER_TIMEOUT` | `3m` | Deadline of a re-check (pipeline re-trigger) |
+| `PLUMBER_FIX_TIMEOUT` | `60s` | Deadline of an automated fix |
+| `PLUMBER_ONBOARD_TIMEOUT` | `60s` | Deadline of one project onboarding. Must stay below `PLUMBER_SYNC_TIMEOUT` |
+| `PLUMBER_INTERACTIVE_WORKERS` | `4` | Workers serving user-triggered background jobs |
+| `PLUMBER_FANOUT_CRON` | `*/2 * * * *` | Fan-out tick for queued work |
+| `PLUMBER_FANOUT_BATCH` | `10` | Items dispatched per fan-out tick |
+| `PLUMBER_REPORT_SCHEDULE_TICK_CRON` | `*/15 * * * *` | Tick that looks for scheduled reports to send |
+| `PLUMBER_REPORT_SCHEDULE_SEND_TIMEOUT` | `60s` | Deadline of sending one scheduled report |
+| `PLUMBER_RETENTION_CRON` | `0 4 * * 0` | Weekly retention sweep (Sunday 04:00 UTC) |
+| `PLUMBER_RETENTION_DAYS` | `30` | How long analyses are kept. Values below `2` are rejected |
+| `PLUMBER_RETENTION_BATCH_SIZE` | `500` | Rows deleted per retention batch |
+| `PLUMBER_RETENTION_BATCH_TIMEOUT` | `10s` | Deadline of one retention batch |
+| `PLUMBER_RETENTION_BLOB_GRACE_PERIOD` | `1h` | Grace period before an orphaned blob is deleted |
+
+## Rate limits
+
+Outbound, per provider call class:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_PROVIDER_LIMIT_WINDOW` | `60s` | Length of the outbound rate-limit window |
+| `PLUMBER_PROVIDER_LIMIT_BACKGROUND` | `900` | Provider calls per window for background work |
+| `PLUMBER_PROVIDER_LIMIT_INTERACTIVE` | `300` | Provider calls per window for interactive work |
+| `PLUMBER_PROVIDER_LIMIT_USER` | `300` | Provider calls per window and per user |
+
+Inbound:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_INBOUND_LIMIT_WINDOW` | `60s` | Length of the inbound rate-limit window |
+| `PLUMBER_INBOUND_LIMIT_PUSH_PER_IP` | `600` | Result pushes accepted per window and per IP |
+| `PLUMBER_INBOUND_LIMIT_LOGIN_PER_IP` | `120` | Login attempts per window and per IP |
+| `PLUMBER_INBOUND_LIMIT_INVALIDATE_CACHE_PER_SESSION` | `20` | Cache invalidations per window and per session |
+| `PLUMBER_SSE_MAX_PER_USER` | `16` | Concurrent live-update streams per user; `0` disables the limit |
+
+## Ingestion caps
+
+The push body is untrusted input. These caps bound what one push may contain; a body that exceeds
+them is rejected.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_INGEST_MAX_POLICIES` | `100` | Policies in one push |
+| `PLUMBER_INGEST_MAX_FINDINGS_PER_POLICY` | `1000` | Findings for one policy |
+| `PLUMBER_INGEST_MAX_FINDINGS_AGGREGATE` | `5000` | Findings in one push, all policies together |
+| `PLUMBER_INGEST_MAX_SCALAR_STRING_BYTES` | `1024` | Length of any single string value |
+| `PLUMBER_INGEST_MAX_DATA_BYTES` | `65536` | Size of a finding's data object |
+| `PLUMBER_INGEST_MAX_EFFECTIVE_CONFIG_BYTES` | `262144` | Size of the reported effective configuration |
+| `PLUMBER_INGEST_MAX_VARIABLE_VALUE_BYTES` | `1024` | Length of a reported CI variable value |
+| `PLUMBER_INGEST_MAX_NESTING_DEPTH` | `100` | Nesting depth of the JSON body |
+| `PLUMBER_INGEST_MAX_COLLECTION_MISSING_FIELDS` | `50` | Reported missing-field entries kept per collection |
+
+## Frontend
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `API_INTERNAL_URL` | (none) | Where server-side rendering calls the backend. `http://backend:8080/api` on the Compose stack |
+| `GITLAB_URL` | (none) | GitLab instance URL, used for deep links |
+
+There is no `NEXT_PUBLIC_*` variable: the browser always calls the API same-origin under `/api`.
+
+## Bootstrap only
+
+Read by `plumber-bootstrap`, never by the running backend.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_BOOTSTRAP_CLIENT_SECRET` | (none) | Secret of the GitLab OAuth application |
+| `PLUMBER_BOOTSTRAP_TOKEN` | (none) | GitLab access token (`api` scope) to store in the same run |

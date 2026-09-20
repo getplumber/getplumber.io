@@ -1,0 +1,103 @@
+---
+title: Troubleshooting
+description: Common installation errors and how to solve them.
+sidebar:
+  grouped: false
+  order: 9
+  label: Troubleshooting
+---
+
+The installation is not working as expected ? You're at the right place !
+
+Here are the common errors and how to solve them
+
+## Sign-in
+
+- **`Redirect URI Invalid` error in GitLab**
+
+  The redirect URI of your GitLab OAuth application must be **exactly**
+  `<your Plumber URL>/api/v1/auth/callback`: `https://plumber.mydomain.com/api/v1/auth/callback`
+  on a production install, `http://localhost:3000/api/v1/auth/callback` locally. It must match the
+  public origin of the install (`PLUMBER_BASE_URL`, or `platform.baseUrl` on Kubernetes), scheme
+  and host included.
+
+  <Aside variant="info">
+  The v1 line used `/api/auth/gitlab/callback`. If you are reusing an application created for a v1
+  install, update its redirect URI.
+  </Aside>
+
+## Pipelines
+
+- **Every push from CI is rejected**
+
+  Pipelines authenticate with their own GitLab OIDC token, and the Platform checks two things:
+
+  - `PLUMBER_OIDC_AUDIENCE` must be **byte-identical** to the audience your pipelines request
+    (the Plumber base URL). A trailing slash, `http` instead of `https`, or a different host, and
+    every push is refused. The Docker Compose stack and the chart both derive it from the base URL
+    by default.
+  - `PLUMBER_OIDC_ALLOWED_ISSUERS` must list your GitLab instance URL. It defaults to the
+    configured GitLab URL, so set it explicitly only when pipelines run on another instance.
+
+## Startup
+
+- **The backend exits at startup naming `PLUMBER_TOKEN_ENCRYPTION_KEY`**
+
+  The key must be **exactly 64 hexadecimal characters** (`openssl rand -hex 32`). Generate it with
+  that command, and remember it cannot be rotated in place: everything it sealed becomes
+  unreadable without it.
+
+- **The backend exits at startup naming `PLUMBER_UPDATE_CHECK_URL`**
+
+  The update check URL must be an `https://` URL, or the literal string `off` to disable the check
+  entirely (air-gapped installs). Anything else is rejected at boot.
+
+- **PostgreSQL refuses to start: "directory not empty" or an initdb error**
+
+  The `postgres:18` image refuses a volume mounted at `/var/lib/postgresql/data`. Mount one level
+  up, at `/var/lib/postgresql`, and point `PGDATA` below it. The shipped `compose.yml` and
+  `compose.local.yml` already do that; check your override if you wrote one.
+
+## Health checks
+
+The backend exposes four endpoints, useful when a container looks unhealthy:
+
+| Endpoint | What it answers |
+|---|---|
+| `/healthz` | Liveness. Always `200` while the process runs |
+| `/readyz` | Readiness, database-backed. What the installer and the bootstrap Job wait for |
+| `/health` | The human-readable view, Redis folded in |
+| `/metrics` | Prometheus metrics (never exposed through the ingress) |
+
+The backend image is distroless and has no shell, so it carries no in-container healthcheck: probe
+these endpoints from outside, from another container on the same network or through your reverse
+proxy.
+
+## Kubernetes
+
+Issues related to installation on Kubernetes using the Helm chart
+
+- **No persistent volume for the bundled PostgreSQL**
+
+  The PostgreSQL `StatefulSet` deployed by the chart needs a Persistent Volume. If you have no
+  default storage class, or want a specific one, set it explicitly:
+
+      ```yaml
+      postgresql:
+        persistence:
+          size: "10Gi"
+          storageClass: REPLACE_ME_BY_STORAGE_CLASS
+          accessMode: ReadWriteOnce
+      ```
+
+- **`helm install` reports a failed release while the bootstrap Job is still running**
+
+  The Job waits for the backend, whose first boot pulls the image and migrates the database. Pass
+  `--timeout 15m` whenever `bootstrap.enabled` is true.
+
+## Support
+
+**Don't find what you're looking for ?**
+
+Reach our support using the `#support` channel on [Discord](/discord)
+You can also send an email to [help@plumber.helpscoutapp.com](mailto:help@plumber.helpscoutapp.com)
