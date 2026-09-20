@@ -4,9 +4,16 @@ description: This section describes how to setup your self-managed instance of P
 sidebar:
   grouped: false
   order: 1
-  label: Introduction
+  label: Introduction (v1)
 ---
 
+<Aside variant="caution">
+**This page documents the v1 line of the Plumber Platform** (repository
+[github.com/getplumber/platform](https://github.com/getplumber/platform)), kept here for
+existing installations. New installations use **v2**: see the
+[current installation documentation](/docs/installation). v1 and v2 are not compatible, they do
+not share a database, and there is no automated migration.
+</Aside>
 
 This section describes how to setup your self-managed instance of Plumber.
 
@@ -28,7 +35,7 @@ task. Plumber automates this process for you.**
       <div class="text-xl font-semibold tracking-tight">🐳 Docker Compose (recommended)</div>
       <div class="text-muted-foreground text-sm">Production-ready deployment with automatic Let's Encrypt or custom certificates.</div>
       <div class="pt-2">
-        <a href="/docs/installation/docker-compose" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
+        <a href="/docs/legacy/v1/installation/docker-compose" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
       </div>
     </div>
   </div>
@@ -38,7 +45,7 @@ task. Plumber automates this process for you.**
       <div class="text-xl font-semibold tracking-tight">⏱️ Docker Compose Local</div>
       <div class="text-muted-foreground text-sm">Quick local setup for testing and development on your computer.</div>
       <div class="pt-2">
-        <a href="/docs/installation/docker-compose-local" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
+        <a href="/docs/legacy/v1/installation/docker-compose-local" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
       </div>
     </div>
   </div>
@@ -48,7 +55,7 @@ task. Plumber automates this process for you.**
       <div class="text-xl font-semibold tracking-tight">🚀 Kubernetes</div>
       <div class="text-muted-foreground text-sm">Enterprise-grade deployment on Kubernetes using Helm charts.</div>
       <div class="pt-2">
-        <a href="/docs/installation/kubernetes" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
+        <a href="/docs/legacy/v1/installation/kubernetes" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
       </div>
     </div>
   </div>
@@ -58,7 +65,7 @@ task. Plumber automates this process for you.**
       <div class="text-xl font-semibold tracking-tight">🕸 Podman</div>
       <div class="text-muted-foreground text-sm">Community-supported deployment using Podman containers (production and local).</div>
       <div class="pt-2">
-        <a href="/docs/installation/podman" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
+        <a href="/docs/legacy/v1/installation/podman" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
       </div>
     </div>
   </div>
@@ -66,10 +73,10 @@ task. Plumber automates this process for you.**
 
 ## Installation methods
 
-- [🐳 Docker Compose](/docs/installation/docker-compose) (recommended)
-- [🐳 Docker Compose Local](/docs/installation/docker-compose-local) (for testing on your computer)
-- [🚀 Kubernetes with Helm](/docs/installation/kubernetes)
-- [🕸 Podman](/docs/installation/podman) (community-supported)
+- [🐳 Docker Compose](/docs/legacy/v1/installation/docker-compose) (recommended)
+- [🐳 Docker Compose Local](/docs/legacy/v1/installation/docker-compose-local) (for testing on your computer)
+- [🚀 Kubernetes with Helm](/docs/legacy/v1/installation/kubernetes)
+- [🕸 Podman](/docs/legacy/v1/installation/podman) (community-supported)
 
 ## Infrastructure
 

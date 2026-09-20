@@ -7,6 +7,14 @@ sidebar:
   label: Troubleshooting
 ---
 
+<Aside variant="caution">
+**This page documents the v1 line of the Plumber Platform** (repository
+[github.com/getplumber/platform](https://github.com/getplumber/platform)), kept here for
+existing installations. New installations use **v2**: see the
+[current installation documentation](/docs/installation). v1 and v2 are not compatible, they do
+not share a database, and there is no automated migration.
+</Aside>
+
 The installation is not working as expected ? You're at the right place !
 
 Here are the common errors and how to solve them
@@ -20,7 +28,7 @@ Issues related to all installation methods
   This error occurs when the Redirect URL set for your GitLab application
   doesn't correspond to the `API_URL`. Please, ensure you write the correct
   URL as described in the [section
-  OIDC](docker-compose/#step-4-configure-gitlab-oidc).
+  OIDC](/docs/legacy/v1/installation/docker-compose#step-4-configure-gitlab-oidc).
 
 ## Kubernetes
 
