@@ -73,7 +73,6 @@ export default defineConfig({
         "@/docs/components/mdx-components/IssuesList.astro",
         "@/docs/components/mdx-components/NewControlsTable.astro",
         "@/docs/components/mdx-components/ProviderTabs.astro",
-        "@/docs/components/mdx-components/ProductScopeBadge.astro",
       ],
     }),
     expressiveCode({

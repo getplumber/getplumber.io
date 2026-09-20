@@ -11,20 +11,11 @@ sidebar:
 import ProviderTabsScript from "@/docs/components/mdx-components/ProviderTabsScript.astro";
 import ControlsTable from "@/docs/components/mdx-components/ControlsTable.astro";
 
-Plumber checks your CI/CD configuration and project settings against a catalog of controls, split per provider: GitLab controls inspect `.gitlab-ci.yml` and GitLab project settings, GitHub controls inspect `.github/workflows/*.yml` and GitHub repository settings. Pick a provider tab below.
+Plumber checks your CI/CD configuration and project settings against a catalog of controls, split per provider: GitLab controls inspect `.gitlab-ci.yml` and GitLab project settings, GitHub controls inspect `.github/workflows/*.yml` and GitHub repository settings. Pick a provider tab below, or **All** for the whole catalog with one row per control.
 
 A control that is not respected raises an issue. Click the `ISSUE-XXX` link in any row for its full description, impact, and remediation.
 
-<div class="not-content my-4 rounded-md border border-border bg-muted/30 px-3 py-2.5 text-[13px] leading-snug text-muted-foreground">
-  <p class="mb-2 font-medium text-foreground">Scope</p>
-  <ul class="m-0 list-none space-y-1 pl-0 [&>li]:pl-0">
-    <li><strong class="text-foreground">All</strong>: Plumber Platform and Open Source CLI</li>
-    <li><strong class="text-foreground">Platform</strong>: Plumber Platform only</li>
-    <li><strong class="text-foreground">CLI</strong>: Open Source CLI only (not a Platform control)</li>
-  </ul>
-</div>
-
-<ProviderTabs />
+<ProviderTabs includeAll={true} />
 
 <div data-provider-panel="gitlab">
 
@@ -36,7 +27,7 @@ A control that is not respected raises an issue. Click the `ISSUE-XXX` link in a
 
 <div class="not-content my-4 rounded-md border border-emerald-300/60 dark:border-emerald-700/40 bg-emerald-50/50 dark:bg-emerald-950/20 px-3 py-2.5 text-[13px] leading-snug text-foreground/80">
   <p class="mb-1 font-medium text-foreground">GitHub Actions support is currently <strong>Open Source CLI only</strong>.</p>
-  <p class="text-muted-foreground">All controls below carry the <ProductScopeBadge scope="cli" /> badge. Plumber Platform does not scan GitHub Actions workflows yet; Platform GitHub support follows in a later release.</p>
+  <p class="text-muted-foreground">Plumber Platform does not scan GitHub Actions workflows yet; Platform GitHub support follows in a later release.</p>
 </div>
 
 <div class="not-content my-4 rounded-md border border-border bg-muted/30 px-3 py-2.5 text-[13px] leading-snug text-muted-foreground">
@@ -50,6 +41,12 @@ A control that is not respected raises an issue. Click the `ISSUE-XXX` link in a
 </div>
 
 <ControlsTable provider="github" />
+
+</div>
+
+<div data-provider-panel="all" class="hidden">
+
+<ControlsTable provider="all" />
 
 </div>
 

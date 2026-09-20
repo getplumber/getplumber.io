@@ -1,0 +1,33 @@
+---
+/**
+ * Small "which provider covers this" badge, used by the combined ("All")
+ * view of the controls and issues catalogs where a row can belong to
+ * GitLab, to GitHub, or to both. Icon only: the provider name is the hover
+ * title and a screen-reader label, never visible text.
+ */
+import { Icon } from "astro-icon/components";
+
+import type { Provider } from "@/data/issues";
+
+interface Props {
+  provider: Provider;
+}
+
+const { provider } = Astro.props;
+
+const label = provider === "gitlab" ? "GitLab" : "GitHub";
+const icon = provider === "gitlab" ? "tabler/brand-gitlab" : "tabler/brand-github";
+---
+
+<span
+  class:list={[
+    "not-content inline-flex shrink-0 items-center justify-center rounded size-[26px] leading-none ring-1 ring-inset",
+    provider === "gitlab"
+      ? "bg-orange-100 text-orange-800 ring-orange-300 dark:bg-orange-900/40 dark:text-orange-200 dark:ring-orange-700/50"
+      : "bg-slate-100 text-slate-800 ring-slate-300 dark:bg-slate-800/60 dark:text-slate-200 dark:ring-slate-600/60",
+  ]}
+  title={label}
+>
+  <Icon name={icon} color="currentColor" size="16px" aria-hidden="true" />
+  <span class="sr-only">{label}</span>
+</span>

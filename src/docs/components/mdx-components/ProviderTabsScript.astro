@@ -2,11 +2,18 @@
 /**
  * Provider-tab toggle script shared between the controls and issues
  * documentation pages. Renders a single inline `<script>` that:
- *   - reads `?p=gitlab|github` from the URL, then localStorage, then
+ *   - reads `?p=gitlab|github|all` from the URL, then localStorage, then
  *     falls back to "gitlab";
  *   - shows/hides `[data-provider-panel]` blocks accordingly;
  *   - rewrites issue-link query strings so cross-page navigation
  *     preserves the active provider.
+ *
+ * "all" is the combined catalog panel rendered by the controls and issues
+ * pages only. A selection is never honoured unless the current page renders
+ * the matching panel, so "all" degrades to the fallback elsewhere (the issue
+ * detail page has GitLab/GitHub panels only). Issue links inside the combined
+ * panel already point at a provider that holds the code, so they are left
+ * alone rather than rewritten to `?p=all`.
  *
  * Wrapped in an `.astro` file so MDX pages can use it without running
  * into the MDX parser's interpretation of `{` characters inside a
@@ -24,13 +31,24 @@
  */
   (function () {
     const STORAGE_KEY = "plumber:docs:provider";
+    const PROVIDERS = ["gitlab", "github", "all"];
 
     function panelExists(p) {
       return !!document.querySelector('[data-provider-panel="' + p + '"]');
     }
 
+    /**
+     * Point the shown panel's issue links at the active provider. Scoped to
+     * that one panel: the combined panel authors a per-row provider into each
+     * href, and a document-wide rewrite would flatten those the first time the
+     * reader visited another tab. The combined panel itself is never rewritten
+     * (its links already name a provider that holds the code).
+     */
     function rewriteIssueLinks(p) {
-      document.querySelectorAll('a[href*="/issues/ISSUE-"]').forEach(function (a) {
+      if (p === "all") return;
+      const panel = document.querySelector('[data-provider-panel="' + p + '"]');
+      if (!panel) return;
+      panel.querySelectorAll('a[href*="/issues/ISSUE-"]').forEach(function (a) {
         const href = a.getAttribute("href") || "";
         const m = href.match(/^(\/(?:docs\/(?:use-plumber|cli))\/issues\/ISSUE-\d+)(\?.*)?$/);
         if (m) {
@@ -107,7 +125,7 @@
     function initialProvider() {
       const params = new URLSearchParams(window.location.search);
       const fromUrl = params.get("p");
-      if ((fromUrl === "gitlab" || fromUrl === "github") && panelExists(fromUrl)) {
+      if (PROVIDERS.indexOf(fromUrl) !== -1 && panelExists(fromUrl)) {
         return fromUrl;
       }
       let fromStorage = null;
@@ -116,7 +134,7 @@
       } catch (e) {
         /* localStorage unavailable (private mode, etc.); silently ignore. */
       }
-      if ((fromStorage === "gitlab" || fromStorage === "github") && panelExists(fromStorage)) {
+      if (PROVIDERS.indexOf(fromStorage) !== -1 && panelExists(fromStorage)) {
         return fromStorage;
       }
       return "gitlab";
@@ -131,7 +149,7 @@
     document.querySelectorAll("[data-provider-tab]").forEach(function (tab) {
       tab.addEventListener("click", function () {
         const p = tab.getAttribute("data-provider-tab");
-        if (p === "gitlab" || p === "github") setProvider(p);
+        if (PROVIDERS.indexOf(p) !== -1) setProvider(p);
       });
     });
   })();

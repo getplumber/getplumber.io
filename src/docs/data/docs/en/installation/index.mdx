@@ -33,35 +33,29 @@ GitLab mints for them, and the Platform verifies it.
 ## Quick Installation Guide
 
 <div class="not-content grid gap-6 sm:grid-cols-2 my-8">
-  <div class="bg-card text-card-foreground rounded-2xl border shadow-sm hover:border-primary/50 transition-colors">
+  <a href="/docs/installation/docker-compose" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight">🐳 Docker Compose (recommended)</div>
+      <div class="text-xl font-semibold tracking-tight text-card-foreground">🐳 Docker Compose (recommended)</div>
       <div class="text-muted-foreground text-sm">Production-ready deployment on a single Linux host, with automatic Let's Encrypt or custom certificates.</div>
-      <div class="pt-2">
-        <a href="/docs/installation/docker-compose" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
-      </div>
+      <div class="pt-2 text-primary text-sm font-medium group-hover:underline">Learn more →</div>
     </div>
-  </div>
+  </a>
 
-  <div class="bg-card text-card-foreground rounded-2xl border shadow-sm hover:border-primary/50 transition-colors">
+  <a href="/docs/installation/docker-compose-local" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight">⏱️ Docker Compose Local</div>
+      <div class="text-xl font-semibold tracking-tight text-card-foreground">⏱️ Docker Compose Local</div>
       <div class="text-muted-foreground text-sm">Quick local setup for testing and evaluation on your computer.</div>
-      <div class="pt-2">
-        <a href="/docs/installation/docker-compose-local" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
-      </div>
+      <div class="pt-2 text-primary text-sm font-medium group-hover:underline">Learn more →</div>
     </div>
-  </div>
+  </a>
 
-  <div class="bg-card text-card-foreground rounded-2xl border shadow-sm hover:border-primary/50 transition-colors">
+  <a href="/docs/installation/kubernetes" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50">
     <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight">🚀 Kubernetes</div>
+      <div class="text-xl font-semibold tracking-tight text-card-foreground">🚀 Kubernetes</div>
       <div class="text-muted-foreground text-sm">Deployment on Kubernetes with the <code>plumber-platform</code> Helm chart.</div>
-      <div class="pt-2">
-        <a href="/docs/installation/kubernetes" class="text-primary hover:underline text-sm font-medium">Learn more →</a>
-      </div>
+      <div class="pt-2 text-primary text-sm font-medium group-hover:underline">Learn more →</div>
     </div>
-  </div>
+  </a>
 </div>
 
 Everything is published from the
@@ -94,9 +88,7 @@ split the frontend and the API across two hostnames.
 
 **GitLab**
 
-- **GitLab 15.7 or later** for the native `id_tokens` your pipelines use to push results
-- **GitLab 16.x** to use the Plumber CI/CD component
-- **GitLab 17.x** for `spec:inputs` on the component (17.7 or later is the recommended baseline)
+- **GitLab 17.7 or later**
 
 **Runtime**, one of:
 
@@ -129,20 +121,7 @@ stores the OAuth credentials and, optionally, the access token during the instal
 licence are set later in Settings as an Admin. Each installation method has its own invocation;
 it refuses an instance that is already configured, so running it again is safe.
 
-The **first GitLab account that signs in becomes the organisation Admin**: it is the account
-that finishes the setup (access token, SMTP, licence).
-
-## v1 or v2?
-
-This documentation covers **v2**, the current line of the Plumber Platform (repository
-[getplumber/plumber-platform](https://github.com/getplumber/plumber-platform), images
-`platform-backend` and `platform-frontend`, Helm chart `plumber-platform`).
-
-**v1** lives on unchanged in the separate repository
-[getplumber/platform](https://github.com/getplumber/platform), with its own Helm chart `plumber`.
-Its guides are kept under [Legacy (v1)](/docs/legacy/v1/installation).
-
-<Aside variant="caution">
-v1 and v2 are **not compatible**: they do not share a database and there is no automated
-migration. A v2 install is a fresh install.
-</Aside>
+The setup is finished by a **Plumber Admin**: a GitLab instance Admin when Plumber is connected to
+the whole instance, a user who is at least Maintainer of the root group when it is connected to a
+group (see [Roles & Permissions](/docs/use-plumber/roles-permissions#admin)). That account sets the
+access token, SMTP and the licence.

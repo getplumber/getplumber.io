@@ -24,16 +24,18 @@ const sidebarNavData: DocsSidebarNavData = {
           title: "Getting Started",
         },
         {
-          id: "cli",
-          title: "CLI",
-          navLinks: [
-            { text: "Controls", href: "/docs/use-plumber/controls" },
-            { text: "Issues", href: "/docs/use-plumber/issues", indent: true },
-          ],
-        },
-        {
           id: "plumber-score",
           title: "Plumber Score",
+        },
+        {
+          id: "cli",
+          title: "CLI",
+          // Controls and Issues are siblings: same level, same styling,
+          // Controls first. Neither is nested under the other.
+          navLinks: [
+            { text: "Controls", href: "/docs/use-plumber/controls" },
+            { text: "Issues", href: "/docs/use-plumber/issues" },
+          ],
         },
         {
           id: "installation",

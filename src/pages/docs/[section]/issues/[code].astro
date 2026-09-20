@@ -34,11 +34,7 @@ import {
   isVisibleProviderContent,
   type Provider,
 } from "@/data/issues";
-import {
-  fixDurationBadge,
-  severityBadge,
-} from "@/docs/components/mdx-components/IssuesList.astro";
-import ProductScopeBadge from "@/docs/components/mdx-components/ProductScopeBadge.astro";
+import { severityBadge } from "@/docs/components/mdx-components/IssuesList.astro";
 import ProviderTabs from "@/docs/components/mdx-components/ProviderTabs.astro";
 import {
   CLI_DOCS_PREFIX,
@@ -100,7 +96,7 @@ type PanelDescriptor = {
 // Removed content stays out of every list (isVisibleProviderContent is
 // false) but must still render here: findings emitted by older CLI
 // versions carry this page's URL as their docUrl, and the reader needs
-// the removal notice — not a silent redirect.
+// the removal notice, not a silent redirect.
 const showOnDetailPage = (content: IssueProviderContent) =>
   isVisibleProviderContent(content) || content.status === "removed";
 
@@ -158,56 +154,7 @@ const severityColors: Record<string, { bg: string; text: string; ring: string; l
   },
 };
 
-const fixDurationStyles: Record<
-  string,
-  { bg: string; text: string; ring: string; label: string }
-> = {
-  immediate: {
-    bg: "bg-emerald-100 dark:bg-emerald-900/40",
-    text: "text-emerald-700 dark:text-emerald-300",
-    ring: "ring-emerald-300 dark:ring-emerald-700/60",
-    label: "Immediate",
-  },
-  "very quick": {
-    bg: "bg-emerald-100 dark:bg-emerald-900/40",
-    text: "text-emerald-700 dark:text-emerald-300",
-    ring: "ring-emerald-300 dark:ring-emerald-700/60",
-    label: "Very quick",
-  },
-  quick: {
-    bg: "bg-primary/10",
-    text: "text-primary",
-    ring: "ring-primary/40",
-    label: "Quick",
-  },
-  medium: {
-    bg: "bg-yellow-100 dark:bg-yellow-900/40",
-    text: "text-yellow-700 dark:text-yellow-300",
-    ring: "ring-yellow-300 dark:ring-yellow-700/60",
-    label: "Medium",
-  },
-  long: {
-    bg: "bg-orange-100 dark:bg-orange-900/40",
-    text: "text-orange-700 dark:text-orange-300",
-    ring: "ring-orange-300 dark:ring-orange-700/60",
-    label: "Long",
-  },
-  extended: {
-    bg: "bg-red-100 dark:bg-red-900/40",
-    text: "text-red-700 dark:text-red-300",
-    ring: "ring-red-300 dark:ring-red-700/60",
-    label: "Extended",
-  },
-};
-
-const fixFallback = {
-  bg: "bg-muted",
-  text: "text-muted-foreground",
-  ring: "ring-border",
-  label: "Unknown",
-};
-
-// Prev/next is scoped per provider — navigating within a provider should
+// Prev/next is scoped per provider: navigating within a provider should
 // only walk through codes that actually have that provider's content.
 const codesByProvider: Record<Provider, string[]> = {
   gitlab: Object.keys(issues).filter(
@@ -233,7 +180,7 @@ function prevNextFor(provider: Provider): { prev: string | null; next: string | 
  * HTML-escaped first. Only http(s) URLs (external, new tab) and
  * site-absolute /… paths become links; any other href stays literal.
  * Not supported (write plain text instead): *italics*, and bold/links
- * whose label spans a `code` segment — the code-span split runs first.
+ * whose label spans a `code` segment, because the code-span split runs first.
  */
 function inlineCodeToHtml(text: string): string {
   const escape = (s: string) =>
@@ -380,8 +327,6 @@ const structuredData = {
     panels.map((p) => {
       const c = p.content;
       const sev = severityColors[c.severity];
-      const fix = fixDurationStyles[c.fixDuration] ?? fixFallback;
-      const resolvedScope = c.productScope === "cli" ? "cli" : c.productScope === "platform" ? "platform" : "all";
       const pn = prevNextFor(p.id);
       const panelShowConfig = c.productScope !== "platform";
       return (
@@ -405,14 +350,6 @@ const structuredData = {
                 <Icon name="tabler/alert-triangle" color="currentColor" size="16px" />
                 {sev.label}
               </span>
-              <span
-                class={`inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${fix.bg} ${fix.text} ${fix.ring}`}
-                title="Approximate time needed to fix this issue"
-              >
-                <Icon name="tabler/clock" color="currentColor" size="16px" />
-                {fix.label}
-              </span>
-              <ProductScopeBadge scope={resolvedScope} size="header" />
               {c.status === "roadmap" && (
                 <span
                   class="inline-flex items-center gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset bg-amber-100 text-amber-800 ring-amber-300 dark:bg-amber-900/40 dark:text-amber-200 dark:ring-amber-700/50"
@@ -613,7 +550,6 @@ const structuredData = {
                   const relContent = relProvider ? related?.[relProvider] : undefined;
                   if (!related || !relProvider || !relContent) return null;
                   const relSev = relContent.severity;
-                  const relFix = relContent.fixDuration;
                   return (
                     <a
                       href={`${docsBase}/issues/${rc}?p=${relProvider}`}
@@ -630,15 +566,6 @@ const structuredData = {
                         >
                           <Icon size="15px" name="tabler/alert-triangle" color="currentColor" class="h-3 w-3" />
                           {relSev.charAt(0).toUpperCase() + relSev.slice(1)}
-                        </span>
-                        <span
-                          class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${
-                            fixDurationBadge[relFix] ?? "bg-muted text-muted-foreground ring-border"
-                          }`}
-                          title="Approximate time needed to fix this issue"
-                        >
-                          <Icon size="15px" name="tabler/clock" color="currentColor" class="h-3 w-3" />
-                          {(relFix.charAt(0).toUpperCase() + relFix.slice(1)).replace("quick", "Quick")}
                         </span>
                       </div>
                     </a>

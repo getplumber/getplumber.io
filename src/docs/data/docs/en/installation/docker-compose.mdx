@@ -58,11 +58,7 @@ Run the interactive installer on your server:
 curl -fsSL https://raw.githubusercontent.com/getplumber/plumber-platform/main/install.sh | bash
 ```
 
-It clones the repository if you are not already inside it, asks you to choose a deployment type,
-then runs the pre-flight checks (Docker, Compose version, git, OpenSSL, free ports). Pick
-**Production**.
-
-The prompts then come in this order:
+Pick **Production** as the deployment type. The installer then asks for:
 
 1. **Plumber domain name**, for example `plumber.mydomain.com`. The installer checks that it
    resolves and warns you (without stopping) if the DNS record is not in place yet.
@@ -87,11 +83,9 @@ The prompts then come in this order:
 8. **Database**: the bundled PostgreSQL container, or your own external instance (host, port,
    user, database name, password, SSL mode, timezone).
 
-The installer then generates the secrets, writes `.env`, re-runs the checks against it and asks
-**Start Plumber now?**. On yes it runs `docker compose up -d`, waits for the backend to answer
-`/readyz` (the first boot runs the database migrations) and configures the GitLab connection with
-`plumber-bootstrap`. Open `https://<your_plumber_domain>` and sign in with GitLab: the [first
-account that signs in becomes the organisation Admin](/docs/installation#gitlab-oauth-application).
+Answer yes to **Start Plumber now?** (the first boot runs the database migrations, so it takes a
+moment), then open `https://<your_plumber_domain>` and sign in with GitLab as a
+[Plumber Admin](/docs/use-plumber/roles-permissions#admin) to finish the setup.
 
 <Aside variant="caution">
 The installer refuses to run when a `.env` already exists in the directory. That file holds
@@ -125,11 +119,10 @@ Create your configuration file
 
 ```sh
 cp .env.example .env
-cat versions.env >> .env
 ```
 
-`versions.env` holds `PLATFORM_VERSION`, the single tag that pins both images. Appending it to
-`.env` is what selects the release you run.
+The image version is not in `.env`: both image tags are pinned in `compose.yml`, and a release
+moves them together.
 
 #### Step 2: Configure the domain name and the GitLab URL
 
@@ -242,7 +235,7 @@ docker compose up -d
 ```
 
 `preflight.sh` validates the host (Docker, Compose version, ports) and the configuration: the
-required variables, the 64 hex characters of the encryption key, `PLATFORM_VERSION`, the CA bundle
+required variables, the 64 hex characters of the encryption key, the CA bundle
 consistency, a valid TLS profile, the DNS record, the certificate files, and that GitLab is
 reachable. Fix what it reports before starting.
 
@@ -268,8 +261,8 @@ putting it on the command line, so it stays out of your shell history and out of
 
 #### Step 8: First login
 
-Open `https://<your_plumber_domain>` and sign in with GitLab: the [first account that signs in
-becomes the organisation Admin](/docs/installation#gitlab-oauth-application).
+Open `https://<your_plumber_domain>` and sign in with GitLab as a
+[Plumber Admin](/docs/use-plumber/roles-permissions#admin) to finish the setup.
 
   </TabsContent>
 </Tabs>
@@ -282,21 +275,13 @@ To move to a new version, run the update script from the repository root:
 ./scripts/update.sh
 ```
 
-The script will:
-
-1. Stop the running containers
-2. Pull the latest changes from the git repository
-3. Sync `PLATFORM_VERSION` from `versions.env` into your `.env` (one pin for both images)
-4. Rebuild the custom CA bundle if you use one
-5. Start the containers with the new images
-
 The backend migrates the database on boot, so the first start after an update can take longer than
 usual.
 
 <Aside variant="caution">
 Upgrades are **sequential and additive**: go through the releases in order, do not skip a line of
-the history by jumping several versions at once. To roll back, revert `PLATFORM_VERSION` in `.env`
-and run `docker compose up -d`. **Never downgrade the database by hand.**
+the history by jumping several versions at once. To roll back, check out the previous release tag
+(`git checkout v2.0.0`) and run `docker compose up -d`. **Never downgrade the database by hand.**
 </Aside>
 
 ## 🔄 Backup and restore
@@ -319,9 +304,8 @@ you run:
 ./scripts/backup.sh 18
 ```
 
-The script dumps the database, copies `.env` and the custom CA certificates, and creates a
-`backups` directory holding an archive prefixed with the date (`backup_plumber-$DATE.tar.gz`). It
-also accepts optional S3 arguments to upload the archive:
+The archive lands in the `backups` directory as `backup_plumber-<date>.tar.gz`. Optional S3
+arguments upload it:
 
 ```bash
 ./scripts/backup.sh 18 s3://bucket-name/folder https://s3-endpoint-url region access-key secret-key
@@ -365,8 +349,6 @@ To restore a backup on a fresh system:
    ```bash
    docker compose up -d
    ```
-   The restore script runs `pg_restore` in a container on the stack's network, against the
-   running `postgres` service.
 
 6. Launch the restore script
    ```bash

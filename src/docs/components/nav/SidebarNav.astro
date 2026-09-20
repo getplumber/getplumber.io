@@ -21,21 +21,14 @@ import { getLocalizedRoute, getTranslatedData } from "@/docs/js/translationUtils
 
 import SidebarLink from "./SidebarLink.astro";
 
-/** Issues is documented as nested under Controls; keep indent even if frontmatter is missing or coerced wrong. */
-function isIndentedUsePlumberChild(section: string, docId: string): boolean {
-  if (section !== "use-plumber") return false;
-  const rest = docId.slice(section.length + 1);
-  const normalized = rest.replace(/\/index$/, "");
-  return normalized === "issues";
-}
-
+/** Indentation is opt-in per page through frontmatter; nothing is nested implicitly.
+ * Controls and Issues in particular are siblings, not parent and child. */
 function resolveSidebarIndent(doc: {
   id: string;
   data: { sidebar?: { indent?: boolean | string } };
-}, section: string): boolean {
+}): boolean {
   const raw = doc.data.sidebar?.indent;
-  if (raw === true || raw === "true") return true;
-  return isIndentedUsePlumberChild(section, doc.id);
+  return raw === true || raw === "true";
 }
 
 function normalizeContentId(contentId: string): string {
@@ -254,7 +247,7 @@ const docsBySection = sectionFilteredDocs
         link: `/${docsRoute}/${doc.id}`,
         order: doc.data.sidebar?.order,
         grouped: doc.data.sidebar?.grouped,
-        indent: resolveSidebarIndent(doc, section),
+        indent: resolveSidebarIndent(doc),
         badge: doc.data.sidebar?.badge,
         icon: doc.data.sidebar?.icon,
       });
@@ -311,17 +304,32 @@ function holdsCurrentPage(docs: Array<{ link: string }>): boolean {
   return docs.some((doc) => currentPathWithSlash.startsWith(withTrailingSlash(doc.link)));
 }
 
+// One rule: a single-page section is one page link carrying the section title
+// (page-link styling, no heading), a multi-page section is a non-link heading
+// with its pages below it
+function isSinglePageSection(id: string): boolean {
+  const config = getSectionById(id, sectionId, currLocale);
+  return (
+    docsBySection[id].length === 1 && (config?.navLinks ?? []).length === 0 && !config?.collapsed
+  );
+}
+
 // Consecutive sections sharing a `group` render nested under one bold group
-// heading (e.g. Platform > Installation / Usage); others render standalone
-type SidebarRenderEntry = { group?: string; ids: string[] };
+// heading (e.g. Platform > Installation / Usage); consecutive single-page
+// sections share one list (e.g. Getting Started, Plumber Score) so they sit as
+// close as the pages of a section; others render standalone
+type SidebarRenderEntry = { group?: string; singles?: boolean; ids: string[] };
 const renderEntries: SidebarRenderEntry[] = [];
 for (const id of sections) {
   const group = getSectionById(id, sectionId, currLocale)?.group;
+  const single = !group && isSinglePageSection(id);
   const last = renderEntries[renderEntries.length - 1];
   if (group && last?.group === group) {
     last.ids.push(id);
+  } else if (single && last?.singles) {
+    last.ids.push(id);
   } else {
-    renderEntries.push({ group, ids: [id] });
+    renderEntries.push({ group, singles: single || undefined, ids: [id] });
   }
 }
 ---
@@ -432,28 +440,30 @@ for (const id of sections) {
           );
         }
 
-        const section = entry.ids[0];
-        const sectionConfig = getSectionById(section, sectionId, currLocale);
-        const sectionNavLinks = sectionConfig?.navLinks ?? [];
-        const sectionTitle = getSectionTitle(section, sectionId, currLocale);
-        // One rule: a single-page section is one page link carrying the section
-        // title (page-link styling, no heading), a multi-page section is a
-        // non-link heading with its pages below it
-        if (docsBySection[section].length === 1 && sectionNavLinks.length === 0) {
-          const doc = docsBySection[section][0];
+        if (entry.singles) {
           return (
             <div class="mb-8">
               <ul class="space-y-2">
-                <SidebarLink
-                  link={doc.link}
-                  text={sectionTitle}
-                  badge={doc.badge}
-                  icon={doc.icon}
-                />
+                {entry.ids.map((section) => {
+                  const doc = docsBySection[section][0];
+                  return (
+                    <SidebarLink
+                      link={doc.link}
+                      text={getSectionTitle(section, sectionId, currLocale)}
+                      badge={doc.badge}
+                      icon={doc.icon}
+                    />
+                  );
+                })}
               </ul>
             </div>
           );
         }
+
+        const section = entry.ids[0];
+        const sectionConfig = getSectionById(section, sectionId, currLocale);
+        const sectionNavLinks = sectionConfig?.navLinks ?? [];
+        const sectionTitle = getSectionTitle(section, sectionId, currLocale);
         const sectionLinks = (
           <ul class="border-border ml-0.5 space-y-2 border-l pl-3">
             {docsBySection[section].map((doc) => (

@@ -5,12 +5,18 @@
  *
  * One table row per unique `controlConfigKey` within a category.  When
  * several ISSUE codes share the same control key, their links are
- * concatenated in the "Control" cell — matching the existing hand-authored
+ * concatenated in the "Control" cell, matching the existing hand-authored
  * layout in controls.mdx.
+ *
+ * `provider="all"` renders the union of both providers' visible controls:
+ * every control key once, with a badge per provider that ships it, the
+ * catalog copy of the GitLab entry when there is one (GitHub otherwise), and
+ * the union of the ISSUE links.
  *
  * Usage in MDX:
  *   <ControlsTable provider="gitlab" />
  *   <ControlsTable provider="github" />
+ *   <ControlsTable provider="all" />
  */
 import {
   issues,
@@ -19,13 +25,17 @@ import {
   type Provider,
 } from "@/data/issues";
 import { categoryOrderRank, issueCodeRank } from "@/data/issueCategoryOrder";
-import ProductScopeBadge from "@/docs/components/mdx-components/ProductScopeBadge.astro";
+import ProviderBadge from "@/docs/components/mdx-components/ProviderBadge.astro";
 
 interface Props {
-  provider: Provider;
+  provider: Provider | "all";
 }
 
 const { provider } = Astro.props;
+
+// GitLab first: it supplies the displayed copy whenever it holds the control.
+const sourceProviders: Provider[] = provider === "all" ? ["gitlab", "github"] : [provider];
+const isCombined = provider === "all";
 
 const docsBase = "/docs/use-plumber";
 
@@ -35,43 +45,53 @@ type ControlRow = {
   controlConfigKey: string;
   controlDescription: string;
   controlWhyItMatters: string;
-  productScope: "all" | "cli" | "platform";
+  /** Combined view: the providers that ship this control, in GitLab-first order. */
+  providers: Provider[];
   /** All ISSUE codes that share this control, sorted by numeric code. */
   issueCodes: string[];
-  /** Lowest numeric code — used for sort-within-category. */
+  /** The provider each issue link opens the detail page on. */
+  issueLinkProvider: Record<string, Provider>;
+  /** Lowest numeric code, used for sort-within-category. */
   minCode: number;
 };
 
 // Aggregate by category + controlConfigKey so shared controls get one row.
-// Descriptions come from controlCatalog — never duplicated per issue.
+// Descriptions come from controlCatalog, never duplicated per issue.
 const controlMap = new Map<string, ControlRow>();
 
-for (const [code, doc] of Object.entries(issues)) {
-  const content = doc[provider];
-  if (!content) continue;
-  if (!isVisibleProviderContent(content)) continue;
+for (const sourceProvider of sourceProviders) {
+  for (const [code, doc] of Object.entries(issues)) {
+    const content = doc[sourceProvider];
+    if (!content) continue;
+    if (!isVisibleProviderContent(content)) continue;
 
-  const catalogEntry = getControlCatalogEntry(content.controlConfigKey, provider);
-  if (!catalogEntry) continue;
+    const catalogEntry = getControlCatalogEntry(content.controlConfigKey, sourceProvider);
+    if (!catalogEntry) continue;
 
-  const key = `${content.category}::${content.controlConfigKey}`;
-  if (!controlMap.has(key)) {
-    controlMap.set(key, {
-      category: content.category,
-      controlName: content.controlName,
-      controlConfigKey: content.controlConfigKey,
-      controlDescription: catalogEntry.controlDescription,
-      controlWhyItMatters: catalogEntry.controlWhyItMatters,
-      productScope: content.productScope ?? "all",
-      issueCodes: [code],
-      minCode: issueCodeRank(code),
-    });
-  } else {
-    const row = controlMap.get(key)!;
-    if (!row.issueCodes.includes(code)) {
-      row.issueCodes.push(code);
+    const key = `${content.category}::${content.controlConfigKey}`;
+    if (!controlMap.has(key)) {
+      controlMap.set(key, {
+        category: content.category,
+        controlName: content.controlName,
+        controlConfigKey: content.controlConfigKey,
+        controlDescription: catalogEntry.controlDescription,
+        controlWhyItMatters: catalogEntry.controlWhyItMatters,
+        providers: [sourceProvider],
+        issueCodes: [code],
+        issueLinkProvider: { [code]: sourceProvider },
+        minCode: issueCodeRank(code),
+      });
+    } else {
+      const row = controlMap.get(key)!;
+      if (!row.providers.includes(sourceProvider)) {
+        row.providers.push(sourceProvider);
+      }
+      if (!row.issueCodes.includes(code)) {
+        row.issueCodes.push(code);
+        row.issueLinkProvider[code] = sourceProvider;
+      }
+      row.minCode = Math.min(row.minCode, issueCodeRank(code));
     }
-    row.minCode = Math.min(row.minCode, issueCodeRank(code));
   }
 }
 
@@ -122,7 +142,11 @@ function renderInline(text: string): string {
         <table class="w-full border-collapse text-sm">
           <thead>
             <tr class="border-b border-border">
-              <th class="text-left py-2 px-3 font-semibold text-muted-foreground w-[90px]">Scope</th>
+              {isCombined && (
+                <th class="text-left py-2 px-3 font-semibold text-muted-foreground w-[120px]">
+                  Providers
+                </th>
+              )}
               <th class="text-left py-2 px-3 font-semibold text-muted-foreground w-[28%]">Control</th>
               <th class="text-left py-2 px-3 font-semibold text-muted-foreground">What it checks</th>
               <th class="text-left py-2 px-3 font-semibold text-muted-foreground">Why it matters</th>
@@ -131,15 +155,21 @@ function renderInline(text: string): string {
           <tbody>
             {rows.map((row) => (
               <tr class="border-b border-border/60 hover:bg-muted/30 transition-colors">
-                <td class="py-2.5 px-3 align-top">
-                  <ProductScopeBadge scope={row.productScope} />
-                </td>
+                {isCombined && (
+                  <td class="py-2.5 px-3 align-top">
+                    <span class="inline-flex flex-wrap gap-1">
+                      {row.providers.map((p) => (
+                        <ProviderBadge provider={p} />
+                      ))}
+                    </span>
+                  </td>
+                )}
                 <td class="py-2.5 px-3 align-top">
                   <span class="text-foreground/90">{row.controlName}</span>{" "}
                   <span class="inline-flex flex-wrap gap-1 mt-1">
                     {row.issueCodes.map((code) => (
                       <a
-                        href={`${docsBase}/issues/${code}?p=${provider}`}
+                        href={`${docsBase}/issues/${code}?p=${row.issueLinkProvider[code] ?? sourceProviders[0]}`}
                         class="font-mono text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
                       >
                         {code}
