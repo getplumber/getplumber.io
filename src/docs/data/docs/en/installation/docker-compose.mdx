@@ -65,8 +65,8 @@ Run the interactive installer on your server:
 curl -fsSL https://raw.githubusercontent.com/getplumber/plumber-platform/main/install.sh | bash
 ```
 
-It clones the repository if you are not already inside it, runs the pre-flight checks (Docker,
-Compose version, git, OpenSSL, free ports) and asks you to choose a deployment type. Pick
+It clones the repository if you are not already inside it, asks you to choose a deployment type,
+then runs the pre-flight checks (Docker, Compose version, git, OpenSSL, free ports). Pick
 **Production**.
 
 The prompts then come in this order:
@@ -379,7 +379,14 @@ To restore a backup from scratch on a new system, follow this process:
 4. If the IP address of your server changed from your previous installation,
    update your DNS records. See [Configure your DNS](#1-configure-your-dns)
 
-5. Launch the restore script
+5. Start the stack
+   ```bash
+   docker compose up -d
+   ```
+   The restore script runs `pg_restore` in a container on the stack's network, against the
+   running `postgres` service.
+
+6. Launch the restore script
    ```bash
    ./scripts/restore.sh 18 <path_to_your_backup_file>
    ```
