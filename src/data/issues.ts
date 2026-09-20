@@ -503,7 +503,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Flags an `actions/checkout` step that does not set `persist-credentials: false`, which leaves the GITHUB_TOKEN written into the cloned repository's `.git/config`. The finding is graded by whether the token can actually leave the job: ISSUE-307 (low) when the credential merely persists, ISSUE-310 (high) when a later `actions/upload-artifact` step uploads a `.git`-inclusive path and packs the token into a downloadable artifact.",
       controlWhyItMatters:
-        "A persisted credential on its own dies with the job, so it is hygiene rather than an exposure. It becomes a real leak the moment the workspace root is uploaded as an artifact: artifacts are downloadable, anonymously on public repositories, and the token comes with them. This is the ArtiPACKED pattern. Either fix closes it \u2014 `persist-credentials: false`, or a scoped upload path such as `dist/` instead of `.`.",
+        "A persisted credential on its own dies with the job, so it is hygiene rather than an exposure. It becomes a real leak the moment the workspace root is uploaded as an artifact: artifacts are downloadable, anonymously on public repositories, and the token comes with them. This is the ArtiPACKED pattern. Either fix closes it - `persist-credentials: false`, or a scoped upload path such as `dist/` instead of `.`.",
     },
   },
 };
@@ -4192,7 +4192,7 @@ jobs:
       description:
         "A workflow calls `actions/checkout` without `persist-credentials: false`, which leaves the GITHUB_TOKEN bound to `.git/config` for the rest of the job.",
       impact:
-        "On its own this is latent: the token is discarded when the job ends. It becomes a demonstrable leak when a later `actions/upload-artifact` step bundles `.git` into the artifact zip \u2014 that escalation is reported separately as ISSUE-310 (high). The other route, a persisted credential harvested by fork-controlled code, is covered by ISSUE-802 and ISSUE-804.",
+        "On its own this is latent: the token is discarded when the job ends. It becomes a demonstrable leak when a later `actions/upload-artifact` step bundles `.git` into the artifact zip - that escalation is reported separately as ISSUE-310 (high). The other route, a persisted credential harvested by fork-controlled code, is covered by ISSUE-802 and ISSUE-804.",
       remediation:
         "Set `persist-credentials: false` on every `actions/checkout` step unless you have a specific reason to keep the credentials configured.",
       badExample: `# .github/workflows/build.yml: ❌ Credentials remain in .git/config
@@ -4238,9 +4238,9 @@ jobs:
       controlName: "Checkout must not persist credentials",
       controlConfigKey: "checkoutMustNotPersistCredentials",
       description:
-        "A job runs `actions/checkout` with credential persistence enabled and a later `actions/upload-artifact` step uploads a `.git`-inclusive path \u2014 the workspace root, `.`, or any path naming `.git`.",
+        "A job runs `actions/checkout` with credential persistence enabled and a later `actions/upload-artifact` step uploads a `.git`-inclusive path - the workspace root, `.`, or any path naming `.git`.",
       impact:
-        "The GITHUB_TOKEN written into `.git/config` is packed into the artifact, which is downloadable \u2014 anonymously on public repositories. This is the canonical 'ArtiPACKED' leak: unlike ISSUE-307, the credential does not merely linger, it leaves the job.",
+        "The GITHUB_TOKEN written into `.git/config` is packed into the artifact, which is downloadable - anonymously on public repositories. This is the canonical 'ArtiPACKED' leak: unlike ISSUE-307, the credential does not merely linger, it leaves the job.",
       remediation:
         "Set `persist-credentials: false` on the `actions/checkout` step, or upload a scoped path that excludes `.git` (`path: dist/` rather than `path: .`). Either one alone closes it.",
       badExample: `# .github/workflows/build.yml: \u274c Token shipped inside the artifact

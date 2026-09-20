@@ -39,7 +39,7 @@ sets anything else.
 | `PLUMBER_REDIS_ADDR` | `localhost:6379` | Redis address, `host:port` |
 | `PLUMBER_REDIS_URL` | (empty) | Redis connection URL (`redis://` or `rediss://`), an alternative to `PLUMBER_REDIS_ADDR`. **Never set both** |
 | `PLUMBER_OIDC_AUDIENCE` | (empty) | The `aud` claim CI OIDC tokens must carry, byte-identical to what pipelines request. Empty rejects every push |
-| `PLUMBER_OIDC_ALLOWED_ISSUERS` | (empty) | Comma-separated GitLab base URLs allowed to push results |
+| `PLUMBER_OIDC_ALLOWED_ISSUERS` | (empty: every push is rejected) | Comma-separated GitLab base URLs allowed to push results. Docker Compose and the Helm chart set it to the GitLab URL for you (GITLAB_URL / platform.gitlabUrl) |
 
 ## Network
 
@@ -51,6 +51,7 @@ sets anything else.
 | `PLUMBER_TRUST_FORWARDED_FOR` | `false` | Trust `X-Forwarded-For` for per-IP rate limits. Keep it true behind a reverse proxy or an ingress |
 | `PLUMBER_TRUSTED_PROXY_CIDRS` | (empty) | Extra trusted proxy CIDRs, beyond the private ranges already trusted |
 | `PLUMBER_BASE_URL_REJECT_PRIVATE` | `false` | Reject a base URL that resolves to a private address |
+| `PLUMBER_SPEC_PUBLIC` | `false` | Serves /api/v1/openapi.yaml without authentication; development only, never enable in production |
 
 ## Database TLS and pooling
 
@@ -61,7 +62,7 @@ sets anything else.
 | `PLUMBER_DB_SSLCERT` | (empty) | Path to the client certificate. Unreadable means a fatal error at startup |
 | `PLUMBER_DB_SSLKEY` | (empty) | Path to the client key. Unreadable means a fatal error at startup |
 | `PLUMBER_DB_TIMEZONE` | `UTC` | Timezone for database operations |
-| `PLUMBER_DB_MAX_OPEN_CONNS` | `10` | Maximum open connections in the pool |
+| `PLUMBER_DB_MAX_OPEN_CONNS` | `25` | Maximum open connections in the pool |
 | `PLUMBER_DB_MAX_IDLE_CONNS` | `5` | Maximum idle connections in the pool |
 | `PLUMBER_DB_CONN_MAX_LIFETIME` | `1h` | Maximum lifetime of a pooled connection |
 
@@ -100,8 +101,9 @@ All cron expressions are 5-field and evaluated in UTC.
 | `PLUMBER_SYNC_TIMEOUT` | `20m` | Deadline of a whole sync run |
 | `PLUMBER_SYNC_DETECT_TIMEOUT` | `10s` | Deadline of the per-project detection step during a sync |
 | `PLUMBER_REDETECT_BATCH` | `100` | Projects re-detected per sync run; `0` disables re-detection |
-| `PLUMBER_SYNC_MAX_VANISH_PERCENT` | `30` | Safety brake: abort a sync that would remove more than this share of projects |
-| `PLUMBER_SYNC_MAX_VANISH_COUNT` | `10` | Safety brake: the absolute count below which the percentage brake does not apply |
+| `PLUMBER_SYNC_MAX_VANISH_PERCENT` | `30` | Safety brake: when one sync pass would flag more than this share of the known projects as gone from the provider (and more than `PLUMBER_SYNC_MAX_VANISH_COUNT` of them), the flagging is withheld and the run finishes with a warning; nothing is removed. `0` or less disables the brake |
+| `PLUMBER_SYNC_MAX_VANISH_COUNT` | `10` | Absolute count the same pass must also exceed before the brake fires; at or below it the brake never fires |
+| `PLUMBER_SYNC_WORKERS` | `8` | Parallel workers of the sync engine; clamped to half of `PLUMBER_DB_MAX_OPEN_CONNS` so sync never starves the API of database connections |
 | `PLUMBER_WATCHDOG_CRON` | `*/15 * * * *` | Sweep for runs that never reported back |
 | `PLUMBER_RUNNING_TIMEOUT` | `15m` | After this, a running analysis is considered interrupted |
 | `PLUMBER_SCORE_ROLLUP_CRON` | `0 * * * *` | Hourly score rollup |
