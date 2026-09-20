@@ -47,7 +47,7 @@ Run the interactive installer:
 curl -fsSL https://raw.githubusercontent.com/getplumber/platform/main/install.sh | bash
 ```
 
-Choose **"Local"** when prompted. The installer will guide you through:
+Choose option **2 (Local)**: type `2` and press Enter. The installer will guide you through:
 
 1. **GitLab OIDC** application setup
 2. **Secrets**: automatically generated
@@ -134,10 +134,12 @@ Edit the `.env` file:
 Generate random secrets and set them in your `.env` file:
 
 ```bash
-sed -i."" "s/^SECRET_KEY=.*/SECRET_KEY=\"$(openssl rand -hex 32)\"/" .env
-sed -i."" "s/^JOBS_DB_PASSWORD=.*/JOBS_DB_PASSWORD=\"$(openssl rand -hex 16)\"/" .env
-sed -i."" "s/^JOBS_REDIS_PASSWORD=.*/JOBS_REDIS_PASSWORD=\"$(openssl rand -hex 16)\"/" .env
+perl -pi -e "s/^SECRET_KEY=.*/SECRET_KEY=\"$(openssl rand -hex 32)\"/" .env
+perl -pi -e "s/^JOBS_DB_PASSWORD=.*/JOBS_DB_PASSWORD=\"$(openssl rand -hex 16)\"/" .env
+perl -pi -e "s/^JOBS_REDIS_PASSWORD=.*/JOBS_REDIS_PASSWORD=\"$(openssl rand -hex 16)\"/" .env
 ```
+
+These commands edit `.env` in place and leave no backup file behind.
 
 #### Step 5: Launch Plumber
 
