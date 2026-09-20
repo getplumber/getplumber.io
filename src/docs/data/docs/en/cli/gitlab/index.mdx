@@ -135,7 +135,7 @@ Two ways to scan a GitLab project:
 
 ### Hosting on self-hosted GitLab
 
-If you run a self-hosted GitLab instance, you need your own copy of the component since `gitlab.com` components can't be accessed from your instance. There are two ways:
+A self-hosted instance cannot include a component hosted on `gitlab.com`, so you need your own copy. Two ways:
 
 <Tabs defaultValue="import">
   <TabsList>
@@ -283,7 +283,7 @@ The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-co
 | `badge` | `false` | Create/update a Plumber letter-score badge (requires `api` scope; default branch only) |
 | `score` | `false` | Deprecated no-op. The Plumber score is shown by default now; kept so pipelines that already set it do not break. Use `score_point` for the full points breakdown |
 | `score_point` | `false` | Add the full points breakdown to stdout and the MR comment (the score banner is shown by default) |
-| `score_push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)). Uses CI-native OIDC (**no secret**); the component mints the id-token. Publishes on every run; the service keeps only the default branch for the public badge. Warns (never fails) on error. See [Plumber Score](/docs/plumber-score) |
+| `score_push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)). Uses CI-native OIDC (**no secret**); the component mints the id-token. Every run that has score push enabled publishes its result for its branch. The public badge and the project's score follow the default branch only: a merge-request or pull-request run is stored under its branch and never changes the badge. Warns (never fails) on error. See [Plumber Score](/docs/plumber-score) |
 | `score_endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
 | `platform` | `https://platform.invalid` | Plumber Platform base URL. Setting it pushes this run's full results there over CI-native OIDC, and takes precedence over `score_push`. The default is a placeholder (an RFC 2606 `.invalid` host) that never enables a push: GitLab requires a non-empty `id_tokens` audience, so this input cannot default to empty. In platform mode only the platform's policies are evaluated and the platform's gate decides the exit code |
 | `platform_allow_http` | `false` | Allow `platform` to be plain `http` for a non-loopback host. Without it, `http` to anything but `localhost` / `127.0.0.0/8` / `::1` is refused before any credential is sent; `https` and loopback `http` need no opt-in |
@@ -350,7 +350,7 @@ plumber analyze --ci-config-path .gitlab/ci/main.yml
 
 ### Selective Control Execution
 
-You can run or skip specific controls using their YAML key names from `.plumber.yaml`. This is useful for iterative debugging or targeted CI checks.
+Run or skip specific controls by their YAML key names from `.plumber.yaml`, for iterative debugging or targeted CI checks.
 
 ```bash
 # Only check image tags and branch protection
@@ -572,7 +572,7 @@ Plumber integrates directly with GitLab to provide visual feedback where your te
 
 ### Merge Request Comments
 
-Automatically post Plumber summaries on merge requests to catch issues before they're merged.
+Post a Plumber summary on every merge request, to catch issues before they merge.
 
 ```bash
 plumber analyze --mr-comment

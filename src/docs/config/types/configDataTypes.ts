@@ -70,7 +70,8 @@ export interface DocsSection {
    * (`details`/`summary`, keyboard operable, works without JavaScript) and its pages are
    * hidden until it is opened. A collapsed section opens automatically when the page being
    * viewed belongs to it. Only meaningful for a multi-page section: a single-page section
-   * is one link and has nothing to fold.
+   * is one link and has nothing to fold. Applies to ungrouped sections only: a section
+   * rendered under a `group` heading ignores `collapsed` and always renders its pages inline.
    */
   collapsed?: boolean;
   /**

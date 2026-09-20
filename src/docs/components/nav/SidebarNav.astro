@@ -492,8 +492,7 @@ for (const id of sections) {
           return (
             <details class="sidebar-disclosure mb-8" data-sidebar-section={section} open={isOpen}>
               <summary
-                class="mb-2 flex cursor-pointer list-none items-center gap-1 text-lg font-semibold md:text-base"
-                aria-expanded={isOpen ? "true" : "false"}
+                class="docs-primary-focus mb-2 flex cursor-pointer list-none items-center gap-1 text-lg font-semibold md:text-base"
               >
                 <span class="sidebar-disclosure__marker inline-flex shrink-0" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="currentColor" class="size-4">
@@ -534,8 +533,10 @@ for (const id of sections) {
 </style>
 
 <script>
-  // `details` already exposes its state to assistive technology; mirror it on the
-  // summary so the markup states it explicitly, and keep it true after a toggle.
+  // `details` already exposes its state to assistive technology without any
+  // `aria-expanded` attribute, so the server never renders one (the no-JS path
+  // relies on native details semantics). When JS runs, add it here and keep it
+  // in sync after every toggle.
   document
     .querySelectorAll<HTMLDetailsElement>("details[data-sidebar-section]")
     .forEach((disclosure) => {

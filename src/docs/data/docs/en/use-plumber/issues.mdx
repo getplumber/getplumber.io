@@ -17,11 +17,9 @@ import { Icon } from "astro-icon/components";
 
 ## Issues list
 
-When a control detects a violation in your project, Plumber creates an **Issue**. Each issue has a unique identifier following the format `ISSUE-XXXX` and is grouped by control.
+Every issue is raised by a control, and has a unique `ISSUE-XXXX` identifier. The scope badge (All, Platform, CLI) is the control's; the [Controls](/docs/cli/controls) page holds the full table and what each scope means.
 
-**All** means the control applies to Plumber Platform and the Open Source CLI. **Platform** means Plumber Platform only (the Open Source CLI does not report this issue). **CLI** means the Open Source CLI reports this issue only (it is not enforced as a Platform control). See [Controls](/docs/cli/controls) for the full table.
-
-Click any issue to see the full description, impact, before/after configuration examples, and remediation steps.
+Click any issue for its full description, impact, before/after configuration examples, and remediation steps.
 
 <ProviderTabs />
 
@@ -35,10 +33,10 @@ Click any issue to see the full description, impact, before/after configuration 
     </div>
     <p class="text-muted-foreground mb-2 text-[12px]">Impact if the issue is present and exploited, not likelihood. Plumber detects; you assess.</p>
     <ul class="text-muted-foreground list-none space-y-1.5 pl-0 [&>li]:pl-0 text-[13px]">
-      <li><span class="text-foreground font-medium">🔴 Critical</span> — <em>If exploited, immediate severe consequences: pipeline takeover, secrets leak, or supply chain compromise. Address as top priority.</em></li>
-      <li><span class="text-foreground font-medium">🟠 High</span> — <em>Significantly weakens defenses. If exploited or triggered by human error, can lead to a serious incident or a major policy violation.</em></li>
-      <li><span class="text-foreground font-medium">🟡 Medium</span> — <em>Degrades security hygiene. Does not directly expose the pipeline or repo, but creates conditions that may contribute to a future incident or error.</em></li>
-      <li><span class="text-foreground font-medium">🔵 Low</span> — <em>No short-term security impact; deviation from best practices. Address in continuous improvement.</em></li>
+      <li><span class="text-foreground font-medium">🔴 Critical</span>: <em>If exploited, immediate severe consequences: pipeline takeover, secrets leak, or supply chain compromise. Address as top priority.</em></li>
+      <li><span class="text-foreground font-medium">🟠 High</span>: <em>Significantly weakens defenses. If exploited or triggered by human error, can lead to a serious incident or a major policy violation.</em></li>
+      <li><span class="text-foreground font-medium">🟡 Medium</span>: <em>Degrades security hygiene. Does not directly expose the pipeline or repo, but creates conditions that may contribute to a future incident or error.</em></li>
+      <li><span class="text-foreground font-medium">🔵 Low</span>: <em>No short-term security impact; deviation from best practices. Address in continuous improvement.</em></li>
     </ul>
   </div>
   <div>
@@ -63,12 +61,15 @@ Click any issue to see the full description, impact, before/after configuration 
 <ProviderTabsScript />
 
 ## Issues status
-An issue status can be:
-- **Detected:** The default state for a newly discovered issue.
-- **In progress:** A user started to work on fixing this issue.
-- **Dismissed:** A user has evaluated this issue and dismissed it. Dismissed issues are ignored if detected in subsequent analyses.
-- **Fixed:** The issue has been fixed or is no longer detected. If a fixed issue is reintroduced and detected again, its status is set back to **Detected**.
-An issue typically goes through the following lifecycle:
+
+In the Plumber Platform, an issue carries one of four statuses:
+
+- **Detected:** the default state of a newly discovered issue.
+- **In progress:** somebody started working on the fix.
+- **Dismissed:** somebody assessed the issue and set it aside. A dismissed issue stays ignored when a later analysis detects it again.
+- **Fixed:** the issue is fixed, or no longer detected. Reintroduced and detected again, it goes back to **Detected**.
+
+The usual lifecycle:
 <div style={{maxWidth: "480px"}}>
 <img src="/docs/use-plumber/img/issue_status_diagram.svg" alt="Diagram of the Issue status lifecycle on Plumber" />
 </div>

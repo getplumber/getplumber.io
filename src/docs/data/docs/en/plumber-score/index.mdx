@@ -14,9 +14,9 @@ import { Icon } from "astro-icon/components";
 
 ## What is a Plumber Score?
 
-Plumber Score is a simple **A-E** grade for your CI/CD security. The
-open-source [Plumber CLI](https://github.com/getplumber/plumber) produces it on
-**every run**, whether you run it locally or in your CI pipeline.
+Plumber Score is a single **A-E** grade for your CI/CD security. The open-source
+[Plumber CLI](https://github.com/getplumber/plumber) produces it on **every
+run**, locally or in your CI pipeline.
 
 | Grade | What it means |
 |:-----:|---------------|
@@ -28,12 +28,14 @@ open-source [Plumber CLI](https://github.com/getplumber/plumber) produces it on
 
 ## Publish your score
 
-You can publish your score during Plumber analysis in your CI to
-`score.getplumber.io`.
+A CI run can publish your score to `score.getplumber.io`, where it becomes a live
+badge for your repo.
 
-Publishing is **opt-in**, and it does **not** send your source code. When it's
-enabled, after each analysis on your default branch, Plumber sends its analysis
-JSON output to `score.getplumber.io`
+Publishing is **opt-in** and never sends your source code: once enabled, Plumber sends its
+analysis JSON output to `score.getplumber.io` after each run. Every run that has score push
+enabled publishes its result for its branch. The public badge and the project's score follow
+the default branch only: a merge-request or pull-request run is stored under its branch and
+never changes the badge.
 
 <details>
 <summary>Example of pushed output</summary>
@@ -427,10 +429,9 @@ with the correct workflow `permissions` and `score-push` enabled in the action
 
 ## How is the score determined?
 
-The Plumber CLI determines the score on each run, locally or in CI. Every run
-starts at a perfect **100 points**. Plumber scans your CI/CD configuration, and
-each open issue subtracts points based on its **severity**. The final point
-total then maps to the A-E grade (higher points = better grade):
+Every run starts at a perfect **100 points**. Plumber scans your CI/CD
+configuration, and each open issue subtracts points according to its
+**severity**. The remaining points map to the A-E grade:
 
 | Grade | Points |
 |:-----:|:------:|
@@ -457,25 +458,23 @@ loss = min(w × (1 + 0.5 × log2(n)), C)     # Critical has no cap
 rawPoints = max(0, 100 − sum of every code's loss)
 ```
 
-The first occurrence costs the full weight, and each doubling of `n` adds only
-half a weight unit, so repeats still hurt but taper off. The cap is **per issue
-code**, not per severity: once one code is capped, a *different* code at the
-same severity opens a fresh budget, so a pipeline with many distinct problems
-keeps losing points.
+Each doubling of `n` adds only half a weight unit, so repeats still hurt but
+taper off. The cap is **per issue code**, not per severity: once one code is
+capped, a *different* code at the same severity opens a fresh budget, so a
+pipeline with many distinct problems keeps losing points.
 
 <Aside variant="caution" title="Any Critical issue forces an E">
-A single Critical finding represents an immediate, high-impact risk. While one
-exists, final points are capped at **30** (`finalPoints = min(rawPoints, 30)`),
-so the grade cannot read better than **E**, no matter how clean the rest of the
-pipeline is.
+A single Critical finding is an immediate, high-impact risk. While one exists,
+final points are capped at **30** (`finalPoints = min(rawPoints, 30)`), so the
+grade cannot read better than **E**, however clean the rest of the pipeline is.
 </Aside>
 
-Want the full per-issue breakdown? Run `plumber analyze --score-point` to see
-every issue code, its weight, and exactly how many points it costs.
+For the full per-issue breakdown, run `plumber analyze --score-point`: every
+issue code, its weight, and exactly how many points it costs.
 
 ## Gate your CI on the score
 
-The score is also what passes or fails a `plumber analyze` run (exit code 1 on
+The score is what passes or fails a `plumber analyze` run (exit code 1 on
 failure):
 
 - `--min-score <A-E>` is the main gate: the run fails when the letter is below

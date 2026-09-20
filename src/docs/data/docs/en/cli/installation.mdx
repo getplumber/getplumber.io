@@ -9,7 +9,7 @@ section: "api"
 ---
 
 <Aside variant="tip">
-  This page covers installing the Plumber CLI on your machine to **run it locally**. **In CI/CD you don't install anything.** Use the drop-in [GitHub Action](/docs/cli/github#run-with-github-actions) or [GitLab CI component](/docs/cli/gitlab#run-with-the-gitlab-ci-component), which bundle Plumber and run the same engine.
+  This page installs the Plumber CLI on your machine, to **run it locally**. **In CI/CD you install nothing**: the drop-in [GitHub Action](/docs/cli/github#run-with-github-actions) and [GitLab CI component](/docs/cli/gitlab#run-with-the-gitlab-ci-component) bundle Plumber and run the same engine.
 </Aside>
 
 <Aside variant="info">
@@ -118,7 +118,7 @@ section: "api"
     docker pull getplumber/plumber:latest
     ```
 
-    Run analysis directly with Docker:
+    Run an analysis directly with Docker:
 
     **GitLab:**
 
@@ -169,7 +169,7 @@ section: "api"
 
 ## Verify release binaries
 
-Every release binary is published with a SLSA build-provenance attestation. Before you run a downloaded binary in production or CI, verify it against the upstream repository. The commands below always resolve to the **latest** release, so you are never pinned to a stale version:
+Every release binary ships with a SLSA build-provenance attestation. Before you run a downloaded binary in production or CI, verify it against the upstream repository. The commands below always resolve to the **latest** release:
 
 ```bash
 # Downloads the latest release asset, then verifies its provenance
