@@ -1,0 +1,392 @@
+---
+title: Docker compose
+seoTitle: Install the Plumber Platform with Docker Compose
+description: This page describes how to set up a self-managed instance of the Plumber Platform using Docker Compose.
+sidebar:
+  order: 2
+  label: Docker Compose
+---
+
+This page describes how to set up a self-managed instance of the Plumber Platform using
+**Docker Compose**, on a single Linux host.
+
+## 💻 Requirements
+
+- **GitLab instance version >= 15.7** (17.7 or later recommended, see
+  [Requirements](/docs/installation#-requirements))
+- The system requires a Linux server. It runs in 🐳 Docker containers using a Docker Compose
+  configuration. Specifications:
+   - OS: **Ubuntu** or **Debian** (tested and supported)
+   - Hardware
+      - CPU x86_64/amd64 with at least 2 cores
+      - 4 GB RAM
+      - 100 GB of storage for Plumber
+   - Network
+      - Users must be able to reach the Plumber server on TCP ports 80 and 443
+      - The Plumber server must be able to reach your GitLab instance
+      - The installation process requires write access to the DNS zone to set up the Plumber domain
+   - Installed software
+      - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+      - [Docker](https://docs.docker.com/engine/install/) with the **Compose plugin >= 2.20.2**
+      - OpenSSL (used to generate the secrets)
+
+<details>
+<summary>⚠️ <strong>Windows / WSL</strong></summary>
+
+Plumber's install scripts are designed for native Linux environments (Ubuntu, Debian).
+Some users have successfully installed Plumber through **WSL (Windows Subsystem for Linux)**, but we do not officially support this setup.
+Depending on your WSL configuration, how you cloned the repository, and your Git settings, you may need to adjust script files manually.
+If you see CRLF-related errors (for example `bad interpreter: /bin/bash^M`), or `\r` convert line endings with `dos2unix`.
+
+</details>
+
+## 🚀 Installation
+
+### 1. Configure your DNS
+
+Create a DNS `A` record pointing your chosen domain to your server's public IP address:
+
+- **Name**: `<your_plumber_domain>` (e.g. `plumber.mydomain.com`)
+- **Type**: `A`
+- **Content**: `<your-server-public-ip>`
+
+### 2. Setup Plumber
+
+<Tabs defaultValue="quick" syncKey="install-method">
+  <TabsList>
+    <TabsTrigger value="quick" class="text-base font-bold py-2.5 px-5">⚡ Quick install (recommended)</TabsTrigger>
+    <TabsTrigger value="manual" class="text-base font-bold py-2.5 px-5">🔧 Manual install</TabsTrigger>
+  </TabsList>
+  <TabsContent value="quick">
+
+Run the interactive installer on your server:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/getplumber/plumber-platform/main/install.sh | bash
+```
+
+It clones the repository if you are not already inside it, runs the pre-flight checks (Docker,
+Compose version, git, OpenSSL, free ports) and asks you to choose a deployment type. Pick
+**Production**.
+
+The prompts then come in this order:
+
+1. **Plumber domain name**, for example `plumber.mydomain.com`. The installer checks that it
+   resolves and warns you (without stopping) if the DNS record is not in place yet.
+2. **GitLab instance URL**, for example `https://gitlab.mydomain.com`.
+3. **Connection scope**: the whole GitLab instance (the OAuth application is created by an
+   instance Admin) or one root group (the application is created in that group, and you give its
+   exact path, the `full_path` as GitLab shows it).
+4. **GitLab OAuth application**: the installer prints the link to the right Applications page and
+   the exact values to fill in, including the redirect URI
+   `https://<your_plumber_domain>/api/v1/auth/callback`, then asks for the **Application ID** and
+   the **Secret**.
+5. **GitLab access token** (optional): a group or personal token with the `api` scope, used by
+   Plumber to read your projects and pipelines. It is stored encrypted in the database, never in
+   `.env`. With a group scope it also resolves the root group immediately. You can skip it and add
+   it later in `Settings` as an Admin.
+6. **TLS certificate method**: Let's Encrypt (the server must be reachable from the internet), or
+   your own certificates, which you place at `.docker/traefik/certs/plumber_fullchain.pem` and
+   `.docker/traefik/certs/plumber_privkey.pem`.
+7. **Custom Certificate Authority**: answer yes if your GitLab instance (or your own Plumber
+   certificate) is signed by a private CA, then drop the root CA files (`.pem` or `.crt`) into
+   `.docker/ca-certificates/`.
+8. **Database**: the bundled PostgreSQL container, or your own external instance (host, port,
+   user, database name, password, SSL mode, timezone).
+
+The installer then generates the secrets, writes `.env`, re-runs the checks against it and asks
+**Start Plumber now?**. On yes it runs `docker compose up -d`, waits for the backend to answer
+`/readyz` (the first boot runs the database migrations) and configures the GitLab connection with
+`plumber-bootstrap`. Open `https://<your_plumber_domain>` and sign in: the first GitLab account
+that signs in becomes the organisation Admin.
+
+<Aside variant="caution">
+The installer refuses to run when a `.env` already exists in the directory. That file holds
+`PLUMBER_TOKEN_ENCRYPTION_KEY`, which seals every stored GitLab secret and **cannot be rotated in
+place**. To upgrade an existing install run `./scripts/update.sh` instead.
+</Aside>
+
+<Aside variant="info">
+You can also clone the repository first and run the installer locally:
+
+```bash
+git clone https://github.com/getplumber/plumber-platform.git plumber-platform
+cd plumber-platform
+./install.sh
+```
+</Aside>
+
+  </TabsContent>
+  <TabsContent value="manual">
+
+#### Step 1: Setup your environment
+
+Clone the repository on your server
+
+```sh
+git clone https://github.com/getplumber/plumber-platform.git plumber-platform
+cd plumber-platform
+```
+
+Create your configuration file
+
+```sh
+cp .env.example .env
+cat versions.env >> .env
+```
+
+`versions.env` holds `PLATFORM_VERSION`, the single tag that pins both images. Appending it to
+`.env` is what selects the release you run.
+
+#### Step 2: Configure the domain name and the GitLab URL
+
+Edit `.env` and set `DOMAIN_NAME` and `GITLAB_URL`:
+
+```bash title=".env"
+DOMAIN_NAME="<your_plumber_domain>"
+GITLAB_URL="https://<url_of_your_gitlab_instance>"
+```
+
+```bash title="Example"
+DOMAIN_NAME="plumber.mydomain.com"
+GITLAB_URL="https://gitlab.mydomain.com"
+```
+
+<Aside variant="info">
+The connection scope (whole instance or one root group) is **not** an `.env` setting in v2: it is
+part of the GitLab connection you configure once with `plumber-bootstrap` in step 7, and it is
+stored in the database.
+</Aside>
+
+#### Step 3: Generate the secrets
+
+```bash
+perl -pi -e "s|^PLUMBER_TOKEN_ENCRYPTION_KEY=.*|PLUMBER_TOKEN_ENCRYPTION_KEY=\"$(openssl rand -hex 32)\"|" .env
+perl -pi -e "s|^PLUMBER_DB_PASSWORD=.*|PLUMBER_DB_PASSWORD=\"$(openssl rand -hex 16)\"|" .env
+perl -pi -e "s|^PLUMBER_REDIS_PASSWORD=.*|PLUMBER_REDIS_PASSWORD=\"$(openssl rand -hex 16)\"|" .env
+```
+
+These commands edit `.env` in place and leave no backup file behind.
+
+<Aside variant="danger">
+`PLUMBER_TOKEN_ENCRYPTION_KEY` must be **exactly 64 hexadecimal characters**
+(`openssl rand -hex 32`). It seals every GitLab secret and token the Platform stores, it
+**cannot be rotated in place**, and without it a database backup is unreadable. Back up `.env`.
+</Aside>
+
+#### Step 4: Choose your deployment profile
+
+Two variables select the stack: `COMPOSE_PROFILES` (which optional services run) and
+`CERT_RESOLVER` (the Traefik resolver used for certificates).
+
+| `COMPOSE_PROFILES` | `CERT_RESOLVER` | Meaning |
+|---|---|---|
+| `letsencrypt,internal-db` | `le` | Let's Encrypt certificates and the bundled PostgreSQL |
+| `custom-certs,internal-db` | (empty) | Your own certificates and the bundled PostgreSQL |
+| `letsencrypt` or `custom-certs` | as above | External PostgreSQL: drop `internal-db` and set the `PLUMBER_DB_*` variables |
+
+**Option A: Let's Encrypt (automatic certificates)**
+
+```bash title=".env"
+COMPOSE_PROFILES="letsencrypt,internal-db"
+CERT_RESOLVER="le"
+```
+
+No further action needed: certificates are issued at first launch, and Traefik redirects port 80
+to port 443.
+
+**Option B: Custom certificates**
+
+```bash title=".env"
+COMPOSE_PROFILES="custom-certs,internal-db"
+CERT_RESOLVER=""
+```
+
+Copy your certificate files:
+
+```bash
+cp /path/to/your/fullchain.pem .docker/traefik/certs/plumber_fullchain.pem
+cp /path/to/your/privkey.pem .docker/traefik/certs/plumber_privkey.pem
+```
+
+**External PostgreSQL**
+
+Remove `,internal-db` from `COMPOSE_PROFILES` and configure the connection in `.env`:
+
+```bash title=".env"
+PLUMBER_DB_HOST="your-db-host"
+PLUMBER_DB_PORT="5432"
+PLUMBER_DB_USER="plumber"
+PLUMBER_DB_NAME="plumber"
+PLUMBER_DB_SSLMODE="disable"       # disable, allow, prefer, require, verify-ca, verify-full
+PLUMBER_DB_TIMEZONE="UTC"
+```
+
+`PLUMBER_DB_PASSWORD` stays the password of that database user. Every other backend variable has
+a default and is documented in the [Configuration Reference](/docs/installation/reference).
+
+#### Step 5: (Optional) Add your custom CA
+
+If your GitLab instance (or your own Plumber certificate) uses a TLS certificate signed by your
+own Certificate Authority, drop the CA certificate files (`.pem` or `.crt`) into
+`.docker/ca-certificates/` and build the bundle:
+
+```bash
+cp /path/to/your/ca.pem .docker/ca-certificates/ca.pem
+./scripts/ca-bundle.sh
+```
+
+The script validates each certificate, concatenates them into
+`.docker/ca-certificates/plumber-ca.bundle`, sets `PLUMBER_PROVIDER_CA_BUNDLE` in `.env` (the
+backend reads one PEM path) and prints the command to restart the apps. The frontend trusts the
+same directory file by file. Both containers therefore trust your CA.
+
+#### Step 6: Check and launch
+
+```bash
+./scripts/preflight.sh
+docker compose up -d
+```
+
+`preflight.sh` validates the host (Docker, Compose version, ports) and the configuration: the
+required variables, the 64 hex characters of the encryption key, `PLATFORM_VERSION`, the CA bundle
+consistency, a valid TLS profile, the DNS record, the certificate files, and that GitLab is
+reachable. Fix what it reports before starting.
+
+#### Step 7: Configure the GitLab connection
+
+Create the GitLab OAuth application first (redirect URI
+`https://<your_plumber_domain>/api/v1/auth/callback`, confidential, scope `api`), then run
+`plumber-bootstrap` once, inside the backend container:
+
+```bash
+read -rs -p "OAuth application secret: " PLUMBER_BOOTSTRAP_CLIENT_SECRET; echo; export PLUMBER_BOOTSTRAP_CLIENT_SECRET
+docker compose exec -T -e PLUMBER_BOOTSTRAP_CLIENT_SECRET backend plumber-bootstrap \
+  -base-url https://gitlab.mydomain.com -client-id <application-id> -scope instance
+```
+
+The secret is read from your shell and passed with the **name-only** form of `-e`: `docker compose
+exec -e PLUMBER_BOOTSTRAP_CLIENT_SECRET` forwards the value of the exported variable without ever
+putting it on the command line, so it stays out of your shell history and out of the process list.
+
+- Use `-scope group -root-group <path>` instead of `-scope instance` to connect one root group.
+- To store the GitLab access token in the same run, export `PLUMBER_BOOTSTRAP_TOKEN` the same way
+  and add `-e PLUMBER_BOOTSTRAP_TOKEN` to the command.
+
+The command refuses an instance that is already configured, so it is safe to retry on a fresh
+install.
+
+#### Step 8: First login
+
+Open `https://<your_plumber_domain>` and sign in with GitLab. The **first account that signs in
+becomes the organisation Admin**; it is the account that finishes the setup (access token, SMTP,
+licence) in `Settings`.
+
+  </TabsContent>
+</Tabs>
+
+## ⏫ Update
+
+To update your self-managed instance to a new version, run the update script from the repository
+root:
+
+```bash
+./scripts/update.sh
+```
+
+The script will:
+
+1. Stop the running containers
+2. Pull the latest changes from the git repository
+3. Sync `PLATFORM_VERSION` from `versions.env` into your `.env` (one pin for both images)
+4. Rebuild the custom CA bundle if you use one
+5. Start the containers with the new images
+
+The backend migrates the database on boot, so the first start after an update can take longer than
+usual.
+
+<Aside variant="caution">
+Upgrades are **sequential and additive**: go through the releases in order, do not skip a line of
+the history by jumping several versions at once. To roll back, revert `PLATFORM_VERSION` in `.env`
+and run `docker compose up -d`. **Never downgrade the database by hand.**
+</Aside>
+
+## 🔄 Backup and restore
+
+Data required to fully backup and restore a Plumber system are the following:
+
+- Configuration file: `.env` (it holds the encryption key)
+- The PostgreSQL database
+- The custom CA certificates, if you use any
+
+All these data can be easily backed up and restored using 2 scripts from the installation git
+repository:
+
+- `scripts/backup.sh`
+- `scripts/restore.sh`
+
+### 💽 Backup
+
+To backup the system, go to your installation git repository and run the following command, where
+`18` is the PostgreSQL version you run:
+
+```bash
+./scripts/backup.sh 18
+```
+
+The script dumps the database, copies `.env` and the custom CA certificates, and creates a
+`backups` directory holding an archive prefixed with the date (`backup_plumber-$DATE.tar.gz`). It
+also accepts optional S3 arguments to upload the archive:
+
+```bash
+./scripts/backup.sh 18 s3://bucket-name/folder https://s3-endpoint-url region access-key secret-key
+```
+
+<Aside variant="danger">
+The archive contains `.env`, and therefore `PLUMBER_TOKEN_ENCRYPTION_KEY`. **The database dump is
+unreadable without that key**, and the key cannot be recreated: store the archive as the secret it
+is, and never restore a dump with a different `.env`.
+</Aside>
+
+<Aside variant="info">
+You can use a cron job to perform regular backups.
+Here is a cron job that launch a backup every day at 2am:
+```bash
+0 2 * * * /plumber-platform/scripts/backup.sh 18
+```
+It can be added to your crontab with the command `crontab -e`. Check more
+information about cron jobs
+[here](https://help.ubuntu.com/community/CronHowto).
+</Aside>
+
+### 🛳️ Restore
+
+To restore a backup from scratch on a new system, follow this process:
+
+<Steps>
+
+1. Be sure that your new system is compliant with
+   [requirements](#-requirements)
+
+2. Copy the backup file on your new server
+
+3. Clone the installation repository
+   ```bash
+   git clone https://github.com/getplumber/plumber-platform.git plumber-platform
+   cd plumber-platform
+   ```
+
+4. If the IP address of your server changed from your previous installation,
+   update your DNS records. See [Configure your DNS](#1-configure-your-dns)
+
+5. Launch the restore script
+   ```bash
+   ./scripts/restore.sh 18 <path_to_your_backup_file>
+   ```
+   An S3 URL (`s3://bucket-name/folder/backup-file.tar.gz`) works too, followed by the endpoint,
+   region and credentials.
+
+</Steps>
+
+The restore puts back the `.env` of the backup. That is deliberate: the dumped data is sealed with
+the `PLUMBER_TOKEN_ENCRYPTION_KEY` of that file, and only that file can open it again.

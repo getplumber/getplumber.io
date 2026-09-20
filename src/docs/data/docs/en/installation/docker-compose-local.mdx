@@ -1,0 +1,184 @@
+---
+title: Docker compose Local
+seoTitle: Try the Plumber Platform locally with Docker Compose
+description: This page describes how to quickly setup a self-managed instance of the Plumber Platform for testing purposes using Docker Compose on your local computer.
+sidebar:
+  order: 3
+  label: Docker Compose Local
+---
+
+<Aside variant="caution">
+**Only for testing purposes on your local computer**
+
+This page describes how to quickly setup a self-managed instance of the Plumber Platform for
+**testing purposes** using Docker Compose on **your local computer**. There is no TLS and the
+stack is published on `localhost`: this is not suitable for production.
+</Aside>
+
+## 💻 Requirements
+
+- **GitLab instance version >= 15.7** (17.7 or later recommended, see
+  [Requirements](/docs/installation#-requirements))
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+- [Docker](https://docs.docker.com/engine/install/) with the **Compose plugin >= 2.20.2**
+- OpenSSL (used to generate the secrets)
+- Port `3000` free on your machine
+- **Supported platforms**: macOS (bash) and Ubuntu (bash). These are tested and supported.
+
+<details>
+<summary>⚠️ <strong>Windows / WSL</strong></summary>
+
+Plumber's install scripts are designed for native Linux and macOS environments.
+Some users have successfully installed Plumber through **WSL (Windows Subsystem for Linux)**, but we do not officially support this setup.
+Depending on your WSL configuration, how you cloned the repository, and your Git settings, you may need to adjust script files manually.
+If you see CRLF-related errors (for example `bad interpreter: /bin/bash^M`), or `\r` convert line endings with `dos2unix`.
+
+</details>
+
+## 🚀 Installation
+
+The local stack runs the same four components as a production install (backend, frontend,
+PostgreSQL, Redis) behind a Traefik on plain HTTP. It publishes **one origin**,
+[http://localhost:3000](http://localhost:3000), and routes `/api` to the backend and everything
+else to the frontend.
+
+<Tabs defaultValue="quick" syncKey="install-method">
+  <TabsList>
+    <TabsTrigger value="quick" class="text-base font-bold py-2.5 px-5">⚡ Quick install (recommended)</TabsTrigger>
+    <TabsTrigger value="manual" class="text-base font-bold py-2.5 px-5">🔧 Manual install</TabsTrigger>
+  </TabsList>
+  <TabsContent value="quick">
+
+Run the interactive installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/getplumber/plumber-platform/main/install.sh | bash
+```
+
+Choose **Local**. The installer asks for:
+
+1. your **GitLab instance URL**
+2. the **connection scope**: the whole instance, or one root group and its path
+3. the **GitLab OAuth application**: it prints the link to create it and the exact redirect URI,
+   `http://localhost:3000/api/v1/auth/callback`, then asks for the Application ID and the Secret
+4. an optional **GitLab access token** with the `api` scope
+
+It generates the secrets, writes `.env`, and on **Start Plumber now?** runs
+`docker compose -f compose.local.yml up -d`, waits for the backend and configures the GitLab
+connection. Plumber is then available at [http://localhost:3000](http://localhost:3000), and the
+first GitLab account that signs in becomes the organisation Admin.
+
+<Aside variant="info">
+You can also clone the repository first and run the installer locally:
+
+```bash
+git clone https://github.com/getplumber/plumber-platform.git plumber-platform
+cd plumber-platform
+./install.sh
+```
+</Aside>
+
+  </TabsContent>
+  <TabsContent value="manual">
+
+#### Step 1: Create the GitLab application
+
+On your GitLab instance, open the `Applications` page: `Your picture >
+Preferences > Applications` (example:
+[gitlab.com](https://gitlab.com/-/profile/applications))
+
+Create an application with the following information:
+
+1. Name: `Plumber`
+2. Redirect URI: `http://localhost:3000/api/v1/auth/callback`
+3. Confidential: `true` (keep the box checked)
+4. Scopes: `api`
+
+Click on `Save Application`. Keep this GitLab tab open: the `Application ID` and `Secret` are used
+in the bootstrap step.
+
+#### Step 2: Setup your environment
+
+Clone the repository locally
+
+```sh
+git clone https://github.com/getplumber/plumber-platform.git plumber-platform
+cd plumber-platform
+```
+
+Create your configuration file
+
+```sh
+cp .env.example .env
+cat versions.env >> .env
+```
+
+#### Step 3: Update the configuration
+
+Edit `.env`:
+
+- set your GitLab instance URL
+
+   ```bash title=".env"
+   GITLAB_URL="https://<your-gitlab-url>"
+   ```
+
+- **delete the `DOMAIN_NAME` line**. The local stack does not use it, and the update script reads
+  its presence to tell a production install from a local one.
+
+#### Step 4: Generate the secrets
+
+```bash
+perl -pi -e "s|^PLUMBER_TOKEN_ENCRYPTION_KEY=.*|PLUMBER_TOKEN_ENCRYPTION_KEY=\"$(openssl rand -hex 32)\"|" .env
+perl -pi -e "s|^PLUMBER_DB_PASSWORD=.*|PLUMBER_DB_PASSWORD=\"$(openssl rand -hex 16)\"|" .env
+perl -pi -e "s|^PLUMBER_REDIS_PASSWORD=.*|PLUMBER_REDIS_PASSWORD=\"$(openssl rand -hex 16)\"|" .env
+```
+
+These commands edit `.env` in place and leave no backup file behind.
+`PLUMBER_TOKEN_ENCRYPTION_KEY` must be exactly 64 hexadecimal characters.
+
+#### Step 5: Launch Plumber
+
+```bash
+docker compose -f compose.local.yml up -d
+```
+
+#### Step 6: Configure the GitLab connection
+
+Run `plumber-bootstrap` once, inside the backend container. Note the `-f compose.local.yml` flag:
+every `docker compose` command for the local stack needs it.
+
+```bash
+read -rs -p "OAuth application secret: " PLUMBER_BOOTSTRAP_CLIENT_SECRET; echo; export PLUMBER_BOOTSTRAP_CLIENT_SECRET
+docker compose -f compose.local.yml exec -T -e PLUMBER_BOOTSTRAP_CLIENT_SECRET backend plumber-bootstrap \
+  -base-url https://<your-gitlab-url> -client-id <application-id> -scope instance
+```
+
+Use `-scope group -root-group <path>` to connect a single root group, and export
+`PLUMBER_BOOTSTRAP_TOKEN` plus `-e PLUMBER_BOOTSTRAP_TOKEN` to store a GitLab access token in the
+same run.
+
+Open your Plumber test instance at [http://localhost:3000](http://localhost:3000). The first
+GitLab account that signs in becomes the organisation Admin.
+
+  </TabsContent>
+</Tabs>
+
+## ⏫ Update
+
+To update your local instance to a new version, run the update script:
+
+```bash
+./scripts/update.sh
+```
+
+It detects the local stack (no `DOMAIN_NAME` in `.env`), pulls the latest changes, syncs
+`PLATFORM_VERSION` from `versions.env` and restarts the containers with the new images.
+
+## 🧹 Remove it
+
+The local stack is disposable. To throw it away, including its data:
+
+```bash
+docker compose -f compose.local.yml down -v
+```

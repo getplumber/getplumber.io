@@ -1,0 +1,495 @@
+---
+title: Kubernetes Installation
+seoTitle: Install the Plumber Platform on Kubernetes with Helm
+description: This page describes how to run a self-managed instance of the Plumber Platform on Kubernetes with the plumber-platform Helm chart.
+sidebar:
+  order: 4
+  label: Kubernetes
+---
+
+This page describes how to run a self-managed instance of the Plumber Platform on
+**Kubernetes**, with the `plumber-platform` Helm chart.
+
+## 💻 Requirements
+
+- **GitLab instance version >= 15.7** (17.7 or later recommended, see
+  [Requirements](/docs/installation#-requirements))
+- **A PostgreSQL instance** (or let the chart deploy PostgreSQL 18 for you)
+- **A Redis instance** (or let the chart deploy Redis 8.4 for you)
+- A Kubernetes cluster with:
+  - One ingress controller (e.g. [Nginx](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx) or [Traefik](https://artifacthub.io/packages/helm/traefik/traefik))
+  - A certificate manager with an ACME provider: [cert-manager](https://artifacthub.io/packages/helm/cert-manager/cert-manager)
+  - _If you let the chart deploy PostgreSQL_: the ability to provision persistent volumes
+- Your local environment with CLI to interact with the Kubernetes API:
+  - [Helm](https://github.com/helm/helm) 3
+  - [Kubectl](https://github.com/kubernetes/kubectl)
+- Write access to the DNS zone of the domain to use with Plumber
+- A user account on the GitLab instance
+
+## 🛠️ Installation
+
+```bash
+helm repo add plumber-platform https://getplumber.github.io/plumber-platform
+helm repo update
+helm upgrade --install plumber plumber-platform/plumber-platform \
+  -n plumber --create-namespace -f values.yaml
+```
+
+The chart is named `plumber-platform`, and its version matches the platform version it installs
+(chart `2.0.0` installs `v2.0.0`). Both application images are pinned by the chart and always move
+together.
+
+<Steps>
+
+1. ### 📄 Configure the domain name
+
+   <Aside variant="info">
+   You need a domain to run Plumber. For example, if you have the domain name
+   `mydomain.com` then the Plumber URL will be `https://plumber.mydomain.com`
+   </Aside>
+
+   Create the DNS record
+
+   <Steps>
+   1. Name: `<your_plumber_domain>`
+   2. Type: `A`
+   3. Content: `<your-cluster-public-ip>`
+   </Steps>
+
+   <Aside variant="caution">
+   **One host serves both apps.** The browser calls the API same-origin, so the chart's Ingress
+   routes `/api` to the backend and `/` to the frontend on the single `ingress.host`. Do not put
+   the frontend and the API on two hostnames.
+   </Aside>
+
+2. ### 🦊 Create the GitLab OAuth application
+
+   Plumber uses GitLab as an OAuth2 provider to authenticate users. Open the Applications page of
+   your GitLab instance (`Admin > Applications`) or of the root group you want to connect
+   (`Settings > Applications`), and create an application with the following information:
+
+   <Steps>
+   1. Name: `Plumber`
+   2. Redirect URI: `https://<your_plumber_domain>/api/v1/auth/callback`
+   3. Confidential: `true` (let the box checked)
+   4. Scopes: `api`
+   </Steps>
+
+   Store the `Application ID` and `Secret` somewhere safe: they are used by the first-run
+   bootstrap below, and they end up encrypted in the Platform database, never in your values file.
+
+3. ### 🔐 Create the secrets
+
+   The recommended path stores every credential in Kubernetes Secrets you own, and points the
+   chart at them with the `existingSecret` keys.
+
+   **Plumber secret**: the key that seals every GitLab secret the Platform stores. It must be
+   exactly 64 hexadecimal characters, and it **cannot be rotated in place**: back it up.
+
+   ```bash
+   kubectl create secret generic plumber-secrets -n plumber \
+     --from-literal=tokenEncryptionKey="$(openssl rand -hex 32)"
+   ```
+
+   **PostgreSQL secret** (key `password`, used whether the chart deploys PostgreSQL or you bring
+   your own):
+
+   ```bash
+   kubectl create secret generic plumber-pg -n plumber \
+     --from-literal=password="<postgres-password>"
+   ```
+
+   **Redis secret** (key `password`; URL-safe characters only, the value is embedded in a
+   `redis://` URL):
+
+   ```bash
+   kubectl create secret generic plumber-redis -n plumber \
+     --from-literal=password="<redis-password>"
+   ```
+
+   <Aside variant="info">
+   For an evaluation setup you can skip the Secrets and put `platform.tokenEncryptionKey`,
+   `postgresql.global.postgresql.auth.password` and `redis.auth.password` inline in your values
+   instead. The chart then writes them into the Secret `<release>-plumber-platform`.
+   </Aside>
+
+4. ### ⚙️ Configure your values
+
+   This section describes how to configure your custom values file. The default
+   `values.yaml` is available
+   [here](https://github.com/getplumber/plumber-platform/blob/main/charts/plumber-platform/values.yaml),
+   where every key is commented. A [full example](#-configuration-example) is available at the end
+   of this page.
+
+   <Aside variant="info">
+   For the following sections, we assume that your custom value file will be
+   located in your current directory and be named `custom_values.yaml`
+   </Aside>
+
+   **Minimal values**
+
+   ```yaml
+   platform:
+     baseUrl: https://plumber.mydomain.com    # public origin, also the OIDC audience
+     gitlabUrl: https://gitlab.mydomain.com
+     existingSecret: plumber-secrets          # key tokenEncryptionKey
+
+   ingress:
+     enabled: true
+     className: nginx
+     host: plumber.mydomain.com               # ONE host: /api -> backend, / -> frontend
+     tls:
+       enabled: true                          # secret <release>-plumber-platform-tls unless tls.secretName
+
+   postgresql:
+     deploy: true
+     global:
+       postgresql:
+         auth:
+           existingSecret: plumber-pg         # key password
+
+   redis:
+     deploy: true
+     auth:
+       existingSecret: plumber-redis          # key password
+   ```
+
+   `platform.baseUrl` is the public origin of the install, without a trailing slash. It is also
+   the `aud` claim your pipelines' OIDC tokens must carry, unless you override
+   `platform.oidc.audience`. `platform.oidc.allowedIssuers` defaults to `[platform.gitlabUrl]`.
+
+   **Ingress**
+
+   ```yaml
+   ingress:
+     enabled: true
+     className: 'nginx'        # the class of your ingress controller
+     host: 'plumber.mydomain.com'
+     annotations:              # whatever your controller or certificate manager needs
+       cert-manager.io/cluster-issuer: 'letsencrypt-production'
+     tls:
+       enabled: true
+       secretName: ''          # defaults to <release>-plumber-platform-tls
+   ```
+
+   **PostgreSQL**
+
+   You can either let the chart deploy a PostgreSQL instance or use an external one.
+
+   **Option A: Deploy PostgreSQL via the chart**
+
+   When `postgresql.deploy: true`, the chart provisions a single-replica PostgreSQL
+   `StatefulSet`, its `Service` and a `PersistentVolumeClaim` for the data directory.
+
+   <Aside variant="caution">
+   The bundled PostgreSQL is intended for evaluation, development, and
+   small self-managed deployments. For production workloads we recommend
+   using a managed database via **Option B**.
+   </Aside>
+
+   ```yaml
+   postgresql:
+     deploy: true
+
+     custom:
+       dbName: 'plumber'
+       sslmode: 'disable'
+       port: 5432
+
+     global:
+       postgresql:
+         auth:
+           username: plumber
+           existingSecret: 'plumber-pg'
+           secretKeys:
+             userPasswordKey: 'password'
+
+     # Persistence for the PostgreSQL data directory
+     persistence:
+       size: '10Gi'
+       storageClass: '' # leave empty to use the cluster default StorageClass
+       accessMode: ReadWriteOnce
+
+     # To pull from a private registry or pin an exact version:
+     #image:
+     #  registry: my-private-registry.example.com  # omit to use Docker Hub
+     #  repository: postgres
+     #  tag: "18"
+     #  digest: ""  # optional: pin exact version with sha256:...
+     #  pullPolicy: IfNotPresent
+   ```
+
+   **Option B: Use an external PostgreSQL**
+
+   ```yaml
+   postgresql:
+     deploy: false
+
+     custom:
+       host: REPLACE_ME_BY_POSTGRES_HOST
+       dbName: 'plumber'
+       sslmode: 'require'
+       port: 5432
+
+     global:
+       postgresql:
+         auth:
+           username: plumber
+           existingSecret: 'plumber-pg'
+           secretKeys:
+             userPasswordKey: 'password'
+   ```
+
+   **Redis**
+
+   Same two options.
+
+   ```yaml
+   # Option A: deployed by the chart
+   redis:
+     deploy: true
+     auth:
+       existingSecret: 'plumber-redis'
+       existingSecretPasswordKey: 'password'
+
+   # Option B: your own instance
+   #redis:
+   #  deploy: false
+   #  custom:
+   #    host: REPLACE_ME_BY_REDIS_HOST
+   #    port: 6379
+   #    databaseIndex: 0
+   #  auth:
+   #    existingSecret: 'plumber-redis'
+   #    existingSecretPasswordKey: 'password'
+   ```
+
+   **(Optional) Add your custom Certificate Authority**
+
+   If your GitLab instance (or your SMTP server) presents a privately-signed certificate, give the
+   chart your root CA. You can either:
+
+   <Steps>
+   1. Reference an existing `Secret` (`existingSecret`) or `ConfigMap` (`configMapName`) holding
+      the certificates.
+   2. Or add the CA public root certificate inline with the `certificates` key.
+   </Steps>
+
+   ```yaml
+   customCertificateAuthority:
+     existingSecret: ""
+     configMapName: ""
+     certificates: []
+     # - name: rootCA.crt # Must have the .crt or .pem extension
+     #   value: |
+     #     -----BEGIN CERTIFICATE-----
+     #     (SNIPPED FOR BREVITY)
+     #     -----END CERTIFICATE-----
+   ```
+
+   The chart mounts them in both apps, and an init container concatenates them into the single PEM
+   bundle the backend reads.
+
+   **(Optional) Air-gapped installs**
+
+   The backend polls a manifest once a day to tell you a new release exists. Disable it:
+
+   ```yaml
+   platform:
+     updateCheckUrl: "off"
+   ```
+
+   Set `imageRegistry` and `imagePullSecrets` to pull the images from your own registry.
+
+5. ### 🚀 Install the chart
+
+   ```sh
+   helm upgrade --install plumber plumber-platform/plumber-platform \
+     -n plumber --create-namespace -f custom_values.yaml
+   ```
+
+   <Aside variant="tip">
+   You have successfully installed Plumber on your Kubernetes cluster 🎉
+   </Aside>
+
+6. ### 🔑 First run: configure the GitLab connection
+
+   The GitLab connection is configured once by `plumber-bootstrap`. Choose one of the two ways.
+
+   **Manual command** (the one `helm install` prints in its NOTES):
+
+   ```sh
+   kubectl exec -n plumber deploy/plumber-backend -- /usr/local/bin/plumber-bootstrap \
+     -base-url https://gitlab.mydomain.com -client-id <application-id> \
+     -client-secret <secret> -scope instance
+   ```
+
+   Add `-token <access-token>` to store a GitLab access token in the same run, or use
+   `-scope group -root-group <path>` to connect a single root group.
+
+   <Aside variant="caution">
+   With the manual command the secret is visible in the pod's process list for the duration of the
+   command. The hook Job below reads it from a `Secret` instead.
+   </Aside>
+
+   **Post-install hook Job**: create a Secret with the OAuth application secret (key
+   `clientSecret`, optional key `token` for the access token), then enable the Job:
+
+   ```sh
+   kubectl create secret generic plumber-bootstrap -n plumber \
+     --from-literal=clientSecret="<application-secret>"
+   ```
+
+   ```yaml
+   bootstrap:
+     enabled: true
+     gitlabUrl: https://gitlab.mydomain.com
+     clientId: <application-id>
+     scope: instance                          # or group, with rootGroup
+     rootGroup: ''
+     existingSecret: plumber-bootstrap        # keys clientSecret, optional token
+   ```
+
+   The Job waits for the backend `/readyz`, and the backend's first boot runs the database
+   migrations, which can take a few minutes with the image pull.
+
+   ```sh
+   helm upgrade --install plumber plumber-platform/plumber-platform \
+     -n plumber --create-namespace -f custom_values.yaml --timeout 15m
+   ```
+
+   <Aside variant="caution">
+   Pass `--timeout 15m` whenever `bootstrap.enabled` is true, so Helm does not mark the release
+   failed while the Job is still waiting for the backend.
+   </Aside>
+
+   The Job refuses an instance that is already configured, so it is safe to leave enabled. Check
+   it with `kubectl logs -n plumber job/plumber-plumber-platform-bootstrap`.
+
+7. ### 👤 First login
+
+   Open `https://<your_plumber_domain>` and sign in with GitLab. The **first account that signs in
+   becomes the organisation Admin**.
+
+</Steps>
+
+### 📚 Configuration example
+
+<Aside variant="info">
+This example runs in a Kubernetes cluster using:
+- `nginx` as ingress controller
+- `cert-manager`
+- A clusterIssuer named `letsencrypt-production`
+
+```yaml
+platform:
+  baseUrl: "https://plumber.mydomain.com"
+  gitlabUrl: "https://gitlab.mydomain.com"
+  existingSecret: "plumber-secrets"
+  # updateCheckUrl: "off"          # air-gapped installs
+  config:
+    logLevel: "info"
+    logFormat: "json"
+    sessionTTL: "168h"
+    retentionDays: 30
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: "plumber.mydomain.com"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+  tls:
+    enabled: true
+
+# Option A: Deploy PostgreSQL via the chart
+postgresql:
+  deploy: true
+  custom:
+    dbName: "plumber"
+    sslmode: "disable"
+    port: 5432
+  global:
+    postgresql:
+      auth:
+        username: plumber
+        existingSecret: "plumber-pg"
+        secretKeys:
+          userPasswordKey: "password"
+  persistence:
+    size: "10Gi"
+
+# Option B: Use an external PostgreSQL
+#postgresql:
+#  deploy: false
+#  custom:
+#    host: "database-1.REDACTED.us-east-1.rds.amazonaws.com"
+#    port: 5432
+#    dbName: "plumber"
+#    sslmode: "require"
+#  global:
+#    postgresql:
+#      auth:
+#        username: plumber
+#        existingSecret: "plumber-pg"
+#        secretKeys:
+#          userPasswordKey: "password"
+
+redis:
+  deploy: true
+  auth:
+    existingSecret: "plumber-redis"
+    existingSecretPasswordKey: "password"
+
+bootstrap:
+  enabled: true
+  gitlabUrl: "https://gitlab.mydomain.com"
+  clientId: "REDACTED"
+  scope: instance
+  existingSecret: "plumber-bootstrap"
+```
+</Aside>
+
+### 🩺 How the backend is deployed
+
+- The backend `Deployment` uses the `Recreate` strategy with **one replica, by design**: the
+  single process owns the job queues, and two versions must never run at once.
+- Probes: liveness `/healthz`, readiness `/readyz` (database-backed). A `startupProbe` gives the
+  first boot the time to migrate the database.
+- `backend.terminationGracePeriodSeconds` defaults to `1200`: in-flight background work can take
+  many minutes to drain on a large estate.
+- Prometheus metrics are served on `/metrics` on the backend `Service`, and are **not** exposed by
+  the ingress.
+
+## ⏫ Update
+
+<Steps>
+
+1. Update the Plumber Helm repository
+   ```sh
+   helm repo update
+   ```
+
+2. Bump `front.tag` and `backend.tag` **together** in your values: every release pins both images
+   to one version.
+   ```yaml
+   front:
+     tag: v2.0.0
+   backend:
+     tag: v2.0.0
+   ```
+
+3. Run the helm upgrade
+   ```sh
+   helm upgrade --install plumber plumber-platform/plumber-platform \
+     -n plumber -f custom_values.yaml
+   ```
+
+4. You have successfully updated Plumber 🎉
+
+</Steps>
+
+<Aside variant="caution">
+Upgrades are sequential and additive: the backend migrates the database on boot. To roll back,
+roll the images back to the previous version. **Never run a database downgrade.**
+</Aside>

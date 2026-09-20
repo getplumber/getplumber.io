@@ -49,6 +49,11 @@
       "permanent": true
     },
     {
+      "source": "/docs/installation/local-docker-compose",
+      "destination": "/docs/installation/docker-compose-local",
+      "permanent": true
+    },
+    {
       "source": "/docs/cli/gitlab-component/",
       "destination": "/docs/cli/gitlab#gitlab-ci-component",
       "permanent": true
