@@ -443,17 +443,31 @@ total then maps to the A-E grade (higher points = better grade):
 Each severity has a weight, and repeated occurrences of the *same* issue taper
 off (capped) so a single noisy problem can't dominate the whole score:
 
-| Severity | Points lost (first occurrence) | Cap per issue type |
+| Severity | Points lost (first occurrence) | Cap per issue code |
 |----------|:------------------------------:|:------------------:|
 | Critical | 25 | none |
 | High     | 15 | 60 |
 | Medium   | 6  | 20 |
 | Low      | 3  | 10 |
 
+For a code seen `n` times, with weight `w` and cap `C`, the loss is:
+
+```text
+loss = min(w × (1 + 0.5 × log2(n)), C)     # Critical has no cap
+rawPoints = max(0, 100 − sum of every code's loss)
+```
+
+The first occurrence costs the full weight, and each doubling of `n` adds only
+half a weight unit, so repeats still hurt but taper off. The cap is **per issue
+code**, not per severity: once one code is capped, a *different* code at the
+same severity opens a fresh budget, so a pipeline with many distinct problems
+keeps losing points.
+
 <Aside variant="caution" title="Any Critical issue forces an E">
 A single Critical finding represents an immediate, high-impact risk. While one
-exists, the score is capped at **30 points**, so the grade cannot read better
-than **E**, no matter how clean the rest of the pipeline is.
+exists, final points are capped at **30** (`finalPoints = min(rawPoints, 30)`),
+so the grade cannot read better than **E**, no matter how clean the rest of the
+pipeline is.
 </Aside>
 
 Want the full per-issue breakdown? Run `plumber analyze --score-point` to see

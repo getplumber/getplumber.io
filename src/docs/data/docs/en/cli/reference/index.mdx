@@ -47,8 +47,8 @@ plumber analyze [flags]
 | `--ocsf` | No | - | Write OCSF Compliance Finding results (JSON array, schema 1.8.0) for OCSF consumers and GRC platforms |
 | `--mr-comment` | No | `false` | Post/update a Plumber comment on the merge request (MR pipelines only; requires `api` scope) |
 | `--badge` | No | `false` | Create/update a Plumber badge on the project (requires `api` scope; only runs on default branch) |
-| `--score` | No | `false` | Show the Plumber score banner (letter, points, bar, severity counts) on stdout, and include points + score in the JSON, PBOM, and CycloneDX output |
-| `--score-point` | No | `false` | Like `--score` plus the full per-issue-code points breakdown in stdout and the MR comment; overrides `--score` when both are set |
+| `--score` | No | `false` | **Deprecated no-op.** The score banner (letter, points, bar, severity counts) and the score in the JSON, PBOM and CycloneDX output are produced by default; the flag is still accepted so existing invocations do not break |
+| `--score-point` | No | `false` | Add the full per-issue-code points breakdown (`Code / Severity / Count / Weight / Cap / Loss`) to stdout and the MR comment, on top of the default banner |
 | `--score-push` | No | `false` | Publish this repo's Plumber Score to the hosted badge service. Runs in **CI only** (needs a CI-native OIDC id-token; a local run is a no-op). Publishes on every run; the score service keeps only your default branch for the public badge. See [Plumber Score](/docs/plumber-score) |
 | `--score-endpoint` | No | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the minted OIDC audience follows this value so it always matches the target |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
@@ -430,7 +430,7 @@ Plumber still collects the pipeline (the inventory *is* the collected data), the
 | PBOM, CycloneDX | The collected inventory only: images, includes and upstream versions, with no per-image or per-include compliance flags |
 | SARIF (`--sarif`), GitLab SAST (`--glsast`) | **Not written.** An empty SARIF is what makes GitHub Code Scanning clear previously-reported alerts, and an empty GitLab SAST report shows a clean Security Dashboard. Writing either from a run that evaluated nothing would dismiss real alerts |
 
-Flags that read or publish a verdict have nothing to act on and are ignored, with a one-line notice naming them: `--min-points`, `--min-score`, `--threshold`, `--score`, `--score-point`, `--badge`, `--score-push`, `--mr-comment`, plus the two security reports above. No badge is created or updated, and no score is published.
+Flags that read or publish a verdict have nothing to act on and are ignored, with a one-line notice naming them: `--min-points`, `--min-score`, `--threshold`, `--score`, `--score-point`, `--badge`, `--score-push`, `--mr-comment`, `--platform`, plus the two security reports above. No badge is created or updated, and no score is published.
 
 **Exit codes.** The run exits `0` when data collection succeeded. It still fails with exit `3` when it did not: a degraded collection, a `.gitlab-ci.yml` that was fetched but does not parse, or (on GitLab) no CI configuration at all. In each of those cases the inventory would be empty, and an empty PBOM must not ship as if it were complete.
 
@@ -471,7 +471,7 @@ Flags that read or publish a verdict have nothing to act on and are ignored, wit
 | `threshold` | number | Deprecated gate from `--threshold`. Present only when that flag is supplied. |
 | `passed` | boolean | True when the active gate is met. |
 | `noControls` | boolean | True when the run used [`--no-controls`](#artifact-only-runs), so nothing was evaluated. Every `*Result` block is `status: "skipped"` and `plumberScore` is absent. Omitted on a normal run. Key on this to tell "nothing was checked" apart from "everything was checked and is clean". |
-| `plumberScore` | object | Scored severity summary (raw points, severity buckets, final points). Present with `--score` / `--score-point`. |
+| `plumberScore` | object | Scored summary: `profileId` (`scoring-v3`), per-severity `counts`, `rawPoints`, `finalPoints`, `score` (A-E), `criticalMalusApplied`, `losses` and `codeLosses`. Written on every run; omitted when the score is withheld because no control was evaluated. |
 | `<control>Result` | object | One entry per evaluated control (see below). |
 | `partialControls` | array | Controls that could not fully evaluate. Empty or omitted on a clean run. |
 | `warnings` | array | Non-fatal "could not verify" messages (e.g. a known-CVE check that couldn't resolve an action version). Gated by `--fail-warnings` (exit 3). Omitted when none. |
