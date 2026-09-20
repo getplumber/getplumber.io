@@ -143,7 +143,7 @@ Override any input to fit your needs:
 
 | Input | Default | Description |
 |-------|---------|-------------|
-| `version` | _(pinned in action.yml)_ | Plumber release tag to install. Downloaded from GitHub Releases and verified against `checksums.txt` |
+| `version` | `v0.5.3` | Plumber release tag to install. Downloaded from GitHub Releases and verified against `checksums.txt` and the SLSA attestation |
 | `verify-attestation` | `true` | Verify the binary's SLSA build-provenance attestation via `gh attestation verify`. Disable for air-gapped or GHES setups |
 | `github-token` | `${{ github.token }}` | Token for the GitHub API and SARIF upload. Needs `Administration:read` for full `branchMustBeProtected`, and `security-events:write` for SARIF |
 | `metadata-token` | - | Optional token (public-repo read) used only to resolve third-party action versions for the known-CVE check, when an action is hosted in an org with an IP allow list that blocks the runner's `GITHUB_TOKEN`. Falls back to an anonymous read when unset |
@@ -158,6 +158,8 @@ Override any input to fit your needs:
 | `score` | `false` | Add the full per-issue-code points breakdown on top of the score banner. Off by default; set `true` to include it |
 | `score-push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) via CI-native OIDC (**no secret**). The workflow MUST grant `permissions: id-token: write`. Publishes on every run; the service keeps only the default branch for the public badge. Warns (never fails) on error. See [Plumber Score](/docs/plumber-score) |
 | `score-endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
+| `platform` | - | Plumber Platform base URL. Setting it pushes this run's full results there over CI-native OIDC, and takes precedence over `score-push`. The workflow MUST grant `permissions: id-token: write` |
+| `platform-allow-http` | `false` | Allow `platform` to be plain `http` for a non-loopback host. Without it, `http` to anything but `localhost` / `127.0.0.0/8` / `::1` is refused before any credential is sent; `https` and loopback `http` need no opt-in |
 | `fail-warnings` | `false` | Fail on warnings: unknown configuration keys (exit 2) and "could not verify" checks such as a skipped known-CVE lookup (exit 3). `soft-fail` does not mask exit 3 |
 | `soft-fail` | `false` | Do not fail the job when the score is below the gate. Findings are still produced and uploaded |
 | `upload-sarif` | `true` | Upload the SARIF report to GitHub Code Scanning |
@@ -384,7 +386,7 @@ github:
 
     # Reads each third-party action's OWN source: flags an action that
     # fetches a script from a moving ref (a branch, not a tag/SHA) and runs
-    # it with no checksum — a SHA pin on the action cannot reach that code.
+    # it with no checksum - a SHA pin on the action cannot reach that code.
     # anchore/scan-action → grype's install.sh from `main` is the canonical
     # case. Obfuscated decode-then-run is graded critical; an unfetchable
     # source is surfaced as could-not-verify, never a silent pass.
@@ -411,16 +413,16 @@ github:
         - '(?i)(npm|pnpm|yarn)\s+publish'
         - '(?i)cargo\s+publish'
       # Which actions restore a cache, and when. mode:
-      #   always  — restores whenever present
-      #   default — restores unless disableInput holds disableValue
-      #   opt-in  — restores only when enableInput names a package manager
+      #   always  - restores whenever present
+      #   default - restores unless disableInput holds disableValue
+      #   opt-in  - restores only when enableInput names a package manager
       cacheActions:
         - {action: actions/cache, mode: always}
         - {action: Swatinem/rust-cache, mode: always}
         - {action: actions/setup-go, mode: default, disableInput: cache, disableValue: false}
         - {action: gradle/actions/setup-gradle, mode: default, disableInput: cache-disabled, disableValue: true}
         - {action: actions/setup-node, mode: opt-in, enableInput: cache}
-      # Jobs to exempt (glob over <workflow-file>/<job-id>) — the escape
+      # Jobs to exempt (glob over <workflow-file>/<job-id>) - the escape
       # hatch for release jobs you have reviewed and accept.
       allowedJobs: []
         # - '*/lint'
