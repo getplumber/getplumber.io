@@ -46,6 +46,16 @@ export function isCliDocsTab(tabId: string): boolean {
   return tabId === CLI_DOCS_TAB_ID;
 }
 
+/**
+ * Whether a content id (relative to PLATFORM_DOCS_PREFIX, e.g. "controls" or
+ * "issues/ISSUE-101") is shared content aliased under the CLI tab. Mirrors
+ * getCanonicalDocsPathname's matching so the alias set stays in one place:
+ * only controls and issues (and its sub-pages) have a /docs/cli/* route.
+ */
+function isSharedCliContentSuffix(suffix: string): boolean {
+  return suffix === "controls" || suffix === "issues" || suffix.startsWith("issues/");
+}
+
 /** Whether a pathname is under the CLI docs section (e.g. /docs/cli/controls) */
 export function isCliDocsPath(pathname: string): boolean {
   const cliSegment = `/${docsRoute}/${CLI_DOCS_PREFIX}/`;
@@ -58,10 +68,12 @@ export function isCliDocsPath(pathname: string): boolean {
  * /docs/use-plumber/controls -> /docs/cli/controls
  */
 export function resolveSharedDocsHref(href: string, tabId: string): string {
-  const platformPrefix = `/${docsRoute}/${PLATFORM_DOCS_PREFIX}`;
+  const platformPrefix = `/${docsRoute}/${PLATFORM_DOCS_PREFIX}/`;
   if (isCliDocsTab(tabId) && href.startsWith(platformPrefix)) {
     const suffix = href.slice(platformPrefix.length);
-    return `/${docsRoute}/${CLI_DOCS_PREFIX}${suffix}`;
+    if (isSharedCliContentSuffix(suffix)) {
+      return `/${docsRoute}/${CLI_DOCS_PREFIX}/${suffix}`;
+    }
   }
   return href;
 }
@@ -81,7 +93,9 @@ export function resolveSharedDocsHrefFromPath(href: string, pathname: string): s
 export function contentIdToTabSlug(contentId: string, tabId: string): string {
   if (isCliDocsTab(tabId) && contentId.startsWith(`${PLATFORM_DOCS_PREFIX}/`)) {
     const suffix = contentId.slice(PLATFORM_DOCS_PREFIX.length + 1);
-    return `${CLI_DOCS_PREFIX}/${suffix}`;
+    if (isSharedCliContentSuffix(suffix)) {
+      return `${CLI_DOCS_PREFIX}/${suffix}`;
+    }
   }
   return contentId;
 }

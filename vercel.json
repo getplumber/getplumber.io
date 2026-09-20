@@ -54,6 +54,16 @@
       "permanent": true
     },
     {
+      "source": "/docs/use-plumber/controls",
+      "destination": "/docs/cli/controls",
+      "permanent": true
+    },
+    {
+      "source": "/docs/use-plumber/controls/",
+      "destination": "/docs/cli/controls",
+      "permanent": true
+    },
+    {
       "source": "/admin",
       "destination": "/keystatic",
       "permanent": true

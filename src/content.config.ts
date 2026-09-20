@@ -86,6 +86,10 @@ const docsCollection = defineCollection({
           order: z.number().optional(),
           indent: z.boolean().optional(),
           icon: z.string().optional(),
+          hidden: z.boolean().optional(),
+          // within a grouped section: false lifts the page out of the section's
+          // sub-list, rendering it as a direct link at the parent group level
+          grouped: z.boolean().optional(), // hide from sidebar nav; page still builds (used for pages aliased into another tab)
           badge: z
             .object({
               text: z.string(),

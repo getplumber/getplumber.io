@@ -10,24 +10,19 @@ const sidebarNavData: DocsSidebarNavData = {
    */
   tabs: [
     {
-      id: "score",
-      title: "Plumber Score",
-      description: "Plumber Score documentation",
-      icon: "tabler/award",
+      id: "api",
+      title: "Documentation",
+      description: "Plumber documentation",
+      icon: "tabler/file-text",
+      // Ordered list of sidebar sections for the single 'api' tab
+      // The "id" of each section should match a folder in the docs content collection,
+      // except 'cli' whose navLinks below drive the /docs/cli/* alias routes
+      // generated in src/pages/docs/[...slug].astro:85-104.
       sections: [
         {
-          id: "plumber-score",
-          title: "Plumber Score",
+          id: "getting-started",
+          title: "Getting Started",
         },
-      ],
-    },
-    {
-      id: "api",
-      title: "Open Source CLI",
-      description: "CLI documentation",
-      icon: "tabler/terminal-2",
-      // Ordered list of sidebar sections for the 'api' tab
-      sections: [
         {
           id: "cli",
           title: "CLI",
@@ -36,27 +31,19 @@ const sidebarNavData: DocsSidebarNavData = {
             { text: "Issues", href: "/docs/use-plumber/issues", indent: true },
           ],
         },
-      ],
-    },
-    {
-      id: "main",
-      title: "Platform",
-      description: "Main documentation",
-      icon: "tabler/file-text",
-      // Ordered list of sidebar sections for the 'main' tab
-      // The "id" of each section should match a folder in the docs content collection
-      sections: [
         {
-          id: "getting-started",
-          title: "Getting Started",
+          id: "plumber-score",
+          title: "Plumber Score",
         },
         {
           id: "installation",
           title: "Installation",
+          group: "Platform",
         },
         {
           id: "use-plumber",
-          title: "Use Plumber",
+          title: "Usage",
+          group: "Platform",
         },
       ],
     },

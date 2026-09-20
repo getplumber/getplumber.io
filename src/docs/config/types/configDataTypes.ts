@@ -53,6 +53,11 @@ export interface DocsSection {
    */
   title: string;
   /**
+   * Optional parent group label. Consecutive sections sharing the same group render
+   * nested under one bold group heading in the sidebar (e.g. "Platform").
+   */
+  group?: string;
+  /**
    * Extra sidebar links for this section (same tab). Use for destinations outside this folder,
    * e.g. Platform docs linked from the Open Source CLI tab.
    */
