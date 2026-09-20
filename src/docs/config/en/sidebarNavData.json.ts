@@ -46,10 +46,12 @@ const sidebarNavData: DocsSidebarNavData = {
           group: "Platform",
         },
         // Last section, outside the Platform group: the v1 install guides kept
-        // for existing installations (new installs use the v2 Installation section)
+        // for existing installations (new installs use the v2 Installation section).
+        // Folded by default, and opened automatically on a v1 page.
         {
           id: "legacy",
           title: "Legacy (v1)",
+          collapsed: true,
         },
       ],
     },

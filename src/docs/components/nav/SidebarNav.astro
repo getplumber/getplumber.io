@@ -302,6 +302,15 @@ for (const section of sections) {
   docsBySection[section].sort((a, b) => compareSidebarItems(a, b, currLocale));
 }
 
+// A collapsed section opens on its own pages: match the current pathname against
+// the links it holds (a page of the section, or anything below one of them)
+const withTrailingSlash = (path: string): string => (path.endsWith("/") ? path : `${path}/`);
+const currentPathWithSlash = withTrailingSlash(Astro.url.pathname);
+
+function holdsCurrentPage(docs: Array<{ link: string }>): boolean {
+  return docs.some((doc) => currentPathWithSlash.startsWith(withTrailingSlash(doc.link)));
+}
+
 // Consecutive sections sharing a `group` render nested under one bold group
 // heading (e.g. Platform > Installation / Usage); others render standalone
 type SidebarRenderEntry = { group?: string; ids: string[] };
@@ -424,9 +433,12 @@ for (const id of sections) {
         }
 
         const section = entry.ids[0];
-        const sectionNavLinks = getSectionById(section, sectionId, currLocale)?.navLinks ?? [];
-        // A section with a single page and no extra links collapses to one
-        // link line labeled with the section title (no heading + duplicate)
+        const sectionConfig = getSectionById(section, sectionId, currLocale);
+        const sectionNavLinks = sectionConfig?.navLinks ?? [];
+        const sectionTitle = getSectionTitle(section, sectionId, currLocale);
+        // One rule: a single-page section is one page link carrying the section
+        // title (page-link styling, no heading), a multi-page section is a
+        // non-link heading with its pages below it
         if (docsBySection[section].length === 1 && sectionNavLinks.length === 0) {
           const doc = docsBySection[section][0];
           return (
@@ -434,20 +446,15 @@ for (const id of sections) {
               <ul class="space-y-2">
                 <SidebarLink
                   link={doc.link}
-                  text={getSectionTitle(section, sectionId, currLocale)}
+                  text={sectionTitle}
                   badge={doc.badge}
                   icon={doc.icon}
-                  emphasis
                 />
               </ul>
             </div>
           );
         }
-        return (
-        <div class="mb-8">
-          <h2 class="mb-2 text-lg font-semibold md:text-base">
-            {getSectionTitle(section, sectionId, currLocale)}
-          </h2>
+        const sectionLinks = (
           <ul class="border-border ml-0.5 space-y-2 border-l pl-3">
             {docsBySection[section].map((doc) => (
               <SidebarLink
@@ -477,6 +484,32 @@ for (const id of sections) {
               );
             })}
           </ul>
+        );
+        // A folded section: same heading, wrapped in a native disclosure so it
+        // works without JavaScript, and open on the pages it holds
+        if (sectionConfig?.collapsed) {
+          const isOpen = holdsCurrentPage(docsBySection[section]);
+          return (
+            <details class="sidebar-disclosure mb-8" data-sidebar-section={section} open={isOpen}>
+              <summary
+                class="mb-2 flex cursor-pointer list-none items-center gap-1 text-lg font-semibold md:text-base"
+                aria-expanded={isOpen ? "true" : "false"}
+              >
+                <span class="sidebar-disclosure__marker inline-flex shrink-0" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="size-4">
+                    <path d="M14.8 11.3 10.6 7a1 1 0 1 0-1.4 1.5l3.5 3.5-3.5 3.5a1 1 0 0 0 0 1.4 1 1 0 0 0 .7.3 1 1 0 0 0 .7-.3l4.2-4.2a1 1 0 0 0 0-1.4Z" />
+                  </svg>
+                </span>
+                <span>{sectionTitle}</span>
+              </summary>
+              {sectionLinks}
+            </details>
+          );
+        }
+        return (
+        <div class="mb-8">
+          <h2 class="mb-2 text-lg font-semibold md:text-base">{sectionTitle}</h2>
+          {sectionLinks}
         </div>
         );
       })
@@ -485,3 +518,31 @@ for (const id of sections) {
 
   <slot name="after-links" />
 </nav>
+
+<style>
+  .sidebar-disclosure > summary::-webkit-details-marker {
+    display: none;
+  }
+  .sidebar-disclosure[open] > summary .sidebar-disclosure__marker {
+    transform: rotate(90deg);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .sidebar-disclosure > summary .sidebar-disclosure__marker {
+      transition: transform 0.2s ease-in-out;
+    }
+  }
+</style>
+
+<script>
+  // `details` already exposes its state to assistive technology; mirror it on the
+  // summary so the markup states it explicitly, and keep it true after a toggle.
+  document
+    .querySelectorAll<HTMLDetailsElement>("details[data-sidebar-section]")
+    .forEach((disclosure) => {
+      const summary = disclosure.querySelector("summary");
+      if (!summary) return;
+      const sync = () => summary.setAttribute("aria-expanded", String(disclosure.open));
+      sync();
+      disclosure.addEventListener("toggle", sync);
+    });
+</script>

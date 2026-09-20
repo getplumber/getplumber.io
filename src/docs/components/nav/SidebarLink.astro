@@ -27,8 +27,6 @@ interface Props {
   icon?: string;
   /** When true, also active for paths under this link (e.g. issue detail pages under the Issues index). */
   highlightDescendants?: boolean;
-  /** When true, style the link with section-heading weight (single-page top-level entries). */
-  emphasis?: boolean;
 }
 
 const {
@@ -38,7 +36,6 @@ const {
   badge,
   icon,
   highlightDescendants = false,
-  emphasis = false,
 } = Astro.props;
 
 // get the current page locale to use in links to other pages
@@ -66,8 +63,7 @@ const currentPath =
   <a
     href={actualLink}
     class:list={[
-      "docs-nav__link--sidebar docs-primary-focus block",
-      emphasis ? "text-foreground text-lg font-semibold md:text-base" : "text-base md:text-sm",
+      "docs-nav__link--sidebar docs-primary-focus block text-base md:text-sm",
       {
         // styling for current active page link
         "text-foreground font-medium": currentPath,

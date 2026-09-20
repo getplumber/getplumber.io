@@ -191,7 +191,9 @@ const structuredData = { headline: title, breadcrumbs };
   class MobileDocsControls extends HTMLElement {
     constructor() {
       super();
-      const allDetails = this.querySelectorAll<HTMLDetailsElement>("details");
+      // Direct children only: the sidebar itself holds disclosure sections, and
+      // toggling one of those must not close the dropdown containing it
+      const allDetails = this.querySelectorAll<HTMLDetailsElement>(":scope > details");
       allDetails.forEach((detail) => {
         detail.addEventListener("toggle", () => {
           if (detail.open) {
