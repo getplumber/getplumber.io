@@ -44,8 +44,8 @@ When a control is not respected, an issue is created. Click the `ISSUE-XXX` link
   <ul class="m-0 list-disc space-y-1 pl-4">
     <li><strong class="text-foreground">Source:</strong> committed files under <code style={{fontSize: '0.85em'}}>.github/workflows/</code> in the analyzed ref (local clone or remote fetch).</li>
     <li><strong class="text-foreground">Static YAML only:</strong> no org/repo Variables, no runtime <code style={{fontSize: '0.85em'}}>$GITHUB_ENV</code> writes, no evaluation of GitHub expression syntax in values.</li>
-    <li><strong class="text-foreground">Step <code style={{fontSize: '0.85em'}}>uses:</code></strong> third-party <code style={{fontSize: '0.85em'}}>owner/repo@ref</code> actions (ISSUE-702/703). Not local <code style={{fontSize: '0.85em'}}>./.github/actions/*</code>, not job-level reusable-workflow <code style={{fontSize: '0.85em'}}>uses:</code>, not nested actions inside composites.</li>
-    <li><strong class="text-foreground">API-backed rules (ISSUE-702, ISSUE-703):</strong> need <code style={{fontSize: '0.85em'}}>gh auth login</code> or <code style={{fontSize: '0.85em'}}>GH_TOKEN</code>. Without auth they <strong class="text-foreground">abstain</strong> (no finding, not a pass).</li>
+    <li><strong class="text-foreground">Step <code style={{fontSize: '0.85em'}}>uses:</code></strong> third-party <code style={{fontSize: '0.85em'}}>owner/repo@ref</code> actions, plus job-level reusable-workflow <code style={{fontSize: '0.85em'}}>uses:</code> calls, which fall under the same pin-by-SHA rule (ISSUE-701). Not local <code style={{fontSize: '0.85em'}}>./.github/actions/*</code>, not nested actions inside composites.</li>
+    <li><strong class="text-foreground">API-backed rules (ISSUE-402, ISSUE-702, ISSUE-703, ISSUE-707, ISSUE-713, ISSUE-714/715/716):</strong> need <code style={{fontSize: '0.85em'}}>gh auth login</code> or <code style={{fontSize: '0.85em'}}>GH_TOKEN</code>. Without auth they <strong class="text-foreground">abstain</strong> (no finding, not a pass).</li>
   </ul>
 </div>
 

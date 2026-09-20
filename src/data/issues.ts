@@ -1,11 +1,11 @@
 /**
  * Plumber issues registry for documentation pages.
  *
- * One code, one concept — issue codes mirror the CLI's
+ * One code, one concept - issue codes mirror the CLI's
  * `control/codes.go` registry, where each `ErrorCode` carries a single
  * title and description. Per-provider sub-blocks (`gitlab`, `github`)
- * exist to differ only in (a) example YAML — `.gitlab-ci.yml` vs.
- * `.github/workflows/*.yml` — and (b) whether the control applies at
+ * exist to differ only in (a) example YAML - `.gitlab-ci.yml` vs.
+ * `.github/workflows/*.yml` - and (b) whether the control applies at
  * all (omit the sub-block when the CLI doesn't ship that side, e.g.
  * ISSUE-309 is GitHub-only). The title, description, severity and
  * remediation copy should stay identical across providers within a
@@ -93,7 +93,7 @@ export interface IssueProviderContent {
    */
   status?: ControlStatus;
   /** Markdown shown in a warning banner on the detail page when status
-   * is "removed" — explains why and links the advisory/issue. */
+   * is "removed" - explains why and links the advisory/issue. */
   removedNote?: string;
 }
 
@@ -115,7 +115,7 @@ export function isVisibleProviderContent(content: IssueProviderContent): boolean
 }
 
 // ---------------------------------------------------------------------------
-// Control catalog — single source of truth for "What it checks" and
+// Control catalog - single source of truth for "What it checks" and
 // "Why it matters" copy.  Keyed by controlConfigKey; each entry holds one
 // or two provider blocks depending on whether the wording differs per
 // provider.  Issues reference a control via their controlConfigKey field;
@@ -123,10 +123,10 @@ export function isVisibleProviderContent(content: IssueProviderContent): boolean
 // ---------------------------------------------------------------------------
 
 export type ControlCatalogEntry = {
-  /** "What it checks" — shown in the Controls catalog table and on the
+  /** "What it checks" - shown in the Controls catalog table and on the
    *  dashboard control card. */
   controlDescription: string;
-  /** "Why it matters" — consequence context shown alongside the description. */
+  /** "Why it matters" - consequence context shown alongside the description. */
   controlWhyItMatters: string;
 };
 
@@ -164,14 +164,9 @@ export const controlCatalog: Record<
         "Mutable tags create non-reproducible builds and a path for surprise upgrades.",
     },
   },
-  containerImagesMustBePinnedByDigest: {
-    gitlab: {
-      controlDescription:
-        "Verifies that container images are referenced by their SHA256 digest rather than a mutable tag.",
-      controlWhyItMatters:
-        "Prevents supply chain attacks where a tag is overwritten with a compromised image, guaranteeing exact image content in every pipeline run.",
-    },
-  },
+  // `containerImagesMustBePinnedByDigest` is not a control: it is a boolean
+  // field of `containerImageMustNotUseForbiddenTags` (default `true` on both
+  // providers) and its finding is ISSUE-103. It has no catalog row of its own.
   cicdVariablesMustBeProtected: {
     gitlab: {
       controlDescription:
@@ -242,14 +237,9 @@ export const controlCatalog: Record<
         "Ensures pipelines integrate mandatory security steps.",
     },
   },
-  pipelineMustIncludeRequiredPhases: {
-    gitlab: {
-      controlDescription:
-        "Verifies that the CI/CD pipeline includes a group of job types.",
-      controlWhyItMatters:
-        "Ensures the pipeline execution flow is complete and matches your policy.",
-    },
-  },
+  // `pipelineMustIncludeRequiredPhases` (ISSUE-407) was a control of the
+  // retired static engine. The Plumber CLI, the only analysis engine, does not
+  // declare it, so it has no catalog row: see the removal note on ISSUE-407.
   pipelineMustNotEnableDebugTrace: {
     gitlab: {
       controlDescription:
@@ -368,28 +358,24 @@ export const controlCatalog: Record<
         "Reduces risk of unauthorized or insecure code changes.",
     },
   },
-  numberOfProjectMembersMustRespectQuota: {
-    gitlab: {
-      controlDescription:
-        "Verifies that the project configuration respects the owner, maintainer and developer quotas.",
-      controlWhyItMatters:
-        "Prevents uncontrolled access that could weaken project security.",
-    },
-  },
-  numberOfGroupMembersMustRespectQuota: {
-    gitlab: {
-      controlDescription:
-        "Verifies that the group configuration respects the owner, maintainer and developer quotas.",
-      controlWhyItMatters:
-        "Prevents uncontrolled access at group level, strengthening governance.",
-    },
-  },
+  // `numberOfProjectMembersMustRespectQuota` (ISSUE-507) and
+  // `numberOfGroupMembersMustRespectQuota` (ISSUE-508) were controls of the
+  // retired static engine and are not declared by the CLI, so they have no
+  // catalog row: see the removal notes on those two codes.
   projectMustHaveSecurityPolicySource: {
     gitlab: {
       controlDescription:
-        "Verifies if the projects have a specific project as their source of security policy.",
+        "Verifies that the project directly links the expected GitLab security policy project. A source inherited from a parent group does not count: the check reads the project's own link.",
       controlWhyItMatters:
-        "Ensures the security policy is applied and reduces the risk of unmanaged vulnerabilities.",
+        "Ensures the security policy is applied and reduces the risk of unmanaged vulnerabilities. Security policies require the GitLab Ultimate tier.",
+    },
+  },
+  workflowsMustHaveExplicitName: {
+    github: {
+      controlDescription:
+        "Verifies that every workflow declares a top-level name instead of falling back to its file path in the Actions UI and status checks.",
+      controlWhyItMatters:
+        "Required status checks bind to the resolved workflow name, so a file rename can silently disable a compliance gate when the name is implicit.",
     },
   },
   actionsMustBePinnedByCommitSha: {
@@ -720,6 +706,7 @@ lint:
       category: "CI/CD Container Images",
       severity: "medium",
       fixDuration: "quick",
+      productScope: "cli",
       controlName: "Container images must not use forbidden tags",
       controlConfigKey: "containerImageMustNotUseForbiddenTags",
       description:
@@ -1082,7 +1069,7 @@ variables:
         "Outdated templates may have known vulnerabilities or fall behind current standards. For example, if your security scan template is outdated, it might miss detecting recent threats.",
       remediation:
         "Update the template in your project CI/CD configuration file to the latest version to stay secure and aligned with current standards.",
-      badExample: `# .gitlab-ci.yml — ❌ Uses outdated version
+      badExample: `# .gitlab-ci.yml - ❌ Uses outdated version
 include:
   - component: gitlab.com/components/sast/sast@1.0.0
     # Latest available: 1.5.2
@@ -1304,6 +1291,7 @@ branchMustBeProtected:
       category: "Access and Authorization",
       severity: "critical",
       fixDuration: "quick",
+      productScope: "cli",
       controlName: "Branch must be protected",
       controlConfigKey: "branchMustBeProtected",
       description:
@@ -1358,8 +1346,8 @@ branchMustBeProtected:
     },
   },
 
-  "ISSUE-422": {
-    code: "ISSUE-422",
+  "ISSUE-601": {
+    code: "ISSUE-601",
     gitlab: {
       title: "Missing security policy source on project",
       category: "Security Source",
@@ -1369,12 +1357,12 @@ branchMustBeProtected:
       controlName: "Project must have a security policy source",
       controlConfigKey: "projectMustHaveSecurityPolicySource",
       description:
-        "The project lacks the security policy source defined in your Policy controls.",
+        "The project does not directly link the expected GitLab security policy project: either none is linked, or the linked one differs from the configured expectation. The check looks at the project's own link only, so a security policy source inherited from a parent group is not detected.",
       impact:
         "Without a security policy source, your project may drift from your policy and become vulnerable to risks. For example, if your project lacks a defined security policy source, critical checks might not be enforced.",
       remediation:
-        "Define the security policy source as defined in your Policy controls on the project so its required checks are enforced.",
-      badExample: `# GitLab project settings — ❌ No security policy source
+        "Link the expected security policy project in `Settings > Security & Compliance > Policies` (or set it through the API) so its required checks are enforced. If your policies are enforced on a parent group and inherited, this project-scoped check will not see them: link at the project level too, or turn the control off.",
+      badExample: `# GitLab project settings - ❌ No security policy source
 # Secure > Security configuration > Security policy project:
 #   (none)
 #
@@ -1390,30 +1378,30 @@ branchMustBeProtected:
       goodExampleCaption: "The project is linked to the organization's security policy source.",
       tips: [
         "Create a dedicated security policy project in your organization to centralize all security policies.",
-        "Security policy sources can be managed at the group level to apply to all projects at once.",
-        "Check GitLab documentation for supported security policy types (scan execution, scan result, etc.).",
+        "A policy source inherited from a parent group does not satisfy this control: the project must carry its own link.",
+        "GitLab security policies require the Ultimate tier.",
+        "The control ships disabled: enable `projectMustHaveSecurityPolicySource` in `.plumber.yaml` and set the expected policy project.",
       ],
-      status: "roadmap",
-      relatedCodes: ["ISSUE-407"],
+      relatedCodes: [],
     },
   },
 
-  "ISSUE-601": {
-    code: "ISSUE-601",
+  "ISSUE-422": {
+    code: "ISSUE-422",
     github: {
       title: "Workflow has no explicit name",
       category: "Pipeline Composition",
       severity: "low",
       fixDuration: "quick",
       productScope: "cli",
-      controlName: "Workflow must have an explicit name",
+      controlName: "Workflows must have an explicit name",
       controlConfigKey: "workflowsMustHaveExplicitName",
       description:
-        "A workflow file has no top-level `name:` field. GitHub falls back to the filename in the UI.",
+        "A workflow file has no top-level `name:` field, so GitHub falls back to the file path in the Actions UI, pull-request checks, required-status-check rules and audit logs.",
       impact:
         "Filename-as-display-name makes review and incident response harder: `test.yml`, `ci.yml` and `build.yml` all blur together in the Actions UI. Branch protection's `Required status checks` keys off the resolved name, so renames here trip CI in surprising ways.",
       remediation:
-        "Add a top-level `name:` field describing the workflow.",
+        "Add a human-readable top-level `name:` field to every workflow, and keep it stable so branch protections and required status checks keep matching after a rename.",
       badExample: `# .github/workflows/test.yml: ❌ No name
 on: [push, pull_request]
 jobs:
@@ -1434,6 +1422,7 @@ jobs:
       tips: [
         "Keep the name short and stable, because branch protection rules reference it by exact string match.",
       ],
+      status: "roadmap",
       relatedCodes: [],
     },
   },
@@ -1493,7 +1482,7 @@ jobs:
         "Approval settings apply above every approval rule. When authors or committers can approve, when rules can be overridden inside a merge request, or when approvals survive new commits, the review requirement can be satisfied without anyone reviewing the code that actually ships.",
       remediation:
         "Update the project's approval settings under Settings > Merge requests to match the expectations in your configuration.",
-      badExample: `# GitLab project settings — ❌ Approval settings violate the policy
+      badExample: `# GitLab project settings - ❌ Approval settings violate the policy
 # Settings > Merge requests > Approvals:
 #
 #   Prevent approval by author:                  false ← Author can approve own MR
@@ -1503,7 +1492,7 @@ jobs:
 # These settings allow the MR author to approve their own changes,
 # and approvals remain valid even after new commits are pushed.`,
       badExampleCaption: "Approval settings allow the author to approve their own MR and don't reset on new commits.",
-      goodExample: `# GitLab project settings — ✅ Approval settings match the policy
+      goodExample: `# GitLab project settings - ✅ Approval settings match the policy
 # Settings > Merge requests > Approvals:
 #
 #   Prevent approval by author:                  true
@@ -1573,7 +1562,7 @@ jobs:
       controlName: "Pipeline must include required phases",
       controlConfigKey: "pipelineMustIncludeRequiredPhases",
       description:
-        "The project's CI pipeline does not include all the required actions defined by your configuration.",
+        "The Plumber CLI no longer emits this code: `pipelineMustIncludeRequiredPhases` is not part of the CLI control catalog. The project's CI pipeline does not include all the required actions defined by your configuration.",
       impact:
         "Missing actions in the pipeline can lead to unverified code being deployed. This increases the risk of security vulnerabilities, policy violations, and software defects reaching production. For example, if security checks are absent, a vulnerable application can be deployed in production and lead to user data leak.",
       remediation:
@@ -1625,6 +1614,9 @@ deploy:
         "Use job name patterns to detect required phases across different pipeline implementations.",
         "Consider blocking deployments if required phases are missing using GitLab protected environments.",
       ],
+      status: "removed",
+      removedNote:
+        "This code is no longer produced. It came from the static engine that preceded the Plumber CLI; the CLI is now the only analysis engine and its catalog declares no `pipelineMustIncludeRequiredPhases` control. The closest shipping checks are [ISSUE-405](/docs/cli/issues/ISSUE-405) (required template) and [ISSUE-408](/docs/cli/issues/ISSUE-408) (required component). The ISSUE-407 code is retired and will not be reused.",
       relatedCodes: ["ISSUE-405", "ISSUE-408"],
     },
   },
@@ -1644,7 +1636,7 @@ deploy:
         "Misconfigured branch protection settings can lead to unauthorized code changes, security vulnerabilities, and policy violations. This includes risks such as loss of commit history through force push, unauthorized code merges, and direct pushes to protected branches without proper validation.",
       remediation:
         "Update the branch protection settings to match your Policy controls requirements by enforcing proper access controls, disabling force push, and requiring code owner approvals for all changes.",
-      badExample: `# GitLab settings — ❌ Protection exists but is too permissive
+      badExample: `# GitLab settings - ❌ Protection exists but is too permissive
 # Branch: main
 #   Allowed to push: Developers + Maintainers  (too permissive)
 #   Allow force push: Yes                       (dangerous)
@@ -1671,7 +1663,7 @@ branchMustBeProtected:
   minPushAccessLevel: 40`,
       goodExampleCaption: "Branch protection meets all configured requirements.",
       tips: [
-        "Plumber checks each setting independently — the output shows exactly which settings violate the policy.",
+        "Plumber checks each setting independently - the output shows exactly which settings violate the policy.",
         "Access levels: 0 = No one, 30 = Developer, 40 = Maintainer.",
         "Force push should almost always be disabled on production branches.",
       ],
@@ -1682,6 +1674,7 @@ branchMustBeProtected:
       category: "Access and Authorization",
       severity: "high",
       fixDuration: "quick",
+      productScope: "cli",
       controlName: "Branch must be protected",
       controlConfigKey: "branchMustBeProtected",
       description:
@@ -1690,7 +1683,7 @@ branchMustBeProtected:
         "A protected-but-misconfigured branch creates a false sense of safety. Reviewers see the green check, the workflow runs, and the UI shows a protection rule, but a critical safeguard (force-push prevention, code-owner review, required checks) is disabled in practice.",
       remediation:
         "Update whichever source carries the offending setting (the classic rule, a Repository Ruleset, or an inherited Organization Ruleset) so the merged effective configuration matches `.plumber.yaml`. Every setting that violates the policy is listed individually in Plumber's output so you know exactly what to change.",
-      badExample: `# GitHub repo settings — ❌ Protection too permissive
+      badExample: `# GitHub repo settings - ❌ Protection too permissive
 # Settings > Rules > Rulesets > \`main\` ruleset:
 #   Block force pushes: OFF        ← required by policy
 #   Require pull request reviews: ON
@@ -1739,7 +1732,7 @@ github:
         "Misconfigured merge request settings can lead to unauthorized code changes and security vulnerabilities.",
       remediation:
         "Update the merge request settings to match your Policy controls by ensuring proper merge methods and merge options.",
-      badExample: `# GitLab project settings — ❌ MR settings violate the policy
+      badExample: `# GitLab project settings - ❌ MR settings violate the policy
 # Settings > Merge requests:
 #
 #   Merge method: Merge commit (policy requires: Fast-forward merge)
@@ -1749,7 +1742,7 @@ github:
 # These settings create merge commits that clutter history
 # and allow inconsistent commit messages.`,
       badExampleCaption: "MR settings use merge commits and don't enforce squashing, violating the policy.",
-      goodExample: `# GitLab project settings — ✅ MR settings match the policy
+      goodExample: `# GitLab project settings - ✅ MR settings match the policy
 # Settings > Merge requests:
 #
 #   Merge method: Fast-forward merge
@@ -1859,12 +1852,12 @@ include:
       controlName: "Number of project members must respect a quota",
       controlConfigKey: "numberOfProjectMembersMustRespectQuota",
       description:
-        "The number of members assigned to specific roles in a GitLab project does not respect the quotas defined in your Policy controls.",
+        "The Plumber CLI no longer emits this code: `numberOfProjectMembersMustRespectQuota` is not part of the CLI control catalog. The number of members assigned to specific roles in a GitLab project does not respect the quotas defined in your Policy controls.",
       impact:
         "Ignoring role quotas can lead to uncontrolled access to project resources, weakening security and governance policies. For example, if too many users are assigned as Owners or Maintainers, it increases the risk of unauthorized changes and security misconfigurations.",
       remediation:
         "Review and adjust the members' role assignments in the project to stay within the defined quotas. Ensure that only the necessary members have privileges.",
-      badExample: `# GitLab project members — ❌ Too many Maintainers
+      badExample: `# GitLab project members - ❌ Too many Maintainers
 # Settings > Members:
 #
 #   alice  → Owner
@@ -1887,6 +1880,9 @@ include:
         "Use GitLab groups to manage access at scale instead of adding individual project members.",
         "Follow the principle of least privilege: grant members the minimum role needed for their tasks.",
       ],
+      status: "removed",
+      removedNote:
+        "This code is no longer produced. It came from the static engine that preceded the Plumber CLI; the CLI is now the only analysis engine and its catalog declares no `numberOfProjectMembersMustRespectQuota` control. The ISSUE-507 code is retired and will not be reused.",
       relatedCodes: ["ISSUE-508"],
     },
   },
@@ -1926,17 +1922,64 @@ build:
 #   crane digest python:3.12.1
 
 # .plumber.yaml
-controls:
-  containerImageMustNotUseForbiddenTags:
-    enabled: true
-    containerImagesMustBePinnedByDigest: true`,
+gitlab:
+  controls:
+    containerImageMustNotUseForbiddenTags:
+      enabled: true
+      containerImagesMustBePinnedByDigest: true`,
       goodExampleCaption: "SHA256 digest ensures the exact image content is always used.",
       tips: [
-        "Enable digest pinning by setting `containerImagesMustBePinnedByDigest: true` as a sub-option of the `containerImageMustNotUseForbiddenTags` control in `.plumber.yaml`.",
+        "Digest pinning is a sub-option of the `containerImageMustNotUseForbiddenTags` control, not a control of its own: `containerImagesMustBePinnedByDigest` defaults to `true` in the shipped config.",
         "Use `crane digest <image>:<tag>` (from `go-containerregistry`) for a quick digest lookup.",
         "Consider automating digest updates with tools like Renovate or Dependabot.",
       ],
       relatedCodes: ["ISSUE-101", "ISSUE-102"],
+    },
+    github: {
+      title: "Container image is not pinned by digest",
+      category: "CI/CD Container Images",
+      severity: "high",
+      fixDuration: "medium",
+      controlName: "Container images must be pinned by digest",
+      controlConfigKey: "containerImageMustNotUseForbiddenTags",
+      productScope: "cli",
+      description:
+        "When digest pinning is enabled in your configuration, every container image a workflow runs against (`container:` and `services:`) must be referenced by its SHA256 digest (`image@sha256:...`). This image is using a tag reference instead.",
+      impact:
+        "Even specific version tags (e.g., `node:20.18.1`) can be reassigned to a different image. Digest pinning is the only way to guarantee the exact image content used in your workflow, providing the strongest supply chain security.",
+      remediation:
+        "Replace the tag reference with a digest reference. You can find the digest using `docker inspect` or `crane digest`.",
+      badExample: `# .github/workflows/build.yml: ❌ Uses tag reference (not pinned by digest)
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: node:20.18.1
+    steps:
+      - run: npm ci && npm test`,
+      badExampleCaption: "Even specific version tags can be reassigned to a different image.",
+      goodExample: `# .github/workflows/build.yml: ✅ Pinned by SHA256 digest
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: node@sha256:bd3b3b7...9a1c4
+    steps:
+      - run: npm ci && npm test
+
+# .plumber.yaml
+github:
+  controls:
+    containerImageMustNotUseForbiddenTags:
+      enabled: true
+      containerImagesMustBePinnedByDigest: true`,
+      goodExampleCaption: "SHA256 digest ensures the exact image content is always used.",
+      tips: [
+        "Digest pinning is a sub-option of the `containerImageMustNotUseForbiddenTags` control, not a control of its own: `containerImagesMustBePinnedByDigest` defaults to `true` in the shipped config.",
+        "This control reads job `container:` and `services:` images. Pinning third-party actions by SHA is a separate check, ISSUE-701.",
+        "Use `crane digest <image>:<tag>` (from `go-containerregistry`) for a quick digest lookup.",
+      ],
+      relatedCodes: ["ISSUE-101", "ISSUE-102", "ISSUE-701"],
     },
   },
 
@@ -2246,7 +2289,7 @@ variables:
       description:
         "A security-scan job in a GitHub Actions workflow sets `continue-on-error: true`, so the pipeline stays green even when the scan fails or finds issues. Only the literal boolean is detected; expressions like `continue-on-error: ${{ ... }}` cannot be proven on statically and are not flagged.",
       impact:
-        "A weakened security scan gives a false sense of security — the pipeline reports green, but the scan either never ran or its findings were silently ignored. Same OWASP CICD-SEC-4 pattern as on GitLab.",
+        "A weakened security scan gives a false sense of security - the pipeline reports green, but the scan either never ran or its findings were silently ignored. Same OWASP CICD-SEC-4 pattern as on GitLab.",
       remediation:
         "Remove the weakening pattern. Security scans should fail the pipeline, not pass with warnings.",
       badExample: `# .github/workflows/codeql.yml: ❌ Weakened
@@ -2674,12 +2717,12 @@ jobs:
       controlName: "Number of group members must respect a quota",
       controlConfigKey: "numberOfGroupMembersMustRespectQuota",
       description:
-        "The number of members assigned to specific roles in a GitLab group does not respect the quotas defined in your Policy controls.",
+        "The Plumber CLI no longer emits this code: `numberOfGroupMembersMustRespectQuota` is not part of the CLI control catalog. The number of members assigned to specific roles in a GitLab group does not respect the quotas defined in your Policy controls.",
       impact:
         "Ignoring role quotas can lead to uncontrolled access to project resources, weakening security and governance policies. For example, if too many users are assigned as Owners or Maintainers, it increases the risk of unauthorized changes and security misconfigurations.",
       remediation:
         "Review and adjust the members' role assignments in the group to stay within the defined quotas. Ensure that only the necessary members have privileges.",
-      badExample: `# GitLab group members — ❌ Too many Owners
+      badExample: `# GitLab group members - ❌ Too many Owners
 # Group > Members:
 #
 #   alice  → Owner
@@ -2700,6 +2743,9 @@ jobs:
         "Use subgroups to apply different access policies to different teams.",
         "Regularly review group membership when team members change roles or leave the organization.",
       ],
+      status: "removed",
+      removedNote:
+        "This code is no longer produced. It came from the static engine that preceded the Plumber CLI; the CLI is now the only analysis engine and its catalog declares no `numberOfGroupMembersMustRespectQuota` control. The ISSUE-508 code is retired and will not be reused.",
       relatedCodes: ["ISSUE-507"],
     },
   },
@@ -3182,7 +3228,7 @@ jobs:
         # ^ the pin is fine; the action's OWN source fetches and runs
         #   grype's install.sh from the mutable 'main' branch at runtime`,
       badExampleCaption:
-        "The action is SHA-pinned, but its source fetches and runs a script from a moving upstream branch — the pin cannot see that code change.",
+        "The action is SHA-pinned, but its source fetches and runs a script from a moving upstream branch - the pin cannot see that code change.",
       goodExample: `# .github/workflows/scan.yml: ✅ install the tool yourself, pinned + verified
 jobs:
   scan:
@@ -3195,7 +3241,7 @@ jobs:
           tar -xzf grype.tar.gz grype
           ./grype dir:.`,
       goodExampleCaption:
-        "The tool is downloaded from a pinned release, checksum-verified, then run directly — no code fetched from a moving ref.",
+        "The tool is downloaded from a pinned release, checksum-verified, then run directly - no code fetched from a moving ref.",
       tips: [
         "A fetch that already verifies a pinned checksum is content-pinned and is not flagged.",
         "This is a static, text-level match on the action's source: a clean result means \"no known pattern seen\", not \"safe\". An author who deliberately hides the fetch is ISSUE-715.",
@@ -3218,7 +3264,7 @@ jobs:
       controlName: "Actions must not execute mutable remote code",
       controlConfigKey: "actionsMustNotExecuteMutableRemoteCode",
       description:
-        "A third-party action's own source decodes and then executes code — `base64 -d | sh`, `eval \"$(… | base64 -d)\"`, `eval(atob(…))`, `new Function(atob(x))`, a hex/`xxd` decode piped to a shell, and similar. The command that actually runs is hidden until runtime.",
+        "A third-party action's own source decodes and then executes code - `base64 -d | sh`, `eval \"$(… | base64 -d)\"`, `eval(atob(…))`, `new Function(atob(x))`, a hex/`xxd` decode piped to a shell, and similar. The command that actually runs is hidden until runtime.",
       impact:
         "No legitimate action needs to hide what it runs at runtime, so decode-then-execute is treated as the strongest signal regardless of the host, ref, or encoding used. It is the shape used to smuggle a fetch-and-run past both a SHA pin and a human reviewer.",
       remediation:
@@ -3232,7 +3278,7 @@ runs:
       # ^ the payload is decoded at runtime, so neither a SHA pin nor
       #   a reviewer sees the command that actually executes`,
       badExampleCaption:
-        "The action decodes a downloaded blob and executes it — the real command stays hidden until runtime.",
+        "The action decodes a downloaded blob and executes it - the real command stays hidden until runtime.",
       goodExample: `# action.yml: ✅ explicit, pinned, verified
 runs:
   using: composite
@@ -3245,7 +3291,7 @@ runs:
       goodExampleCaption:
         "The download is explicit, pinned to a release, and checksum-verified before it runs.",
       tips: [
-        "This deliberately does not chase every possible encoding — it flags the act of hiding, which is what makes a clean result meaningful.",
+        "This deliberately does not chase every possible encoding - it flags the act of hiding, which is what makes a clean result meaningful.",
         "Because hiding is the signal, this fires regardless of whether the fetched ref is a branch, tag, or SHA.",
       ],
       status: "shipping",
@@ -3264,7 +3310,7 @@ runs:
       controlName: "Actions must not execute mutable remote code",
       controlConfigKey: "actionsMustNotExecuteMutableRemoteCode",
       description:
-        "Plumber could not fetch the action's own source — a network error, an API rate limit, a GitHub Enterprise Server host, a private repository, or a Docker-image action — so it could not confirm whether the action fetches mutable remote code at runtime.",
+        "Plumber could not fetch the action's own source - a network error, an API rate limit, a GitHub Enterprise Server host, a private repository, or a Docker-image action - so it could not confirm whether the action fetches mutable remote code at runtime.",
       impact:
         "This is surfaced as an explicit could-not-verify finding rather than a silent pass. A silent pass would let the same repository score differently across CI environments and would over-claim safety on a dependency that was never actually checked.",
       remediation:
@@ -3284,7 +3330,7 @@ jobs:
 # …or vendor the action so its source is committed locally:
 #   uses: ./.github/actions/scanner`,
       goodExampleCaption:
-        "Give Plumber a reachable, authenticated source — or vendor the action locally — to turn could-not-verify into a definitive result.",
+        "Give Plumber a reachable, authenticated source - or vendor the action locally - to turn could-not-verify into a definitive result.",
       tips: [
         "This is informational and low severity by design: it marks an unchecked dependency, not a detected problem.",
         "Docker-image actions (`uses: docker://…`) have no action source to read and always surface here.",
@@ -3358,12 +3404,12 @@ github:
       controlName: "Release workflows must not restore an untrusted cache",
       controlConfigKey: "releaseWorkflowsMustNotRestoreUntrustedCache",
       description:
-        "A release or publish job restores a build cache whose key is not scoped to the release ref. GitHub Actions caches are shared across branches with a permissive prefix fallback, so a run on any feature branch — including an attacker's PR — can populate the same key (or a `restore-keys` prefix) that the release job later restores.",
+        "A release or publish job restores a build cache whose key is not scoped to the release ref. GitHub Actions caches are shared across branches with a permissive prefix fallback, so a run on any feature branch - including an attacker's PR - can populate the same key (or a `restore-keys` prefix) that the release job later restores.",
       impact:
-        "Whoever can open a PR can prime the cache the trusted release build reuses, injecting compromised artefacts into the published package while nothing changes in the release commit. This is the May 2026 TanStack vector. Pinning the cache action by SHA does not help — the poisoned bytes live in the cache, not the action.",
+        "Whoever can open a PR can prime the cache the trusted release build reuses, injecting compromised artefacts into the published package while nothing changes in the release commit. This is the May 2026 TanStack vector. Pinning the cache action by SHA does not help - the poisoned bytes live in the cache, not the action.",
       remediation:
         "Weave `github.ref_name` / `github.sha` into the cache key AND every `restore-keys` fallback, or disable caching on publish paths (e.g. `cache: false` on a `setup-*` action). The action/script inventory and a per-job allowlist are configurable in `.plumber.yaml`.",
-      badExample: `# .github/workflows/release.yml — ❌ Unscoped key on a release job
+      badExample: `# .github/workflows/release.yml - ❌ Unscoped key on a release job
 on: [release]
 jobs:
   publish:
@@ -3375,7 +3421,7 @@ jobs:
           key: deps-\${{ hashFiles('**/package-lock.json') }}   # shared with every branch
       - uses: JS-DevTools/npm-publish@v3`,
       badExampleCaption: "A PR run populates `deps-<hash>`; the release job restores it and publishes the result.",
-      goodExample: `# .github/workflows/release.yml — ✅ Key woven with the release ref
+      goodExample: `# .github/workflows/release.yml - ✅ Key woven with the release ref
 on: [release]
 jobs:
   publish:
@@ -3387,7 +3433,7 @@ jobs:
           key: release-\${{ github.ref_name }}-\${{ hashFiles('**/package-lock.json') }}
       - uses: JS-DevTools/npm-publish@v3
 
-# .plumber.yaml — the inventories and the whitelist are configurable
+# .plumber.yaml - the inventories and the whitelist are configurable
 github:
   controls:
     releaseWorkflowsMustNotRestoreUntrustedCache:
@@ -3405,10 +3451,10 @@ github:
         - 'docs/*'`,
       goodExampleCaption: "The key includes `github.ref_name`, so a PR cache can't win the lookup.",
       tips: [
-        "A `restore-keys` prefix fallback must be release-scoped too — a scoped `key` with an unscoped `restore-keys` is still poisonable.",
+        "A `restore-keys` prefix fallback must be release-scoped too - a scoped `key` with an unscoped `restore-keys` is still poisonable.",
         "Release context = a `release` trigger, a publish action (`publishActions`), or a publish command in a script (`publishScriptPatterns`).",
-        "`cacheActions` carries per-action semantics: `always`, `default` (off via `disableInput`/`disableValue`), or `opt-in` (on via `enableInput`). Add your org's cache actions there — nothing is hardcoded.",
-        "`allowedJobs` is a glob over the `<workflow-file>/<job-id>` name — the escape hatch for release jobs you have reviewed and accept.",
+        "`cacheActions` carries per-action semantics: `always`, `default` (off via `disableInput`/`disableValue`), or `opt-in` (on via `enableInput`). Add your org's cache actions there - nothing is hardcoded.",
+        "`allowedJobs` is a glob over the `<workflow-file>/<job-id>` name - the escape hatch for release jobs you have reviewed and accept.",
         "`setup-*` actions only cache when their `cache:` input is set; `actions/cache` always restores, so a bogus `cache: false` on it does not exempt it.",
       ],
       status: "shipping",
@@ -3603,7 +3649,7 @@ jobs:
     github: {
       title: "Workflow gates on a spoofable actor check",
       category: "CI/CD Variables",
-      severity: "medium",
+      severity: "high",
       fixDuration: "quick",
       productScope: "cli",
       controlName: "Workflow must not gate on spoofable actor checks",
@@ -3811,7 +3857,7 @@ jobs:
     github: {
       title: "Workflow expands `vars.*` template into shell",
       category: "CI/CD Variables",
-      severity: "medium",
+      severity: "low",
       fixDuration: "quick",
       productScope: "cli",
       controlName: "Workflow must not expand `vars.*` into shell",
@@ -3859,7 +3905,7 @@ jobs:
     github: {
       title: "Release workflow produces unsigned artefacts",
       category: "Third-party actions",
-      severity: "high",
+      severity: "medium",
       fixDuration: "long",
       productScope: "cli",
       controlName: "Release artefacts must be signed",
@@ -4091,7 +4137,7 @@ jobs:
     github: {
       title: "GitHub App token issued with revocation disabled",
       category: "CI/CD Secrets",
-      severity: "medium",
+      severity: "high",
       fixDuration: "quick",
       productScope: "cli",
       controlName: "GitHub App token must allow revocation",
@@ -4237,7 +4283,7 @@ jobs:
     github: {
       title: "Secret read via dynamic index",
       category: "CI/CD Secrets",
-      severity: "high",
+      severity: "low",
       fixDuration: "quick",
       productScope: "cli",
       controlName: "Secret must not be read via dynamic index",
@@ -4508,7 +4554,7 @@ jobs:
     github: {
       title: "Workflow has no concurrency block",
       category: "Pipeline Composition",
-      severity: "low",
+      severity: "medium",
       fixDuration: "quick",
       productScope: "cli",
       controlName: "Workflow must declare a concurrency block",
@@ -4652,7 +4698,7 @@ jobs:
     github: {
       title: "Publish workflow uses a static token instead of OIDC trusted publishing",
       category: "Pipeline Composition",
-      severity: "medium",
+      severity: "high",
       fixDuration: "long",
       productScope: "cli",
       controlName: "Publish workflows should use OIDC trusted publishing",
@@ -4697,7 +4743,7 @@ jobs:
     github: {
       title: "dependabot.yml re-enables insecure external execution",
       category: "Repository hygiene",
-      severity: "high",
+      severity: "critical",
       fixDuration: "quick",
       productScope: "cli",
       controlName: "dependabot.yml must not re-enable insecure external execution",
@@ -4826,7 +4872,7 @@ updates:
     github: {
       title: "Repository has workflows but no SAST scanner",
       category: "Repository hygiene",
-      severity: "medium",
+      severity: "low",
       fixDuration: "medium",
       productScope: "cli",
       controlName: "Repository should run a SAST scanner",
