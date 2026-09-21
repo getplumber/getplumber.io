@@ -310,8 +310,7 @@ together.
      -client-secret <secret> -scope instance
    ```
 
-   Add `-token <access-token>` to store a GitLab access token in the same run, or use
-   `-scope group -root-group <path>` to connect a single root group.
+   Use `-scope group -root-group <path>` to connect a single root group.
 
    <Aside variant="caution">
    With the manual command the secret is visible in the pod's process list for the duration of the
@@ -319,7 +318,7 @@ together.
    </Aside>
 
    **Post-install hook Job**: create a Secret with the OAuth application secret (key
-   `clientSecret`, optional key `token` for the access token), then enable the Job:
+   `clientSecret`), then enable the Job:
 
    ```sh
    kubectl create secret generic plumber-bootstrap -n plumber \

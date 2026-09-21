@@ -64,7 +64,6 @@ Choose **Local**. The installer asks for:
 3. the **[GitLab OAuth application](/docs/installation#gitlab-oauth-application)**: it prints the
    link to create it and the exact redirect URI, `http://localhost:3000/api/v1/auth/callback`,
    then asks for the Application ID and the Secret
-4. an optional **GitLab access token** with the `api` scope
 
 Answer yes to **Start Plumber now?**, then open [http://localhost:3000](http://localhost:3000) and
 sign in with GitLab as a [Plumber Admin](/docs/use-plumber/roles-permissions#admin) to finish the
@@ -148,9 +147,7 @@ docker compose -f compose.local.yml exec -T -e PLUMBER_BOOTSTRAP_CLIENT_SECRET b
   -base-url https://<your-gitlab-url> -client-id <application-id> -scope instance
 ```
 
-Use `-scope group -root-group <path>` to connect a single root group, and export
-`PLUMBER_BOOTSTRAP_TOKEN` plus `-e PLUMBER_BOOTSTRAP_TOKEN` to store a GitLab access token in the
-same run.
+Use `-scope group -root-group <path>` to connect a single root group.
 
 Open your Plumber test instance at [http://localhost:3000](http://localhost:3000) and sign in
 with GitLab as a [Plumber Admin](/docs/use-plumber/roles-permissions#admin) to finish the
