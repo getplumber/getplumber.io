@@ -70,17 +70,13 @@ Pick **Production** as the deployment type. The installer then asks for:
    prints the link to the right Applications page and the exact values to fill in, including the
    redirect URI `https://<your_plumber_domain>/api/v1/auth/callback`, then asks for the
    **Application ID** and the **Secret**.
-5. **GitLab access token** (optional): a group or personal token with the `api` scope, used by
-   Plumber to read your projects and pipelines. It is stored encrypted in the database, never in
-   `.env`. With a group scope it also resolves the root group immediately. You can skip it and add
-   it later in `Settings` as an Admin.
-6. **TLS certificate method**: Let's Encrypt (the server must be reachable from the internet), or
+5. **TLS certificate method**: Let's Encrypt (the server must be reachable from the internet), or
    your own certificates, which you place at `.docker/traefik/certs/plumber_fullchain.pem` and
    `.docker/traefik/certs/plumber_privkey.pem`.
-7. **Custom Certificate Authority**: answer yes if your GitLab instance (or your own Plumber
+6. **Custom Certificate Authority**: answer yes if your GitLab instance (or your own Plumber
    certificate) is signed by a private CA, then drop the root CA files (`.pem` or `.crt`) into
    `.docker/ca-certificates/`.
-8. **Database**: the bundled PostgreSQL container, or your own external instance (host, port,
+7. **Database**: the bundled PostgreSQL container, or your own external instance (host, port,
    user, database name, password, SSL mode, timezone).
 
 Answer yes to **Start Plumber now?** (the first boot runs the database migrations, so it takes a
@@ -255,9 +251,7 @@ The secret is read from your shell and passed with the **name-only** form of `-e
 exec -e PLUMBER_BOOTSTRAP_CLIENT_SECRET` forwards the value of the exported variable without ever
 putting it on the command line, so it stays out of your shell history and out of the process list.
 
-- Use `-scope group -root-group <path>` instead of `-scope instance` to connect one root group.
-- To store the GitLab access token in the same run, export `PLUMBER_BOOTSTRAP_TOKEN` the same way
-  and add `-e PLUMBER_BOOTSTRAP_TOKEN` to the command.
+Use `-scope group -root-group <path>` instead of `-scope instance` to connect one root group.
 
 #### Step 8: First login
 

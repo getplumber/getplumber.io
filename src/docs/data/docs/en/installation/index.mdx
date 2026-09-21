@@ -117,8 +117,8 @@ on the whole instance (`Admin > Applications`) or in the root group you want to 
 
 The application id and secret, the GitLab access token, SMTP and the licence are **stored
 encrypted in the Platform database**, never in `.env` or in a values file. `plumber-bootstrap`
-stores the OAuth credentials and, optionally, the access token during the install; SMTP and the
-licence are set later in Settings as an Admin. Each installation method has its own invocation;
+stores the OAuth credentials during the install; the access token, SMTP and the licence are set
+later in Settings as an Admin. Each installation method has its own invocation;
 it refuses an instance that is already configured, so running it again is safe.
 
 The setup is finished by a **Plumber Admin**: a GitLab instance Admin when Plumber is connected to

@@ -11,9 +11,9 @@ Every configuration option of the Plumber Platform backend is an environment var
 `PLUMBER_*`.
 
 <Aside variant="info">
-Credentials are **not** configured here. The GitLab OAuth application, the GitLab access token,
-SMTP and the licence are stored encrypted in the Platform database, set once by
-`plumber-bootstrap` or later in `Settings` as an Admin.
+Credentials are **not** configured here. They are stored encrypted in the Platform database: the
+GitLab OAuth application is set once by `plumber-bootstrap`; the GitLab access token, SMTP and the
+licence are set in `Settings` as an Admin.
 </Aside>
 
 <Aside variant="caution">
@@ -178,4 +178,3 @@ Read by `plumber-bootstrap`, never by the running backend.
 | Variable | Default | Meaning |
 |---|---|---|
 | `PLUMBER_BOOTSTRAP_CLIENT_SECRET` | (none) | Secret of the GitLab OAuth application |
-| `PLUMBER_BOOTSTRAP_TOKEN` | (none) | GitLab access token (`api` scope) to store in the same run |
