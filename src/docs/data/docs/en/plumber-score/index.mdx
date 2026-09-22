@@ -403,7 +403,7 @@ with the correct workflow `permissions` and `score-push` enabled in the action
     jobs:
       plumber:
         steps:
-          - uses: getplumber/plumber@d6a09a888677f2fc9580144635bc5dab62c58173 # pinned plumber version: v0.5.3
+          - uses: getplumber/plumber@fc8d9269c898f13c32741fec2d270662bdc3e41c # pinned plumber version: v0.5.6
             with:
               score-push: true
     ```
@@ -419,7 +419,7 @@ with the correct workflow `permissions` and `score-push` enabled in the action
 `.gitlab-ci.yml` with the `score_push` input enabled
     ```yaml
     include:
-      - component: gitlab.com/getplumber/plumber/plumber@9eca1acd817dfe8b8cfa8013e73ab4aee998c1c1 # pinned plumber version: v0.5.3
+      - component: gitlab.com/getplumber/plumber/plumber@c71569f375d97b77700d3371a6746a1954759930 # pinned plumber version: v0.5.6
         inputs:
           score_push: true
     ```
