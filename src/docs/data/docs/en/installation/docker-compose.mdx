@@ -70,18 +70,24 @@ Pick **Production** as the deployment type. The installer then asks for:
    prints the link to the right Applications page and the exact values to fill in, including the
    redirect URI `https://<your_plumber_domain>/api/v1/auth/callback`, then asks for the
    **Application ID** and the **Secret**.
-5. **TLS certificate method**: Let's Encrypt (the server must be reachable from the internet), or
+5. **Plumber component** (optional): copy the CI/CD component into a project of your GitLab and
+   publish it to your CI/CD catalog (see [below](#-plumber-component-in-your-gitlab)). If you
+   accept, the installer asks for the target group and a token from an Owner of that group, used
+   for this run only.
+6. **TLS certificate method**: Let's Encrypt (the server must be reachable from the internet), or
    your own certificates, which you place at `.docker/traefik/certs/plumber_fullchain.pem` and
    `.docker/traefik/certs/plumber_privkey.pem`.
-6. **Custom Certificate Authority**: answer yes if your GitLab instance (or your own Plumber
+7. **Custom Certificate Authority**: answer yes if your GitLab instance (or your own Plumber
    certificate) is signed by a private CA, then drop the root CA files (`.pem` or `.crt`) into
    `.docker/ca-certificates/`.
-7. **Database**: the bundled PostgreSQL container, or your own external instance (host, port,
+8. **Database**: the bundled PostgreSQL container, or your own external instance (host, port,
    user, database name, password, SSL mode, timezone).
 
 Answer yes to **Start Plumber now?** (the first boot runs the database migrations, so it takes a
 moment), then open `https://<your_plumber_domain>` and sign in with GitLab as a
-[Plumber Admin](/docs/use-plumber/roles-permissions#admin) to finish the setup.
+[Plumber Admin](/docs/use-plumber/roles-permissions#admin) to finish the setup. If you asked for
+the component copy, the installer ends with `Component published` and the value to set in
+Settings; otherwise it says why and how to run the step again.
 
 <Aside variant="caution">
 The installer refuses to run when a `.env` already exists in the directory. That file holds
@@ -261,6 +267,37 @@ Open `https://<your_plumber_domain>` and sign in with GitLab as a
   </TabsContent>
 </Tabs>
 
+## 🧩 Plumber component in your GitLab
+
+Pipelines include the Plumber CI/CD component from `gitlab.com/getplumber/plumber`. If your GitLab
+cannot reach gitlab.com, or you prefer a copy you control, the installer offers to copy it into a
+project of your instance and to publish its latest version to your CI/CD catalog. The same
+operation runs on its own at any time, from the installation repository:
+
+```bash
+read -rs -p "GitLab token: " PLUMBER_COMPONENT_TOKEN; echo; export PLUMBER_COMPONENT_TOKEN
+./scripts/component-mirror.sh --gitlab-url https://gitlab.mydomain.com --group my-group
+```
+
+It creates (or reuses) the project `my-group/plumber` with the description the catalog requires,
+copies every branch and tag, flags the project as a CI/CD catalog project, runs the release
+pipeline on the latest tag and checks that the version is listed in the catalog before it reports
+success. It needs:
+
+- a token with the `api` scope from an **Owner** of the group (or an instance Admin), read from
+  the environment for this run only and never stored
+- a runner available to the new project that can pull `registry.gitlab.com/gitlab-org/release-cli`
+
+When it succeeds, set the copy as the component in Plumber, as an Admin, in `Settings > Component`:
+`component_path` is `my-group/plumber`, and `component_ref` stays empty to follow the latest
+version (or holds a tag to pin it). Pipelines then include
+`gitlab.mydomain.com/my-group/plumber/plumber@<version>`.
+
+<Aside variant="info">
+The component's job still pulls the `getplumber/plumber` image from Docker Hub. Mirroring that
+image into your registry is a separate step: set the `image` input of the component to your copy.
+</Aside>
+
 ## ⏫ Update
 
 To move to a new version, run the update script from the repository root:
@@ -270,7 +307,8 @@ To move to a new version, run the update script from the repository root:
 ```
 
 The backend migrates the database on boot, so the first start after an update can take longer than
-usual.
+usual. Add `--component` to also refresh your [copy of the Plumber component](#-plumber-component-in-your-gitlab)
+and publish its newest version (the script asks for the Owner token).
 
 <Aside variant="caution">
 Upgrades are **sequential and additive**: go through the releases in order, do not skip a line of
