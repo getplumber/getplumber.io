@@ -651,7 +651,7 @@ github:
       title: "Forbidden container image tag",
       category: "CI/CD Container Images",
       severity: "medium",
-      controlName: "Container images must not use forbidden tags",
+      controlName: "Container images must not use forbidden reference",
       controlConfigKey: "containerImageMustNotUseForbiddenTags",
       description:
         "A container image used to run a CI/CD job is using a tag that is forbidden by your configuration.",
@@ -694,7 +694,7 @@ lint:
       category: "CI/CD Container Images",
       severity: "medium",
       productScope: "cli",
-      controlName: "Container images must not use forbidden tags",
+      controlName: "Container images must not use forbidden reference",
       controlConfigKey: "containerImageMustNotUseForbiddenTags",
       description:
         "A workflow runs against a container image referenced by a forbidden tag (e.g. `latest`, `dev`, `main`).",
@@ -2116,7 +2116,7 @@ release:
       impact:
         "An attacker who can modify `.gitlab-ci.yml` could override variables like `SECURE_ANALYZERS_PREFIX` to point to a fake registry, or set `SAST_DISABLED: \"true\"` to silently disable security scanners. The pipeline still appears green, but no actual scanning occurs. This applies to any variable the organization considers controlled, not just security-related ones.",
       remediation:
-        "Remove the variable from `.gitlab-ci.yml` (both global `variables:` and per-job `variables:` blocks) and set it in **GitLab CI/CD Settings > Variables** instead. Configure the list of controlled variables in `.plumber.yaml` under `pipelineMustNotOverrideJobVariables.variables`.",
+        "Remove the variable from `.gitlab-ci.yml` (both the root `variables:` keyword and per-job `variables:` blocks) and set it in **GitLab CI/CD Settings > Variables** instead. Configure the list of controlled variables in `.plumber.yaml` under `pipelineMustNotOverrideJobVariables.variables`.",
       badExample: `# .gitlab-ci.yml: ❌ Controlled variables defined in the YAML
 variables:
   SECURE_ANALYZERS_PREFIX: "registry.evil.com/scanners"
