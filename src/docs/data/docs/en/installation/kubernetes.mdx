@@ -356,6 +356,23 @@ together.
    Open `https://<your_plumber_domain>` and sign in with GitLab as a
    [Plumber Admin](/docs/use-plumber/roles-permissions#admin) to finish the setup.
 
+8. ### 🧩 Plumber component in your GitLab (optional)
+
+   If your GitLab cannot reach gitlab.com, copy the Plumber CI/CD component into a project of your
+   instance and publish it to your CI/CD catalog with the script from the installation
+   repository, from any machine that reaches your GitLab:
+
+   ```sh
+   git clone https://github.com/getplumber/plumber-platform.git plumber-platform
+   cd plumber-platform
+   read -rs -p "GitLab token: " PLUMBER_COMPONENT_TOKEN; echo; export PLUMBER_COMPONENT_TOKEN
+   ./scripts/component-mirror.sh --gitlab-url https://gitlab.mydomain.com --group my-group
+   ```
+
+   What it needs and what to set in Plumber afterwards is described in the
+   [Docker Compose guide](/docs/installation/docker-compose#-plumber-component-in-your-gitlab).
+   Run it again after a Plumber release to publish the new version.
+
 </Steps>
 
 ### 📚 Configuration example

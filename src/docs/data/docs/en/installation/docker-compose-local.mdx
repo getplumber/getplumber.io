@@ -64,6 +64,8 @@ Choose **Local**. The installer asks for:
 3. the **[GitLab OAuth application](/docs/installation#gitlab-oauth-application)**: it prints the
    link to create it and the exact redirect URI, `http://localhost:3000/api/v1/auth/callback`,
    then asks for the Application ID and the Secret
+4. whether to **copy the Plumber component** into your GitLab and publish it to its CI/CD catalog
+   (optional, same step as in the [Docker Compose guide](/docs/installation/docker-compose#-plumber-component-in-your-gitlab))
 
 Answer yes to **Start Plumber now?**, then open [http://localhost:3000](http://localhost:3000) and
 sign in with GitLab as a [Plumber Admin](/docs/use-plumber/roles-permissions#admin) to finish the
@@ -163,6 +165,8 @@ To move the local instance to a new version, run the update script:
 ```bash
 ./scripts/update.sh
 ```
+
+Add `--component` to also refresh a [copy of the Plumber component](/docs/installation/docker-compose#-plumber-component-in-your-gitlab).
 
 ## 🧹 Remove it
 
