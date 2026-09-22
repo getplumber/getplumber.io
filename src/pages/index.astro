@@ -1,4 +1,5 @@
 ---
+import EventBanner from "@components/Banner/EventBanner.astro";
 import CliVsPlatform from "@components/Feature/CliVsPlatform.astro";
 import PlumberQuickStart from "@components/Feature/PlumberQuickStart.astro";
 import PlumberRadar from "@components/Feature/PlumberRadar.astro";
@@ -37,6 +38,11 @@ const pageSections = [
 
 <BaseLayout title={pageTitle} description={pageDescription}>
   <SoftwareAppJsonLd />
+  <!-- pushes content below the fixed nav; PlumberHero's own top padding is
+       reduced to compensate so the banner doesn't add extra empty space -->
+  <div class="pt-16 md:pt-[4.5rem]">
+    <EventBanner />
+  </div>
   <!-- .sections-alternate: children marked .section-alt alternate the subtle
        background band automatically (see global.css) — reorder freely -->
   <div class="sections-alternate">

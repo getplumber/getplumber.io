@@ -1,0 +1,33 @@
+---
+import Button from "@components/Button/Button.astro";
+import { Icon } from "astro-icon/components";
+
+const CONTACT_EMAIL = "hello@getplumber.io";
+const EVENT_NAME = "We Are Developers";
+
+const mailSubject = `${EVENT_NAME} ticket request`;
+const mailBody = `Hey, I'm [your name], [your job title] at [your company]. I'd love to join ${EVENT_NAME}, can you give me a ticket?`;
+
+const mailtoHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`;
+---
+
+<div
+  id="event-banner"
+  class="from-primary-500/10 via-primary-500/5 border-primary-500/20 dark:border-primary-500/25 relative border-b bg-gradient-to-r to-transparent"
+>
+  <div
+    class="site-container mx-auto flex max-w-6xl flex-col items-center justify-center gap-2 px-4 py-2.5 text-center sm:flex-row sm:gap-3 sm:py-2"
+  >
+    <p class="text-base-700 dark:text-base-200 text-sm font-medium">
+      <Icon
+        name="tabler/sparkles"
+        class="text-primary-600 dark:text-primary-400 -mt-0.5 mr-1 inline-block h-4 w-4"
+        aria-hidden="true"
+      />
+      Come meet the Plumber team at <strong>{EVENT_NAME}</strong>!
+    </p>
+    <Button href={mailtoHref} variant="outline" arrow="right" class="shrink-0 text-sm">
+      Claim your ticket
+    </Button>
+  </div>
+</div>
