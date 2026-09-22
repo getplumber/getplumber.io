@@ -2,13 +2,9 @@
 import Button from "@components/Button/Button.astro";
 import { Icon } from "astro-icon/components";
 
-const CONTACT_EMAIL = "hello@getplumber.io";
 const EVENT_NAME = "We Are Developers";
-
-const mailSubject = `${EVENT_NAME} ticket request`;
-const mailBody = `Hey, I'm [your name], [your job title] at [your company]. I'd love to join ${EVENT_NAME}, can you give me a ticket?`;
-
-const mailtoHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`;
+const TICKET_FORM_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSdLDI9KI0VS-DoW6nkybt8TEJP8DFtHxdnATzCrVBrD15izFA/viewform";
 ---
 
 <div
@@ -26,7 +22,14 @@ const mailtoHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(mailSub
       />
       Come meet the Plumber team at <strong>{EVENT_NAME}</strong>!
     </p>
-    <Button href={mailtoHref} variant="outline" arrow="right" class="shrink-0 text-sm">
+    <Button
+      href={TICKET_FORM_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      variant="outline"
+      arrow="right"
+      class="shrink-0 text-sm"
+    >
       Claim your ticket
     </Button>
   </div>
