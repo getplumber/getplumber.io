@@ -32,7 +32,7 @@
     "@keystatic/astro": "6.0.0",
     "@keystatic/core": "0.6.9",
     "@pagefind/default-ui": "1.5.2",
-    "@tabler/icons": "3.46.0",
+    "@tabler/icons": "3.47.0",
     "@tailwindcss/forms": "0.5.11",
     "@tailwindcss/vite": "4.3.3",
     "@types/react": "19.3.0",
