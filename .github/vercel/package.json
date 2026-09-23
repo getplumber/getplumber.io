@@ -11,7 +11,7 @@
     "fast-uri": "^3.1.5",
     "ip-address": "^10.3.1",
     "sandbox": "npm:noop2@^2.0.0",
-    "js-yaml": "^4.3.0",
+    "js-yaml": "^4.3.2",
     "minimatch": "^10.2.1",
     "path-to-regexp": "^8.3.0",
     "smol-toml": "^1.7.0",
