@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "short_name": "",
+  "name": "Plumber",
+  "short_name": "Plumber",
   "icons": [
     {
       "src": "/favicons/android-chrome-192x192.png",
@@ -13,7 +13,7 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#3e3e3e",
-  "background_color": "#3e3e3e",
+  "theme_color": "#0c0c0c",
+  "background_color": "#0c0c0c",
   "display": "standalone"
 }
