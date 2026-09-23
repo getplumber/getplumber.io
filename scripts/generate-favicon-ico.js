@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Generate favicon assets from public/favicon.svg:
+ * Generate favicon assets from public/favicon.svg (the round Plumber mark):
  *   - .ico (multi-size)
- *   - .png (16, 32, 48, 180 apple-touch, 192 android)
+ *   - .png (16, 32, 48, 180 apple-touch, 192/384 android, 270 mstile)
  *   - .webp (16, 32, 192)
  *
  * Usage:
@@ -24,23 +24,26 @@ const svgPath = path.join(rootDir, "public", "favicon.svg");
 const faviconsDir = path.join(rootDir, "public", "favicons");
 
 const ICO_SIZES = [256, 128, 64, 48, 32, 24, 16];
-const resizeOpt = { fit: "contain" };
+const resizeOpt = { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } };
+
+// Rasterise the SVG at a high density so small sizes downsample cleanly
+const source = () => sharp(svgPath, { density: 384 });
 
 async function main() {
   // 1. ICO
-  await ico.sharpsToIco([sharp(svgPath)], path.join(rootDir, "public", "favicon.ico"), {
+  await ico.sharpsToIco([source()], path.join(rootDir, "public", "favicon.ico"), {
     sizes: ICO_SIZES,
     resizeOptions: resizeOpt,
   });
   console.log("Wrote public/favicon.ico");
 
-  await ico.sharpsToIco([sharp(svgPath)], path.join(faviconsDir, "favicon.ico"), {
+  await ico.sharpsToIco([source()], path.join(faviconsDir, "favicon.ico"), {
     sizes: ICO_SIZES,
     resizeOptions: resizeOpt,
   });
   console.log("Wrote public/favicons/favicon.ico");
 
-  // 2. PNG (standard favicon sizes + apple-touch + android)
+  // 2. PNG (standard favicon sizes + apple-touch + android + Windows tile)
   const pngSizes = [
     [16, "favicon-16x16.png"],
     [32, "favicon-32x32.png"],
@@ -48,9 +51,10 @@ async function main() {
     [180, "apple-touch-icon.png"],
     [192, "android-chrome-192x192.png"],
     [384, "android-chrome-384x384.png"],
+    [270, "mstile-150x150.png"],
   ];
   for (const [size, name] of pngSizes) {
-    await sharp(svgPath).resize(size, size, resizeOpt).png().toFile(path.join(faviconsDir, name));
+    await source().resize(size, size, resizeOpt).png().toFile(path.join(faviconsDir, name));
     console.log(`Wrote public/favicons/${name}`);
   }
 
@@ -61,7 +65,7 @@ async function main() {
     [192, "android-chrome-192x192.webp"],
   ];
   for (const [size, name] of webpSizes) {
-    await sharp(svgPath).resize(size, size, resizeOpt).webp().toFile(path.join(faviconsDir, name));
+    await source().resize(size, size, resizeOpt).webp().toFile(path.join(faviconsDir, name));
     console.log(`Wrote public/favicons/${name}`);
   }
 
