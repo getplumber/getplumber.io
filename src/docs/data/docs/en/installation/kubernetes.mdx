@@ -456,6 +456,14 @@ bootstrap:
 
 - The backend `Deployment` uses the `Recreate` strategy with **one replica, by design**: the
   single process owns the job queues, and two versions must never run at once.
+
+<Aside variant="caution">
+**Keep `backend.replicaCount` at `1`.** Only one backend replica is supported, whatever the size of
+your estate: the backend owns its job queues, migrates the database on boot and refreshes each
+user's GitLab token in-process, so a second replica would compete for jobs and race those steps.
+Scale the single backend vertically (`backend.resources`, `PLUMBER_DB_MAX_OPEN_CONNS`) instead.
+`front.replicaCount` may be raised freely: the frontend is stateless.
+</Aside>
 - Probes: liveness `/healthz`, readiness `/readyz` (database-backed). A `startupProbe` gives the
   first boot the time to migrate the database.
 - `backend.terminationGracePeriodSeconds` defaults to `1200`: in-flight background work can take

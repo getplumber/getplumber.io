@@ -78,6 +78,17 @@ There is **no separate worker service**: the backend owns its job queues in-proc
 are released together on one version tag, and both must always run the same one.
 
 <Aside variant="caution">
+**Run exactly one backend replica.** The backend is a single process that owns the job queues,
+the schedulers, the database migration on boot and the per-user GitLab token refresh. A second
+backend replica is not supported: two processes would compete for the same jobs, both would try to
+migrate on boot, and both could refresh the same user's GitLab token at once. Neither
+`docker compose up --scale backend=2` nor `backend.replicaCount` above `1` in the Helm chart is a
+supported configuration. To handle a larger estate, give the one backend more CPU and memory and
+raise its database pool, and read [Update](/docs/installation/kubernetes#-update) for the
+one-version-at-a-time rule. The frontend is stateless and may run several replicas.
+</Aside>
+
+<Aside variant="caution">
 **One origin is mandatory.** The browser calls the API same-origin, so a single hostname serves
 both apps: `/api` is routed to the backend and everything else to the frontend. The bundled
 Traefik (Docker Compose) and the chart's Ingress (Kubernetes) already do exactly that. Do not
