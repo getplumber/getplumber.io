@@ -1,0 +1,200 @@
+---
+title: Connect an AI agent (MCP)
+seoTitle: "Connect an AI agent to Plumber with MCP and a personal access token"
+description: "Give an AI agent read-only access to your Plumber Platform through the MCP endpoint: create a personal access token, point Claude Code or Cursor at it, and ask about your CI/CD security estate."
+sidebar:
+  order: 2
+  label: Connect an AI agent (MCP)
+---
+
+Your Plumber Platform can answer questions from an AI agent. `POST /api/v1/mcp` speaks the
+[Model Context Protocol](https://modelcontextprotocol.io) over Streamable HTTP, so a client such as
+**Claude Code**, **Cursor**, or an agent you build with an SDK can read the state the Platform
+already holds: projects, issues, policies, portfolios, scores, coverage, and the control and
+issue-type catalogs.
+
+Thirteen tools, **all of them reads**. Nothing on this endpoint changes configuration, re-runs an
+analysis, or produces a verdict: analysis happens only in the [Plumber CLI](/docs/cli/installation),
+inside your pipelines.
+
+<Aside variant="info">
+**What the agent sees is exactly what you see.** A token does not grant a role and does not widen
+your reach. Every call resolves your own user, with the same role and the same project visibility
+your browser session has. An agent can never read something you could not open in the web app.
+</Aside>
+
+## Prerequisites
+
+- **Your operator enabled the endpoint.** It is **off by default**: the route is not mounted at all
+  until `PLUMBER_MCP_ENABLED=true` is set on the backend. See
+  [AI agent access (MCP)](/docs/installation/reference#ai-agent-access-mcp) in the configuration
+  reference.
+- **You have a personal access token** (step 1 below).
+- **An MCP client that sends a static bearer header.** Claude Code, Cursor and SDK-built agents do.
+  See [What is not supported](#what-is-not-supported) for the clients that do not.
+
+## Step 1: create a personal access token
+
+Tokens are yours: you create and revoke your own, no Admin involved.
+
+<Steps>
+1. **Open your token settings**: in the Plumber web app, go to **Settings**, then **Personal access
+   tokens**. The page lists the tokens you already hold, with their prefix, their scope, their
+   expiry and when each was last used.
+
+2. **Create the token**: click **New token**, give it a **name** (the label you will recognise it by,
+   for example `claude-code-laptop`) and, optionally, an **expiry date**. Without an expiry, revoking
+   it is the only way to end it.
+
+3. **Copy it once.** The token looks like `plmb_` followed by a random string. It is shown
+   **exactly once**, in the confirmation dialog, and never again: only its first 12 characters stay
+   readable in the list afterwards. Copy it now and store it the way you store any other secret.
+</Steps>
+
+<Aside variant="danger">
+The plaintext is never retrievable. The Platform keeps only a SHA-256 hash of it. If you lose it,
+revoke that token and create a new one.
+</Aside>
+
+You can hold **up to 10 active tokens** at a time. Creating an eleventh is refused with
+`active token limit reached`: revoke one you no longer use first. Every create and every revoke is
+written to the configuration audit trail, with your name and the token's name.
+
+## Step 2: point your client at the endpoint
+
+The endpoint is `https://<your-plumber-host>/api/v1/mcp`. It is **stateless** (no session is
+negotiated) and the client authenticates with a single header,
+`Authorization: Bearer plmb_...`.
+
+<Tabs defaultValue="claude-code">
+  <TabsList>
+    <TabsTrigger value="claude-code">Claude Code</TabsTrigger>
+    <TabsTrigger value="mcp-json">.mcp.json</TabsTrigger>
+    <TabsTrigger value="other">Cursor and others</TabsTrigger>
+  </TabsList>
+
+  <TabsContent value="claude-code">
+    ```bash
+    claude mcp add --transport http plumber https://<your-plumber-host>/api/v1/mcp \
+      --header "Authorization: Bearer plmb_..."
+    ```
+
+    Then ask Claude Code about your estate. `/mcp` lists the connected servers and their tools.
+  </TabsContent>
+
+  <TabsContent value="mcp-json">
+    Any client that reads an `.mcp.json` file takes the same URL and header:
+
+    ```json
+    {
+      "mcpServers": {
+        "plumber": {
+          "type": "http",
+          "url": "https://<your-plumber-host>/api/v1/mcp",
+          "headers": { "Authorization": "Bearer plmb_..." }
+        }
+      }
+    }
+    ```
+
+    <Aside variant="caution">
+    A token is a credential: keep it out of a committed `.mcp.json`, the same way any other secret
+    stays out of a repository.
+    </Aside>
+  </TabsContent>
+
+  <TabsContent value="other">
+    Cursor, and any other MCP client that supports a remote HTTP server with custom headers, needs
+    the same two values:
+
+    | Setting | Value |
+    |---|---|
+    | Transport | Streamable HTTP (remote server) |
+    | URL | `https://<your-plumber-host>/api/v1/mcp` |
+    | Header | `Authorization: Bearer plmb_...` |
+
+    The endpoint answers `application/json`, never an SSE stream, and issues no session id.
+  </TabsContent>
+</Tabs>
+
+## Step 3: ask something
+
+Three prompts to start with:
+
+- *"List the projects with the lowest Plumber score and tell me which of their issues are
+  critical."*
+- *"Which policies govern the `payments-api` project, and is it covered by all of their
+  controls?"*
+- *"Show the open-issue trend of the last 30 days and name the controls that regressed."*
+
+<Aside variant="info">
+**Every score carries a `freshness`.** Only `fresh` means the number describes the project's
+current state. `stale` means the configuration or the project changed after the last analysis,
+`running` means an analysis is in flight, and "no result received" means nothing was ever pushed
+for it. The agent is told this before it calls anything, so it should say so rather than quote a
+non-fresh score as today's truth. A non-fresh score is **not** current.
+</Aside>
+
+## What the agent can read
+
+| Tool | What it returns |
+|---|---|
+| `list_projects` | The projects you can see, with score, freshness and coverage |
+| `get_project` | One project: score, freshness, coverage, branches and governing policies |
+| `get_project_score_history` | One project's daily score history over a window |
+| `list_issues` | The open and historical issues on the projects you can see |
+| `get_issue` | One issue: control, severity, status, owner, history and the policies requiring it |
+| `get_issue_trend` | The daily count of open issues over a window |
+| `list_policies` | The org's policies, with their assignment and coverage counts |
+| `get_policy` | One policy: its controls, its enforcement mode and the projects it is assigned to |
+| `list_portfolios` | The org's portfolios, the groupings that carry policies to projects |
+| `get_portfolio` | One portfolio: membership rules, policies, aggregate score and freshness |
+| `get_overview` | The org-wide overview: average score, coverage counts and issue totals |
+| `list_controls` | The control catalog: every control, its category, providers and default configuration |
+| `list_issue_types` | The issue-type catalog: every issue code, its title and the control that raises it |
+
+Ids are Plumber platform uuids, not git-host ids: the agent gets them from a list tool before
+calling a `get_` tool. The list tools are paged, at most 100 entries per page, and a list's total is
+the count **after** your own visibility filter. `list_controls` and `list_issue_types` serve a whole
+catalog and take no parameters.
+
+## What is not supported
+
+- **No write tools.** Nothing on this endpoint sets an issue status, requests a re-check, or edits a
+  policy. Governance actions stay in the web app.
+- **No OAuth login.** The MCP specification's OAuth flow is not implemented, so the hosted
+  connectors of claude.ai and ChatGPT, which expect it, cannot connect. Only clients that send a
+  static bearer token work: Claude Code, Cursor, and agents you build with an SDK.
+- **No org-level or service-account token.** A token belongs to one user and carries that user's
+  visibility. There is no shared token to hand to a bot.
+
+## Limits
+
+Each token may make **600 calls per minute**, and each source IP the same, both configurable by your
+operator. Beyond that, calls are refused with **429**; wait for the next minute or slow the agent
+down.
+
+`last_used_at` in the token list is accurate to the minute rather than to the request: a chatty
+agent does not turn every read into a write.
+
+## Troubleshooting
+
+| What you get | What it means |
+|---|---|
+| **404**, or the server never connects | The endpoint is not enabled on this install. Ask your operator to set `PLUMBER_MCP_ENABLED=true` |
+| **401** `authentication required` | The token itself is not usable: missing or malformed header, unknown, revoked, or expired. Create a fresh token in **Settings** |
+| **401** `provider credential unavailable, re-login required` | Your token is fine, but your GitLab credential behind it could not be refreshed. **Log in to the Plumber web app once in a browser**; the same token then works again, unchanged. Do not create a new one |
+| **405** | The endpoint accepts `POST` only |
+| **429** | A rate limit was reached (see [Limits](#limits)) |
+
+## Security
+
+- **A token is your identity.** Anyone holding it reads exactly what you can read, until it expires
+  or you revoke it. Treat it like a password: never commit it, never paste it in a ticket.
+- **Revoke on any doubt.** In **Settings**, then **Personal access tokens**, use **Revoke** on the
+  token's row and confirm. It takes effect on that token's next call, and it is also the only way to
+  end a token created without an expiry.
+- **Read-only, and MCP-only.** A `plmb_` token carries the `read` scope, the only scope there is,
+  and it is accepted **only** on `POST /api/v1/mcp`. It cannot be used on the REST API, cannot log
+  in to the web app, and cannot create, list or revoke tokens, not even itself: those actions need a
+  browser session.
