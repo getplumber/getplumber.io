@@ -143,7 +143,26 @@ Inbound:
 | `PLUMBER_INBOUND_LIMIT_PUSH_PER_IP` | `600` | Result pushes accepted per window and per IP |
 | `PLUMBER_INBOUND_LIMIT_LOGIN_PER_IP` | `120` | Login attempts per window and per IP |
 | `PLUMBER_INBOUND_LIMIT_INVALIDATE_CACHE_PER_SESSION` | `20` | Cache invalidations per window and per session |
+| `PLUMBER_INBOUND_LIMIT_MCP_PER_IP` | `600` | MCP calls per window and per source IP, counted before the token is resolved. Only applies when the MCP endpoint is enabled |
+| `PLUMBER_INBOUND_LIMIT_MCP_PER_TOKEN` | `600` | MCP calls per window and per API token. Only applies when the MCP endpoint is enabled |
 | `PLUMBER_SSE_MAX_PER_USER` | `16` | Concurrent live-update streams per user; `0` disables the limit |
+
+## AI agent access (MCP)
+
+`POST /api/v1/mcp` lets a user's own AI agent read this Platform over the Model Context Protocol,
+with a personal access token they create themselves. It is **off by default**: the route is not
+mounted at all until you enable it. Enabling it accepts a second kind of inbound credential, so it
+is a deliberate opt-in and an upgrade never turns it on for you.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PLUMBER_MCP_ENABLED` | `false` | Mount `POST /api/v1/mcp`, the read-only MCP endpoint. While it is `false` the route answers 404, and personal access tokens have nothing they can open |
+
+Every tool on that endpoint is a read, and each call resolves the token owner's own role and project
+visibility, exactly as their browser session would. The two limits that bound it,
+`PLUMBER_INBOUND_LIMIT_MCP_PER_IP` and `PLUMBER_INBOUND_LIMIT_MCP_PER_TOKEN`, are in
+[Rate limits](#rate-limits) above. What your users do with it is described in
+[Connect an AI agent (MCP)](/docs/use-plumber/connect-ai-agent-mcp).
 
 ## Ingestion caps
 
