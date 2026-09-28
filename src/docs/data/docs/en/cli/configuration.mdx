@@ -48,6 +48,10 @@ A `.plumber.yaml` **without** `extends` is a complete, self-contained policy: wh
 
 Author one with [`plumber config generate`](/docs/cli/reference#plumber-config-generate) (the full commented template) or [`plumber config init`](/docs/cli/reference#plumber-config-init) (interactive wizard). Pick this mode when your policy must be fully explicit; for auditing, [`plumber config resolve`](/docs/cli/reference#plumber-config-resolve) turns an overlay into an equivalent full file you can commit.
 
+## Configuring each control
+
+Every control is a block under `gitlab.controls` or `github.controls` with an `enabled` switch and, for most controls, a few tunable fields: forbidden tags, trusted sources, branch patterns, required components, and so on. The [Controls configuration](/docs/cli/controls-configuration) reference lists every control with each field's type, default value and the issues it raises.
+
 ## Managing config files
 
 Beyond writing YAML by hand, Plumber ships commands to create, inspect and maintain your configuration.

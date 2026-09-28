@@ -1,0 +1,712 @@
+---
+title: "Controls configuration"
+seoTitle: "Plumber Controls Configuration Reference - Every .plumber.yaml Option"
+description: "Every field of every Plumber CLI control in .plumber.yaml, for GitLab and GitHub: type, default value in the plumber:default baseline, and the issues each control raises."
+sidebar:
+  label: "Controls configuration"
+  order: 6
+  indent: true
+section: "api"
+---
+
+This page is the field-by-field reference for the `gitlab.controls:` and `github.controls:` sections of `.plumber.yaml`. For each control it lists the YAML block, every field with its type and default, and the issues the control raises. For the three ways to write the file (no config, overlay, full config) see [Configuration](/docs/cli/configuration); for what each control checks and why it matters see the [Controls catalog](/docs/cli/controls); for the description and remediation of a finding see [Issues](/docs/cli/issues).
+
+The defaults below are the values of the `plumber:default` baseline: what runs when you have no `.plumber.yaml`, what an overlay inherits, and what `plumber config generate` writes. They match the baseline shipped with Plumber v0.5.10. To see the baseline of the version you run, use `plumber config generate --output -` or `plumber config view`.
+
+## How a control block works
+
+**Where blocks live.** Every control is a block under `gitlab.controls.<name>` or `github.controls.<name>` in a schema `version: "2.0"` file. The block name is also the name you pass to `--controls` and `--skip-controls`, and the `controlName` of the block's findings in the JSON report.
+
+**`enabled`.** Every block accepts `enabled: true | false`. When the block is missing, the effect depends on the mode: in an [overlay](/docs/cli/configuration#extended-configuration-recommended) (`extends: plumber:default`) a missing block inherits the baseline; in a [full configuration](/docs/cli/configuration#full-configuration) a missing block means the control does not run. A control that is off or absent is reported as `skipped`, never as passed.
+
+**Lists replace, maps merge.** In an overlay, nested maps merge key by key, but a list you write replaces the baseline list entirely. Writing `tags: [nightly]` under `containerImageMustNotUseForbiddenTags` drops `latest`, `dev` and the other baseline tags: repeat the entries you want to keep. The two curated allowlists are the exception, see the next point.
+
+**`includePlumberDefaults`.** The two allowlist controls, `containerImageMustComeFromAuthorizedSources` (`trustedUrls`) and `githubActionMustComeFromAuthorizedSources` (`trustedGithubActions`), carry an extra `includePlumberDefaults` boolean. With the default `true`, the entries you write are added to Plumber's curated list; with `false`, only your entries are trusted. The field only acts in overlay mode; a full configuration always uses exactly the list it contains. Run `plumber config resolve` to print the final unioned list.
+
+**Unset means "not checked" on expectation fields.** Fields that describe the setting a project must have (`allowForcePush`, `codeOwnerApprovalRequired`, every field of the merge request settings controls) are only compared when you set them. Leaving one out asserts nothing about it. There is no way to expect the unsafe value.
+
+**Some booleans are `true` when unset.** When you write a full configuration and omit one of these, Plumber behaves as if it were `true`: `detectInsecureDaemon`, `defaultBranchIsForbiddenVersion`, `includePlumberDefaults`, `trustGithubOfficialActions`, `trustSameOrgActions`, and the `enabled` of the three `securityJobsMustNotBeWeakened` sub-checks. Every other omitted boolean is `false`.
+
+**Controls that need configuration.** Some controls assert nothing until they are given something to check (a list of tags, a set of required components, a minimum number of approvals). They are marked *needs configuration* below. In an overlay the baseline supplies that configuration; in a full configuration, `enabled: true` alone makes the control run and pass with nothing to check.
+
+**`required` and `requiredGroups`.** The three "must include" controls (`pipelineMustIncludeComponent`, `pipelineMustIncludeTemplate`, `workflowMustIncludeRequiredActions`) take their requirement in one of two equivalent forms, never both:
+
+- `required`, a boolean expression with `AND`, `OR` and parentheses. `AND` binds tighter than `OR`, so `a AND b OR c` reads `(a AND b) OR c`.
+- `requiredGroups`, the same logic written out as a list of lists: the outer list is an OR, each inner list is an AND.
+
+```yaml
+# These two are equivalent
+required: (templates/go/go AND templates/trivy/trivy) OR templates/full-go-pipeline
+requiredGroups:
+  - ["templates/go/go", "templates/trivy/trivy"]
+  - ["templates/full-go-pipeline"]
+```
+
+**Severity is not configurable.** Each issue code carries a fixed severity (see [Issues](/docs/cli/issues)). Configuration decides whether a control runs and what it checks, not how a finding is graded.
+
+**GitLab plan tiers.** Four GitLab controls and three fields read settings that only exist on a paid plan; they are tagged *Premium* or *Ultimate* below. On GitLab Free, enable only the controls your plan exposes.
+
+**Validation.** Unknown control names and unknown fields produce a warning with a "did you mean" suggestion and are ignored. `plumber config validate` reports them without running a scan; `plumber analyze --fail-warnings` turns them into a failure.
+
+## All controls at a glance
+
+Fields listed are the tunable ones beyond `enabled`. *On* and *off* is the baseline state.
+
+| Control | GitLab | GitHub | Fields beyond `enabled` | Issues |
+|---|---|---|---|---|
+| [`containerImageMustNotUseForbiddenTags`](#containerimagemustnotuseforbiddentags) | on | on | `tags`, `containerImagesMustBePinnedByDigest` | 102, 103 |
+| [`branchMustBeProtected`](#branchmustbeprotected) | on | on | `defaultMustBeProtected`, `namePatterns`, `allowForcePush`, `codeOwnerApprovalRequired`, `minMergeAccessLevel`, `minPushAccessLevel` | 501, 505 |
+| [`pipelineMustNotEnableDebugTrace`](#pipelinemustnotenabledebugtrace) | on | on | `forbiddenVariables` | 203 |
+| [`securityJobsMustNotBeWeakened`](#securityjobsmustnotbeweakened) | on | on | `securityJobPatterns`, `allowFailureMustBeFalse`, `rulesMustNotBeRedefined`, `whenMustNotBeManual` | 410 |
+| [`pipelineMustNotExecuteUnverifiedScripts`](#pipelinemustnotexecuteunverifiedscripts) | on | on | `trustedUrls` | 411 |
+| [`pipelineMustNotUseDockerInDocker`](#pipelinemustnotusedockerindocker) | on | on | `detectInsecureDaemon` | 412, 413 |
+| [`externalRefsMustNotCollide`](#externalrefsmustnotcollide) | on | on | none | 402 |
+| [`containerImageMustComeFromAuthorizedSources`](#containerimagemustcomefromauthorizedsources) | on | | `trustDockerHubOfficialImages`, `trustedUrls`, `includePlumberDefaults` | 101 |
+| [`cicdVariablesMustBeProtected`](#cicdvariablesmustbeprotected) | off | | none | 201 |
+| [`cicdVariablesMustBeMasked`](#cicdvariablesmustbemasked) | off | | none | 202 |
+| [`mergeRequestApprovalRulesMustRequireMinimumApprovals`](#mergerequestapprovalrulesmustrequireminimumapprovals) | off | | `minimumRequiredApprovals` | 502 |
+| [`mergeRequestApprovalRulesMustCoverAllProtectedBranches`](#mergerequestapprovalrulesmustcoverallprotectedbranches) | off | | none | 504 |
+| [`mergeRequestApprovalSettingsMustBeCompliant`](#mergerequestapprovalsettingsmustbecompliant) | off | | `preventApprovalByAuthor`, `preventApprovalsByCommitters`, `preventEditingApprovalRulesInMR`, `requireReAuthToApprove`, `behaviorWhenCommitIsAdded` | 503 |
+| [`mergeRequestSettingsMustBeCompliant`](#mergerequestsettingsmustbecompliant) | off | | `mergeMethod`, `squashOption`, `mergePipelinesEnabled`, `mergeTrainsEnabled`, `allowMergeOnSkippedPipeline`, `resolveOutdatedDiffDiscussions`, `printingMergeRequestLinkEnabled`, `removeSourceBranchAfterMerge` | 506 |
+| [`projectMustHaveSecurityPolicySource`](#projectmusthavesecuritypolicysource) | off | | `expectedProjectId`, `expectedProjectPath` | 601 |
+| [`pipelineMustNotIncludeHardcodedJobs`](#pipelinemustnotincludehardcodedjobs) | off | | none | 401 |
+| [`includesMustBeUpToDate`](#includesmustbeuptodate) | on | | none | 403 |
+| [`includesMustNotUseForbiddenVersions`](#includesmustnotuseforbiddenversions) | on | | `forbiddenVersions`, `defaultBranchIsForbiddenVersion` | 404 |
+| [`pipelineMustIncludeComponent`](#pipelinemustincludecomponent) | off | | `required`, `requiredGroups` | 408, 409 |
+| [`pipelineMustIncludeTemplate`](#pipelinemustincludetemplate) | off | | `required`, `requiredGroups` | 405, 406 |
+| [`pipelineMustNotUseUnsafeVariableExpansion`](#pipelinemustnotuseunsafevariableexpansion) | on | | `dangerousVariables`, `allowedPatterns` | 204 |
+| [`pipelineMustNotOverrideJobVariables`](#pipelinemustnotoverridejobvariables) | on | | `variables` | 205 |
+| [`actionsMustBePinnedByCommitSha`](#actionsmustbepinnedbycommitsha) | | on | `trustedOwners` | 701 |
+| [`githubActionMustComeFromAuthorizedSources`](#githubactionmustcomefromauthorizedsources) | | on | `trustGithubOfficialActions`, `trustSameOrgActions`, `minimumStars`, `trustedGithubActions`, `includePlumberDefaults` | 713 |
+| [`actionsMustNotBeArchived`](#actionsmustnotbearchived) | | on | none | 702 |
+| [`actionRefsMustExistUpstream`](#actionrefsmustexistupstream) | | on | none | 707 |
+| [`actionsMustNotCarryKnownCVEs`](#actionsmustnotcarryknowncves) | | on | none | 703 |
+| [`actionsMustNotExecuteMutableRemoteCode`](#actionsmustnotexecutemutableremotecode) | | on | none | 714, 715, 716 |
+| [`releaseWorkflowsMustNotRestoreUntrustedCache`](#releaseworkflowsmustnotrestoreuntrustedcache) | | on | `publishActions`, `cacheActions`, `publishScriptPatterns`, `publishScriptExcludePatterns`, `allowedJobs` | 705 |
+| [`reusableWorkflowsMustNotInheritSecrets`](#reusableworkflowsmustnotinheritsecrets) | | on | none | 302 |
+| [`checkoutMustNotPersistCredentials`](#checkoutmustnotpersistcredentials) | | on | none | 307, 310 |
+| [`workflowMustNotExportEntireSecretsContext`](#workflowmustnotexportentiresecretscontext) | | on | none | 309 |
+| [`workflowMustNotInjectUserInputInScripts`](#workflowmustnotinjectuserinputinscripts) | | on | none | 207 |
+| [`workflowMustNotWriteUntrustedContentToGitHubEnv`](#workflowmustnotwriteuntrustedcontenttogithubenv) | | on | none | 209 |
+| [`workflowMustNotUseDangerousTriggers`](#workflowmustnotusedangeroustriggers) | | on | none | 802 |
+| [`pullRequestTargetMustNotCheckoutHead`](#pullrequesttargetmustnotcheckouthead) | | on | none | 804 |
+| [`workflowsMustDeclarePermissions`](#workflowsmustdeclarepermissions) | | on | none | 801 |
+| [`workflowMustNotGrantPermissionsWriteAll`](#workflowmustnotgrantpermissionswriteall) | | on | none | 803 |
+| [`workflowMustIncludeRequiredActions`](#workflowmustincluderequiredactions) | | off | `required`, `requiredGroups` | 417 |
+
+<Aside variant="info">
+  Eight GitLab controls also accept a block under `github.controls` (`containerImageMustComeFromAuthorizedSources`, `includesMustBeUpToDate`, `includesMustNotUseForbiddenVersions`, `pipelineMustIncludeComponent`, `pipelineMustIncludeTemplate`, `pipelineMustNotIncludeHardcodedJobs`, `pipelineMustNotOverrideJobVariables`, `pipelineMustNotUseUnsafeVariableExpansion`). The block is parsed and validated, but these controls are not active on GitHub yet and produce no finding there.
+</Aside>
+
+## Controls on both providers
+
+The same block, with the same fields, under `gitlab.controls` and `github.controls`. Where a default differs between providers, both are given.
+
+### containerImageMustNotUseForbiddenTags
+
+Flags container images referenced by a mutable tag, and, when digest pinning is required, any image not pinned by digest. Raises [ISSUE-102](/docs/use-plumber/issues/ISSUE-102) (medium) and [ISSUE-103](/docs/use-plumber/issues/ISSUE-103) (high). On by default. *Needs configuration.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `tags` | list of strings | `latest`, `dev`, `development`, `staging`, `main`, `master` | Tags considered mutable and therefore forbidden. |
+| `containerImagesMustBePinnedByDigest` | boolean | `true` (unset: `false`) | When `true`, every image must be referenced by an immutable `@sha256:` digest. Takes precedence over `tags`: a version tag such as `alpine:3.19` is then also flagged (ISSUE-103). |
+
+```yaml
+containerImageMustNotUseForbiddenTags:
+  enabled: true
+  tags:
+    - latest
+    - dev
+    - development
+    - staging
+    - main
+    - master
+  containerImagesMustBePinnedByDigest: true
+```
+
+### branchMustBeProtected
+
+Checks that the branches matching `namePatterns` (and the default branch) are protected, and that their protection settings meet the expectations below. Raises [ISSUE-501](/docs/use-plumber/issues/ISSUE-501) (critical) when a branch is not protected and [ISSUE-505](/docs/use-plumber/issues/ISSUE-505) (high) when its settings are not compliant. On by default. *Needs configuration.* Needs an API token; without one the control abstains.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `defaultMustBeProtected` | boolean | `true` | Also requires the project's default branch to be protected, whether or not it matches `namePatterns`. |
+| `namePatterns` | list of strings | `main`, `master`, `release/*`, `production`, `dev` | Branch name patterns that must be protected. Wildcards are supported. |
+| `allowForcePush` | boolean | `false` | Expectation: when `false`, force push must be disabled on the protected branch. |
+| `codeOwnerApprovalRequired` | boolean | `false` | Expectation: when `true`, code owner approval must be required. *GitLab Premium.* |
+| `minMergeAccessLevel` | integer | GitLab `30`, GitHub unset | Expectation: the minimum access level allowed to merge. GitLab access levels: `0` (No one, the strictest), `30` (Developer), `40` (Maintainer). Not used on GitHub. |
+| `minPushAccessLevel` | integer | GitLab `40`, GitHub unset | Expectation: the minimum access level allowed to push. Same values. Not used on GitHub. |
+
+On GitHub the control reads both classic branch protection and repository or organization rulesets covering the branch, and evaluates the stricter of the two.
+
+```yaml
+branchMustBeProtected:
+  enabled: true
+  defaultMustBeProtected: true
+  namePatterns:
+    - main
+    - master
+    - release/*
+    - production
+    - dev
+  allowForcePush: false
+  codeOwnerApprovalRequired: false
+  minMergeAccessLevel: 30 # GitLab only, Developer
+  minPushAccessLevel: 40 # GitLab only, Maintainer
+```
+
+### pipelineMustNotEnableDebugTrace
+
+Flags a pipeline that sets a debug variable to a truthy value, which dumps every variable including masked secrets into the job log. Raises [ISSUE-203](/docs/use-plumber/issues/ISSUE-203) (critical). On by default. *Needs configuration:* there is no built-in list, the control only checks the variables you list.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `forbiddenVariables` | list of strings | GitLab: `CI_DEBUG_TRACE`, `CI_DEBUG_SERVICES`. GitHub: `ACTIONS_STEP_DEBUG`, `ACTIONS_RUNNER_DEBUG` | Variable names that must not be set to `true` (`1` and `yes` also count on GitHub). |
+
+```yaml
+pipelineMustNotEnableDebugTrace:
+  enabled: true
+  forbiddenVariables:
+    - CI_DEBUG_TRACE # GitLab
+    - CI_DEBUG_SERVICES
+```
+
+### securityJobsMustNotBeWeakened
+
+Flags security scanning jobs that are allowed to fail, whose rules were overridden to skip them, or that were made manual. Raises [ISSUE-410](/docs/use-plumber/issues/ISSUE-410) (critical). On by default. *Needs configuration:* the control checks only jobs matching `securityJobPatterns`, and counts as skipped when all three sub-checks are off.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `securityJobPatterns` | list of strings | GitLab: `*-sast`, `secret_detection`, `container_scanning`, `*_dependency_scanning`, `gemnasium-*`, `dast`, `dast_*`, `license_scanning`. GitHub: `*codeql*`, `*dependency-review*`, `*trufflehog*`, `*gitleaks*`, `*osv-scanner*`, `*semgrep*`, `*trivy*`, `*snyk*`, `*-sast`, `*-sast-*`, `*-scan`, `*scan*`, `*-security`, `*-security-*`, `*-audit`, `*-audit-*`, `*secret*detect*`, `*detect*secret*` | Job name patterns treated as security jobs. Wildcards are supported. On GitHub the pattern is matched against `<workflow file name without extension>/<job id>`, for example `codeql/analyze`. |
+| `allowFailureMustBeFalse.enabled` | boolean | GitLab `false`, GitHub `true` (unset: `true`) | Sub-check: the job must not carry `allow_failure: true` (GitLab) or `continue-on-error: true` (GitHub). Off on GitLab because GitLab's own security templates ship with `allow_failure: true`. |
+| `rulesMustNotBeRedefined.enabled` | boolean | `true` (unset: `true`) | Sub-check: the job's `rules:` must not be overridden to `when: never` or `when: manual`. |
+| `whenMustNotBeManual.enabled` | boolean | `true` (unset: `true`) | Sub-check: the job must not be `when: manual` (GitLab) or reachable only through a manual dispatch trigger (GitHub). |
+
+```yaml
+securityJobsMustNotBeWeakened:
+  enabled: true
+  securityJobPatterns:
+    - "*-sast"
+    - "secret_detection"
+    - "container_scanning"
+  allowFailureMustBeFalse:
+    enabled: false # GitLab baseline; true on GitHub
+  rulesMustNotBeRedefined:
+    enabled: true
+  whenMustNotBeManual:
+    enabled: true
+```
+
+### pipelineMustNotExecuteUnverifiedScripts
+
+Flags scripts downloaded and executed in one go (`curl | bash`, `wget | sh`) from a URL that is not trusted. Raises [ISSUE-411](/docs/use-plumber/issues/ISSUE-411) (high). On by default.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `trustedUrls` | list of strings | empty | URL patterns that do not trigger a finding. Wildcards are supported. Matching is host-precise: `https://example.com/*` does not cover a subdomain. |
+
+```yaml
+pipelineMustNotExecuteUnverifiedScripts:
+  enabled: true
+  trustedUrls:
+    - https://internal-artifacts.example.com/*
+```
+
+### pipelineMustNotUseDockerInDocker
+
+Flags jobs that run a Docker-in-Docker service, and optionally an insecure daemon configuration in those jobs. Raises [ISSUE-412](/docs/use-plumber/issues/ISSUE-412) (high) and [ISSUE-413](/docs/use-plumber/issues/ISSUE-413) (high). On by default.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `detectInsecureDaemon` | boolean | `true` (unset: `true`) | Also flags an insecure daemon configuration in a DinD job: an empty `DOCKER_TLS_CERTDIR` or a plaintext `DOCKER_HOST` such as `tcp://docker:2375` (ISSUE-413). |
+
+```yaml
+pipelineMustNotUseDockerInDocker:
+  enabled: true
+  detectInsecureDaemon: true
+```
+
+### externalRefsMustNotCollide
+
+Flags an include (GitLab) or an action reference (GitHub) whose ref exists both as a tag and as a branch in the upstream repository, so what runs is ambiguous. Raises [ISSUE-402](/docs/use-plumber/issues/ISSUE-402) (medium). On by default. Needs an API token; without one the control abstains. No field beyond `enabled`.
+
+```yaml
+externalRefsMustNotCollide:
+  enabled: true
+```
+
+## GitLab controls
+
+Blocks under `gitlab.controls` only.
+
+### containerImageMustComeFromAuthorizedSources
+
+Flags a job image that does not come from a trusted registry or publisher. Raises [ISSUE-101](/docs/use-plumber/issues/ISSUE-101) (high). On by default.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `trustDockerHubOfficialImages` | boolean | `true` (unset: `false`) | Trusts Docker Hub official images such as `nginx` or `alpine`. |
+| `trustedUrls` | list of strings | Plumber's curated list (about 90 entries) | Trusted registry URLs or image patterns. Wildcards are supported. Baseline entries include the project registry (`$CI_REGISTRY_IMAGE:*`, `$CI_REGISTRY/*`), `registry.gitlab.com/security-products/*`, common Docker Hub publishers, and selected namespaces on `ghcr.io`, `quay.io`, `gcr.io` and `mcr.microsoft.com`. |
+| `includePlumberDefaults` | boolean | `true` | Overlay mode only: `true` adds your `trustedUrls` to the curated list, `false` trusts only your entries. |
+
+Prefer namespace patterns such as `ghcr.io/myorg/*` over host-wide wildcards such as `ghcr.io/*`, which trust every publisher on that host.
+
+```yaml
+containerImageMustComeFromAuthorizedSources:
+  enabled: true
+  trustDockerHubOfficialImages: true
+  includePlumberDefaults: true
+  trustedUrls:
+    - $CI_REGISTRY_IMAGE:*
+    - registry.example.com/platform/*
+```
+
+### cicdVariablesMustBeProtected
+
+Flags a CI/CD variable in the project settings that is not marked protected. Raises [ISSUE-201](/docs/use-plumber/issues/ISSUE-201) (medium). Off by default. Needs a token with read access to the project variables; a `401`/`403` is reported as not evaluable, never as a pass. No field beyond `enabled`.
+
+```yaml
+cicdVariablesMustBeProtected:
+  enabled: false
+```
+
+### cicdVariablesMustBeMasked
+
+Flags a CI/CD variable in the project settings that is not masked. Raises [ISSUE-202](/docs/use-plumber/issues/ISSUE-202) (medium). Off by default. Same token requirement as above. GitLab cannot mask values shorter than 8 characters; those are still flagged. No field beyond `enabled`.
+
+```yaml
+cicdVariablesMustBeMasked:
+  enabled: false
+```
+
+### mergeRequestApprovalRulesMustRequireMinimumApprovals
+
+Flags a merge request approval rule covering all protected branches that requires fewer approvals than the minimum. Raises [ISSUE-502](/docs/use-plumber/issues/ISSUE-502) (high). Off by default. *Needs configuration.* *GitLab Premium.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `false` | Turns the control on. |
+| `minimumRequiredApprovals` | integer | `1` | The fewest approvals a rule covering all protected branches must require. Unset asserts nothing. |
+
+```yaml
+mergeRequestApprovalRulesMustRequireMinimumApprovals:
+  enabled: true
+  minimumRequiredApprovals: 2
+```
+
+### mergeRequestApprovalRulesMustCoverAllProtectedBranches
+
+Flags a project where no approval rule targets all protected branches. Raises [ISSUE-504](/docs/use-plumber/issues/ISSUE-504) (high). Off by default. *GitLab Premium:* on GitLab Free the approvals API returns no rule, so the control would fire on every project. No field beyond `enabled`.
+
+```yaml
+mergeRequestApprovalRulesMustCoverAllProtectedBranches:
+  enabled: true
+```
+
+### mergeRequestApprovalSettingsMustBeCompliant
+
+Compares the project's merge request approval settings with the expectations you set. Raises [ISSUE-503](/docs/use-plumber/issues/ISSUE-503) (high). Off by default. *Needs configuration.* *GitLab Premium.* Every expectation is optional: a field you leave out (or set to `false`) is not checked.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `false` | Turns the control on. |
+| `preventApprovalByAuthor` | boolean | unset | Expectation: authors cannot approve their own merge requests. |
+| `preventApprovalsByCommitters` | boolean | unset | Expectation: users who committed to a merge request cannot approve it. |
+| `preventEditingApprovalRulesInMR` | boolean | unset | Expectation: approval rules cannot be edited in a merge request. |
+| `requireReAuthToApprove` | boolean | unset | Expectation: approving requires re-authentication (password or SAML). |
+| `behaviorWhenCommitIsAdded` | string | unset | Expectation: the minimum strictness when a commit is added to an open merge request. One of `keep_approvals`, `remove_approvals_by_code_owners`, `remove_all_approvals`, from least to most strict; a stricter project setting passes. Any other value is a configuration error. |
+
+```yaml
+mergeRequestApprovalSettingsMustBeCompliant:
+  enabled: true
+  preventApprovalByAuthor: true
+  preventApprovalsByCommitters: true
+  preventEditingApprovalRulesInMR: true
+  requireReAuthToApprove: true
+  behaviorWhenCommitIsAdded: remove_all_approvals
+```
+
+### mergeRequestSettingsMustBeCompliant
+
+Compares the project's merge request settings with the expectations you set, field by field, for exact equality. Raises [ISSUE-506](/docs/use-plumber/issues/ISSUE-506) (medium). Off by default. *Needs configuration.* Every field is optional: a field you leave out is not checked.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `false` | Turns the control on. |
+| `mergeMethod` | string | unset | Expected merge method: `merge`, `ff` or `rebase_merge`. |
+| `squashOption` | string | unset | Expected squash setting: `never`, `always`, `default_on` or `default_off`. |
+| `mergePipelinesEnabled` | boolean | unset | Expected "merged results pipelines" setting. *GitLab Premium.* |
+| `mergeTrainsEnabled` | boolean | unset | Expected "merge trains" setting. *GitLab Premium.* |
+| `allowMergeOnSkippedPipeline` | boolean | unset | Expected "allow merge when the pipeline is skipped" setting. |
+| `resolveOutdatedDiffDiscussions` | boolean | unset | Expected "automatically resolve outdated diff discussions" setting. |
+| `printingMergeRequestLinkEnabled` | boolean | unset | Expected "show the merge request link when pushing" setting. |
+| `removeSourceBranchAfterMerge` | boolean | unset | Expected "delete source branch after merge" default. |
+
+```yaml
+mergeRequestSettingsMustBeCompliant:
+  enabled: true
+  mergeMethod: ff
+  squashOption: default_on
+  allowMergeOnSkippedPipeline: false
+  removeSourceBranchAfterMerge: true
+```
+
+### projectMustHaveSecurityPolicySource
+
+Checks that the project is linked to a security policy project, optionally a specific one. Raises [ISSUE-601](/docs/use-plumber/issues/ISSUE-601) (critical). Off by default. *GitLab Ultimate.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `false` | Turns the control on. |
+| `expectedProjectId` | integer | unset | The numeric ID the linked policy project must have. Unset only requires that some policy project is linked. |
+| `expectedProjectPath` | string | unset | The full `namespace/project` path the linked policy project must have, compared case-insensitively. Ignored when `expectedProjectId` is also set. |
+
+```yaml
+projectMustHaveSecurityPolicySource:
+  enabled: true
+  expectedProjectPath: my-group/security-policy-project
+```
+
+### pipelineMustNotIncludeHardcodedJobs
+
+Flags jobs defined directly in `.gitlab-ci.yml` instead of coming from an included template or component. Raises [ISSUE-401](/docs/use-plumber/issues/ISSUE-401) (medium). Off by default, because without a components strategy it flags most jobs. No field beyond `enabled`.
+
+```yaml
+pipelineMustNotIncludeHardcodedJobs:
+  enabled: false
+```
+
+### includesMustBeUpToDate
+
+Flags an included template or component pinned to a version older than the latest available. Raises [ISSUE-403](/docs/use-plumber/issues/ISSUE-403) (low). On by default. No field beyond `enabled`.
+
+```yaml
+includesMustBeUpToDate:
+  enabled: true
+```
+
+### includesMustNotUseForbiddenVersions
+
+Flags an include pinned to a mutable ref. Raises [ISSUE-404](/docs/use-plumber/issues/ISSUE-404) (medium). On by default. *Needs configuration.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `forbiddenVersions` | list of strings | `latest`, `~latest`, `main`, `master`, `HEAD` | Version patterns considered forbidden. |
+| `defaultBranchIsForbiddenVersion` | boolean | `true` (unset: `true`) | Also forbids the included project's default branch, whatever its name. Set `false` to allow includes pinned to it. |
+
+```yaml
+includesMustNotUseForbiddenVersions:
+  enabled: true
+  forbiddenVersions:
+    - latest
+    - "~latest"
+    - main
+    - master
+    - HEAD
+  defaultBranchIsForbiddenVersion: true
+```
+
+### pipelineMustIncludeComponent
+
+Checks that the pipeline includes the required CI/CD components, and that their jobs are not overridden. Raises [ISSUE-408](/docs/use-plumber/issues/ISSUE-408) (high) when a component is missing and [ISSUE-409](/docs/use-plumber/issues/ISSUE-409) (medium) when a required component's job is overridden. Off by default. *Needs configuration.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `false` | Turns the control on. |
+| `required` | string | unset | The requirement as a boolean expression of component paths (`group/project/component`). See [`required` and `requiredGroups`](#how-a-control-block-works). Exclusive with `requiredGroups`. |
+| `requiredGroups` | list of lists of strings | empty | The same requirement as an OR of ANDs. Exclusive with `required`. |
+
+```yaml
+pipelineMustIncludeComponent:
+  enabled: true
+  required: components/sast/sast AND components/secret-detection/secret-detection AND getplumber/plumber/plumber
+```
+
+### pipelineMustIncludeTemplate
+
+Checks that the pipeline includes the required templates, and that their jobs are not overridden. Raises [ISSUE-405](/docs/use-plumber/issues/ISSUE-405) (high) and [ISSUE-406](/docs/use-plumber/issues/ISSUE-406) (medium). Off by default. *Needs configuration.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `false` | Turns the control on. |
+| `required` | string | unset | The requirement as a boolean expression of template paths. Exclusive with `requiredGroups`. |
+| `requiredGroups` | list of lists of strings | empty | The same requirement as an OR of ANDs. Exclusive with `required`. |
+
+```yaml
+pipelineMustIncludeTemplate:
+  enabled: true
+  requiredGroups:
+    - ["templates/go/go", "templates/trivy/trivy"]
+    - ["templates/full-go-pipeline"]
+```
+
+### pipelineMustNotUseUnsafeVariableExpansion
+
+Flags a user-controlled variable (merge request title, commit message, branch name) used in a context where the shell re-interprets it: `eval`, `sh -c`, `bash -c`, `source <(...)`, `envsubst | sh`, `xargs sh`. Plain uses such as `echo $CI_COMMIT_BRANCH` are not flagged. Raises [ISSUE-204](/docs/use-plumber/issues/ISSUE-204) (medium). On by default. *Needs configuration.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `dangerousVariables` | list of strings | `CI_MERGE_REQUEST_TITLE`, `CI_MERGE_REQUEST_DESCRIPTION`, `CI_COMMIT_MESSAGE`, `CI_COMMIT_TITLE`, `CI_COMMIT_TAG_MESSAGE`, `CI_COMMIT_REF_NAME`, `CI_COMMIT_REF_SLUG`, `CI_COMMIT_BRANCH`, `CI_MERGE_REQUEST_SOURCE_BRANCH_NAME`, `CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_NAME` | Variables whose value comes from user input. |
+| `allowedPatterns` | list of strings | empty | Regular expressions; a script line matching one is not flagged. Escape `$` as `\\$` and braces as `\\{`, `\\}`. |
+
+```yaml
+pipelineMustNotUseUnsafeVariableExpansion:
+  enabled: true
+  allowedPatterns:
+    - "helm.*--set.*\\$CI_"
+    - "terraform workspace select.*\\$CI_"
+    - "docker build.*--build-arg.*\\$CI_"
+```
+
+### pipelineMustNotOverrideJobVariables
+
+Flags a controlled variable defined in the pipeline file, where it can silently disable or redirect a security scanner; such variables belong in the project's CI/CD settings. Raises [ISSUE-205](/docs/use-plumber/issues/ISSUE-205) (high). On by default. *Needs configuration.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `variables` | list of strings | `SECURE_ANALYZERS_PREFIX`, `SAST_DISABLED`, `SAST_EXCLUDED_PATHS`, `SAST_EXCLUDED_ANALYZERS`, `SECRET_DETECTION_DISABLED`, `SECRET_DETECTION_EXCLUDED_PATHS`, `CONTAINER_SCANNING_DISABLED`, `DAST_DISABLED`, `DEPENDENCY_SCANNING_DISABLED`, `LICENSE_SCANNING_DISABLED` | Variable names that must not be defined in `.gitlab-ci.yml`, at the top level or in a job. |
+
+```yaml
+pipelineMustNotOverrideJobVariables:
+  enabled: true
+  variables:
+    - SECURE_ANALYZERS_PREFIX
+    - SAST_DISABLED
+    - SECRET_DETECTION_DISABLED
+```
+
+## GitHub controls
+
+Blocks under `github.controls` only.
+
+### actionsMustBePinnedByCommitSha
+
+Flags a third-party action referenced by a tag or branch instead of a full commit SHA. Raises [ISSUE-701](/docs/use-plumber/issues/ISSUE-701?p=github) (high). On by default.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `trustedOwners` | list of strings | `actions`, `github` | Action owners exempt from the requirement. List only owners inside your trust boundary. |
+
+```yaml
+actionsMustBePinnedByCommitSha:
+  enabled: true
+  trustedOwners:
+    - actions
+    - github
+    - myorg
+```
+
+### githubActionMustComeFromAuthorizedSources
+
+Flags an action whose owner is not trusted by any of the four rules below. Raises [ISSUE-713](/docs/use-plumber/issues/ISSUE-713?p=github) (high). On by default.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `trustGithubOfficialActions` | boolean | `true` (unset: `true`) | Trusts GitHub's own actions, `actions/*` and `github/*`. |
+| `trustSameOrgActions` | boolean | `true` (unset: `true`) | Trusts actions owned by the same organization or user as the scanned repository. |
+| `minimumStars` | integer | `20000` (unset: `0`, disabled) | Trusts any action whose repository has at least this many stars. Needs API access; when the star count cannot be resolved the action falls back to the allowlist instead of being flagged. |
+| `trustedGithubActions` | list of strings | Plumber's curated list (about 150 entries) | Trusted actions as `owner/repo` or `owner/*`. Owner matching is literal and case-sensitive (`Azure/*` and `azure/*` are different entries). Baseline entries cover the major cloud vendors, build and release tooling, language ecosystems, security vendors and developer platforms. |
+| `includePlumberDefaults` | boolean | `true` | Overlay mode only: `true` adds your `trustedGithubActions` to the curated list, `false` trusts only your entries. |
+
+```yaml
+githubActionMustComeFromAuthorizedSources:
+  enabled: true
+  trustGithubOfficialActions: true
+  trustSameOrgActions: true
+  minimumStars: 20000
+  includePlumberDefaults: true
+  trustedGithubActions:
+    - myorg/*
+    - partner-org/deploy-action
+```
+
+### actionsMustNotBeArchived
+
+Flags an action hosted in an archived repository, which no longer receives fixes. Raises [ISSUE-702](/docs/use-plumber/issues/ISSUE-702?p=github) (high). On by default. Needs API access; without it the control abstains. No field beyond `enabled`.
+
+```yaml
+actionsMustNotBeArchived:
+  enabled: true
+```
+
+### actionRefsMustExistUpstream
+
+Flags a pinned commit SHA that does not belong to the action's repository. Raises [ISSUE-707](/docs/use-plumber/issues/ISSUE-707?p=github) (critical). On by default. Fires only on a definitive not-found answer from a readable repository. No field beyond `enabled`.
+
+```yaml
+actionRefsMustExistUpstream:
+  enabled: true
+```
+
+### actionsMustNotCarryKnownCVEs
+
+Flags an action version that has a published advisory in the GitHub Advisory Database. Raises [ISSUE-703](/docs/use-plumber/issues/ISSUE-703?p=github) (critical). On by default. Needs API access (`GH_TOKEN`, or `PLUMBER_METADATA_TOKEN` for the version lookup, see the [CLI reference](/docs/cli/reference#plumber-analyze)); without it the control abstains. No field beyond `enabled`.
+
+```yaml
+actionsMustNotCarryKnownCVEs:
+  enabled: true
+```
+
+### actionsMustNotExecuteMutableRemoteCode
+
+Inspects the source of each third-party action and flags one that downloads and runs code from a mutable location. Raises [ISSUE-714](/docs/use-plumber/issues/ISSUE-714?p=github) (high) for a fetch in the open, [ISSUE-715](/docs/use-plumber/issues/ISSUE-715?p=github) (critical) for an obfuscated one, and [ISSUE-716](/docs/use-plumber/issues/ISSUE-716?p=github) (low) when the action source could not be read. On by default. Needs API access. No field beyond `enabled`.
+
+```yaml
+actionsMustNotExecuteMutableRemoteCode:
+  enabled: true
+```
+
+### releaseWorkflowsMustNotRestoreUntrustedCache
+
+Flags a release or publish job that restores a build cache which a pull request could have poisoned. A job has release intent when it uses one of `publishActions` or runs a command matching `publishScriptPatterns`; it restores a cache when it uses one of `cacheActions` in a restoring mode. Raises [ISSUE-705](/docs/use-plumber/issues/ISSUE-705?p=github) (high). On by default. *Needs configuration.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `true` | Turns the control on. |
+| `publishActions` | list of strings | `pypa/gh-action-pypi-publish`, `JS-DevTools/npm-publish`, `gradle/publish-plugin`, `softprops/action-gh-release`, `ncipollo/release-action`, `goreleaser/goreleaser-action`, `crazy-max/ghaction-docker-buildx`, `changesets/action` | `uses:` prefixes that mark a job as a release job. |
+| `cacheActions` | list of objects | 10 entries, listed below | The inventory of cache-restoring actions and how each decides to restore. |
+| `cacheActions[].action` | string | required | The `uses:` prefix, for example `actions/setup-go`. |
+| `cacheActions[].mode` | string | required | `always` (restores whenever present), `default` (restores unless `disableInput` is set to `disableValue`) or `opt-in` (restores only when `enableInput` is set). |
+| `cacheActions[].disableInput` | string | unset | `default` mode: the `with:` input that turns caching off. |
+| `cacheActions[].disableValue` | boolean | unset | `default` mode: the value of `disableInput` that turns caching off. |
+| `cacheActions[].enableInput` | string | unset | `opt-in` mode: the `with:` input that turns caching on. |
+| `cacheActions[].enableContains` | string | unset | `opt-in` mode: additionally requires the value of `enableInput` to contain this substring, case-insensitively. |
+| `publishScriptPatterns` | list of strings | 12 regular expressions covering `npm`/`pnpm`/`yarn`/`bun publish`, `cargo publish`, `twine upload`, `poetry publish`, `gh release create`, `goreleaser release`, `semantic-release`, Gradle `publish`, Maven `deploy`, `dotnet nuget push`, `gem push`, `docker push` | Shell commands that mark a job as a release job even under a plain push or tag trigger. |
+| `publishScriptExcludePatterns` | list of strings | `(?i)--dry-run`, `(?i)publishToMavenLocal` | Regular expressions; a run block matching one is not a release, even if it also matches `publishScriptPatterns`. |
+| `allowedJobs` | list of strings | empty | Globs on `<workflow file>/<job id>`; a matching job is exempt. |
+
+```yaml
+releaseWorkflowsMustNotRestoreUntrustedCache:
+  enabled: true
+  publishActions:
+    - pypa/gh-action-pypi-publish
+    - softprops/action-gh-release
+    - goreleaser/goreleaser-action
+  cacheActions:
+    - { action: actions/cache, mode: always }
+    - { action: actions/cache/restore, mode: always }
+    - { action: Swatinem/rust-cache, mode: always }
+    - { action: actions/setup-go, mode: default, disableInput: cache, disableValue: false }
+    - { action: gradle/actions/setup-gradle, mode: default, disableInput: cache-disabled, disableValue: true }
+    - { action: actions/setup-node, mode: opt-in, enableInput: cache }
+    - { action: actions/setup-python, mode: opt-in, enableInput: cache }
+    - { action: actions/setup-java, mode: opt-in, enableInput: cache }
+    - { action: pnpm/action-setup, mode: opt-in, enableInput: cache }
+    - { action: docker/build-push-action, mode: opt-in, enableInput: cache-from, enableContains: type=gha }
+  publishScriptPatterns:
+    - '(?i)(npm|pnpm|yarn|bun)\s+publish'
+    - '(?i)gh\s+release\s+create'
+  publishScriptExcludePatterns:
+    - '(?i)--dry-run'
+  allowedJobs:
+    - "release-docs/*"
+```
+
+### reusableWorkflowsMustNotInheritSecrets
+
+Flags a reusable workflow call with `secrets: inherit`, which passes every repository secret to the callee. Raises [ISSUE-302](/docs/use-plumber/issues/ISSUE-302?p=github) (high). On by default. No field beyond `enabled`.
+
+```yaml
+reusableWorkflowsMustNotInheritSecrets:
+  enabled: true
+```
+
+### checkoutMustNotPersistCredentials
+
+Flags an `actions/checkout` step that does not set `persist-credentials: false`, leaving the token in the clone's `.git/config`. Raises [ISSUE-307](/docs/use-plumber/issues/ISSUE-307?p=github) (low) when the credential merely persists and [ISSUE-310](/docs/use-plumber/issues/ISSUE-310?p=github) (high) when a later upload-artifact step packs it into a downloadable artifact. On by default. No field beyond `enabled`.
+
+```yaml
+checkoutMustNotPersistCredentials:
+  enabled: true
+```
+
+### workflowMustNotExportEntireSecretsContext
+
+Flags `toJSON(secrets)` and other expressions that expose the whole secrets context at once. Raises [ISSUE-309](/docs/use-plumber/issues/ISSUE-309?p=github) (critical). On by default. No field beyond `enabled`.
+
+```yaml
+workflowMustNotExportEntireSecretsContext:
+  enabled: true
+```
+
+### workflowMustNotInjectUserInputInScripts
+
+Flags a `run:` script that inlines a user-controlled expression such as `${{ github.event.pull_request.title }}`, a template injection. Raises [ISSUE-207](/docs/use-plumber/issues/ISSUE-207?p=github) (critical). On by default. No field beyond `enabled`.
+
+```yaml
+workflowMustNotInjectUserInputInScripts:
+  enabled: true
+```
+
+### workflowMustNotWriteUntrustedContentToGitHubEnv
+
+Flags a step that writes user-controlled content to `$GITHUB_ENV` or `$GITHUB_PATH`. Raises [ISSUE-209](/docs/use-plumber/issues/ISSUE-209?p=github) (high). On by default. No field beyond `enabled`.
+
+```yaml
+workflowMustNotWriteUntrustedContentToGitHubEnv:
+  enabled: true
+```
+
+### workflowMustNotUseDangerousTriggers
+
+Flags the `pull_request_target` and `workflow_run` triggers, which run with write access on untrusted input. Raises [ISSUE-802](/docs/use-plumber/issues/ISSUE-802?p=github) (critical). On by default. No field beyond `enabled`.
+
+```yaml
+workflowMustNotUseDangerousTriggers:
+  enabled: true
+```
+
+### pullRequestTargetMustNotCheckoutHead
+
+Flags a `pull_request_target` workflow that checks out the pull request head, running untrusted code with the repository's secrets. Raises [ISSUE-804](/docs/use-plumber/issues/ISSUE-804?p=github) (critical). On by default. No field beyond `enabled`.
+
+```yaml
+pullRequestTargetMustNotCheckoutHead:
+  enabled: true
+```
+
+### workflowsMustDeclarePermissions
+
+Flags a workflow with no explicit `permissions:` block, which runs with the repository's default token permissions. Raises [ISSUE-801](/docs/use-plumber/issues/ISSUE-801?p=github) (medium). On by default. No field beyond `enabled`.
+
+```yaml
+workflowsMustDeclarePermissions:
+  enabled: true
+```
+
+### workflowMustNotGrantPermissionsWriteAll
+
+Flags the `permissions: write-all` shortcut at the workflow or job level. Per-scope permissions are not audited. Raises [ISSUE-803](/docs/use-plumber/issues/ISSUE-803?p=github) (high). On by default. No field beyond `enabled`.
+
+```yaml
+workflowMustNotGrantPermissionsWriteAll:
+  enabled: true
+```
+
+### workflowMustIncludeRequiredActions
+
+Checks that the workflows of the repository, taken together, reference the required actions or reusable workflows. Raises [ISSUE-417](/docs/use-plumber/issues/ISSUE-417?p=github) (high). Off by default. *Needs configuration.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | boolean | `false` | Turns the control on. |
+| `required` | string | unset | The requirement as a boolean expression of `owner/repo` or `owner/repo/path` entries, matched without regard to the `@ref`. `myorg/sast-scan` matches `myorg/sast-scan@v2` and `myorg/sast-scan/sub@abc123`. Exclusive with `requiredGroups`. |
+| `requiredGroups` | list of lists of strings | empty | The same requirement as an OR of ANDs. Exclusive with `required`. |
+
+```yaml
+workflowMustIncludeRequiredActions:
+  enabled: true
+  required: myorg/sast-scan AND myorg/policy/.github/workflows/scan.yml
+```

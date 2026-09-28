@@ -35,12 +35,15 @@ function normalizeContentId(contentId: string): string {
   return contentId.replace(/\/index$/, "");
 }
 
-/** Open Source CLI pages: installation, then providers (GitHub before GitLab), then the reference (overrides title sort). */
+/** Open Source CLI pages: installation, then providers (GitHub before GitLab), then configuration
+ * with its controls reference, then the command reference (overrides title sort). */
 const CLI_PROVIDER_SIDEBAR_RANK: Record<string, number> = {
   "cli/installation": 2,
   "cli/github": 3,
   "cli/gitlab": 4,
-  "cli/reference": 5,
+  "cli/configuration": 5,
+  "cli/controls-configuration": 6,
+  "cli/reference": 7,
 };
 
 function sidebarSortRank(item: { contentId: string; order?: number }): number {

@@ -417,7 +417,7 @@ The CLI output is color-coded in your terminal for easy scanning: green for pass
 
 ### Configuration
 
-The `gitlab.controls:` section of a schema v2 `.plumber.yaml`. With `extends: plumber:default` on top, this file is an [overlay](/docs/cli/configuration): every control keeps its baseline setting and you list only what you change. Without `extends`, the file is the complete policy and a control left out does not run.
+The `gitlab.controls:` section of a schema v2 `.plumber.yaml`. With `extends: plumber:default` on top, this file is an [overlay](/docs/cli/configuration): every control keeps its baseline setting and you list only what you change. Without `extends`, the file is the complete policy and a control left out does not run. Every field of every control, with its type and default, is listed in the [Controls configuration](/docs/cli/controls-configuration) reference.
 
 ```yaml
 extends: plumber:default
