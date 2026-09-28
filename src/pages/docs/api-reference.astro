@@ -4,9 +4,11 @@
  * Scalar (https://github.com/scalar/scalar).
  *
  * The spec is read from /openapi.yaml (committed at public/openapi.yaml). This
- * repo does not own the spec content: another repository pushes updated
- * versions of the file automatically, and this page simply renders whatever is
- * currently committed. No build-time fetching, no sync workflow.
+ * repo does not own the spec content: the Plumber monorepo's release workflow
+ * (job docs-openapi) opens a PR here with the contract of each Platform release,
+ * info.version stamped with the release, and only when the contract changed.
+ * This page simply renders whatever is currently committed: no build-time
+ * fetching, no sync workflow on this side.
  *
  * Scalar brings its own three-panel layout (sidebar, content, try-it client),
  * so the page uses the base docs shell (nav + footer) without the docs
