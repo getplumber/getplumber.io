@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Plumber Platform API
-  version: 2.5.1
+  version: 2.6.0
   description: |-
     Contract for the Plumber Platform control plane, served under `/api/v1`.
 
@@ -846,6 +846,54 @@ paths:
         '500': { description: 'An internal failure completing the request (e.g. a database error persisting the refreshed token) - never a client-caused rejection. The response body is the fixed string "authorization request failed" (rule G: no diagnostic detail, logged server-side only). Distinct from 502 (a provider-refresh-specific failure) and 503 (a session-verification infrastructure failure).' }
         '503': { description: 'The platform could not verify your session right now (the session or user store is unreachable) - an infrastructure failure, distinct from 401 (no live session) and 502 (a provider-refresh-specific failure).' }
 
+  /me/tokens:
+    get:
+      operationId: listMyApiTokens
+      summary: The caller's own platform API tokens (any authenticated user)
+      description: |-
+        Lists the CALLING user's own platform API tokens (QUESTIONS headless-user-credential-model, ruled 2026-09-10), newest
+        first, including revoked and expired ones (revoked_at / expires_at say which). Never the
+        token value: only `display_prefix` (the first 12 characters, `plmb_` + 7) is ever readable
+        again after creation (rule G: the platform stores the SHA-256 hash only).
+        Session cookie only: a platform API token can never list or mint tokens.
+      security: [ { sessionCookie: [] } ]
+      responses:
+        '200': { description: The caller's tokens., content: { application/json: { schema: { $ref: '#/components/schemas/ApiTokenList' } } } }
+        '401': { description: No live session. }
+    post:
+      operationId: createMyApiToken
+      summary: Mint a platform API token for the caller (any authenticated user)
+      description: |-
+        Mints a read-only platform API token for the CALLING user and returns its plaintext ONCE
+        (rule G: never stored, never logged, never shown again). The token is accepted ONLY by the
+        MCP endpoint (`POST /api/v1/mcp`, `Authorization: Bearer plmb_...`), never by any REST
+        route. It carries the caller's own identity: every MCP tool applies the SAME role and
+        visibility rules the session cookie gets (RBAC red line). At most 10 active (unrevoked,
+        unexpired) tokens per user (409 past the cap). `scope` is `read` only in this version
+        (write scopes are QUESTIONS mcp-write-tools, their own ruling). Recorded on config_audit as
+        `api_token` / `created` with the token's name as label.
+      security: [ { sessionCookie: [] } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ApiTokenCreateRequest' } } } }
+      responses:
+        '201': { description: 'The minted token, plaintext included this one time.', headers: { Cache-Control: { schema: { type: string }, description: 'Always `no-store`.' } }, content: { application/json: { schema: { $ref: '#/components/schemas/ApiTokenCreated' } } } }
+        '400': { description: 'A malformed body, an unknown field, a name absent/empty/over 100 characters, or `expires_at` not in the future - the fixed string names the problem (rule G: no further diagnostic detail).' }
+        '401': { description: No live session. }
+        '409': { description: The caller already has 10 active tokens; revoke one first. }
+  /me/tokens/{id}:
+    delete:
+      operationId: revokeMyApiToken
+      summary: Revoke one of the caller's own platform API tokens (any authenticated user)
+      description: |-
+        Revokes the caller's OWN token by id: the next MCP request carrying it is 401. An unknown
+        id, another user's id, and an already-revoked id all answer the SAME 404 (never
+        distinguishable from outside). Recorded on config_audit as `api_token` / `deleted`.
+      security: [ { sessionCookie: [] } ]
+      parameters: [ { name: id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        '204': { description: Revoked. }
+        '401': { description: No live session. }
+        '404': { description: 'Unknown id, another user''s id, or an already-revoked id (all indistinguishable, rule G). The response body is the fixed string "token not found".' }
+
   /users:
     get:
       operationId: getUsers
@@ -1612,7 +1660,7 @@ paths:
       description: |-
         The Dependencies tab of a project page (design 2026-09-23, spec section 6): the same graph read from the other end - what THIS project's pipeline depends on, grouped by resource kind, each entry carrying how many other projects across the visible estate use the same resource (so "used by 42 other projects" reads on the project page).
 
-        - **Where it comes from** (spec sections 4.3 and 5): the pushed bill of materials of the project's latest DEFAULT-BRANCH run, plus the CI/CD variables of its latest project snapshot. A default-branch push carrying a `bom` section replaces the project's pushed edges as one set; a push WITHOUT one (every CLI up to and including v0.5.6) leaves them exactly as they were, which is why `run_id` names the run the bill actually came from rather than the newest run. Non-default-branch runs never contribute. `by_kind` always carries EVERY DependencyKind as a key, so a project whose pipeline has never pushed a bill of materials and has no CI/CD variables answers six EMPTY arrays with `run_id` and `last_seen` both null, never a fabricated run and never a missing key the tab would have to branch on. A project on an older CLI that DOES have variables answers its `variable` array filled and the other five empty, still with `run_id` null but with `last_seen` naming the snapshot refresh that read those variables: `run_id` describes the PUSHED half alone, `last_seen` describes whichever half refreshed most recently, and the two halves of the bill arrive independently (spec sections 4.3 and 5).
+        - **Where it comes from** (spec sections 4.3 and 5): the pushed bill of materials of the project's latest DEFAULT-BRANCH run, plus the CI/CD variables of its latest project snapshot. A default-branch push carrying a `bom` section replaces the project's pushed edges as one set; a push WITHOUT one (every CLI up to and including v0.5.6) leaves them exactly as they were, which is why `run_id` names the run the bill actually came from rather than the newest run. Non-default-branch runs never contribute. Unboarding a project removes its dependencies at once (QUESTIONS row 227): the edges go in the same transaction that retires the project, and an unboarded project answers six empty arrays for as long as it stays unboarded, the snapshot refresh skipping a retired project rather than re-filling its `variable` array. A project re-onboarded later shows none until its next default-branch push or snapshot refresh. `by_kind` always carries EVERY DependencyKind as a key, so a project whose pipeline has never pushed a bill of materials and has no CI/CD variables answers six EMPTY arrays with `run_id` and `last_seen` both null, never a fabricated run and never a missing key the tab would have to branch on. A project on an older CLI that DOES have variables answers its `variable` array filled and the other five empty, still with `run_id` null but with `last_seen` naming the snapshot refresh that read those variables: `run_id` describes the PUSHED half alone, `last_seen` describes whichever half refreshed most recently, and the two halves of the bill arrive independently (spec sections 4.3 and 5).
         - **The platform authors nothing** (I1/I2): every `key`, every `version` and every member of `attrs` is the CLI's own value, stored verbatim and served back unchanged. A variable entry carries the metadata the PROJECT SNAPSHOT read from GitLab (masked, protected, hidden, environment, type, origin) and not a pushed flag - variables are the one kind the CLI never reports: the VALUE is never stored and never served.
         - **Visibility** (spec section 7): `{id}` must be visible to the caller, the same project-visibility trio `GET /projects/{id}` applies - an unknown id, a project of a different org and an invisible project all answer the SAME 404. `consumer_count` on each entry counts VISIBLE projects only, so it can be smaller than the estate-wide truth and never reveals that an invisible project shares a resource.
         - Not paginated: a project's bill is bounded at ingest (ADR-0033, spec section 4.4) and is served whole, so the tab needs one read.
@@ -4614,6 +4662,14 @@ components:
 
         - RBAC-gated endpoints additionally require a minimum role; the settings endpoints here require OrgAdmin.
         - This is enforced server-side, not expressible as an OpenAPI scope.
+    bearerApiToken:
+      type: http
+      scheme: bearer
+      description: |-
+        A per-user platform API token (`plmb_...`, minted by `createMyApiToken`). Accepted ONLY by
+        the MCP endpoint `POST /api/v1/mcp` (Model Context Protocol, Streamable HTTP transport,
+        stateless, JSON responses; documented in docs/ops-notes.md, not as a REST operation here).
+        Never accepted by any REST operation in this document.
 
   schemas:
     Push:
@@ -4642,10 +4698,10 @@ components:
             job_id: { type: string }
         cli:
           type: object
-          description: 'The CLI/component versions that produced this push (QUESTIONS row 58, ruled 2026-09-12; fix round 1 amends the normalization rule below). A release pins the component and the CLI image to ONE version, so the two fields are the same fact in practice: on every accepted push the platform reads component_version, falling back to version when component_version is absent (true of every CLI build up to and including v0.5.6, which never populates component_version), and refreshes the pushed project''s stored component_ref from whichever one it read - closing the gap where a project that never ran (or has not recently run) the sync''s own CI-file scan showed no component pin at all despite pushing successfully. UNTRUSTED like the rest of the body (ADR-0033): a value that is not shaped like a version (regex ^v?\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$) is ignored outright, logged, never stored. NORMALIZED to the "v"-prefixed spelling before either comparing or storing (the CLI''s own pushed version is bare, strings.TrimPrefix(Version, "v"), while this component''s release tags and CI include refs are "v"-prefixed) - a pushed value naming the SAME version the stored ref already names, spelling aside, writes nothing; a genuinely different version always writes the "v"-prefixed form, but only when the stored ref is itself version-like or empty: a stored branch, `~latest` or commit-sha pin is the sync''s reading of a deliberate pin and is never refreshed from a push (QUESTIONS row 76, 2026-09-16; the sync''s own next pass stays authoritative for the component path and the outdated verdict either way). A write failure degrades (Warn, logged) rather than failing the push. See ProjectUpdateEvent''s component_ref/component_outdated for the SSE side of this refresh.'
+          description: 'The CLI/component versions that produced this push (QUESTIONS row 58, ruled 2026-09-12; fix round 1 amends the normalization rule below). A release pins the component and the CLI image to ONE version, so the two fields are the same fact in practice: on every accepted push the platform reads component_version, falling back to version when component_version is absent (true of every CLI build up to and including v0.5.8, which never populates component_version), and refreshes the pushed project''s stored component_ref from whichever one it read - closing the gap where a project that never ran (or has not recently run) the sync''s own CI-file scan showed no component pin at all despite pushing successfully. UNTRUSTED like the rest of the body (ADR-0033): a value that is not shaped like a version (regex ^v?\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$) is ignored outright, logged, never stored. NORMALIZED to the "v"-prefixed spelling before either comparing or storing (the CLI''s own pushed version is bare, strings.TrimPrefix(Version, "v"), while this component''s release tags and CI include refs are "v"-prefixed) - a pushed value naming the SAME version the stored ref already names, spelling aside, writes nothing; a genuinely different version always writes the "v"-prefixed form, but only when the stored ref is itself version-like or empty: a stored branch, `~latest` or commit-sha pin is the sync''s reading of a deliberate pin and is never refreshed from a push (QUESTIONS row 76, 2026-09-16; the sync''s own next pass stays authoritative for the component path and the outdated verdict either way). A write failure degrades (Warn, logged) rather than failing the push. See ProjectUpdateEvent''s component_ref/component_outdated for the SSE side of this refresh.'
           properties:
             version: { type: string, description: "The pushing CLI binary's own version. Read as the component_ref refresh's fallback source when component_version is absent (row 58)." }
-            component_version: { type: string, description: 'The pinned CI component''s own version, when the CLI build sending this push populates it separately from its own binary version. Read FIRST for the component_ref refresh (row 58); absent on every CLI build up to and including v0.5.6.' }
+            component_version: { type: string, description: 'The pinned CI component''s own version, when the CLI build sending this push populates it separately from its own binary version. Read FIRST for the component_ref refresh (row 58); absent on every CLI build up to and including v0.5.8.' }
         collection: { $ref: '#/components/schemas/CollectionMeta' }
         evaluation: { $ref: '#/components/schemas/PushEvaluation' }
         results:
@@ -5984,7 +6040,7 @@ components:
         type: { type: string, enum: [string, boolean, integer, number, array, object], description: 'The field''s JSON type, derived from the pinned CLI schema''s declared field kind (`bool` maps to `boolean`; `integer`/`number`/`string`/`array`/`object` map 1:1). A CLI type value outside this set is a startup failure on this backend, never served as a silent `object`.' }
         description:
           type: string
-          description: 'The field''s own description, exactly as the pinned CLI schema states it. ABSENT when the pinned CLI exports none for this field, never an empty-string stand-in. That is a live case, not a theoretical one: at the v0.5.6 pin every mergeRequestSettingsMustBeCompliant SETTING field carries no description at all (the control''s own `enabled` keeps its own) (the CLI dropped prose that only restated the field name), so an editor renders those fields with their type, enum and tier and simply no help text.'
+          description: 'The field''s own description, exactly as the pinned CLI schema states it. ABSENT when the pinned CLI exports none for this field, never an empty-string stand-in. That is a live case, not a theoretical one: at the v0.5.8 pin every mergeRequestSettingsMustBeCompliant SETTING field carries no description at all (the control''s own `enabled` keeps its own) (the CLI dropped prose that only restated the field name), so an editor renders those fields with their type, enum and tier and simply no help text.'
         optional:
           type: boolean
           description: 'Whether a control may omit this field entirely and still be valid, exactly as the pinned CLI schema states it. The CLI always states this, so this property is always present.'
@@ -5993,7 +6049,7 @@ components:
           description: 'Row 52 (2026-09-12, CLI v0.4.61): true when unset is meaningful for this field (the pinned CLI declares it as a pointer), independent of optional (which only says the key may be omitted); absent means false.'
         toggle:
           type: boolean
-          description: 'Config-UI review (2026-09-21, CLI v0.5.4, served from the v0.5.6 pin): true when this boolean is a behavior switch, i.e. unset simply takes the documented default (see `default`), so an editor offers on/off and never a third "not checked" state. Its counterpart, a `nullable` boolean WITHOUT this flag, is an expectation where unset means "assert nothing about the scanned project" and the three-state widget is correct. Read off the pinned CLI schema''s own SchemaField.Toggle verbatim (true structurally for every `enabled` field at any depth, authored for the other switches); absent means false, never a present `toggle: false`.'
+          description: 'Config-UI review (2026-09-21, CLI v0.5.4, served from the v0.5.8 pin): true when this boolean is a behavior switch, i.e. unset simply takes the documented default (see `default`), so an editor offers on/off and never a third "not checked" state. Its counterpart, a `nullable` boolean WITHOUT this flag, is an expectation where unset means "assert nothing about the scanned project" and the three-state widget is correct. Read off the pinned CLI schema''s own SchemaField.Toggle verbatim (true structurally for every `enabled` field at any depth, authored for the other switches); absent means false, never a present `toggle: false`.'
         requires_tier:
           type: string
           enum: [premium, ultimate]
@@ -6057,7 +6113,7 @@ components:
           items: { $ref: '#/components/schemas/ControlLibraryEntry' }
         cli_version:
           type: string
-          description: 'The pinned CLI module''s own version as Go''s build info reports it (e.g. "v0.5.6", this build''s own pin). Empty string when the running binary carries no dependency record for the module (build info unavailable, or a `go test` binary, which Go links without the dependency list) - documented, never invented.'
+          description: 'The pinned CLI module''s own version as Go''s build info reports it (e.g. "v0.5.8", this build''s own pin). Empty string when the running binary carries no dependency record for the module (build info unavailable, or a `go test` binary, which Go links without the dependency list) - documented, never invented.'
         catalog_version:
           type: integer
           description: 'The pinned CLI''s own `catalogVersion` for this control catalog, verbatim.'
@@ -6085,7 +6141,7 @@ components:
           items: { $ref: '#/components/schemas/IssueTypeCatalogEntry' }
         cli_version:
           type: string
-          description: 'The pinned CLI module''s own version as Go''s build info reports it (e.g. "v0.5.6", this build''s own pin). Empty string when the running binary carries no dependency record for the module (build info unavailable, or a `go test` binary) - the SAME rule ControlLibraryList.cli_version documents.'
+          description: 'The pinned CLI module''s own version as Go''s build info reports it (e.g. "v0.5.8", this build''s own pin). Empty string when the running binary carries no dependency record for the module (build info unavailable, or a `go test` binary) - the SAME rule ControlLibraryList.cli_version documents.'
         catalog_version:
           type: integer
           description: 'The pinned CLI''s own `catalogVersion` for this issue-type catalog, verbatim - the SAME field ControlLibraryList.catalog_version carries for the control library.'
@@ -7391,6 +7447,36 @@ components:
       properties:
         access_token: { type: string, description: 'The caller''s own plaintext GitLab OAuth access token, current as of this response - the SAME refresh-then-return value WriteTokenService.WriteToken hands its own callers, served here to the caller it belongs to instead of consumed server-side. Scoped exactly as the user''s own OAuth grant is (full-scope, V1-parity) - never a narrowed or platform-minted token.' }
         expires_at: { type: string, format: date-time, description: 'When access_token expires, RFC 3339 - the SAME expiry the platform itself tracks and refreshes against (tokenEarlyRenew), so a client can pre-emptively re-call this endpoint rather than waiting for a provider 401.' }
+    ApiTokenCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100, description: 'A label the caller picks (the agent or machine this token is for). Shown on the list and used as the config_audit entity_label.' }
+        expires_at: { type: string, format: date-time, nullable: true, description: 'Optional expiry, RFC 3339, must be in the future. Null or absent = no expiry (revocation is the only end).' }
+    ApiToken:
+      type: object
+      required: [id, name, display_prefix, scope, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        display_prefix: { type: string, description: 'The first 12 characters of the token (plmb_ + 7), the only fragment ever readable again.' }
+        scope: { type: string, enum: [read] }
+        expires_at: { type: string, format: date-time, nullable: true, description: 'Null (OMITTED from the response body entirely, never a literal JSON null - the same LastActivityAt/FinishedAt convention this contract uses elsewhere for an optional+nullable date-time) when the token has no expiry.' }
+        revoked_at: { type: string, format: date-time, nullable: true, description: 'Omitted (never a literal JSON null) while the token is still active.' }
+        last_used_at: { type: string, format: date-time, nullable: true, description: 'Updated at most once per minute per token when the MCP endpoint accepts it. Omitted (never a literal JSON null) until the token is first used.' }
+        created_at: { type: string, format: date-time }
+    ApiTokenCreated:
+      allOf:
+        - $ref: '#/components/schemas/ApiToken'
+        - type: object
+          required: [token]
+          properties:
+            token: { type: string, description: 'The plaintext token, shown exactly once. Never logged, never stored, never retrievable again (rule G).' }
+    ApiTokenList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/ApiToken' } }
     UserRef:
       type: object
       description: 'One row of getUsers'' UserRefs.items (frontend batch 3, item 5): a resolved platform user identity, deliberately NO email (see getUsers'' own description).'
