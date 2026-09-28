@@ -46,6 +46,7 @@ const sidebarNavData: DocsSidebarNavData = {
           id: "use-plumber",
           title: "Usage",
           group: "Platform",
+          navLinks: [{ text: "API Reference", href: "/docs/api-reference" }],
         },
         // Last section, outside the Platform group: the v1 install guides kept
         // for existing installations (new installs use the v2 Installation section).

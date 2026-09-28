@@ -431,6 +431,18 @@ for (const id of sections) {
                                 highlightDescendants={doc.contentId === "use-plumber/issues"}
                               />
                             ))}
+                            {(getSectionById(section, sectionId, currLocale)?.navLinks ?? []).map(
+                              (item) => (
+                                <SidebarLink
+                                  link={getLocalizedRoute(
+                                    currLocale,
+                                    resolveSharedDocsHref(item.href, sectionId),
+                                  )}
+                                  text={item.text}
+                                  indent={item.indent}
+                                />
+                              ),
+                            )}
                           </ul>
                         </div>
                       )}
