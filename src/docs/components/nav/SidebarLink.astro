@@ -67,7 +67,10 @@ const currentPath =
       {
         // Current page: accent colour on a soft pill. Section headings are bold
         // foreground text, so weight alone would not tell the two apart.
-        "-mx-2 -my-0.5 rounded-md bg-primary/10 px-2 py-0.5 font-medium text-primary hover:text-primary":
+        // The pill bleeds LEFT only (-ml-2): a right bleed pushed the block
+        // past the sidebar's scroll container, whose overflow-y-auto makes
+        // overflow-x auto too, so every page showed a horizontal scrollbar.
+        "-ml-2 -my-0.5 rounded-md bg-primary/10 px-2 py-0.5 font-medium text-primary hover:text-primary":
           currentPath,
       },
     ]}
