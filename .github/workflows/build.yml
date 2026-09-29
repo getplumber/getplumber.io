@@ -38,3 +38,8 @@ jobs:
 
       - name: Build site
         run: npm run build
+        # Read-only job token: the prebuild step (scripts/fetch-adopters.js)
+        # needs an authenticated GitHub code search to refresh the homepage
+        # adopter logos. Without it the build keeps the committed snapshot.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

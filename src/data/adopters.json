@@ -1,0 +1,50 @@
+[
+  {
+    "owner": "lightpanda-io",
+    "name": "Lightpanda",
+    "repo": "lightpanda-io/browser",
+    "url": "https://github.com/lightpanda-io/browser",
+    "stars": 35600,
+    "avatar": "https://avatars.githubusercontent.com/u/145980012"
+  },
+  {
+    "owner": "go-delve",
+    "name": "Delve",
+    "repo": "go-delve/delve",
+    "url": "https://github.com/go-delve/delve",
+    "stars": 24900,
+    "avatar": "https://avatars.githubusercontent.com/u/19232073"
+  },
+  {
+    "owner": "go-resty",
+    "name": "Resty",
+    "repo": "go-resty/resty",
+    "url": "https://github.com/go-resty/resty",
+    "stars": 11800,
+    "avatar": "https://avatars.githubusercontent.com/u/14019737"
+  },
+  {
+    "owner": "0xJacky",
+    "name": "0xJacky",
+    "repo": "0xJacky/nginx-ui",
+    "url": "https://github.com/0xJacky/nginx-ui",
+    "stars": 11500,
+    "avatar": "https://avatars.githubusercontent.com/u/13096985"
+  },
+  {
+    "owner": "bunkerity",
+    "name": "Bunkerity",
+    "repo": "bunkerity/bunkerweb",
+    "url": "https://github.com/bunkerity/bunkerweb",
+    "stars": 11000,
+    "avatar": "https://avatars.githubusercontent.com/u/86405535"
+  },
+  {
+    "owner": "intuitem",
+    "name": "intuitem",
+    "repo": "intuitem/ciso-assistant-community",
+    "url": "https://github.com/intuitem/ciso-assistant-community",
+    "stars": 4400,
+    "avatar": "https://avatars.githubusercontent.com/u/71849524"
+  }
+]
