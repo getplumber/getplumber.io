@@ -484,7 +484,7 @@ export const controlCatalog: Record<
   releaseWorkflowsMustNotRestoreUntrustedCache: {
     github: {
       controlDescription:
-        "Flags a release or publish job that restores a build cache (`actions/cache`, `actions/cache/restore`, or a `setup-*` action's built-in cache) with a key not scoped to the release ref. Release context is a `release` trigger or a canonical publish action such as `pypa/gh-action-pypi-publish` or `softprops/action-gh-release`.",
+        "Flags a release or publish job that restores a build cache (`actions/cache`, `actions/cache/restore`, or a `setup-*` action's built-in cache) with a key not scoped to the release ref. Release context is a `release` trigger, a canonical publish action such as `pypa/gh-action-pypi-publish` or `softprops/action-gh-release`, or a publish command in a `run:` script. Job and step `if:` conditions and `github.event_name` comparisons in the cache inputs are resolved per trigger, so the finding fires only when a restore and a publish can share a run; a cache condition it cannot resolve reports ISSUE-717 (medium) instead of the High.",
       controlWhyItMatters:
         "Actions caches are shared across branches with a permissive fallback, so a PR run on any feature branch can populate the same key a release job later restores, injecting compromised artefacts into the published package. Weave `github.ref_name` or `github.sha` into the key, or disable caching on publish paths. The May 2026 TanStack attack used this exact fallback.",
     },
@@ -3406,7 +3406,7 @@ github:
       controlName: "Release workflows must not restore an untrusted cache",
       controlConfigKey: "releaseWorkflowsMustNotRestoreUntrustedCache",
       description:
-        "A release or publish job enables a build cache through a GitHub expression Plumber cannot resolve per trigger. The cache may be off exactly on the runs that publish - the safe pattern - or on for them; the expression does not say which statically.",
+        "A release or publish job enables or disables a build cache through a GitHub expression Plumber cannot resolve per trigger: an opt-in enable input or a default-mode disable input outside the `github.event_name ==/!= '<event>'` shapes. The cache may be off exactly on the runs that publish - the safe pattern - or on for them; the expression does not say which statically.",
       impact:
         "If the expression yields a cache manager on the trigger that publishes, the job restores a cache any PR run can poison (the ISSUE-705 vector). If it yields an empty value there, the job is safe. Because the restore is conditional and unproven, Plumber reports this medium verify-manually finding instead of asserting the High.",
       remediation:
