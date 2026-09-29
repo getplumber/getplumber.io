@@ -732,7 +732,7 @@ Inspects the source of each third-party action and flags one that downloads and 
   <Badge text="Needs configuration" variant="caution" />
 </div>
 
-Flags a release or publish job that restores a build cache which a pull request could have poisoned. A job has release intent when it uses one of `publishActions` or runs a command matching `publishScriptPatterns`; it restores a cache when it uses one of `cacheActions` in a restoring mode. Raises [ISSUE-705](/docs/use-plumber/issues/ISSUE-705?p=github) (high).
+Flags a release or publish job that restores a build cache which a pull request could have poisoned. A job has release intent when it uses one of `publishActions` or runs a command matching `publishScriptPatterns`; it restores a cache when it uses one of `cacheActions` in a restoring mode. Raises [ISSUE-705](/docs/use-plumber/issues/ISSUE-705?p=github) (high), or [ISSUE-717](/docs/use-plumber/issues/ISSUE-717?p=github) (medium) when a cache condition cannot be resolved per trigger. Job and step `if:` conditions and `github.event_name ==/!= '<event>'` comparisons in the cache inputs are resolved per trigger, so a cache that is off on the publish trigger stays silent.
 
 | Field | Default | Description |
 |---|---|---|
