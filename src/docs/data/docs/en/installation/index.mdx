@@ -114,7 +114,8 @@ split the frontend and the API across two hostnames.
 **Network**
 
 - Users must be able to reach the Plumber server on TCP ports 80 and 443
-- The Plumber server must be able to reach your GitLab instance, or `api.github.com` and `github.com`
+- The Plumber server must be able to reach your GitLab instance, or `api.github.com`, `github.com` and
+  `token.actions.githubusercontent.com` (where it reads the keys that verify a push from GitHub Actions)
 - The installation requires write access to the DNS zone of the domain you pick for Plumber
 
 ## GitLab OAuth application
