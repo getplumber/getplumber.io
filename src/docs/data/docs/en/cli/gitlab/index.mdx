@@ -678,6 +678,8 @@ The complete, always-current catalogs and command reference:
 | MR comment not posted | `--mr-comment` only works in merge request pipelines (`CI_MERGE_REQUEST_IID` must be set) |
 | Badge not created/updated | Token needs `api` scope and Maintainer role (or higher) on the project |
 | Configuration file not found | Ensure `--config` points at the real file (use an absolute path in Docker). Create one with `plumber config generate` or `plumber config init` |
+| Configuration warnings | Run `plumber config validate` to list unknown keys and invalid values |
+| Need details on a finding | Run `plumber explain ISSUE-XXX` for its description and remediation |
 | Component not found (self-hosted) | You must import or mirror the component to your instance ([Hosting on self-hosted GitLab](#hosting-on-self-hosted-gitlab)) |
 | Plumber component job not running | The component's default stage is `.pre`, which requires at least one other job in a regular stage. Override with `inputs: { stage: test }` |
 | Two pipelines on the same push | Add [`workflow:rules`](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines) to prevent duplicate branch + MR pipelines (see [Run with the GitLab CI component](#run-with-the-gitlab-ci-component)) |
