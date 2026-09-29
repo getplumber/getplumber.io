@@ -42,7 +42,9 @@ function resolveToken() {
   }
 }
 
-async function gh(path, token) {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function gh(path, token, attempt = 0) {
   const res = await fetch(`${API}${path}`, {
     headers: {
       Accept: "application/vnd.github+json",
@@ -52,6 +54,17 @@ async function gh(path, token) {
     },
     signal: AbortSignal.timeout(15000),
   });
+  // Code search allows ~10 requests a minute, and a push to main builds the
+  // site twice at once (Build + Deploy Production), so one of them regularly
+  // gets a 429. The window resets within a minute: wait it out (twice at
+  // most, honoring retry-after) rather than falling back to the snapshot.
+  if ((res.status === 429 || res.status === 403) && attempt < 2) {
+    const retryAfter = Number(res.headers.get("retry-after"));
+    const waitSeconds = Number.isFinite(retryAfter) && retryAfter > 0 ? Math.min(retryAfter, 60) : 30;
+    console.warn(`[adopters] GET ${path.split("?")[0]} -> ${res.status}, retrying in ${waitSeconds}s`);
+    await sleep(waitSeconds * 1000);
+    return gh(path, token, attempt + 1);
+  }
   if (!res.ok) throw new Error(`GET ${path} -> ${res.status}`);
   return res.json();
 }
