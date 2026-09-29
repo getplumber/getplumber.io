@@ -618,6 +618,9 @@ The complete, always-current catalogs and command reference:
 | `404 Not Found` | Verify `--project owner/repo` and, for GHES, that `--github-url` points at the right host |
 | Branch protection rule not detected | Plumber reads classic Branch Protection AND Rulesets; confirm the rule is enabled (not in evaluate mode) on a branch matching your `namePatterns` |
 | Configuration file not found | Ensure `--config` points at the real file (use an absolute path in Docker). Create one with `plumber config generate` or `plumber config init` |
+| Configuration warnings | Run `plumber config validate` to list unknown keys and invalid values |
+| No repo-level findings on a local scan | Without a token a local scan checks workflow contents only. Run `gh auth login` or set `GH_TOKEN` to add branch protection and action-metadata checks |
+| Need details on a finding | Run `plumber explain ISSUE-XXX` for its description and remediation |
 | SARIF upload fails with 403 | The job needs `security-events: write` permission. Add it under the workflow or job-level `permissions:` block |
 | Attestation verification fails | The runner cannot reach sigstore or `gh` CLI is not installed. Set `verify-attestation: "false"` to skip |
 | Score badge not published | `score-push` needs `permissions: id-token: write` in the workflow. The **public badge** only reflects your default branch; pull request runs can't publish (their OIDC token has no branch ref), so the badge updates when the PR merges. A local run never publishes. The push warns, never fails, when the token or permission is missing. See [Plumber Score](/docs/plumber-score) |
