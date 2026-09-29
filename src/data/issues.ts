@@ -3341,7 +3341,7 @@ github:
       impact:
         "Whoever can open a PR can prime the cache the trusted release build reuses, injecting compromised artefacts into the published package while nothing changes in the release commit. This is the May 2026 TanStack vector. Pinning the cache action by SHA does not help - the poisoned bytes live in the cache, not the action.",
       remediation:
-        "Weave `github.ref_name` / `github.sha` into the cache key AND every `restore-keys` fallback, or disable caching on publish paths (e.g. `cache: false` on a `setup-*` action). The action/script inventory and a per-job allowlist are configurable in `.plumber.yaml`.",
+        "Weave `github.ref_name` / `github.sha` into the cache key AND every `restore-keys` fallback, or disable caching on publish paths: `cache: false` on a `setup-*` action, the conditional form `cache: ${{ github.event_name != '<publish trigger>' && '<manager>' || '' }}`, or a caching step whose `if:` excludes the publish trigger - Plumber resolves these per trigger and stays silent when the restore and the publish can never share a run. The action/script inventory and a per-job allowlist are configurable in `.plumber.yaml`.",
       badExample: `# .github/workflows/release.yml - ❌ Unscoped key on a release job
 on: [release]
 jobs:
@@ -3389,9 +3389,66 @@ github:
         "`cacheActions` carries per-action semantics: `always`, `default` (off via `disableInput`/`disableValue`), or `opt-in` (on via `enableInput`). Add your org's cache actions there - nothing is hardcoded.",
         "`allowedJobs` is a glob over the `<workflow-file>/<job-id>` name - the escape hatch for release jobs you have reviewed and accept.",
         "`setup-*` actions only cache when their `cache:` input is set; `actions/cache` always restores, so a bogus `cache: false` on it does not exempt it.",
+        "The rule reasons per trigger: job-level and step-level `if:` conditions and enable/disable inputs of the shape `github.event_name ==/!= '<event>'` restrict a step to the events they admit, and the finding fires only when a restore and a publish can share an event. An enable expression Plumber cannot resolve reports ISSUE-717 (medium, verify manually) instead of this High.",
       ],
       status: "shipping",
-      relatedCodes: ["ISSUE-802", "ISSUE-701"],
+      relatedCodes: ["ISSUE-717", "ISSUE-802", "ISSUE-701"],
+    },
+  },
+
+  "ISSUE-717": {
+    code: "ISSUE-717",
+    github: {
+      title: "Conditional cache on a release path could not be resolved",
+      category: "Third-party actions",
+      severity: "medium",
+      productScope: "cli",
+      controlName: "Release workflows must not restore an untrusted cache",
+      controlConfigKey: "releaseWorkflowsMustNotRestoreUntrustedCache",
+      description:
+        "A release or publish job enables a build cache through a GitHub expression Plumber cannot resolve per trigger. The cache may be off exactly on the runs that publish - the safe pattern - or on for them; the expression does not say which statically.",
+      impact:
+        "If the expression yields a cache manager on the trigger that publishes, the job restores a cache any PR run can poison (the ISSUE-705 vector). If it yields an empty value there, the job is safe. Because the restore is conditional and unproven, Plumber reports this medium verify-manually finding instead of asserting the High.",
+      remediation:
+        "Make the condition statically checkable: use the `${{ github.event_name != '<publish trigger>' && '<manager>' || '' }}` form (or its `==` inverse) so the cache is provably off on the publish trigger, split caching into a step whose `if:` excludes the publish trigger, or scope the cache key (and any `restore-keys`) to the release ref.",
+      badExample: `# .github/workflows/release.yml - ❌ Cache enablement Plumber cannot resolve
+on:
+  workflow_dispatch:
+  pull_request:
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          cache: \${{ vars.CACHE_MANAGER }}   # on? off? depends on a repo variable
+      - run: npm publish`,
+      badExampleCaption:
+        "`vars.CACHE_MANAGER` is resolved at runtime; Plumber cannot prove the cache is off on the publishing run.",
+      goodExample: `# .github/workflows/release.yml - ✅ Provably off on the publish trigger
+on:
+  workflow_dispatch:
+  pull_request:
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          cache: \${{ github.event_name != 'workflow_dispatch' && 'maven' || '' }}
+      - name: Publish
+        if: github.event_name == 'workflow_dispatch'
+        run: npm publish`,
+      goodExampleCaption:
+        "The expression is empty exactly on `workflow_dispatch`, the only trigger that publishes - Plumber resolves it and stays silent.",
+      tips: [
+        "The resolvable shapes are `github.event_name ==/!= '<event>'` comparisons: as a step or job `if:`, as the enable form `... && '<manager>' || ''`, or as a bare comparison on a default-mode disable input (`cache: ${{ github.event_name != 'release' }}` on `actions/setup-go`).",
+        "Any other whole-value expression (a `vars.*`, an `inputs.*`, a compound condition) is unresolvable and reports this code when the step can still share an event with a publish.",
+        "In a reusable workflow (`workflow_call`) `github.event_name` is the caller's event, and Plumber resolves the comparisons against it - conditions on the same event still cancel out.",
+        "PR builds keep their cache: the point of the conditional form is disabling the restore only on publish runs, not everywhere.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-705"],
     },
   },
 
