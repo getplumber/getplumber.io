@@ -13,7 +13,7 @@ The App gives the Platform two kinds of credentials. The **installation token**,
 
 ## Before you start
 
-- A Platform deployed with [Docker Compose](/docs/installation/docker-compose), **Manual install** tab, steps 1 to 6 (the stack is running and the first boot has migrated the database). In step 2, set `GITLAB_URL` to `https://github.com`: a GitHub installation does not use it, but the Compose file and `preflight.sh` require it and the preflight checks that it is reachable. This page replaces step 7 (the GitLab connection) and step 8. The interactive installer and the Kubernetes chart's bootstrap Job configure a GitLab instance only today; for a GitHub-only installation on Kubernetes, contact us.
+- A Platform deployed with [Docker Compose](/docs/installation/docker-compose), **Manual install** tab, steps 1 to 6 (the stack is running and the first boot has migrated the database). In step 2, set `GITLAB_URL` to `https://github.com`: a GitHub installation does not use it, but `preflight.sh` requires it and checks that it is reachable (unless `PLUMBER_PREFLIGHT_OFFLINE` is set). This page replaces step 7 (the GitLab connection) and step 8. The interactive installer and the Kubernetes chart's bootstrap Job configure a GitLab instance only today; for a GitHub-only installation on Kubernetes, contact us.
 - An **owner** of the GitHub organization, to create and install the App.
 - `https://<your Plumber URL>` reachable from github.com if you want webhooks (see [Webhooks](#webhooks)); without it the Platform still works, on a schedule.
 
@@ -28,7 +28,7 @@ In the organization's settings on github.com, open **Developer settings > GitHub
 | Callback URL | `https://<your Plumber URL>/api/v1/auth/callback` |
 | Expire user authorization tokens | **checked** (required: a sign-in with a token that never expires is refused) |
 | Request user authorization (OAuth) during installation | **unchecked** |
-| Webhook | **Active**, URL `https://<your Plumber URL>/api/v1/webhooks/github`, any secret (the Platform replaces it) |
+| Webhook | **Active**, URL `https://<your Plumber URL>/api/v1/webhooks/github`, a secret of your choice (see [Webhooks](#webhooks)) |
 | Where can this GitHub App be installed? | Only on this account |
 
 **Repository permissions:** Administration **Read-only**, Actions **Read and write**, Contents **Read and write**, Environments **Read-only**, Issues **Read and write**, Metadata **Read-only**, Pull requests **Read and write**, Secrets **Read-only**, Variables **Read-only**, Workflows **Read and write**. **Organization permissions:** Members **Read-only**. These eleven are required: the Platform refuses an installation that lacks one, and names it.
@@ -67,7 +67,7 @@ unset PLUMBER_BOOTSTRAP_CLIENT_SECRET
 rm -rf ~/plumber-github
 ```
 
-The key file is world-readable only inside a directory nobody else can enter, because the backend runs as a non-root user; the directory is removed afterwards (the Platform keeps its own encrypted copy, and you can generate a new key from the App's page at any time). The `traefik.enable=false` label keeps this one-off container out of the reverse proxy while it runs. Without `-installation-id` the command looks the installation up on the organization. It exits `1` naming the next step when the App is not installed yet or the organization does not resolve; running it again finishes a pending configuration, and it refuses an instance that is already configured.
+The key file is world-readable only inside a directory nobody else can enter, because the backend runs as a non-root user; the directory is removed afterwards (the Platform keeps its own encrypted copy, and you can generate a new key from the App's page at any time). To store the App's webhook secret in the same run, export it as `PLUMBER_BOOTSTRAP_WEBHOOK_SECRET` and add `-e PLUMBER_BOOTSTRAP_WEBHOOK_SECRET` next to the client secret (see [Webhooks](#webhooks)). The `traefik.enable=false` label keeps this one-off container out of the reverse proxy while it runs. Without `-installation-id` the command looks the installation up on the organization. It exits `1` naming the next step when the App is not installed yet or the organization does not resolve; running it again finishes a pending configuration, and it refuses an instance that is already configured.
 
 ## 4. First sign-in and maintainers
 
@@ -75,9 +75,9 @@ Open `https://<your Plumber URL>` and **sign in with GitHub** as an **owner** of
 
 ## Webhooks
 
-The App's webhook tells the Platform about changes as they happen: a push on a default branch refreshes that repository, and a repository added to or removed from the installation starts a sync. A delivery is only a trigger: everything the Platform stores is read from the GitHub API with the installation token, each delivery is accepted once, and deliveries are checked against a secret the Platform generates. After the first sign-in, an Admin **rotates the webhook secret once** in Settings, on the GitHub instance: the Platform sets a new secret on the App through the GitHub API and stores it encrypted. The App's **Recent Deliveries** tab on github.com then shows `202` for the next push on a default branch. A steady run of `401` answers there means the secrets differ: rotate again.
+The App's webhook tells the Platform about changes as they happen: a push on a default branch refreshes that repository, and a repository added to or removed from the installation starts a sync. A delivery is only a trigger: everything the Platform stores is read from the GitHub API with the installation token, each delivery is accepted once, and deliveries are checked against the webhook secret stored in the Platform. If you passed the secret you set on the App as `PLUMBER_BOOTSTRAP_WEBHOOK_SECRET` to `plumber-bootstrap`, it is already stored and nothing else is needed. Otherwise, after the first sign-in, an Admin **rotates the webhook secret once** in Settings, on the GitHub instance: the Platform generates a new secret, sets it on the App through the GitHub API and stores it encrypted; until then, deliveries are refused. The App's **Recent Deliveries** tab on github.com then shows `202` for the next push on a default branch. A steady run of `401` answers there means the secrets differ: rotate again.
 
-**Firewalled or air-gapped installations.** When github.com cannot reach your Platform, leave the webhook inactive: the daily sync is the only refresh. Raise it to hourly with `PLUMBER_SYNC_CRON`: on Docker Compose, add it to the `environment` list of the `backend` service in `compose.yml` (a variable only set in `.env` does not reach the backend, see the [Configuration Reference](/docs/installation/reference)), then run `docker compose up -d`:
+**An installation that cannot receive GitHub's webhooks.** When github.com cannot reach your Platform (a firewall, no inbound route), leave the webhook inactive: the daily sync is the only refresh. Raise it to hourly with `PLUMBER_SYNC_CRON`: on Docker Compose, add it to the `environment` list of the `backend` service in `compose.yml` (the `backend` service lists its environment explicitly, so a variable set only in `.env` does not reach it), then run `docker compose up -d`:
 
 ```yaml title="compose.yml"
   backend:
@@ -90,4 +90,4 @@ Every sync reads with the installation token, whose budget is 5,000 requests per
 
 ## Changing the App's permissions
 
-When a Plumber release asks for a new permission, or you add the optional Administration write, edit the App (**Permissions & events**) and save; then each organization owner accepts the change on the installation (GitHub sends a review request). Until it is accepted the installation keeps its old permissions, and the Platform names the missing one in Settings.
+When a Plumber release asks for a new permission, or you add the optional Administration write, edit the App (**Permissions & events**) and save; then each organization owner accepts the change on the installation (GitHub sends a review request). Until it is accepted the installation keeps its old permissions. A missing required permission is named in Settings; the optional Administration write is not checked there: until it is accepted, a branch protection fix answers that it is not fixable because the App lacks the Administration write permission.
