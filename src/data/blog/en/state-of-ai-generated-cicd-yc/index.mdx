@@ -1,0 +1,246 @@
+---
+title: "57% of YC Startups Now Ship AI-Written CI/CD. We Graded 500 of Their Repos."
+description: "We read the pipeline history of 500 public repos from 277 Y Combinator startups (batches 2024 to 2026). AI agents went from 0% to nearly 1 in 4 workflow changes in 18 months. Then we graded every pipeline A to E with the open-source Plumber CLI."
+draft: true
+authors:
+  - plumber
+pubDate: 2026-10-20
+updatedDate: "2026-10-20"
+heroImage: ./heroImage.png
+categories:
+  - "Research"
+  - "CI/CD"
+  - "Security"
+  - "AI"
+  - "Supply Chain Security"
+---
+
+{/*
+DRAFT. Everything marked [TBD] waits for the Radar grades of the full cohort (scan in progress).
+AI-signal numbers are final (snapshot 2026-10-04, ai_stats.json).
+
+Title options (pick one, the others go to X / LinkedIn / HN):
+1. 57% of YC Startups Now Ship AI-Written CI/CD. We Graded 500 of Their Repos.   <- current
+2. From 0% to 1 in 4: AI Took Over CI/CD at YC Startups in 18 Months
+3. We Read the Pipelines of 500 YC Startup Repos. AI Writes 1 in 4 Changes Now.
+4. Your AI Writes Your Pipelines. We Checked 500 YC Repos to See Who Checks Them.
+5. YC Startups Stopped Writing Their Own CI/CD. Here's What the AI Ships Instead.
+Once grades are in, a grade-led title may beat these, e.g.
+"[TBD]% of YC Startup Pipelines Get a D or E. Most of Them Were Written With AI."
+*/}
+
+> **Devs don't write CI/CD by hand anymore, they prompt it. We read the pipeline history of 500 public repos from 277 Y Combinator startups: in 18 months, AI agents went from zero to nearly one in four workflow changes. Then we graded every one of those pipelines.**
+
+## The numbers
+
+<div class="my-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+  <div class="border-border/50 rounded-lg border p-4">
+    <div class="text-primary-500 text-3xl font-bold">500</div>
+    <div class="text-foreground/60 mt-1 text-sm">public repos from 277 YC startups, batches 2024 to 2026</div>
+  </div>
+  <div class="border-border/50 rounded-lg border p-4">
+    <div class="text-3xl font-bold text-orange-500">57%</div>
+    <div class="text-foreground/60 mt-1 text-sm">of those startups have pipeline changes co-signed by an AI agent</div>
+  </div>
+  <div class="border-border/50 rounded-lg border p-4">
+    <div class="text-3xl font-bold text-orange-500">23%</div>
+    <div class="text-foreground/60 mt-1 text-sm">of all workflow changes in the last 90 days were AI-authored</div>
+  </div>
+  <div class="border-border/50 rounded-lg border p-4">
+    <div class="text-3xl font-bold text-red-500">[TBD]%</div>
+    <div class="text-foreground/60 mt-1 text-sm">of pipelines grade D or E</div>
+  </div>
+</div>
+
+**In one line:** AI now writes a large share of the pipelines that build and ship YC startups, and [TBD: one-line verdict on the grades, e.g. "almost none of them come out clean"].
+
+## How we did it
+
+- **The cohort.** Every company from the YC batches of 2024, 2025 and 2026 whose GitHub organization we could verify: the organization's website must match the company's, or the company's own site must link to it under its own name. That gives 277 startups with at least one active public repository running GitHub Actions.
+- **The repos.** For each startup we took its most-starred repository with workflows and activity in the last 12 months, then filled up to 500 with their next most-starred ones (at most three per company). Median: [TBD] stars.
+- **The AI signal.** We read every commit that touched `.github/workflows/` since January 2024 (22,475 commits) and flagged those carrying a coding agent's signature: Claude Code's `Co-Authored-By` trailer, the Copilot coding agent, Cursor, Devin, Codex, Gemini.
+- **The grade.** Each repository was analysed by [Plumber Radar](/radar) with the open-source [Plumber CLI](https://github.com/getplumber/plumber) and given a [Plumber Score](/blog/plumber-score-cicd-security-standard) from A to E. One Critical finding forces an E.
+- **Aggregates only.** No repository or company is named in this report. Every company in the cohort received its own grade privately.
+
+The AI signal is a **floor, not an estimate**. A commit only counts if the agent left its signature. Copy-pasting a ChatGPT answer, accepting an autocomplete, or committing an agent's output by hand leaves no trace, so the real share is higher.
+
+## AI took over the pipeline in 18 months
+
+Share of commits touching `.github/workflows/` that carry an AI agent's signature, per quarter:
+
+<div class="my-6 space-y-2">
+  <div class="flex items-center gap-3 text-sm"><span class="text-foreground/60 w-20 shrink-0">2024</span><div class="bg-foreground/10 h-5 flex-1 rounded"><div class="h-5 rounded bg-orange-500" style="width:0%"></div></div><span class="w-12 shrink-0 text-right font-bold">0%</span></div>
+  <div class="flex items-center gap-3 text-sm"><span class="text-foreground/60 w-20 shrink-0">2025 Q1</span><div class="bg-foreground/10 h-5 flex-1 rounded"><div class="h-5 rounded bg-orange-500" style="width:0.4%"></div></div><span class="w-12 shrink-0 text-right font-bold">0.1%</span></div>
+  <div class="flex items-center gap-3 text-sm"><span class="text-foreground/60 w-20 shrink-0">2025 Q2</span><div class="bg-foreground/10 h-5 flex-1 rounded"><div class="h-5 rounded bg-orange-500" style="width:7%"></div></div><span class="w-12 shrink-0 text-right font-bold">2%</span></div>
+  <div class="flex items-center gap-3 text-sm"><span class="text-foreground/60 w-20 shrink-0">2025 Q3</span><div class="bg-foreground/10 h-5 flex-1 rounded"><div class="h-5 rounded bg-orange-500" style="width:12%"></div></div><span class="w-12 shrink-0 text-right font-bold">3%</span></div>
+  <div class="flex items-center gap-3 text-sm"><span class="text-foreground/60 w-20 shrink-0">2025 Q4</span><div class="bg-foreground/10 h-5 flex-1 rounded"><div class="h-5 rounded bg-orange-500" style="width:16%"></div></div><span class="w-12 shrink-0 text-right font-bold">4%</span></div>
+  <div class="flex items-center gap-3 text-sm"><span class="text-foreground/60 w-20 shrink-0">2026 Q1</span><div class="bg-foreground/10 h-5 flex-1 rounded"><div class="h-5 rounded bg-orange-500" style="width:66%"></div></div><span class="w-12 shrink-0 text-right font-bold">17%</span></div>
+  <div class="flex items-center gap-3 text-sm"><span class="text-foreground/60 w-20 shrink-0">2026 Q2</span><div class="bg-foreground/10 h-5 flex-1 rounded"><div class="h-5 rounded bg-orange-500" style="width:100%"></div></div><span class="w-12 shrink-0 text-right font-bold">26%</span></div>
+  <div class="flex items-center gap-3 text-sm"><span class="text-foreground/60 w-20 shrink-0">2026 Q3</span><div class="bg-foreground/10 h-5 flex-1 rounded"><div class="h-5 rounded bg-orange-500" style="width:89%"></div></div><span class="w-12 shrink-0 text-right font-bold">23%</span></div>
+</div>
+
+- **Through all of 2024, not a single signed AI commit** touched a workflow file in the cohort.
+- **The jump came in early 2026.** The share quadrupled between the last quarter of 2025 and the first of 2026, and has stayed between a fifth and a quarter of all pipeline changes since.
+- **It is recent everywhere.** For half of the repositories with AI-authored pipeline changes, the first one landed in **April 2026 or later**.
+- **It is already the default for many teams.** In 93 of the 500 repos, the most recent change to the pipeline was AI-authored.
+
+Pipelines are the part of the codebase developers like least and review least. They are exactly what people hand to an agent first.
+
+## Which agents write the pipelines
+
+<div class="my-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="border-border/50 rounded-lg border p-4">
+    <div class="text-2xl font-bold">87%</div>
+    <div class="text-foreground/60 mt-1 text-sm"><strong class="text-foreground">Claude Code</strong>: 2,855 workflow commits, in 183 repos</div>
+  </div>
+  <div class="border-border/50 rounded-lg border p-4">
+    <div class="text-2xl font-bold">6%</div>
+    <div class="text-foreground/60 mt-1 text-sm"><strong class="text-foreground">Cursor</strong>: 213 commits, in 57 repos</div>
+  </div>
+  <div class="border-border/50 rounded-lg border p-4">
+    <div class="text-2xl font-bold">4%</div>
+    <div class="text-foreground/60 mt-1 text-sm"><strong class="text-foreground">GitHub Copilot agent</strong>: 131 commits, in 26 repos</div>
+  </div>
+  <div class="border-border/50 rounded-lg border p-4">
+    <div class="text-2xl font-bold">3%</div>
+    <div class="text-foreground/60 mt-1 text-sm"><strong class="text-foreground">Devin</strong>: 96 commits, in 26 repos</div>
+  </div>
+  <div class="border-border/50 rounded-lg border p-4">
+    <div class="text-2xl font-bold">&lt;1%</div>
+    <div class="text-foreground/60 mt-1 text-sm"><strong class="text-foreground">Codex, Gemini</strong>: 25 commits, in 12 repos</div>
+  </div>
+</div>
+
+Shares are of the 3,281 AI-signed workflow commits. Claude Code dominates partly because it signs every commit by default; agents that don't sign are invisible here, which is one more reason to read these numbers as a floor.
+
+## What AI-written pipelines look like
+
+[TBD once all 500 grades are in. Planned content:]
+
+<div class="my-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+  <div class="border-border/50 rounded-lg border p-4 text-center"><div class="text-2xl font-bold text-green-500">A</div><div class="mt-1 text-xl font-bold">[TBD]%</div></div>
+  <div class="border-border/50 rounded-lg border p-4 text-center"><div class="text-2xl font-bold text-lime-500">B</div><div class="mt-1 text-xl font-bold">[TBD]%</div></div>
+  <div class="border-border/50 rounded-lg border p-4 text-center"><div class="text-2xl font-bold text-yellow-500">C</div><div class="mt-1 text-xl font-bold">[TBD]%</div></div>
+  <div class="border-border/50 rounded-lg border p-4 text-center"><div class="text-2xl font-bold text-orange-500">D</div><div class="mt-1 text-xl font-bold">[TBD]%</div></div>
+  <div class="border-border/50 rounded-lg border p-4 text-center"><div class="text-2xl font-bold text-red-500">E</div><div class="mt-1 text-xl font-bold">[TBD]%</div></div>
+</div>
+
+- **Grade distribution** across the 500 repos, and the share carrying at least one Critical finding: [TBD].
+- **AI-touched vs. no AI signal.** Same grades, split between the 216 repos with AI-authored pipeline changes and the 284 without: [TBD]. Write this honestly whatever it shows. If AI-touched pipelines are no worse, the story is "AI reproduces the same insecure defaults humans did, just faster and at scale".
+- **The three defaults AI keeps copying**, each with its share of repos and an anonymized snippet:
+  - Third-party actions pinned to a tag (`@v4`) instead of a commit SHA: [TBD]% of repos, [TBD]% of all third-party references.
+  - No `permissions:` block, so the job runs with the default token: [TBD]% of workflows.
+  - `actions/checkout` persisting the GitHub token on disk for every later step: [TBD]% of repos.
+- **The rarer but critical ones**: user input injected in `run:` scripts, `pull_request_target` checking out the PR head, whole secrets context exposed: [TBD].
+
+## Why AI writes insecure pipelines
+
+An agent asked to "add a workflow that builds and deploys to AWS" does what it learned from millions of public repositories, and most public pipelines are insecure: in our [State of CI/CD Security 2026](/blog/state-of-cicd-security-2026), 76% of 15k+ public projects graded D or E.
+
+- **It copies the most common pattern, not the safest one.** `uses: actions/checkout@v4` is everywhere in its training data; a pinned SHA with a version comment is rare.
+- **It optimizes for "the pipeline is green".** Narrowing token permissions or pinning dependencies never makes a build pass, so it never comes up unless you ask.
+- **Nobody reviews the YAML.** A pipeline change in a 40-file PR gets skimmed. The agent wrote it, CI passed, it ships.
+- **It is the same attack surface as before, produced faster.** Unpinned third-party actions and over-broad tokens are exactly how [tj-actions/changed-files](/blog/tj-actions-compromised) and [Shai-Hulud](/blog/shai-hulud) spread.
+
+None of this is the developer's fault, and none of it is hard to fix. The fix is a review step that reads the YAML the agent wrote.
+
+## The A-list
+
+Every startup in the cohort received its grade privately, with the findings and the fix. **Repos that reach an A before [TBD: date] will be featured here**, with their permission.
+
+[TBD: table or logo wall of A-graded repos, opt-in only.]
+
+## Grade your own pipeline
+
+1. **Get your grade.** Install the [Plumber CLI](https://github.com/getplumber/plumber) (`brew install getplumber/plumber/plumber`) and run `plumber analyze github.com/OWNER/REPO`, or `plumber analyze` from your repository. `--score-point` shows where every point went.
+2. **Let the agent check the agent.** If an AI writes your workflows, run Plumber in the same PR, so the YAML it produced is graded before it merges.
+3. **Publish it.** Add `score-push: true` to get a verifiable [score page](/docs/plumber-score), and a badge for your README once you hit an A.
+
+<Aside variant="caution" title="Key takeaways">
+
+1. **57% of YC startups from the 2024 to 2026 batches** have pipeline changes co-signed by an AI agent, in 43% of their public repos.
+2. **AI went from 0% to 23% of workflow changes in 18 months**, with the jump in early 2026. That is a floor: unsigned AI output is invisible.
+3. **Claude Code signs 87% of those commits**, followed by Cursor, the Copilot coding agent and Devin.
+4. **[TBD]% of the pipelines grade D or E**, and [TBD]% carry a Critical finding.
+5. **AI reproduces the insecure defaults it learned**: unpinned actions, undeclared permissions, persisted tokens. [TBD: confirm with the cohort split.]
+6. **All of it is configuration.** Reaching an A is typically one PR.
+
+</Aside>
+
+## FAQ
+
+<div class="my-4 space-y-2">
+
+<details>
+<summary>How much CI/CD is written by AI at startups?</summary>
+
+Across 500 public repositories from 277 Y Combinator startups (batches 2024 to 2026), 23% of all commits touching GitHub Actions workflows in the last 90 days carried an AI coding agent's signature, up from 0% in 2024. 57% of the startups have at least one such commit. These are lower bounds: only commits where the agent left its signature are counted.
+
+</details>
+
+<details>
+<summary>How did you detect AI-generated pipeline changes?</summary>
+
+We read every commit that touched `.github/workflows/` since January 2024 and flagged those with a coding agent's marker: Claude Code's `Co-Authored-By` trailer and footer, the GitHub Copilot coding agent account, Cursor's agent trailer, Devin's integration account, the Codex connector, and Gemini Code Assist. Code pasted from a chat assistant or committed by hand leaves no marker and is not counted.
+
+</details>
+
+<details>
+<summary>Are AI-written pipelines less secure than human-written ones?</summary>
+
+[TBD: answer from the AI-touched vs. no-signal split.]
+
+</details>
+
+<details>
+<summary>Why are you not naming the companies?</summary>
+
+The goal is to measure a trend, not to shame early-stage teams. Each company received its own grade and fix privately. Repositories that reach an A are featured with their permission.
+
+</details>
+
+<details>
+<summary>How do I check my own pipeline?</summary>
+
+Run `plumber analyze github.com/OWNER/REPO` with the free, open-source [Plumber CLI](https://github.com/getplumber/plumber). The grade appears in the terminal immediately, with every finding and its fix.
+
+</details>
+
+</div>
+
+<div id="study-metadata">
+<Aside variant="info" title="Study metadata">
+- Snapshot: October 4, 2026 &#183; public repositories on github.com
+- Cohort: 277 Y Combinator companies from the Winter, Spring, Summer and Fall batches of 2024, 2025 and 2026 (company list from the public YC directory), whose GitHub organization was verified by website match or a link from the company's own site under its own name. Companies without a verifiable organization, or without an active public repository running GitHub Actions, are not in the cohort
+- Repositories: 500 public, non-fork, non-archived repositories with at least one workflow and a push in the last 12 months; each company's most-starred one first, then the next most-starred, at most three per company
+- AI signal: 22,475 commits touching `.github/workflows/` since January 1, 2024, 3,281 of them carrying an agent signature. Lower bound by construction
+- Grades: Plumber CLI `[TBD: version]`, default policy, via [Plumber Radar](/radar)
+- Not a random sample of startups: it describes YC companies that build in public, which skews toward developer tools and AI infrastructure
+</Aside>
+</div>
+
+## Related Resources
+
+<div class="my-4 grid gap-2 sm:grid-cols-2">
+
+<a href="/blog/state-of-cicd-security-2026" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">The State of CI/CD Security 2026</strong>
+  <p class="text-foreground/60 mt-1 text-sm">15k+ public pipelines graded A to E: the baseline AI learned from</p>
+</a>
+
+<a href="/blog/plumber-score-cicd-security-standard" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Plumber Score: A Security Standard for CI/CD Pipelines</strong>
+  <p class="text-foreground/60 mt-1 text-sm">How the A to E grade works and why it is built to be a standard</p>
+</a>
+
+<a href="/blog/tj-actions-compromised" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">The tj-actions/changed-files Supply Chain Attack</strong>
+  <p class="text-foreground/60 mt-1 text-sm">What an unpinned third-party action costs when it gets compromised</p>
+</a>
+
+<a href="/radar" class="border-border/50 hover:border-primary-500/50 dark:hover:border-primary-500/30 block rounded-lg border p-4 transition no-underline">
+  <strong class="text-foreground">Plumber Radar</strong>
+  <p class="text-foreground/60 mt-1 text-sm">The live dashboard that graded every repository in this study</p>
+</a>
+
+</div>
