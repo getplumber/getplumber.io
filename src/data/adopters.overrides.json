@@ -1,0 +1,10 @@
+{
+  "//": "Hand edits for the homepage adopter row (src/data/adopters.json is generated at build time by scripts/fetch-adopters.js). `exclude` lists GitHub owner logins to never show. `owners` overrides per owner login (lowercase): `name` for the label, `logo` for an image under public/ when the GitHub avatar is a personal photo rather than a project logo.",
+  "exclude": [],
+  "owners": {
+    "0xjacky": {
+      "name": "nginx-ui",
+      "logo": "/adopters/nginx-ui.png"
+    }
+  }
+}
