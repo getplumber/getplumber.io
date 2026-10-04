@@ -97,6 +97,7 @@
     "tar": "^7.5.22",
     "js-yaml": "^4.3.2",
     "@babel/core": "^7.29.7",
+    "@ai-sdk/provider-utils": "4.0.33",
     "vite": "^8.1.0",
     "@keystatic/astro": {
       "astro": "$astro"
