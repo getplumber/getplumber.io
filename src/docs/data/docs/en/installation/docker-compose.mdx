@@ -257,7 +257,15 @@ The secret is read from your shell and passed with the **name-only** form of `-e
 exec -e PLUMBER_BOOTSTRAP_CLIENT_SECRET` forwards the value of the exported variable without ever
 putting it on the command line, so it stays out of your shell history and out of the process list.
 
-Use `-scope group -root-group <path>` instead of `-scope instance` to connect one root group.
+To connect one root group instead of the whole instance, the same run needs a GitLab access token
+that is Maintainer or above on that group: `plumber-bootstrap` refuses a group without one. Pass it
+the same way as the secret, and it becomes the access token Plumber syncs with:
+
+```bash
+read -rs -p "GitLab access token: " PLUMBER_BOOTSTRAP_TOKEN; echo; export PLUMBER_BOOTSTRAP_TOKEN
+docker compose exec -T -e PLUMBER_BOOTSTRAP_CLIENT_SECRET -e PLUMBER_BOOTSTRAP_TOKEN backend plumber-bootstrap \
+  -base-url https://gitlab.mydomain.com -client-id <application-id> -scope group -root-group <path>
+```
 
 #### Step 8: First login
 
