@@ -149,7 +149,14 @@ docker compose -f compose.local.yml exec -T -e PLUMBER_BOOTSTRAP_CLIENT_SECRET b
   -base-url https://<your-gitlab-url> -client-id <application-id> -scope instance
 ```
 
-Use `-scope group -root-group <path>` to connect a single root group.
+To connect a single root group instead, the same run needs a GitLab access token that is
+Maintainer or above on that group: `plumber-bootstrap` refuses a group without one.
+
+```bash
+read -rs -p "GitLab access token: " PLUMBER_BOOTSTRAP_TOKEN; echo; export PLUMBER_BOOTSTRAP_TOKEN
+docker compose -f compose.local.yml exec -T -e PLUMBER_BOOTSTRAP_CLIENT_SECRET -e PLUMBER_BOOTSTRAP_TOKEN backend plumber-bootstrap \
+  -base-url https://<your-gitlab-url> -client-id <application-id> -scope group -root-group <path>
+```
 
 Open your Plumber test instance at [http://localhost:3000](http://localhost:3000) and sign in
 with GitLab as a [Plumber Admin](/docs/use-plumber/roles-permissions#admin) to finish the

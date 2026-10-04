@@ -310,11 +310,13 @@ together.
      -client-secret <secret> -scope instance
    ```
 
-   Use `-scope group -root-group <path>` to connect a single root group.
+   To connect a single root group, add `-scope group -root-group <path>` and
+   `-token <gitlab-access-token>`, a token that is Maintainer or above on that group:
+   `plumber-bootstrap` refuses a group without one.
 
    <Aside variant="caution">
-   With the manual command the secret is visible in the pod's process list for the duration of the
-   command. The hook Job below reads it from a `Secret` instead.
+   With the manual command the secret, and the token for a group, are visible in the pod's process
+   list for the duration of the command. The hook Job below reads them from a `Secret` instead.
    </Aside>
 
    **Post-install hook Job**: create a Secret with the OAuth application secret (key
@@ -325,6 +327,15 @@ together.
      --from-literal=clientSecret="<application-secret>"
    ```
 
+   To connect a single root group, the Secret also needs a GitLab access token that is Maintainer
+   or above on that group (key `token`), and it becomes the access token Plumber syncs with:
+
+   ```sh
+   kubectl create secret generic plumber-bootstrap -n plumber \
+     --from-literal=clientSecret="<application-secret>" \
+     --from-literal=token="<gitlab-access-token>"
+   ```
+
    ```yaml
    bootstrap:
      enabled: true
@@ -332,7 +343,7 @@ together.
      clientId: <application-id>
      scope: instance                          # or group, with rootGroup
      rootGroup: ''
-     existingSecret: plumber-bootstrap        # keys clientSecret, optional token
+     existingSecret: plumber-bootstrap        # key clientSecret, plus token for a group
    ```
 
    The Job waits for the backend `/readyz`, and the backend's first boot runs the database
