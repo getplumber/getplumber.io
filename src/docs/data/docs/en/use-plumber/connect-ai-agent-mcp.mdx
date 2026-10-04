@@ -25,8 +25,8 @@ your browser session has. An agent can never read something you could not open i
 
 ## Prerequisites
 
-- **Your operator enabled the endpoint.** It is **off by default**: the route is not mounted at all
-  until `PLUMBER_MCP_ENABLED=true` is set on the backend. See
+- **The endpoint is available on your install.** It is **on by default** on every Plumber Platform:
+  your operator can turn it off by setting `PLUMBER_MCP_ENABLED=false` on the backend. See
   [AI agent access (MCP)](/docs/installation/reference#ai-agent-access-mcp) in the configuration
   reference.
 - **You have a personal access token** (step 1 below).
@@ -181,7 +181,7 @@ agent does not turn every read into a write.
 
 | What you get | What it means |
 |---|---|
-| **404**, or the server never connects | The endpoint is not enabled on this install. Ask your operator to set `PLUMBER_MCP_ENABLED=true` |
+| **404**, or the server never connects | Your operator turned the endpoint off (`PLUMBER_MCP_ENABLED=false`). Ask them to remove that setting |
 | **401** `authentication required` | The token itself is not usable: missing or malformed header, unknown, revoked, or expired. Create a fresh token in **Settings** |
 | **401** `provider credential unavailable, re-login required` | Your token is fine, but your GitLab credential behind it could not be refreshed. **Log in to the Plumber web app once in a browser**; the same token then works again, unchanged. Do not create a new one |
 | **405** | The endpoint accepts `POST` only |
