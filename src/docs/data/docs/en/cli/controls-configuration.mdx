@@ -94,6 +94,7 @@ requiredGroups:
 | [`pipelineMustNotExecuteUnverifiedScripts`](#pipelinemustnotexecuteunverifiedscripts) | on | 411 |
 | [`pipelineMustNotUseDockerInDocker`](#pipelinemustnotusedockerindocker) | on | 412, 413 |
 | [`externalRefsMustNotCollide`](#externalrefsmustnotcollide) | on | 402 |
+| [`pipelineMustNotSendSecretsToUntrustedHosts`](#pipelinemustnotsendsecretstountrustedhosts) | on | 311 |
 
 **GitLab**
 
@@ -331,6 +332,32 @@ pipelineMustNotUseDockerInDocker:
 </div>
 
 Flags an include (GitLab) or an action reference (GitHub) whose ref exists both as a tag and as a branch upstream, so what runs is ambiguous. Raises [ISSUE-402](/docs/use-plumber/issues/ISSUE-402) (medium). Without a token the control abstains. No field beyond `enabled`.
+
+### pipelineMustNotSendSecretsToUntrustedHosts
+
+<div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="On by default" variant="tip" />
+  <Badge text="Needs an API token" variant="note" />
+</div>
+
+Flags a script line that hands a secret to a network client (`curl`, `wget`, `nc`, `Invoke-WebRequest`, httpie) aimed at a literal host or IP the policy does not trust. This is the GhostAction shape (GitGuardian, 2025 and 2026): an injected job whose single line posts repository secrets to an attacker-controlled address. A URL that sits only in a trailing, unquoted `#` comment is not a destination. Raises [ISSUE-311](/docs/use-plumber/issues/ISSUE-311) (critical). On GitLab the control needs an API token: it reads which variables are masked from the project settings, and without one it reports not evaluable.
+
+| Field | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Turns the control on. |
+| `trustVcsHosts` | `true` | Trusts the VCS itself as a destination: `github.com`, `api.github.com`, `uploads.github.com`, `ghcr.io` and `*.githubusercontent.com` on GitHub; this instance's host and its container registry on GitLab. |
+| `trustedHosts` | empty | `host[:port]` glob patterns that may receive secrets, for example `*.internal.example.com` or `10.*`. The only way to trust a bare IP, and a numeric-first-label glob like `10.*` matches IP literals only, never a hostname such as `10.attacker.example`. A glob with no port does not cover the same host on a port: `*.internal.example.com` does not trust `a.internal.example.com:8443`, which needs its own `*.internal.example.com:*` entry. |
+
+```yaml
+pipelineMustNotSendSecretsToUntrustedHosts:
+  enabled: true
+  trustVcsHosts: true
+  trustedHosts: []
+  # trustedHosts:
+  #   - "*.internal.example.com"
+```
+
+A destination held in a variable, a line with a network client but no secret, or a secret with no network client is never judged and stays silent. So do `localhost`, any `127.0.0.0/8` address, `::1`, and a single-label host with no dot such as a `services:` alias (`docker`, `postgres`) or a linked container: the secret never leaves the runner, and this is not configurable. Known limits: a four-part version string in request data (`"tag":"1.2.3.4"`) is read as an IP destination; a quoted command word (`"curl"`) or an internationalized domain name is not read.
 
 ## GitLab controls
 
