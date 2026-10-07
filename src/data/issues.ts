@@ -4934,11 +4934,11 @@ or email security@my-org.example. We aim to acknowledge within 48 hours.
       controlConfigKey: "componentMustComeFromAuthorizedSources",
       productScope: "cli",
       description:
-        "An `include: component:` reference is pulled from a source that is not trusted: not on an explicit allowlist, not under the scanned project's own namespace, and not on the same GitLab instance (when that trust is enabled).",
+        "An `include: component:` reference is pulled from a source that is not trusted: not on an explicit allowlist, not under the scanned project's own namespace, not on the same GitLab instance (when that trust is enabled), and not one of GitLab's official namespaces on gitlab.com (when that trust is enabled).",
       impact:
         "Components run arbitrary code with the job's full context — variables, secrets, and CI_JOB_TOKEN. This is the GitLab analogue of a GitHub Actions \"pwn request\": an untrusted component source is a direct supply-chain entry point into every pipeline that includes it.",
       remediation:
-        "Include components only from a trusted source: add the source to `.plumber.yaml` under `componentMustComeFromAuthorizedSources.trustedComponents`, or rely on `trustSameGroupComponents` / `trustSameInstanceComponents` if it already lives in your own namespace or instance.",
+        "Include components only from a trusted source: add the source to `.plumber.yaml` under `componentMustComeFromAuthorizedSources.trustedComponents`, or rely on `trustSameGroupComponents` / `trustSameInstanceComponents` if it already lives in your own namespace or instance, or on `trustGitlabOfficialComponents` for GitLab's official `gitlab.com/components/*` and `gitlab.com/gitlab-org/*` components.",
       badExample: `include:
   - component: gitlab.com/attacker/evil-components/backdoor@1.0.0
 
@@ -4955,7 +4955,8 @@ build:
       goodExampleCaption: "Component trusted: lives under the project's own namespace",
       tips: [
         "trustSameGroupComponents (default true) trusts components under the scanned project's own root namespace.",
-        "trustSameInstanceComponents defaults to true on self-hosted GitLab, false on gitlab.com — a self-hosted instance is already inside the org's trust boundary the way a multi-tenant SaaS host is not.",
+        "trustSameInstanceComponents (default true) trusts any component on the same GitLab instance. It is ignored on gitlab.com, where Plumber always turns it off because every gitlab.com user shares that instance.",
+        "trustGitlabOfficialComponents (default true) trusts GitLab's curated gitlab.com/components/* and gitlab.com/gitlab-org/* namespaces. Only the literal gitlab.com host matches, not a same-named namespace on a self-hosted instance.",
         "Add third-party components you rely on to trustedComponents as an explicit allowlist (wildcards and $VAR/${VAR} notation supported).",
       ],
       relatedCodes: ["ISSUE-415"],
@@ -4986,13 +4987,13 @@ build:
       goodExample: `build:
   run:
     - name: say_hi
-      func: gitlab.com/namespace/my-functions/echo:1.0.0
+      func: $CI_TEMPLATE_REGISTRY_HOST/$CI_PROJECT_PATH/echo:1
       inputs:
         message: "Hi Sally!"`,
       goodExampleCaption: "Function trusted: lives under the project's own namespace",
       tips: [
-        "trustSameGroupFunctions (default true) trusts functions hosted on the scanned GitLab instance, under the project's own root namespace.",
-        "The shipped default allowlists $CI_TEMPLATE_REGISTRY_HOST/$CI_PROJECT_PATH/* (both $VAR and ${VAR} notation) so a project's own function registry is trusted out of the box.",
+        "trustSameGroupFunctions (default true) trusts functions under the project's own root namespace, hosted on the scanned instance's container registry (the supported OCI form, e.g. registry.gitlab.com) or its web host (the deprecated git form).",
+        "The shipped default allowlists $CI_TEMPLATE_REGISTRY_HOST/$CI_PROJECT_PATH/* (both $VAR and ${VAR} notation) so a project's own function registry is trusted out of the box. A pattern is rejected if the pipeline redefines a $CI_* variable it references, in the global variables: or the job's own variables:.",
         "A deprecated reference form (step: instead of func:, or a deprecated git-repository ref) is tracked separately as a terminal stat — it does not by itself trigger this control.",
         "Local (filesystem-path) function references are always out of scope.",
       ],
