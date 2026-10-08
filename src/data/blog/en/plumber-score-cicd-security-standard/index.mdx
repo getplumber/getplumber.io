@@ -77,17 +77,17 @@ SAST answers "is the code safe." DAST answers "is the runtime safe." Until now, 
 
 **Plumber Score is an A–E security grade for a CI/CD pipeline**, computed by the open-source [Plumber CLI](https://github.com/getplumber/plumber) on every scan, locally or in CI. It reads your `.gitlab-ci.yml` or `.github/workflows/*.yml` and evaluates it against pipeline-security controls: hardcoded jobs, mutable image tags, Docker-in-Docker, unverified remote scripts, weakened security jobs, unpinned actions, dangerous triggers, and more.
 
-Every scan starts at 100 points, each open issue subtracts points by severity, and the total maps to a letter anyone can read:
+Every scan starts at 100 points. Plumber assembles its findings into attack paths (who can get into one of your jobs, and what they reach there), charges each path for what it reaches, and the total maps to a letter anyone can read:
 
 <Image src={gradeScale} alt="The Plumber Score scale: A excellent with very low risk, B good with a few low issues, C moderate and worth fixing, D poor with high-severity issues, E critical" width={780} densities={[1, 2]} quality={92} class="mx-auto rounded-xl" />
 
 A standard has to be more than accurate. It has to be trustworthy at a glance, so Plumber Score is designed around three properties:
 
 - **Immediately legible.** A–E is the same shorthand as Nutri-Score or restaurant hygiene grades. Nobody needs a glossary to know a D is bad.
-- **Hard to game.** **A single Critical finding forces the grade to E**, no matter how many other controls pass. A privileged Docker-in-Docker service or one `curl | bash` from an untrusted source, and the grade reads E, full stop. Repeated issues taper off, but distinct issues each keep costing points.
+- **Hard to game.** **A single Critical attack path forces the grade to E**, no matter how many other controls pass: a way for someone outside your team to run code in a job that holds a secret or a write token and publishes, deploys or writes to the repository, and the grade reads E, full stop. Findings on no path still cost points, worst first, so distinct problems keep costing.
 - **Independently verifiable.** Every published score has a public page at `score.getplumber.io` showing when it was computed, on which branch, and under which policy, and it discloses when a project used a customized scanning configuration instead of the default one.
 
-The scoring model itself is open source and versioned (profile id `scoring-v3`). The exact weights, caps, and malus rules live in the [scoring documentation](/docs/plumber-score#how-is-the-score-determined), and `plumber analyze --score-point` prints the per-issue breakdown for your own pipeline.
+The scoring model itself is open source and versioned (profile id `scoring-v4`). The attack path tiers, the prices and the limits live in the [scoring documentation](/docs/plumber-score#how-is-the-score-determined), and `plumber analyze --score-point` prints the arithmetic for your own pipeline.
 
 ## A standard works both ways: prove yours, check theirs
 
@@ -181,7 +181,7 @@ Because the pipeline is the only stage of software delivery without one. Code is
 <details>
 <summary>How is Plumber Score calculated?</summary>
 
-Every scan starts at 100 points. Each open issue subtracts points based on its severity (Critical, High, Medium, Low), with repeated occurrences of the same issue tapering off rather than stacking linearly. If any Critical issue is present, final points are capped at 30, which forces the grade into the E band. The resulting points map to a letter from A (90 or above, excellent) to E (below 31, critical). The full algorithm, profile id `scoring-v3`, is documented in the [scoring specification](https://github.com/getplumber/plumber/blob/main/docs/scoring.md).
+Every scan starts at 100 points. Plumber assembles its findings into attack paths and charges each path by its tier (Critical 30, High 15, Medium 6, Low 3); findings on no path cost their own severity's price, 30 points at most together. If any attack path is Critical, final points are capped at 30, which forces the grade into the E band. The resulting points map to a letter from A (90 or above, excellent) to E (below 31, critical). The full algorithm, profile id `scoring-v4`, is documented in the [scoring specification](https://github.com/getplumber/plumber/blob/main/docs/scoring.md).
 
 </details>
 
@@ -223,7 +223,7 @@ Yes. The Plumber CLI supports both providers natively, and both the GitHub Actio
 <details>
 <summary>Can a project game a good Plumber Score?</summary>
 
-It's designed to resist that. A single Critical finding, such as a privileged Docker-in-Docker service or a security scanner silently weakened with `allow_failure: true`, caps the grade at E regardless of how many other controls pass. Per-issue caps prevent one noisy finding from dominating the score, but distinct problems each carry their own weight. And if a project publishes with a customized scanning policy instead of Plumber's default one, that's disclosed on its public score page.
+It's designed to resist that. A single Critical attack path, a way for someone outside the team to run code in a job that holds a secret or a write token and publishes, deploys or writes to the repository, caps the grade at E regardless of how many other controls pass. Findings on no path are limited to 30 points together, so one noisy finding cannot dominate the score, but every path keeps its own price. And if a project publishes with a customized scanning policy instead of Plumber's default one, that's disclosed on its public score page.
 
 </details>
 

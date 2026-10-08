@@ -57,7 +57,7 @@ Two ways to scan a GitHub repository:
    plumber analyze
    ```
 
-4. **Read your Plumber score**: an A–E grade with a per-control breakdown, plus an optional JSON report, PBOM, and CycloneDX SBOM (see [Example Output](#example-output)).
+4. **Read your Plumber score**: the attack paths Plumber found, the individual findings, and the A–E grade they lead to, plus an optional JSON report, PBOM, and CycloneDX SBOM (see [Example Output](#example-output)).
 </Steps>
 
 
@@ -153,7 +153,7 @@ Override any input to fit your needs:
 | `config-file` | _(auto-detect)_ | Path to a `.plumber.yaml`. Default: the repo's `.plumber.yaml` if present, otherwise the [built-in default config](/docs/cli/configuration#no-configuration) (zero-config runs work out of the box) |
 | `controls` | - | Run only these controls (comma-separated). Mutually exclusive with `skip-controls` |
 | `skip-controls` | - | Skip these controls (comma-separated). Mutually exclusive with `controls` |
-| `score` | `false` | Add the full per-issue-code points breakdown on top of the score banner. Off by default; set `true` to include it |
+| `score` | `false` | Add the points arithmetic to the Score section (the subtraction, the limits that held, what each issue code and each path tier took off), the same as `plumber analyze --score-point`. Off by default; set `true` to include it |
 | `score-push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)) via CI-native OIDC (**no secret**). The workflow MUST grant `permissions: id-token: write`. Every run that has score push enabled publishes its result for its branch. The public badge and the project's score follow the default branch only: a merge-request or pull-request run is stored under its branch and never changes the badge. Warns (never fails) on error. See [Plumber Score](/docs/plumber-score) |
 | `score-endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
 | `platform` | - | Plumber Platform base URL. Setting it pushes this run's full results there over CI-native OIDC, and takes precedence over `score-push`. The workflow MUST grant `permissions: id-token: write` |
@@ -189,7 +189,7 @@ Use outputs in downstream steps:
 When `upload-sarif` is `true` (the default), the action uploads a SARIF 2.1.0 report to [GitHub Code Scanning](https://docs.github.com/en/code-security/code-scanning). Each Plumber finding becomes an alert in the **Security** tab with:
 
 - The issue code as the rule ID (e.g. `ISSUE-701`)
-- Severity mapped to SARIF level (`error`, `warning`, `note`) and a numeric `security-severity` for triage
+- Severity mapped to SARIF level (`error`, `warning`, `note`) and a numeric `security-severity` for triage. The severity is the finding's contextual one (a finding on an [attack path](/docs/plumber-score#attack-paths) takes the path's tier); the issue's own severity rides in the result properties as `plumber/baseSeverity`, with `plumber/role` and `plumber/pathIds`
 - File location pointing at the workflow YAML line
 - A `helpUri` linking to the issue's documentation page on getplumber.io
 
@@ -340,13 +340,46 @@ plumber analyze \
 
 ### Example Output
 
-The CLI output is color-coded in your terminal for easy scanning: green for passing controls, red for failures.
+The report is read from the bottom: the **Score** section closes it, the attack paths and the individual findings sit right above it, and the passed and skipped controls open it. Output is color-coded in your terminal: green for passing controls, red for the attack paths and the findings. A real run on a public repository whose default branch is not protected:
+
+```text
+────────────────────
+✗ Attack paths (1)
+────────────────────
+
+ HIGH  Attack path 1
+       Entry  main (branch anyone with write access can push to, not protected)
+       │
+       ├──▶ runs in job `lint` from workflow `ci.yml`
+       │    └─▶ reaches a token with push and publish access (assumed: no permissions block)
+       ├──▶ runs in job `smoke-install` from workflow `ci.yml`
+       │    └─▶ reaches a token with push and publish access (assumed: no permissions block)
+       └──▶ runs in job `test` from workflow `ci.yml`
+            └─▶ reaches a token with push and publish access (assumed: no permissions block)
+
+       So     as anyone with write access to `main`,
+              an attacker may execute code to push in your repository and publish packages
+       Note   Plumber could not check that the token can write (no permissions block)
+       Fix    protect the default branch
+       ↳ details: run `plumber explain -a 1`
+
+────────────────────
+Score
+────────────────────
+
+ ██████╗   Plumber Score  85 / 100  ███████████████████████░░░░░
+ ██╔══██╗  Status: FAILED (gate blocks at 100 pts)
+ ██████╔╝
+ ██╔══██╗  Worst case: as anyone with write access to `main`, an attacker may execute code to push
+ ██████╔╝  in your repository and publish packages (attack path 1: main)
+ ╚═════╝   Best fix: protect the default branch (push to main), +15 pts, 100 / 100 (A)
+```
+
+Each attack path names its **entry** (what to search for in your workflows), the jobs it enters and what an attacker reaches there, what that means (`So`) and one thing to do (`Fix`). `plumber explain -a 1` prints the path again with every finding on it. How the paths and the individual findings turn into points is explained on the [Plumber Score](/docs/plumber-score#how-is-the-score-determined) page.
 
 <Aside variant="tip">
-  When using `--output`, results are saved as JSON for programmatic access and CI/CD integration.
+  When using `--output`, results are saved as JSON for programmatic access and CI/CD integration, attack paths included (`plumberScore.paths` and `pathBlocks`, see the [JSON report structure](/docs/cli/reference#json-report-structure)).
 </Aside>
-
-![Plumber CLI output showing analysis results](../img/cli-gh-output.png)
 
 ### Example Configuration
 
@@ -620,7 +653,7 @@ The complete, always-current catalogs and command reference:
 | Configuration file not found | Ensure `--config` points at the real file (use an absolute path in Docker). Create one with `plumber config generate` or `plumber config init` |
 | Configuration warnings | Run `plumber config validate` to list unknown keys and invalid values |
 | No repo-level findings on a local scan | Without a token a local scan checks workflow contents only. Run `gh auth login` or set `GH_TOKEN` to add branch protection and action-metadata checks |
-| Need details on a finding | Run `plumber explain ISSUE-XXX` for its description and remediation |
+| Need details on a finding | Run `plumber explain ISSUE-XXX` for its description and remediation; `plumber explain -a N` prints attack path `N` of the last run with every finding on it |
 | SARIF upload fails with 403 | The job needs `security-events: write` permission. Add it under the workflow or job-level `permissions:` block |
 | Attestation verification fails | The runner cannot reach sigstore or `gh` CLI is not installed. Set `verify-attestation: "false"` to skip |
 | Score badge not published | `score-push` needs `permissions: id-token: write` in the workflow. The **public badge** only reflects your default branch; pull request runs can't publish (their OIDC token has no branch ref), so the badge updates when the PR merges. A local run never publishes. The push warns, never fails, when the token or permission is missing. See [Plumber Score](/docs/plumber-score) |

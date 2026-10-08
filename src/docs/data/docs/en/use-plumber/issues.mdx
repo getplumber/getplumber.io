@@ -17,6 +17,8 @@ Every issue is raised by a control and has a unique `ISSUE-XXXX` identifier. The
 
 Click any issue for its full description, impact, before/after configuration examples, and remediation steps. Pick a provider tab below, or **All** for every issue code once, whichever provider raises it.
 
+The severity shown here is the issue's own. In a report, a finding that is part of an [attack path](/docs/plumber-score#attack-paths) shows the path's tier instead, and a finding on no path shows its own severity; every output keeps the issue's own severity next to the contextual one as `baseSeverity`.
+
 <ProviderTabs includeAll={true} />
 
 
