@@ -28,9 +28,8 @@ realistic consequences, not a flat count of findings.
 | <span class="font-bold text-orange-500 dark:text-orange-400">D</span> | **Poor**: significant accumulated exposure |
 | <span class="font-bold text-red-400 dark:text-red-300">E</span> | **Critical**: a Critical attack path remains, or heavy accumulated losses |
 
-A grade from A to D does not say how many attack paths there are, or of which
-kind. An **E needs at least one Critical item**: a Critical attack path keeps the
-score at 30 points or below, and only Critical items can take it under 31.
+A grade from A to D says nothing about the number of paths. An **E needs a
+Critical item**: a Critical attack path keeps the score at 30 points or below.
 
 ## Publish your score
 
@@ -437,14 +436,11 @@ with the correct workflow `permissions` and `score-push` enabled in the action
 
 ## How is the score determined?
 
-Plumber computes a **contextual score**. Instead of adding up findings, it
-assembles them into **attack paths** (a way for someone outside your team to run
-code in one of your jobs and reach what that job holds or changes) and charges
-each path for what it reaches. Findings that are not part of any path still cost
-points, but much less, and never enough on their own to produce an E.
+Plumber does not add up findings. It assembles them into **attack paths** and
+charges each path for what an attacker could reach. Findings outside any path
+cost less and can never produce an E on their own.
 
-Every run starts at a perfect **100 points**. The remaining points map to the
-A-E grade:
+Every run starts at **100 points**. The remaining points map to the A-E grade:
 
 | Grade | Points |
 |:-----:|:------:|
@@ -456,80 +452,58 @@ A-E grade:
 
 ### Attack paths
 
-A path reads **entry, job, reach**:
+A path reads **entry, job, reach**.
 
-- **Entry**: a finding that lets someone outside your team put code or input into
-  a job. A dependency that can change without a commit in your repository (an
-  action, a reusable workflow, a container image, an include or template, a
-  script fetched at build time), an expression an attacker controls that ends up
-  in a script (a pull request title, a merge request description), a privileged
-  trigger that runs fork code (`pull_request_target` and the like), a cache an
-  untrusted run can write and a release job restores, or an unprotected branch
-  that runs a job on every push.
-- **Walk**: from that job to the jobs it feeds, through `needs`, an artifact or
-  a shared cache.
-- **Reach**: what the walked jobs hold (secrets, a write token, an OIDC token)
-  and what they change (a publish, a deploy, a release, a write to the
-  repository).
+- **Entry**: how someone outside your team gets code or input into a job. A
+  dependency that can change without a commit (an action, an image, an include,
+  a script fetched at build time), an expression an attacker controls in a script
+  (a pull request title), a privileged trigger that runs fork code, a cache an
+  untrusted run can write, an unprotected branch.
+- **Walk**: the jobs that job feeds, through `needs`, an artifact or a cache.
+- **Reach**: what those jobs hold (secrets, a write token, an OIDC token) and what
+  they change (a publish, a deploy, a release, a write to the repository).
 
-One entry makes **one** path, however many jobs it enters: one thing to fix, one
-path, charged once. Each job the entry enters is a branch of the path with its own
-reach; the path takes the tier of its strongest branch.
+One entry makes one path, whatever the number of jobs it enters: one thing to
+fix, charged once. The path takes the tier of its strongest branch.
 
 | Tier | The path reaches |
 |------|------------------|
-| **Critical** | secrets or a write token **and** something the job changes (a publish, a deploy, a release, a write to the repository). An entry that anyone opening a pull request controls needs a secret or any write token alone |
-| **High** | secrets or a write token, or something the job changes, but not both; or code execution alone in a job that holds nothing (the runner can be abused, its cache or artifacts poisoned) |
-| **Medium** | a High path that one of the limits below lowered |
-| **Low** | the entry exists, but no code of the attacker runs |
+| **Critical** | secrets or a write token, **and** something the job changes. For an entry anyone can use from a pull request, a secret or a write token alone |
+| **High** | one of the two: secrets or a write token, or something the job changes. Code execution alone is also High |
+| **Medium** | a High path held down by one of the limits below |
+| **Low** | the entry exists, but no attacker code runs |
 
-A few facts move a path by one tier, or hold it under a ceiling:
+Some facts move a path one tier, or hold it under a ceiling:
 
-- **A dependency that can change** never makes a Critical path on its own, since
-  changing what runs takes a compromise of the dependency first. A reference that
-  is only not pinned (an action without a commit SHA, an image on a mutable tag or
-  without a digest) is **Medium at most**; the same reference from a source
-  outside your authorized list is **High at most**; a dependency known to be bad (a
-  published security advisory on the pinned version, a pinned commit that is not
-  in the action's repository, an action that hides a remote fetch) is not held
-  back.
-- **A push to an unprotected branch** is **High at most**: pushing needs an account
-  with write access.
-- **A cache an untrusted run can write** inherits the ceiling of the paths that
-  enter the jobs able to write it: poisoning the cache takes getting into one of
-  them first.
-- **An unprotected branch or a missing environment approval** takes a path up one
-  tier when the path can do damage the protection would have stopped. An
-  environment is a protection, never an impact by itself.
-- **A private repository** takes a path that needs a contributor down one tier.
-  **A fact Plumber could not settle** (an unknown permission default, a branch
-  protection it could not read, an image named by an expression) takes the path
-  down one tier and marks it **unverified**.
+- **A dependency that can change** never makes a Critical path alone. Not pinned:
+  Medium at most. Not pinned and from an unauthorized source: High at most. Known
+  bad (a published advisory, a commit absent from the action's repository, a
+  hidden remote fetch): no ceiling.
+- **A push to an unprotected branch**: High at most, pushing needs write access.
+- **A poisoned cache** inherits the ceiling of the paths that reach the jobs able
+  to write it.
+- **A missing branch protection or environment approval** raises a path one tier
+  when it would have stopped the damage. An environment is never an impact by
+  itself.
+- **A private repository** lowers a path that needs a contributor by one tier. A
+  fact Plumber could not settle lowers the path one tier and marks it unverified.
 
-Plumber also applies what the CI platform itself guarantees: a GitHub pull
-request from a fork gets no secrets and a read-only token (unless the workflow
-also runs on a privileged trigger), and a GitLab merge request from a fork never
-sees protected variables.
+Plumber also applies what the platform guarantees: a fork pull request on GitHub
+gets no secrets and a read-only token, a fork merge request on GitLab never sees
+protected variables.
 
 ### Individual findings
 
-Every finding that no path uses is an **individual finding**: a protection with
-no path to amplify, a hard-coded password, a permission or credential on a job no
-path reaches, a hygiene issue. It costs its own severity's price, and all
-individual findings together count for **at most 30 points**, the worst first.
+A finding on no path is an **individual finding**. It costs its own severity's
+price, and all individual findings together cost **at most 30 points**, worst
+first.
 
-A finding that a path uses costs nothing more on its own: the findings that start
-a path, a protection that amplifies it, and a credential or permission held by a
-job the path walks are all charged through the path.
-
-The severity each finding shows is the severity it is charged at. A finding that
-starts a path shows the tier of the strongest path it starts; a credential or
-permission on a job a path walks shows that path's tier; every other finding shows
-its own severity, with two contextual readings: a missing branch protection
-(`ISSUE-501`) is Critical on the default branch and High on any other, and an
-action from an owner outside the authorized list (`ISSUE-713`) is High, or Medium
-when it is pinned by a full commit SHA. Every output keeps the issue's own
-severity next to the contextual one as `baseSeverity`.
+A finding on a path costs nothing more: the path pays for it. Each finding shows
+the severity it is charged at, so a finding on a path shows the path's tier. Two
+findings read their severity from context: a missing branch protection
+(`ISSUE-501`) is Critical on the default branch and High elsewhere, an action
+from an unauthorized owner (`ISSUE-713`) is Medium when pinned by a full commit
+SHA and High otherwise. Outputs keep the issue's own severity as `baseSeverity`.
 
 ### The formula
 
@@ -544,189 +518,55 @@ severity next to the contextual one as `baseSeverity`.
 | Medium individual finding | 5 |
 | Low individual finding | 2 |
 
-Individual findings are counted within their 30-point budget, worst first; what
-does not fit is not counted. Critical items (paths and the Critical individual
-findings within that budget) are never limited. Every other item, path or
-individual finding alike, enters one nested limit by severity:
-
 ```text
-lost = Critical + min(69, High + min(49, Medium + min(29, Low)))
-rawPoints = max(0, 100 − lost)
-finalPoints = min(rawPoints, 30) while at least one attack path is Critical,
-              rawPoints otherwise
+lost   = Critical + min(69, High + min(49, Medium + min(29, Low)))
+points = max(0, 100 − lost), capped at 30 while an attack path is Critical
 ```
 
-where `High`, `Medium` and `Low` are the summed prices of every non-Critical item
-of that severity, paths and individual findings together. The letter is read from
-`finalPoints`.
+`High`, `Medium` and `Low` are the summed prices of the non-Critical items of
+that severity, paths and individual findings together, the individual findings
+within their 30-point budget.
 
-The nested limit is what makes the letters mean something: with no Critical item
-anywhere the grade is D or better, with no High item C or better, with nothing
-above Low B or better. Moving one item down a tier never lowers the score.
-Dismissed findings cost nothing, and several occurrences of the same finding count
-once.
+The nested limit gives the letters their meaning: no Critical item, D or better;
+no High item, C or better; nothing above Low, B or better. Moving an item down a
+tier never lowers the score. Dismissed findings cost nothing, and repeated
+occurrences of one finding count once.
 
 <Aside variant="caution" title="A Critical attack path forces an E">
-While at least one attack path is Critical, final points are capped at **30**, so
-the grade cannot read better than **E**, however clean the rest of the pipeline is.
-A Critical *individual finding* costs its 20 points and forces nothing: an E
-always means a Critical path remains, or that Critical items took the score below
-31.
+While an attack path is Critical, final points are capped at **30** and the grade
+reads **E**. A Critical individual finding costs its 20 points and forces nothing.
 </Aside>
 
-**A worked example.** A public repository whose `plumber` workflow runs on every
-push to `main` with an `id-token` and a `security-events` write token, while
-`main` is not protected. Its `ci/build` job runs on pull requests with a read
-token and no secret; it puts the pull request title in a shell, runs
-`node:latest`, pipes a script from the network into `bash`, and uses a pinned
-`tj-actions/changed-files` that carries a published advisory.
+**Example.** A public repository: `main` is unprotected and its `plumber` job
+runs on every push with write tokens. Its `ci/build` job runs on pull requests
+with a read token, puts the pull request title in a shell, pipes a script from
+the network into `bash`, runs `node:latest` and an action with a published
+advisory.
 
-- One **High** path: a push to the unprotected `main` runs the `plumber` job and
-  its write token. The checkout credentials that job keeps are part of the same
-  path and cost nothing more.
-- Three **High** paths into `ci/build`, a job holding nothing: the title in the
-  shell, the fetched script, and `tj-actions/changed-files` (two findings, one
-  path). Running someone else's code in the pipeline is High even with no secret
-  in reach.
-- One **Medium** path: `node:latest` (two findings, one path) is only not pinned,
-  so it is held at Medium.
-- No individual finding.
+- One High path: a push to `main` reaches the write tokens.
+- Three High paths into `ci/build`: the title in the shell, the fetched script,
+  the action with the advisory. Code execution alone is High.
+- One Medium path: `node:latest`, only not pinned.
 
-4 × 15 + 6 = 66, under the 69 that high, medium and low items count for at most:
-**100 − 66 = 34, D.** Fixing the title in the shell gives back its 15: 49, still D.
+4 × 15 + 6 = 66: **100 − 66 = 34, D**. Fixing the title in the shell gives back
+15 points: 49, still D.
 
-### What the report shows
-
-The terminal report is read from the bottom: the score is the last thing it
-prints, and the details sit above it, in this order.
-
-1. **Individual findings**, one block per issue code: the severity, the code and
-   its title, one branch per finding with where it is, then what it means (`So`),
-   the fix (`Fix`) and the documentation link.
-
-   ```text
-   ────────────────────
-   ✗ Individual findings (3)
-   ────────────────────
-
-    LOW   ISSUE-307  Checkout persists credentials in .git/config (latent) (3 findings)
-          │
-          ├──▶ job `prepare` from workflow `release.yml`: runs
-          │    "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" without
-          │    `persist-credentials: false`
-          │    ↳ at https://github.com/yt-dlp/yt-dlp/blob/master/.github/workflows/release.yml#L87
-          ├──▶ job `publish` from workflow `release.yml`: runs
-          │    "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" without
-          │    `persist-credentials: false`
-          │    ↳ at https://github.com/yt-dlp/yt-dlp/blob/master/.github/workflows/release.yml#L243
-          └──▶ job `update_wiki` from workflow `wiki.yml`: runs
-               "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" without
-               `persist-credentials: false`
-               ↳ at https://github.com/yt-dlp/yt-dlp/blob/master/.github/workflows/wiki.yml#L21
-
-          So     GITHUB_TOKEN lingers in .git/config (latent; becomes a leak if a later step packs .git
-                 into an artifact or runs fork-controlled code)
-          Fix    set persist-credentials: false on the checkout
-          ↳ docs: https://getplumber.io/docs/cli/issues/ISSUE-307
-   ```
-
-2. **Attack paths**, one block per path, numbered worst first (path 1 is the
-   worst and prints last, right above the score). Each block is a small graph: the
-   tier and the path number, the `Entry` (what you can search for in your
-   workflow, then what it is), one branch per job the entry enters with what an
-   attacker there reaches, then `So` (who gets in and what they can do), `Note`
-   (what Plumber could not check, when something), `Fix` (one thing to do) and the
-   command that lists the path's findings.
-
-   ```text
-    HIGH  Attack path 1
-          Entry  CodSpeedHQ/action@v4 (external action that downloads code at run time from a mutable source)
-          │
-          └──▶ runs in job `benchmarks` from workflow `codspeed.yml` ─▶ reaches an OIDC token
-
-          So     if this action is compromised, an attacker can execute code to request an OIDC token
-          Fix    pin what the action downloads, or vendor it
-          ↳ details: run `plumber explain -a 1`
-   ```
-
-3. **Score**, the last section: the points and the bar, the verdict against the
-   gate, the **worst case** (what attack path 1 means) and the **best fix** (the
-   single fix that recovers the most points, with the points and grade it leads
-   to).
-
-   ```text
-   ────────────────────
-   Score
-   ────────────────────
-
-    ██████╗   Plumber Score  34 / 100  █████████░░░░░░░░░░░░░░░░░░░
-    ██╔══██╗  Status: FAILED (gate blocks at 100 pts)
-    ██║  ██║
-    ██║  ██║  Worst case: as anyone with write access to `main`, an attacker can execute code to write
-    ██████╔╝  to security events and request an OIDC token (attack path 1: main)
-    ╚═════╝   Best fix: move to a version without the advisory (action
-              tj-actions/changed-files@2d756ea4c53f), +15 pts, 49 / 100 (D)
-   ```
-
-`plumber explain -a 1` prints attack path 1 again with every finding on it, read
-from the last run without analyzing again; `-a all` prints every path. See
-[`plumber explain`](/docs/cli/reference#plumber-explain).
-
-For the arithmetic, run `plumber analyze --score-point`: the Score block then adds
-the subtraction (`100 - 15 (attack paths) - 10 (individual findings)`), one line
-for each limit that held, and one line per issue code and per path tier with what
-it took off. The [JSON report](/docs/cli/reference#json-report-structure) carries
-every one of these figures with or without the flag.
+In the report, each attack path ends with the command that prints its findings
+in full: [`plumber explain -a N`](/docs/cli/reference#plumber-explain).
 
 <Aside variant="info" title="When no score is produced">
-A run whose data collection was degraded, or that evaluated no control at all,
-has no basis for a score: the terminal says the score is withheld, no attack path
-is printed, and the JSON report, the run cache and the PBOM carry no score.
+A run whose data collection was degraded, or that evaluated no control, gets no
+score: the report says so, and the JSON report, the run cache and the PBOM carry
+none.
 </Aside>
 
 The [Plumber Platform](/docs/installation) stores the score the CLI pushes and
-shows it as it is; it never recomputes one.
-
-### The previous score
-
-The previous formula priced every issue code by its severity, with no attack
-paths. It is still available as the `v3` profile: `plumber analyze
---score-profile v3` (or `PLUMBER_ANALYZE_SCORE_PROFILE=v3`). The output then
-carries `profileId: "scoring-v3"`, findings keep their own severity, and the
-badge, the merge request comment and the `--min-score` / `--min-points` gates
-read that score instead. The default profile is `v4`, the contextual score
-(`profileId: "scoring-v4"`).
-
-<details>
-<summary>How the previous score is computed</summary>
-
-Each severity has a weight, and repeated occurrences of the *same* issue code
-taper off (capped):
-
-| Severity | Points lost (first occurrence) | Cap per issue code |
-|----------|:------------------------------:|:------------------:|
-| Critical | 25 | none |
-| High     | 15 | 60 |
-| Medium   | 6  | 20 |
-| Low      | 3  | 10 |
-
-For a code seen `n` times, with weight `w` and cap `C`:
-
-```text
-loss = min(w × (1 + 0.5 × log2(n)), C)     # Critical has no cap
-rawPoints = max(0, 100 − sum of every code's loss)
-```
-
-While any Critical issue exists, final points are capped at 30, so the grade
-reads E.
-
-</details>
+never recomputes one.
 
 ## Gate your CI on the score
 
 The score is what passes or fails a `plumber analyze` run (exit code 1 on
-failure). The gate reads the score you selected: the contextual score by default,
-the previous score under `--score-profile v3`.
+failure).
 
 - `--min-score <A-E>` is the main gate: the run fails when the letter is below
   the one you set. `--min-score B` fails on C, D, E.
