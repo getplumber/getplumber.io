@@ -1,6 +1,8 @@
 /**
  * Legacy GitHub issue URLs (pre–category renumber) → current codes.
  * Used for 301 redirects on issue detail pages.
+ * A code that is reused for a new issue (ISSUE-414, ISSUE-415) is dropped
+ * here: its canonical page wins.
  */
 export const issueCodeRedirects: Record<string, string> = {
   "ISSUE-104": "ISSUE-701",
@@ -18,9 +20,7 @@ export const issueCodeRedirects: Record<string, string> = {
   "ISSUE-112": "ISSUE-712",
   "ISSUE-206": "ISSUE-207",
   "ISSUE-304": "ISSUE-801",
-  "ISSUE-414": "ISSUE-802",
   "ISSUE-509": "ISSUE-803",
-  "ISSUE-415": "ISSUE-804",
   "ISSUE-416": "ISSUE-417",
   "ISSUE-602": "ISSUE-418",
   "ISSUE-603": "ISSUE-419",
