@@ -57,7 +57,7 @@ Two ways to scan a GitLab project:
    plumber analyze
    ```
 
-4. **Read your Plumber score**: an A–E grade with a per-control breakdown, plus an optional JSON report, PBOM, and CycloneDX SBOM (see [Example Output](#example-output)).
+4. **Read your Plumber score**: the attack paths Plumber found, the individual findings, and the A–E grade they lead to, plus an optional JSON report, PBOM, and CycloneDX SBOM (see [Output](#output)).
 </Steps>
 
 
@@ -282,7 +282,7 @@ The `controls` / `skip_controls` inputs map to the CLI `--controls` / `--skip-co
 | `mr_comment` | `false` | Post/update a Plumber comment on the merge request (requires `api` scope) |
 | `badge` | `false` | Create/update a Plumber letter-score badge (requires `api` scope; default branch only) |
 | `score` | `false` | Deprecated no-op. The Plumber score is shown by default now; kept so pipelines that already set it do not break. Use `score_point` for the full points breakdown |
-| `score_point` | `false` | Add the full points breakdown to stdout and the MR comment (the score banner is shown by default) |
+| `score_point` | `false` | Add the points arithmetic to the Score section and the MR comment (the subtraction, the limits that held, what each issue code and each path tier took off); the score itself is shown by default |
 | `score_push` | `false` | Publish this repo's Plumber Score to the hosted badge service ([score.getplumber.io](https://score.getplumber.io)). Uses CI-native OIDC (**no secret**); the component mints the id-token. Every run that has score push enabled publishes its result for its branch. The public badge and the project's score follow the default branch only: a merge-request or pull-request run is stored under its branch and never changes the badge. Warns (never fails) on error. See [Plumber Score](/docs/plumber-score) |
 | `score_endpoint` | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the OIDC audience follows this value so it always matches the target |
 | `platform` | `https://platform.invalid` | Plumber Platform base URL. Setting it pushes this run's full results there over CI-native OIDC, and takes precedence over `score_push`. The default is a placeholder (an RFC 2606 `.invalid` host) that never enables a push: GitLab requires a non-empty `id_tokens` audience, so this input cannot default to empty. In platform mode only the platform's policies are evaluated and the platform's gate decides the exit code |
@@ -407,13 +407,51 @@ plumber analyze \
 
 ### Output
 
-The CLI output is color-coded in your terminal for easy scanning: green for passing controls, red for failures.
+The report is read from the bottom: the **Score** section closes it, the attack paths and the individual findings sit right above it, and the passed and skipped controls open it. Output is color-coded in your terminal: green for passing controls, red for the attack paths and the findings. A private project with a single job running on `docker.io/alpine:latest`, whose settings variables Plumber could not read, and a branch that should be protected:
+
+```text
+────────────────────
+✗ Individual findings (1)
+────────────────────
+
+ HIGH  ISSUE-501  Branch protection missing
+       │
+       └──▶ Branch `dev` is not protected.
+
+       Fix    protect the branch
+       ↳ docs: https://getplumber.io/docs/cli/issues/ISSUE-501
+
+────────────────────
+✗ Attack paths (1)
+────────────────────
+
+ HIGH  Attack path 1
+       Entry  docker.io/alpine:latest (mutable image tag)
+       │
+       └──▶ runs in job `build` ─▶ reaches secrets Plumber could not list
+
+       So     if this image is compromised, an attacker can read the secrets Plumber could not list
+       Note   Plumber could not list the secrets
+       Fix    pin the image by digest
+       ↳ details: run `plumber explain -a 1`
+
+────────────────────
+Score
+────────────────────
+
+  ██████╗  Plumber Score  75 / 100  █████████████████████░░░░░░░
+ ██╔════╝  Status: FAILED (gate blocks at 100 pts)
+ ██║
+ ██║       Worst case: if this image is compromised, an attacker can read the secrets Plumber could
+ ╚██████╗  not list (attack path 1: docker.io/alpine:latest)
+  ╚═════╝  Best fix: protect the branch (dev), +10 pts, 85 / 100 (B)
+```
+
+Each attack path names its **entry** (what to search for in your pipeline), the job it enters and what an attacker reaches there, what that means (`So`), what Plumber could not check (`Note`) and one thing to do (`Fix`). `plumber explain -a 1` prints the path again with every finding on it. How the paths and the individual findings turn into points is explained on the [Plumber Score](/docs/plumber-score#how-is-the-score-determined) page.
 
 <Aside variant="tip">
-  When using `--output`, results are saved as JSON for programmatic access and CI/CD integration.
+  When using `--output`, results are saved as JSON for programmatic access and CI/CD integration, attack paths included (`plumberScore.paths` and `pathBlocks`, see the [JSON report structure](/docs/cli/reference#json-report-structure)).
 </Aside>
-
-![Plumber CLI output showing analysis results](../img/cli-output.png)
 
 ### Configuration
 
@@ -590,9 +628,9 @@ include:
 {/* TODO(follow-up): re-add a screenshot regenerated from a current build; tracked in PR body */}
 
 **Features:**
-- Shows the Plumber letter-score badge (A–E) and a short score line; with `score_point`, adds the full points breakdown
-- Lists all controls with individual passing percentages
-- Details specific issues found with job names and image references
+- Opens on the Plumber Score: the letter badge (A–E), the points, the status against the gate, the worst case and the best fix; with `score_point`, the points arithmetic too
+- Lists the attack paths as a table (number, tier, entry, job, what it reaches) and the count of individual findings
+- Lists all controls, then the individual findings in detail, then each attack path with its findings
 - Automatically updates on each pipeline run (no duplicate comments)
 
 <Aside variant="caution">
@@ -679,7 +717,7 @@ The complete, always-current catalogs and command reference:
 | Badge not created/updated | Token needs `api` scope and Maintainer role (or higher) on the project |
 | Configuration file not found | Ensure `--config` points at the real file (use an absolute path in Docker). Create one with `plumber config generate` or `plumber config init` |
 | Configuration warnings | Run `plumber config validate` to list unknown keys and invalid values |
-| Need details on a finding | Run `plumber explain ISSUE-XXX` for its description and remediation |
+| Need details on a finding | Run `plumber explain ISSUE-XXX` for its description and remediation; `plumber explain -a N` prints attack path `N` of the last run with every finding on it |
 | Component not found (self-hosted) | You must import or mirror the component to your instance ([Hosting on self-hosted GitLab](#hosting-on-self-hosted-gitlab)) |
 | Plumber component job not running | The component's default stage is `.pre`, which requires at least one other job in a regular stage. Override with `inputs: { stage: test }` |
 | Two pipelines on the same push | Add [`workflow:rules`](https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines) to prevent duplicate branch + MR pipelines (see [Run with the GitLab CI component](#run-with-the-gitlab-ci-component)) |

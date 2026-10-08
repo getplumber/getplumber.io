@@ -75,7 +75,7 @@ requiredGroups:
 
 ### What is fixed
 
-- **Severity.** Each issue code carries a fixed severity (see [Issues](/docs/cli/issues)). Configuration decides whether a control runs and what it checks, not how a finding is graded.
+- **Severity.** Each issue code carries its own severity (see [Issues](/docs/cli/issues)); in a report, a finding on an [attack path](/docs/plumber-score#attack-paths) shows the path's tier instead. Configuration decides whether a control runs and what it checks, not how a finding is graded.
 - **GitLab plan tiers.** Controls and fields that read a setting only a paid plan exposes carry a <Badge text="GitLab Premium" variant="note" /> or <Badge text="GitLab Ultimate" variant="note" /> badge. On GitLab Free, enable only what your plan exposes.
 - **Validation.** Unknown control names and fields produce a warning with a "did you mean" suggestion and are ignored. `plumber config validate` reports them without a scan; `plumber analyze --fail-warnings` turns them into a failure.
 

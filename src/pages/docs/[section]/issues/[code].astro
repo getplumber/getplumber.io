@@ -336,7 +336,7 @@ const structuredData = {
               </span>
               <span
                 class={`inline-flex items-center leading-none gap-1 rounded-md h-[28px] px-2.5 py-1 text-sm font-medium ring-1 ring-inset ${sev.bg} ${sev.text} ${sev.ring}`}
-                title="How severe the impact is if this issue is not fixed"
+                title="The issue's own severity. In a report, a finding on an attack path shows the path's tier instead"
               >
                 <Icon name="tabler/alert-triangle" color="currentColor" size="16px" />
                 {sev.label}
@@ -586,7 +586,7 @@ const structuredData = {
                       <div class="flex items-center gap-1.5 shrink-0 ml-auto">
                         <span
                           class={`inline-flex items-center leading-none gap-1 rounded px-2 text-[10px] h-[26px] md:text-xs font-medium ring-1 ring-inset ${severityBadge[relSev]}`}
-                          title="How severe the impact is if this issue is not fixed"
+                          title="The issue's own severity. In a report, a finding on an attack path shows the path's tier instead"
                         >
                           <Icon size="15px" name="tabler/alert-triangle" color="currentColor" class="h-3 w-3" />
                           {relSev.charAt(0).toUpperCase() + relSev.slice(1)}

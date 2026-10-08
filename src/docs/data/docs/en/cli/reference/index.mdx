@@ -47,8 +47,9 @@ plumber analyze [flags]
 | `--ocsf` | No | - | Write OCSF Compliance Finding results (JSON array, schema 1.8.0) for OCSF consumers and GRC platforms |
 | `--mr-comment` | No | `false` | Post/update a Plumber comment on the merge request (MR pipelines only; requires `api` scope) |
 | `--badge` | No | `false` | Create/update a Plumber badge on the project (requires `api` scope; only runs on default branch) |
-| `--score` | No | `false` | **Deprecated no-op.** The score banner (letter, points, bar, severity counts) and the score in the JSON, PBOM and CycloneDX output are produced by default; the flag is still accepted so existing invocations do not break |
-| `--score-point` | No | `false` | Add the full per-issue-code points breakdown (`Code / Severity / Count / Weight / Cap / Loss`) to stdout and the MR comment, on top of the default banner |
+| `--score` | No | `false` | **Deprecated no-op.** The Score section (letter, points, bar, status, worst case, best fix), the attack paths and the score in the JSON, PBOM and CycloneDX output are produced by default; the flag is still accepted so existing invocations do not break |
+| `--score-point` | No | `false` | Add the points arithmetic to the Score section and the MR comment: the subtraction (`100 - 15 (attack paths) - 10 (individual findings)`), one line per limit that held, why the best fix recovers what it does, and one line per issue code and per path tier with what it took off. Under each attack path a cap lowered, a `Note` line says why it stops at its tier. See [Plumber Score](/docs/plumber-score#the-formula) |
+| `--score-profile` | No | `v4` | Scoring formula: `v4` (the contextual score: attack paths and contextual severity, `profileId: scoring-v4`) or `v3` (the previous score, one price per issue code, `profileId: scoring-v3`). The gate, the badge and the MR comment read the selected score. See [The previous score](/docs/plumber-score#the-previous-score) |
 | `--score-push` | No | `false` | Publish this repo's Plumber Score to the hosted badge service. Runs in **CI only** (needs a CI-native OIDC id-token; a local run is a no-op). Every run that has score push enabled publishes its result for its branch. The public badge and the project's score follow the default branch only: a merge-request or pull-request run is stored under its branch and never changes the badge. See [Plumber Score](/docs/plumber-score) |
 | `--score-endpoint` | No | `https://score.getplumber.io` | Score service base URL. Override **only** for a self-hosted score service; the minted OIDC audience follows this value so it always matches the target |
 | `--controls` | No | - | Run only listed controls (comma-separated). Cannot be used with `--skip-controls` |
@@ -315,10 +316,10 @@ plumber version
 
 ### `plumber explain`
 
-Look up detailed information for an issue code directly from the terminal.
+Look up detailed information for an issue code directly from the terminal, or print an attack path of the last `plumber analyze` run with every finding on it.
 
 ```bash
-plumber explain [ISSUE-CODE] [flags]
+plumber explain [ISSUE-CODE | -a N] [flags]
 ```
 
 `ISSUE-CODE` supports both full and shorthand forms:
@@ -329,13 +330,54 @@ plumber explain [ISSUE-CODE] [flags]
 |------|---------|-------------|
 | `--list` | `false` | List all issue codes with short descriptions |
 | `--all` | `false` | Show detailed information for all issue codes |
-| `--json` | `false` | Output in JSON format |
+| `--json` | `false` | Output in JSON format (issue codes only) |
+| `--attack`, `-a` | - | Print attack path `N` of the last `plumber analyze` run, numbered as the report numbers them (path 1 is the worst), with every finding on it and their documentation links; `-a all` prints every path. Takes either this or an issue code, not both |
+| `--project` | - | With `--attack`: read the last cached run of this project (`owner/repo` on GitHub, `group/project` on GitLab) instead of the last run |
+| `--provider` | - | With `--attack --project`: `github` or `gitlab`, when both providers have a cached run of that project |
+| `--run` | - | With `--attack`: read this JSON report (written by `plumber analyze --output`, a CI artifact for instance) instead of the cache |
 
 ```bash
 plumber explain ISSUE-412
 plumber explain 412
 plumber explain --list
 plumber explain --all
+plumber explain -a 1
+plumber explain -a all --project owner/repo
+plumber explain -a 2 --run plumber-report.json
+```
+
+**Reading an attack path again.** Every `plumber analyze` run that produced a report keeps its JSON report in the user cache directory (`$XDG_CACHE_HOME`, else `~/.cache` on Linux; `~/Library/Caches` on macOS): `plumber/runs/<provider>/<owner>/<repo>.json` for a remote or detected project, `plumber/runs/local/<hash>.json` for a local analysis with no project path, and `plumber/runs/last` naming the most recent one. The files are readable by the user alone, and a run whose cache cannot be written goes on as if nothing happened. `plumber explain -a N` reads that report back, so nothing is analyzed again: it prints the block as the report showed it, then, under `Findings`, every finding of the path, one group per issue code, each with where it is and its documentation link. A run whose score was withheld (degraded data collection) keeps no attack path to read.
+
+**Sample output** (`plumber explain -a 2`):
+
+```
+ HIGH  Attack path 2
+       Entry  main (branch anyone with write access can push to, not protected)
+       │
+       └──▶ runs in job `plumber` from workflow `plumber.yml`
+            └─▶ reaches a token with write access to security events and an OIDC token
+
+       So     as anyone with write access to `main`, an attacker can execute code to write to
+              security events and request an OIDC token
+       Fix    protect the default branch
+       Findings
+
+          HIGH  ISSUE-501  Branch protection missing
+                │
+                └──▶ Branch `main` is not protected.
+
+                ↳ docs: https://getplumber.io/docs/cli/issues/ISSUE-501
+
+          HIGH  ISSUE-307  Checkout persists credentials in .git/config (latent)
+                │
+                └──▶ job `plumber` from workflow `plumber.yml`: runs "actions/checkout@v5" without
+                     `persist-credentials: false`
+                     ↳ at https://github.com/getplumber-examples/plumber-example-demo/blob/main/.github/workflows/plumber.yml#L17
+
+                So     GITHUB_TOKEN lingers in .git/config (latent; becomes a leak if a later step
+                       packs .git into an artifact or runs fork-controlled code)
+                Fix    set persist-credentials: false on the checkout
+                ↳ docs: https://getplumber.io/docs/cli/issues/ISSUE-307
 ```
 
 **Sample output** (`plumber explain ISSUE-412`):
@@ -389,7 +431,7 @@ By default Plumber prints a colorized, human-readable report to your terminal (`
 
 | Format | Flag | Spec / shape | What it's for |
 |--------|------|--------------|---------------|
-| Terminal report | `--print` (default `true`) | Colorized text on stdout | Human-readable summary: per-control results, findings, and the optional [score banner](#plumber-analyze) (`--score` / `--score-point`) |
+| Terminal report | `--print` (default `true`) | Colorized text on stdout | Human-readable report: the passed and skipped controls, the individual findings, the [attack paths](/docs/plumber-score#attack-paths), then the Score section (points, status against the gate, worst case, best fix); `--score-point` adds the arithmetic |
 | JSON report | `--output`, `-o` | Plumber JSON ([structure below](#json-report-structure)) | Full structured result for scripting and CI gates |
 | Native PBOM | `--pbom` | Plumber Pipeline Bill of Materials ([below](#pbom--cyclonedx)) | Detailed inventory of pipeline dependencies (images, components, templates, includes) |
 | CycloneDX SBOM | `--pbom-cyclonedx` | CycloneDX 1.5 (JSON) | Standard SBOM for security tooling such as Grype, Trivy, and Dependency-Track |
@@ -471,11 +513,12 @@ Flags that read or publish a verdict have nothing to act on and are ignored, wit
 | `threshold` | number | Deprecated gate from `--threshold`. Present only when that flag is supplied. |
 | `passed` | boolean | True when the active gate is met. |
 | `noControls` | boolean | True when the run used [`--no-controls`](#artifact-only-runs), so nothing was evaluated. Every `*Result` block is `status: "skipped"` and `plumberScore` is absent. Omitted on a normal run. Key on this to tell "nothing was checked" apart from "everything was checked and is clean". |
-| `plumberScore` | object | Scored summary: `profileId` (`scoring-v3`), per-severity `counts`, `rawPoints`, `finalPoints`, `score` (A-E), `criticalMalusApplied`, `losses` and `codeLosses`. Written on every run; omitted when the score is withheld because no control was evaluated. |
+| `plumberScore` | object | The score and how it was computed ([keys below](#the-plumberscore-object)): `profileId` (`scoring-v4` by default, `scoring-v3` under `--score-profile v3`), per-severity `counts`, `rawPoints`, `finalPoints`, `score` (A-E), the attack paths and the losses. Written on every run; omitted when the score is withheld (no control evaluated, or degraded data collection). |
+| `pathBlocks` | array | One entry per attack path, worst first, as the terminal prints it: the block's lines and its findings in full, which `plumber explain -a` reads back ([shape below](#the-pathblocks-array)). Present only when the run has at least one attack path; absent from the report pushed to the score service. |
 | `<control>Result` | object | One entry per evaluated control (see below). |
 | `partialControls` | array | Controls that could not fully evaluate. Empty or omitted on a clean run. |
 | `warnings` | array | Non-fatal "could not verify" messages (e.g. a known-CVE check that couldn't resolve an action version). Gated by `--fail-warnings` (exit 3). Omitted when none. |
-| `dataCollectionDegraded` | boolean | True when a collection or enrichment step failed mid-run, so the analysis ran on incomplete data. A degraded run always exits with code 3, regardless of the score gate, so it never exits 0. Omitted when false. |
+| `dataCollectionDegraded` | boolean | True when a collection or enrichment step failed mid-run, so the analysis ran on incomplete data. A degraded run always exits with code 3, regardless of the score gate, so it never exits 0, and produces no score: `plumberScore` and `pathBlocks` are absent, and the PBOM carries no score either. Omitted when false. |
 | `degradedReasons` | array | Human-readable reasons behind `dataCollectionDegraded`. Omitted when not degraded. |
 | `plumberConfig` | object | Self-describing snapshot of the effective policy: `source`, `effectivePolicy` (the parsed config with comments stripped and, for an [overlay config](/docs/cli/configuration#extended-configuration-recommended), `extends` fully resolved), and `hash` (sha256 of the canonical policy). Written on every run. |
 
@@ -507,12 +550,54 @@ Each entry describes one finding. Beyond the keys below, a rule adds its own str
 | `step` | string | GitHub only: the workflow step's `name:`, when the author gave the step one. Distinguishes two steps in the same job that reference the same action. Omitted for unnamed steps and on GitLab. |
 | `url` | string | Clickable link to the affected file and line on the provider, or the local path outside CI. |
 | `docUrl` | string | Link to the issue's documentation page. |
+| `severity` | string | The severity the finding is charged at: the tier of the strongest attack path it is on, or its own severity for a finding on no path (`critical`, `high`, `medium`, `low`). |
+| `baseSeverity` | string | The issue code's own severity, kept next to the contextual one. Present under the contextual score only. |
+| `role` | string | What the finding is to its paths: the entry that starts a path, a protection that amplifies it, a credential or permission a path carries. Present under the contextual score only. |
+| `pathIds` | array | The ids of the attack paths the finding is on (`plumberScore.paths[].id`). Present under the contextual score only. |
+| `explanation` | string | The path's one-sentence explanation. Present under the contextual score only. |
 
 To track a control across runs (history, remediation state, trend dashboards), key on the pair `controlName` + `status`: `controlName` is the check's stable identity and `status` its verdict for that run. To track one individual finding within a control, use its `fingerprint`.
 
 **`partialControls` entry**
 
 When non-empty, each entry has the shape shown in the [GitHub authentication section](/docs/cli/github#authentication): `control`, `reason`, `affectedBranches` (when relevant), `remediation`. CI gates should fail loud when this array contains anything, even if `passed` reads true.
+
+#### The `plumberScore` object
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `profileId` | string | `scoring-v4` for the contextual score (the default), `scoring-v3` for the previous one. |
+| `score` | string | The letter, A to E, read from `finalPoints`. |
+| `finalPoints` | number | The points the letter is read from: `rawPoints`, held at 30 while a Critical attack path remains. |
+| `rawPoints` | number | 100 minus every loss, floored at 0. `rawPointsUnclamped` is the same figure before the floor (it can be negative). |
+| `criticalMalusApplied` | boolean | True when a Critical attack path held `finalPoints` at 30. |
+| `counts` | object | How many findings are charged at each severity (`critical`, `high`, `medium`, `low`), each counted once at its contextual severity. |
+| `paths` | array | The attack paths: `id`, `tier`, `state` (`proven` or `unverified`), `entry` (its `kind`, `subject`, `file`, `line` and `evidence`), `jobs`, `reach` (`secrets` by name, `allSecrets`, `tokenWrite`, `impacts`), `branches` (one per job the entry enters, each with its own `job`, `tier`, `state`, `reach` and `modifiers`), `modifiers`, `loss`, `sentence`, the `anchorCodes` that start it and the `findingIds` it carries. Absent when the run has no path. |
+| `pathLosses` | array | One entry per tier that has paths: `tier`, `count`, `weight` (the price of one path), `cap` (the nested limit that holds the tier: 69 for High, 49 for Medium, 29 for Low, none for Critical), `cappedLoss` (what the tier took off once the limit held) and `pathIds`. |
+| `otherFindings` | object | The individual findings together: `count`, `counts` by severity, `uncappedLoss`, `cap` (30), `cappedLoss` and `capApplied`. Absent when there is none. |
+| `codeLosses` | array | The individual findings per issue code: `code`, `severity`, `count`, `weight`, `uncappedLoss`, `cappedLoss`. |
+| `pathCounts` | object | How many paths of each tier. |
+| `bestFix` | object | The single fix that recovers the most points: `code`, `subject`, `pathId` (when the fix removes a path), `pointsGained`, `newPoints`, `newLetter`, `sentence`. |
+| `situation` | string | The facts the paths were read from, as one line: the repository's visibility, its default branch and whether it is protected, the jobs and workflows (or pipeline) and how many publish or deploy. |
+| `losses` | array | Kept for the readers that expect it; under the previous score, the losses per severity. |
+
+#### The `pathBlocks` array
+
+One entry per attack path, worst first, keyed on the path's `id`, carrying the block as the terminal prints it so that `plumber explain -a` can print it again without the run:
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `id` | string | The path's id (`plumberScore.paths[].id`). |
+| `tier` | string | `critical`, `high`, `medium` or `low`; `unverified` is true when Plumber could not verify the path. |
+| `loss` | number | What the path costs before the limits. |
+| `entry` | string | The `Entry` line: the subject and what it is (`lycheeverse/lychee-action@v1.4.1 (external action with a known vulnerability)`); `entrySubject` is the subject alone. |
+| `branches` | array | One per job the entry enters: `job` (as the block names it), `reach` (what an attacker there reaches), `marker` (`(on schedule)`, `(unverified)`), and the jobs it feeds (`fed`, with the kinds of edge in `fedVia`). |
+| `so` | string | The `So` line: who gets in and what they can do. |
+| `fix` | string | The `Fix` line. |
+| `reachUnverified` | string | The `Note` line about what Plumber could not check, when any. |
+| `cap` | string | Why a cap holds the path at its tier (the `Note` line `--score-point` prints), when one does. |
+| `environment` | array | The environment lines of the block, when the entry job runs in one. |
+| `findings` | array | Every finding on the path: `code`, `title`, `location`, `count` and `details`, each detail carrying the finding's `message`, contextual `severity`, forge `url` and `location` (`file:line`). |
 
 <Aside variant="info">
   Stability: keys documented above are stable across minor versions. New keys may be added without notice. Existing keys will not be renamed or removed without a major-version bump.
