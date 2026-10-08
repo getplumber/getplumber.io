@@ -4,7 +4,7 @@
     "name": "Lightpanda",
     "repo": "lightpanda-io/browser",
     "url": "https://github.com/lightpanda-io/browser",
-    "stars": 35600,
+    "stars": 36100,
     "avatar": "https://avatars.githubusercontent.com/u/145980012"
   },
   {
@@ -38,6 +38,14 @@
     "url": "https://github.com/bunkerity/bunkerweb",
     "stars": 11000,
     "avatar": "https://avatars.githubusercontent.com/u/86405535"
+  },
+  {
+    "owner": "Stellarium",
+    "name": "Stellarium",
+    "repo": "Stellarium/stellarium",
+    "url": "https://github.com/Stellarium/stellarium",
+    "stars": 10000,
+    "avatar": "https://avatars.githubusercontent.com/u/7320160"
   },
   {
     "owner": "intuitem",

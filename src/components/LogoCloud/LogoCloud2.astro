@@ -2,7 +2,13 @@
 /**
  * * Logo cloud section marquee
  *
- * Customer logos from src/assets/customers folder
+ * One banner for everyone running Plumber:
+ *  - companies: wordmarks from src/assets/customers (white, on the dark band),
+ *  - open source projects with 2k+ stars whose GitHub workflows run the
+ *    Plumber Action: icon + name. adopters.json is regenerated on every build
+ *    by scripts/fetch-adopters.js (committed snapshot as fallback), and
+ *    adopters.overrides.json holds the hand edits (owners to hide, a label or
+ *    logo when the GitHub avatar is a personal photo).
  *
  * There is a commented out script at the bottom. If you would like the marquee to pause on mouseover, uncomment it.
  */
@@ -15,9 +21,62 @@ import liberationLogo from "@assets/customers/liberation-logo.svg";
 import metanextLogo from "@assets/customers/metanext-logo.svg";
 import nseLogo from "@assets/customers/nse-logo.svg";
 import numspotLogo from "@assets/customers/numspot.svg";
+import outscaleLogo from "@assets/customers/outscale-logo.png";
 import pmuLogo from "@assets/customers/pmu-logo.png";
 import pointbaseLogo from "@assets/customers/pointbase-logo.png";
+import telstraLogo from "@assets/customers/telstra-logo.svg";
 import zenikaLogo from "@assets/customers/zenika-logo.svg";
+
+import adopters from "@/data/adopters.json";
+import overrides from "@/data/adopters.overrides.json";
+
+type Item =
+  | { kind: "wordmark"; src: string; name: string; size?: "medium" | "large" }
+  | { kind: "project"; src: string; name: string; title: string };
+
+const companies: Item[] = [
+  { kind: "wordmark", src: atosLogo.src, name: "Atos" },
+  { kind: "wordmark", src: cockpitioLogo.src, name: "Cockpit.io" },
+  { kind: "wordmark", src: fdiLogo.src, name: "FDI" },
+  { kind: "wordmark", src: itsgroupLogo.src, name: "ITS Group", size: "large" },
+  { kind: "wordmark", src: liberationLogo.src, name: "Liberation", size: "medium" },
+  { kind: "wordmark", src: metanextLogo.src, name: "Metanext" },
+  { kind: "wordmark", src: nseLogo.src, name: "NSE" },
+  { kind: "wordmark", src: numspotLogo.src, name: "Numspot" },
+  { kind: "wordmark", src: outscaleLogo.src, name: "Outscale" },
+  { kind: "wordmark", src: pmuLogo.src, name: "PMU", size: "medium" },
+  { kind: "wordmark", src: pointbaseLogo.src, name: "Pointbase", size: "large" },
+  { kind: "wordmark", src: telstraLogo.src, name: "Telstra" },
+  { kind: "wordmark", src: zenikaLogo.src, name: "Zenika", size: "medium" },
+];
+
+const ownerOverrides: Record<string, { name?: string; logo?: string }> = overrides.owners;
+const excluded = new Set(overrides.exclude.map((o: string) => o.toLowerCase()));
+const formatStars = (n: number) =>
+  n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k` : String(n);
+
+const projects: Item[] = adopters
+  .filter((a) => !excluded.has(a.owner.toLowerCase()))
+  .map((a) => {
+    const o = ownerOverrides[a.owner.toLowerCase()] ?? {};
+    return {
+      kind: "project",
+      src: o.logo ?? `${a.avatar}?s=96`,
+      name: o.name ?? a.name,
+      title: `${a.repo}, ${formatStars(a.stars)} GitHub stars`,
+    };
+  });
+
+// Interleave so the open source projects are spread through the banner
+// instead of trailing in one block after the companies.
+const items: Item[] = [];
+const step = Math.max(1, Math.round(companies.length / Math.max(1, projects.length)));
+let p = 0;
+companies.forEach((c, i) => {
+  items.push(c);
+  if ((i + 1) % step === 0 && p < projects.length) items.push(projects[p++]);
+});
+items.push(...projects.slice(p));
 ---
 
 <section
@@ -31,58 +90,41 @@ import zenikaLogo from "@assets/customers/zenika-logo.svg";
        with whatever background the section sits on -->
   <div class="logo-fade relative mx-auto max-w-[1800px] overflow-hidden px-4">
     <div class="logo-marquee relative flex gap-32 overflow-hidden">
-      <!-- Each animate-marquee2 section needs to have the exact same logos. Just do one then copy / paste -->
-      <div class="animate-marquee2 flex min-w-full shrink-0 items-center justify-around gap-32">
-        <img src={atosLogo.src} alt="Atos" class="logo" />
+      <!-- Two identical copies make the loop seamless; the second is hidden from assistive tech -->
+      {[false, true].map((hidden) => (
+        <div
+          aria-hidden={hidden ? "true" : undefined}
+          class="animate-marquee2 flex min-w-full shrink-0 items-center justify-around gap-32"
+        >
+          {items.map((item) =>
+            item.kind === "wordmark" ? (
+              <img
+                src={item.src}
+                alt={hidden ? "" : item.name}
+                class:list={[
+                  "logo",
+                  { "logo-medium": item.size === "medium", "logo-large": item.size === "large" },
+                ]}
+              />
+            ) : (
+              <span class="project" title={item.title}>
+                <img
+                  src={item.src}
+                  alt=""
+                  width="40"
+                  height="40"
 
-        <img src={cockpitioLogo.src} alt="Cockpit.io" class="logo" />
-
-        <img src={fdiLogo.src} alt="FDI" class="logo" />
-
-        <img src={itsgroupLogo.src} alt="ITS Group" class="logo logo-large" />
-
-        <img src={liberationLogo.src} alt="Liberation" class="logo logo-medium" />
-
-        <img src={metanextLogo.src} alt="Metanext" class="logo" />
-
-        <img src={nseLogo.src} alt="NSE" class="logo" />
-
-        <img src={numspotLogo.src} alt="Numspot" class="logo" />
-
-        <img src={pmuLogo.src} alt="PMU" class="logo logo-medium" />
-
-        <img src={pointbaseLogo.src} alt="Pointbase" class="logo logo-large" />
-
-        <img src={zenikaLogo.src} alt="Zenika" class="logo logo-medium" />
-      </div>
-
-      <!-- Each animate-marquee2 section needs to have the exact same logos. Just do one then copy / paste -->
-      <div
-        aria-hidden="true"
-        class="animate-marquee2 flex min-w-full shrink-0 items-center justify-around gap-32"
-      >
-        <img src={atosLogo.src} alt="Atos" class="logo" />
-
-        <img src={cockpitioLogo.src} alt="Cockpit.io" class="logo" />
-
-        <img src={fdiLogo.src} alt="FDI" class="logo" />
-
-        <img src={itsgroupLogo.src} alt="ITS Group" class="logo logo-large" />
-
-        <img src={liberationLogo.src} alt="Liberation" class="logo logo-medium" />
-
-        <img src={metanextLogo.src} alt="Metanext" class="logo" />
-
-        <img src={nseLogo.src} alt="NSE" class="logo" />
-
-        <img src={numspotLogo.src} alt="Numspot" class="logo" />
-
-        <img src={pmuLogo.src} alt="PMU" class="logo logo-medium" />
-
-        <img src={pointbaseLogo.src} alt="Pointbase" class="logo logo-large" />
-
-        <img src={zenikaLogo.src} alt="Zenika" class="logo logo-medium" />
-      </div>
+                  class="project-icon"
+                />
+                <span class="project-name">
+                  {item.name}
+                  {!hidden && <span class="sr-only">, {item.title}</span>}
+                </span>
+              </span>
+            ),
+          )}
+        </div>
+      ))}
     </div>
   </div>
 </section>
@@ -106,5 +148,19 @@ import zenikaLogo from "@assets/customers/zenika-logo.svg";
 
   .logo-medium {
     @apply h-12;
+  }
+
+  /* Open source projects have square icons, not wordmarks: icon + name in
+     white so they read like the company wordmarks around them. */
+  .project {
+    @apply inline-flex shrink-0 items-center gap-3 whitespace-nowrap;
+  }
+
+  .project-icon {
+    @apply h-10 w-10 rounded-lg bg-white object-contain;
+  }
+
+  .project-name {
+    @apply text-2xl font-semibold tracking-tight text-white;
   }
 </style>
