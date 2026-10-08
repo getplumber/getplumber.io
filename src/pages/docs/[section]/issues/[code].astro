@@ -78,7 +78,12 @@ const tabId = section === CLI_DOCS_PREFIX ? CLI_DOCS_TAB_ID : "main";
 const docsBase = getSharedDocsBasePath(tabId);
 
 const props = Astro.props as Props;
-const redirectTo = props.redirectTo ?? issueCodeRedirects[Astro.params.code ?? ""];
+// A canonical page carries redirectTo: null and never falls through to the
+// legacy map, so a code reused for a new issue cannot shadow its page.
+const redirectTo =
+  props.redirectTo === null
+    ? null
+    : (props.redirectTo ?? issueCodeRedirects[Astro.params.code ?? ""]);
 if (redirectTo) {
   const search = Astro.url.search;
   return Astro.redirect(`${docsBase}/issues/${redirectTo}${search}`);
