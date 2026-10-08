@@ -11,10 +11,10 @@ tableOfContents:
 section: "api"
 ---
 
-The field-by-field reference for the `gitlab.controls:` and `github.controls:` sections of `.plumber.yaml`. Use the [index](#controls-index) to jump to a control. For the three ways to write the file see [Configuration](/docs/cli/configuration); for what a control checks and why, the [Controls catalog](/docs/cli/controls); for a finding's remediation, [Issues](/docs/cli/issues).
+The field-by-field reference for the `gitlab.controls:` and `github.controls:` sections of `.plumber.yaml`. Use the [index](#controls-index) to jump to a control. For the three ways to write the file see [Configuration](/docs/cli/configuration); for what each issue means and how to fix it, [Issues](/docs/cli/issues).
 
 <Aside variant="info" title="Reading the tables">
-  **Default** is the value in the `plumber:default` baseline: what runs with no `.plumber.yaml`, what an overlay inherits, and what `plumber config generate` writes (Plumber v0.5.10). Where the CLI behaves differently when a key is simply omitted from a full configuration, that fallback is given as *unset*. Long baseline lists are shown in the YAML block under each table rather than in the table itself.
+  **Default** is the value in the `plumber:default` baseline: what runs with no `.plumber.yaml`, what an overlay inherits, and what `plumber config generate` writes (Plumber v0.5.10). Where the CLI behaves differently when a key is simply omitted from a full configuration, that fallback is given as *unset*. Long baseline lists are shown in the YAML block under each table rather than in the table itself. Every YAML block is nested the way the file is, so it pastes into `.plumber.yaml` as it is. The `CTRL-nnn` on each control is the id the Platform's Policies page shows.
 </Aside>
 
 ## How a control block works
@@ -81,61 +81,61 @@ requiredGroups:
 
 ## Controls index
 
-*Baseline* is the state in `plumber:default`. Controls listed under both providers share one block definition.
+*Id* is the control's `CTRL-nnn`, as the Platform's Policies page shows it. *Baseline* is the state in `plumber:default`. Controls listed under both providers share one block definition.
 
 **Both providers**
 
-| Control | Baseline | Issues |
-|---|---|---|
-| [`containerImageMustNotUseForbiddenTags`](#containerimagemustnotuseforbiddentags) | on | 102, 103 |
-| [`branchMustBeProtected`](#branchmustbeprotected) | on | 501, 505 |
-| [`pipelineMustNotEnableDebugTrace`](#pipelinemustnotenabledebugtrace) | on | 203 |
-| [`securityJobsMustNotBeWeakened`](#securityjobsmustnotbeweakened) | on | 410 |
-| [`pipelineMustNotExecuteUnverifiedScripts`](#pipelinemustnotexecuteunverifiedscripts) | on | 411 |
-| [`pipelineMustNotUseDockerInDocker`](#pipelinemustnotusedockerindocker) | on | 412, 413 |
-| [`externalRefsMustNotCollide`](#externalrefsmustnotcollide) | on | 402 |
+| Id | Control | Baseline | Issues |
+|---|---|---|---|
+| `CTRL-102` | [`containerImageMustNotUseForbiddenTags`](#containerimagemustnotuseforbiddentags) | on | 102, 103 |
+| `CTRL-501` | [`branchMustBeProtected`](#branchmustbeprotected) | on | 501, 505 |
+| `CTRL-203` | [`pipelineMustNotEnableDebugTrace`](#pipelinemustnotenabledebugtrace) | on | 203 |
+| `CTRL-410` | [`securityJobsMustNotBeWeakened`](#securityjobsmustnotbeweakened) | on | 410 |
+| `CTRL-411` | [`pipelineMustNotExecuteUnverifiedScripts`](#pipelinemustnotexecuteunverifiedscripts) | on | 411 |
+| `CTRL-412` | [`pipelineMustNotUseDockerInDocker`](#pipelinemustnotusedockerindocker) | on | 412, 413 |
+| `CTRL-402` | [`externalRefsMustNotCollide`](#externalrefsmustnotcollide) | on | 402 |
 
 **GitLab**
 
-| Control | Baseline | Issues |
-|---|---|---|
-| [`containerImageMustComeFromAuthorizedSources`](#containerimagemustcomefromauthorizedsources) | on | 101 |
-| [`includesMustBeUpToDate`](#includesmustbeuptodate) | on | 403 |
-| [`includesMustNotUseForbiddenVersions`](#includesmustnotuseforbiddenversions) | on | 404 |
-| [`pipelineMustNotUseUnsafeVariableExpansion`](#pipelinemustnotuseunsafevariableexpansion) | on | 204 |
-| [`pipelineMustNotOverrideJobVariables`](#pipelinemustnotoverridejobvariables) | on | 205 |
-| [`cicdVariablesMustBeProtected`](#cicdvariablesmustbeprotected) | off | 201 |
-| [`cicdVariablesMustBeMasked`](#cicdvariablesmustbemasked) | off | 202 |
-| [`mergeRequestApprovalRulesMustRequireMinimumApprovals`](#mergerequestapprovalrulesmustrequireminimumapprovals) | off | 502 |
-| [`mergeRequestApprovalRulesMustCoverAllProtectedBranches`](#mergerequestapprovalrulesmustcoverallprotectedbranches) | off | 504 |
-| [`mergeRequestApprovalSettingsMustBeCompliant`](#mergerequestapprovalsettingsmustbecompliant) | off | 503 |
-| [`mergeRequestSettingsMustBeCompliant`](#mergerequestsettingsmustbecompliant) | off | 506 |
-| [`projectMustHaveSecurityPolicySource`](#projectmusthavesecuritypolicysource) | off | 601 |
-| [`pipelineMustNotIncludeHardcodedJobs`](#pipelinemustnotincludehardcodedjobs) | off | 401 |
-| [`pipelineMustIncludeComponent`](#pipelinemustincludecomponent) | off | 408, 409 |
-| [`pipelineMustIncludeTemplate`](#pipelinemustincludetemplate) | off | 405, 406 |
+| Id | Control | Baseline | Issues |
+|---|---|---|---|
+| `CTRL-101` | [`containerImageMustComeFromAuthorizedSources`](#containerimagemustcomefromauthorizedsources) | on | 101 |
+| `CTRL-403` | [`includesMustBeUpToDate`](#includesmustbeuptodate) | on | 403 |
+| `CTRL-404` | [`includesMustNotUseForbiddenVersions`](#includesmustnotuseforbiddenversions) | on | 404 |
+| `CTRL-204` | [`pipelineMustNotUseUnsafeVariableExpansion`](#pipelinemustnotuseunsafevariableexpansion) | on | 204 |
+| `CTRL-205` | [`pipelineMustNotOverrideJobVariables`](#pipelinemustnotoverridejobvariables) | on | 205 |
+| `CTRL-201` | [`cicdVariablesMustBeProtected`](#cicdvariablesmustbeprotected) | off | 201 |
+| `CTRL-202` | [`cicdVariablesMustBeMasked`](#cicdvariablesmustbemasked) | off | 202 |
+| `CTRL-502` | [`mergeRequestApprovalRulesMustRequireMinimumApprovals`](#mergerequestapprovalrulesmustrequireminimumapprovals) | off | 502 |
+| `CTRL-504` | [`mergeRequestApprovalRulesMustCoverAllProtectedBranches`](#mergerequestapprovalrulesmustcoverallprotectedbranches) | off | 504 |
+| `CTRL-503` | [`mergeRequestApprovalSettingsMustBeCompliant`](#mergerequestapprovalsettingsmustbecompliant) | off | 503 |
+| `CTRL-506` | [`mergeRequestSettingsMustBeCompliant`](#mergerequestsettingsmustbecompliant) | off | 506 |
+| `CTRL-601` | [`projectMustHaveSecurityPolicySource`](#projectmusthavesecuritypolicysource) | off | 601 |
+| `CTRL-401` | [`pipelineMustNotIncludeHardcodedJobs`](#pipelinemustnotincludehardcodedjobs) | off | 401 |
+| `CTRL-408` | [`pipelineMustIncludeComponent`](#pipelinemustincludecomponent) | off | 408, 409 |
+| `CTRL-405` | [`pipelineMustIncludeTemplate`](#pipelinemustincludetemplate) | off | 405, 406 |
 
 **GitHub**
 
-| Control | Baseline | Issues |
-|---|---|---|
-| [`actionsMustBePinnedByCommitSha`](#actionsmustbepinnedbycommitsha) | on | 701 |
-| [`githubActionMustComeFromAuthorizedSources`](#githubactionmustcomefromauthorizedsources) | on | 713 |
-| [`actionsMustNotBeArchived`](#actionsmustnotbearchived) | on | 702 |
-| [`actionRefsMustExistUpstream`](#actionrefsmustexistupstream) | on | 707 |
-| [`actionsMustNotCarryKnownCVEs`](#actionsmustnotcarryknowncves) | on | 703 |
-| [`actionsMustNotExecuteMutableRemoteCode`](#actionsmustnotexecutemutableremotecode) | on | 714, 715, 716 |
-| [`releaseWorkflowsMustNotRestoreUntrustedCache`](#releaseworkflowsmustnotrestoreuntrustedcache) | on | 705 |
-| [`reusableWorkflowsMustNotInheritSecrets`](#reusableworkflowsmustnotinheritsecrets) | on | 302 |
-| [`checkoutMustNotPersistCredentials`](#checkoutmustnotpersistcredentials) | on | 307, 310 |
-| [`workflowMustNotExportEntireSecretsContext`](#workflowmustnotexportentiresecretscontext) | on | 309 |
-| [`workflowMustNotInjectUserInputInScripts`](#workflowmustnotinjectuserinputinscripts) | on | 207 |
-| [`workflowMustNotWriteUntrustedContentToGitHubEnv`](#workflowmustnotwriteuntrustedcontenttogithubenv) | on | 209 |
-| [`workflowMustNotUseDangerousTriggers`](#workflowmustnotusedangeroustriggers) | on | 802 |
-| [`pullRequestTargetMustNotCheckoutHead`](#pullrequesttargetmustnotcheckouthead) | on | 804 |
-| [`workflowsMustDeclarePermissions`](#workflowsmustdeclarepermissions) | on | 801 |
-| [`workflowMustNotGrantPermissionsWriteAll`](#workflowmustnotgrantpermissionswriteall) | on | 803 |
-| [`workflowMustIncludeRequiredActions`](#workflowmustincluderequiredactions) | off | 417 |
+| Id | Control | Baseline | Issues |
+|---|---|---|---|
+| `CTRL-701` | [`actionsMustBePinnedByCommitSha`](#actionsmustbepinnedbycommitsha) | on | 701 |
+| `CTRL-713` | [`githubActionMustComeFromAuthorizedSources`](#githubactionmustcomefromauthorizedsources) | on | 713 |
+| `CTRL-702` | [`actionsMustNotBeArchived`](#actionsmustnotbearchived) | on | 702 |
+| `CTRL-707` | [`actionRefsMustExistUpstream`](#actionrefsmustexistupstream) | on | 707 |
+| `CTRL-703` | [`actionsMustNotCarryKnownCVEs`](#actionsmustnotcarryknowncves) | on | 703 |
+| `CTRL-714` | [`actionsMustNotExecuteMutableRemoteCode`](#actionsmustnotexecutemutableremotecode) | on | 714, 715, 716 |
+| `CTRL-705` | [`releaseWorkflowsMustNotRestoreUntrustedCache`](#releaseworkflowsmustnotrestoreuntrustedcache) | on | 705 |
+| `CTRL-302` | [`reusableWorkflowsMustNotInheritSecrets`](#reusableworkflowsmustnotinheritsecrets) | on | 302 |
+| `CTRL-307` | [`checkoutMustNotPersistCredentials`](#checkoutmustnotpersistcredentials) | on | 307, 310 |
+| `CTRL-309` | [`workflowMustNotExportEntireSecretsContext`](#workflowmustnotexportentiresecretscontext) | on | 309 |
+| `CTRL-207` | [`workflowMustNotInjectUserInputInScripts`](#workflowmustnotinjectuserinputinscripts) | on | 207 |
+| `CTRL-209` | [`workflowMustNotWriteUntrustedContentToGitHubEnv`](#workflowmustnotwriteuntrustedcontenttogithubenv) | on | 209 |
+| `CTRL-802` | [`workflowMustNotUseDangerousTriggers`](#workflowmustnotusedangeroustriggers) | on | 802 |
+| `CTRL-804` | [`pullRequestTargetMustNotCheckoutHead`](#pullrequesttargetmustnotcheckouthead) | on | 804 |
+| `CTRL-801` | [`workflowsMustDeclarePermissions`](#workflowsmustdeclarepermissions) | on | 801 |
+| `CTRL-803` | [`workflowMustNotGrantPermissionsWriteAll`](#workflowmustnotgrantpermissionswriteall) | on | 803 |
+| `CTRL-417` | [`workflowMustIncludeRequiredActions`](#workflowmustincluderequiredactions) | off | 417 |
 
 <Aside variant="info">
   Eight GitLab controls also accept a block under `github.controls`: `containerImageMustComeFromAuthorizedSources`, `includesMustBeUpToDate`, `includesMustNotUseForbiddenVersions`, `pipelineMustIncludeComponent`, `pipelineMustIncludeTemplate`, `pipelineMustNotIncludeHardcodedJobs`, `pipelineMustNotOverrideJobVariables` and `pipelineMustNotUseUnsafeVariableExpansion`. The block is parsed and validated, but these controls are not active on GitHub yet and produce no finding there.
@@ -148,6 +148,7 @@ One block definition, under `gitlab.controls` and under `github.controls`. Where
 ### containerImageMustNotUseForbiddenTags
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-102" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -160,16 +161,41 @@ Flags container images referenced by a mutable tag and, when digest pinning is r
 | `tags` | 6 tags, see below | Tags considered mutable and therefore forbidden. |
 | `containerImagesMustBePinnedByDigest` | `true` (unset: `false`) | Requires every image to be referenced by an immutable `@sha256:` digest. Takes precedence over `tags`: a version tag such as `alpine:3.19` is then also flagged. |
 
+<Tabs defaultValue="gitlab" syncKey="provider">
+  <TabsList>
+    <TabsTrigger value="gitlab">GitLab</TabsTrigger>
+    <TabsTrigger value="github">GitHub</TabsTrigger>
+  </TabsList>
+  <TabsContent value="gitlab">
+
 ```yaml
-containerImageMustNotUseForbiddenTags:
-  enabled: true
-  tags: [latest, dev, development, staging, main, master]
-  containerImagesMustBePinnedByDigest: true
+gitlab:
+  controls:
+    containerImageMustNotUseForbiddenTags:
+      enabled: true
+      tags: [latest, dev, development, staging, main, master]
+      containerImagesMustBePinnedByDigest: true
 ```
+
+  </TabsContent>
+  <TabsContent value="github">
+
+```yaml
+github:
+  controls:
+    containerImageMustNotUseForbiddenTags:
+      enabled: true
+      tags: [latest, dev, development, staging, main, master]
+      containerImagesMustBePinnedByDigest: true
+```
+
+  </TabsContent>
+</Tabs>
 
 ### branchMustBeProtected
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-501" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs configuration" variant="caution" />
   <Badge text="Needs an API token" variant="note" />
@@ -189,20 +215,47 @@ Checks that the branches matching `namePatterns` (and the default branch) are pr
 
 GitLab access levels: `0` No one (the strictest), `30` Developer, `40` Maintainer.
 
+<Tabs defaultValue="gitlab" syncKey="provider">
+  <TabsList>
+    <TabsTrigger value="gitlab">GitLab</TabsTrigger>
+    <TabsTrigger value="github">GitHub</TabsTrigger>
+  </TabsList>
+  <TabsContent value="gitlab">
+
 ```yaml
-branchMustBeProtected:
-  enabled: true
-  defaultMustBeProtected: true
-  namePatterns: [main, master, release/*, production, dev]
-  allowForcePush: false
-  codeOwnerApprovalRequired: false
-  minMergeAccessLevel: 30 # GitLab only
-  minPushAccessLevel: 40 # GitLab only
+gitlab:
+  controls:
+    branchMustBeProtected:
+      enabled: true
+      defaultMustBeProtected: true
+      namePatterns: [main, master, release/*, production, dev]
+      allowForcePush: false
+      codeOwnerApprovalRequired: false
+      minMergeAccessLevel: 30
+      minPushAccessLevel: 40
 ```
+
+  </TabsContent>
+  <TabsContent value="github">
+
+```yaml
+github:
+  controls:
+    branchMustBeProtected:
+      enabled: true
+      defaultMustBeProtected: true
+      namePatterns: [main, master, release/*, production, dev]
+      allowForcePush: false
+      codeOwnerApprovalRequired: false
+```
+
+  </TabsContent>
+</Tabs>
 
 ### pipelineMustNotEnableDebugTrace
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-203" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -214,16 +267,39 @@ Flags a pipeline that sets a debug variable to a truthy value, which dumps every
 | `enabled` | `true` | Turns the control on. |
 | `forbiddenVariables` | per provider, see below | Variable names that must not be set to `true` (`1` and `yes` also count on GitHub). |
 
+<Tabs defaultValue="gitlab" syncKey="provider">
+  <TabsList>
+    <TabsTrigger value="gitlab">GitLab</TabsTrigger>
+    <TabsTrigger value="github">GitHub</TabsTrigger>
+  </TabsList>
+  <TabsContent value="gitlab">
+
 ```yaml
-pipelineMustNotEnableDebugTrace:
-  enabled: true
-  forbiddenVariables: [CI_DEBUG_TRACE, CI_DEBUG_SERVICES] # GitLab
-  # forbiddenVariables: [ACTIONS_STEP_DEBUG, ACTIONS_RUNNER_DEBUG] # GitHub
+gitlab:
+  controls:
+    pipelineMustNotEnableDebugTrace:
+      enabled: true
+      forbiddenVariables: [CI_DEBUG_TRACE, CI_DEBUG_SERVICES]
+    ```
+
+  </TabsContent>
+  <TabsContent value="github">
+
+```yaml
+github:
+  controls:
+    pipelineMustNotEnableDebugTrace:
+      enabled: true
+      forbiddenVariables: [ACTIONS_STEP_DEBUG, ACTIONS_RUNNER_DEBUG]
 ```
+
+  </TabsContent>
+</Tabs>
 
 ### securityJobsMustNotBeWeakened
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-410" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -238,55 +314,72 @@ Flags security scanning jobs that are allowed to fail, whose rules were overridd
 | `rulesMustNotBeRedefined.enabled` | `true` | The job's `rules:` must not be overridden to `when: never` or `when: manual`. |
 | `whenMustNotBeManual.enabled` | `true` | The job must not be `when: manual` (GitLab) or reachable only through a manual dispatch trigger (GitHub). |
 
-```yaml
-# GitLab baseline
-securityJobsMustNotBeWeakened:
-  enabled: true
-  securityJobPatterns:
-    - "*-sast"
-    - "secret_detection"
-    - "container_scanning"
-    - "*_dependency_scanning"
-    - "gemnasium-*"
-    - "dast"
-    - "dast_*"
-    - "license_scanning"
-  allowFailureMustBeFalse: { enabled: false }
-  rulesMustNotBeRedefined: { enabled: true }
-  whenMustNotBeManual: { enabled: true }
-```
+
+<Tabs defaultValue="gitlab" syncKey="provider">
+  <TabsList>
+    <TabsTrigger value="gitlab">GitLab</TabsTrigger>
+    <TabsTrigger value="github">GitHub</TabsTrigger>
+  </TabsList>
+  <TabsContent value="gitlab">
 
 ```yaml
-# GitHub baseline
-securityJobsMustNotBeWeakened:
-  enabled: true
-  securityJobPatterns:
-    - "*codeql*"
-    - "*dependency-review*"
-    - "*trufflehog*"
-    - "*gitleaks*"
-    - "*osv-scanner*"
-    - "*semgrep*"
-    - "*trivy*"
-    - "*snyk*"
-    - "*-sast"
-    - "*-sast-*"
-    - "*-scan"
-    - "*scan*"
-    - "*-security"
-    - "*-security-*"
-    - "*-audit"
-    - "*-audit-*"
-    - "*secret*detect*"
-    - "*detect*secret*"
-  allowFailureMustBeFalse: { enabled: true }
-  rulesMustNotBeRedefined: { enabled: true }
-  whenMustNotBeManual: { enabled: true }
+gitlab:
+  controls:
+    securityJobsMustNotBeWeakened:
+      enabled: true
+      securityJobPatterns:
+        - "*-sast"
+        - "secret_detection"
+        - "container_scanning"
+        - "*_dependency_scanning"
+        - "gemnasium-*"
+        - "dast"
+        - "dast_*"
+        - "license_scanning"
+      allowFailureMustBeFalse: { enabled: false }
+      rulesMustNotBeRedefined: { enabled: true }
+      whenMustNotBeManual: { enabled: true }
 ```
+
+  </TabsContent>
+  <TabsContent value="github">
+
+```yaml
+github:
+  controls:
+    securityJobsMustNotBeWeakened:
+      enabled: true
+      securityJobPatterns:
+        - "*codeql*"
+        - "*dependency-review*"
+        - "*trufflehog*"
+        - "*gitleaks*"
+        - "*osv-scanner*"
+        - "*semgrep*"
+        - "*trivy*"
+        - "*snyk*"
+        - "*-sast"
+        - "*-sast-*"
+        - "*-scan"
+        - "*scan*"
+        - "*-security"
+        - "*-security-*"
+        - "*-audit"
+        - "*-audit-*"
+        - "*secret*detect*"
+        - "*detect*secret*"
+      allowFailureMustBeFalse: { enabled: true }
+      rulesMustNotBeRedefined: { enabled: true }
+      whenMustNotBeManual: { enabled: true }
+```
+
+  </TabsContent>
+</Tabs>
 
 ### pipelineMustNotExecuteUnverifiedScripts
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-411" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -297,16 +390,41 @@ Flags scripts downloaded and executed in one go (`curl | bash`, `wget | sh`) fro
 | `enabled` | `true` | Turns the control on. |
 | `trustedUrls` | empty | URL patterns that do not trigger a finding. Wildcards are supported; matching is host-precise, so `https://example.com/*` does not cover a subdomain. |
 
+<Tabs defaultValue="gitlab" syncKey="provider">
+  <TabsList>
+    <TabsTrigger value="gitlab">GitLab</TabsTrigger>
+    <TabsTrigger value="github">GitHub</TabsTrigger>
+  </TabsList>
+  <TabsContent value="gitlab">
+
 ```yaml
-pipelineMustNotExecuteUnverifiedScripts:
-  enabled: true
-  trustedUrls:
-    - https://internal-artifacts.example.com/*
+gitlab:
+  controls:
+    pipelineMustNotExecuteUnverifiedScripts:
+      enabled: true
+      trustedUrls:
+        - https://internal-artifacts.example.com/*
 ```
+
+  </TabsContent>
+  <TabsContent value="github">
+
+```yaml
+github:
+  controls:
+    pipelineMustNotExecuteUnverifiedScripts:
+      enabled: true
+      trustedUrls:
+        - https://internal-artifacts.example.com/*
+```
+
+  </TabsContent>
+</Tabs>
 
 ### pipelineMustNotUseDockerInDocker
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-412" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -317,15 +435,39 @@ Flags jobs that run a Docker-in-Docker service and, optionally, an insecure daem
 | `enabled` | `true` | Turns the control on. |
 | `detectInsecureDaemon` | `true` | Also flags an empty `DOCKER_TLS_CERTDIR` or a plaintext `DOCKER_HOST` such as `tcp://docker:2375` in a DinD job (ISSUE-413). |
 
+<Tabs defaultValue="gitlab" syncKey="provider">
+  <TabsList>
+    <TabsTrigger value="gitlab">GitLab</TabsTrigger>
+    <TabsTrigger value="github">GitHub</TabsTrigger>
+  </TabsList>
+  <TabsContent value="gitlab">
+
 ```yaml
-pipelineMustNotUseDockerInDocker:
-  enabled: true
-  detectInsecureDaemon: true
+gitlab:
+  controls:
+    pipelineMustNotUseDockerInDocker:
+      enabled: true
+      detectInsecureDaemon: true
 ```
+
+  </TabsContent>
+  <TabsContent value="github">
+
+```yaml
+github:
+  controls:
+    pipelineMustNotUseDockerInDocker:
+      enabled: true
+      detectInsecureDaemon: true
+```
+
+  </TabsContent>
+</Tabs>
 
 ### externalRefsMustNotCollide
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-402" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs an API token" variant="note" />
 </div>
@@ -339,6 +481,7 @@ Blocks under `gitlab.controls`.
 ### containerImageMustComeFromAuthorizedSources
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-101" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -354,18 +497,21 @@ Flags a job image that does not come from a trusted registry or publisher. Raise
 Prefer namespace patterns such as `ghcr.io/myorg/*` over host-wide wildcards such as `ghcr.io/*`, which trust every publisher on that host.
 
 ```yaml
-containerImageMustComeFromAuthorizedSources:
-  enabled: true
-  trustDockerHubOfficialImages: true
-  includePlumberDefaults: true
-  trustedUrls:
-    - $CI_REGISTRY_IMAGE:*
-    - registry.example.com/platform/*
+gitlab:
+  controls:
+    containerImageMustComeFromAuthorizedSources:
+      enabled: true
+      trustDockerHubOfficialImages: true
+      includePlumberDefaults: true
+      trustedUrls:
+        - $CI_REGISTRY_IMAGE:*
+        - registry.example.com/platform/*
 ```
 
 ### includesMustBeUpToDate
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-403" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -374,6 +520,7 @@ Flags an included template or component pinned to a version older than the lates
 ### includesMustNotUseForbiddenVersions
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-404" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -387,15 +534,18 @@ Flags an include pinned to a mutable ref. Raises [ISSUE-404](/docs/use-plumber/i
 | `defaultBranchIsForbiddenVersion` | `true` | Also forbids the included project's default branch, whatever its name. |
 
 ```yaml
-includesMustNotUseForbiddenVersions:
-  enabled: true
-  forbiddenVersions: [latest, "~latest", main, master, HEAD]
-  defaultBranchIsForbiddenVersion: true
+gitlab:
+  controls:
+    includesMustNotUseForbiddenVersions:
+      enabled: true
+      forbiddenVersions: [latest, "~latest", main, master, HEAD]
+      defaultBranchIsForbiddenVersion: true
 ```
 
 ### pipelineMustNotUseUnsafeVariableExpansion
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-204" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -409,27 +559,30 @@ Flags a user-controlled variable (merge request title, commit message, branch na
 | `allowedPatterns` | empty | A list of regular expressions; a matching script line is not flagged. Escape `$` as `\\$` and braces as `\\{`, `\\}`. |
 
 ```yaml
-pipelineMustNotUseUnsafeVariableExpansion:
-  enabled: true
-  dangerousVariables:
-    - CI_MERGE_REQUEST_TITLE
-    - CI_MERGE_REQUEST_DESCRIPTION
-    - CI_COMMIT_MESSAGE
-    - CI_COMMIT_TITLE
-    - CI_COMMIT_TAG_MESSAGE
-    - CI_COMMIT_REF_NAME
-    - CI_COMMIT_REF_SLUG
-    - CI_COMMIT_BRANCH
-    - CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
-    - CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_NAME
-  allowedPatterns:
-    - "helm.*--set.*\\$CI_"
-    - "docker build.*--build-arg.*\\$CI_"
+gitlab:
+  controls:
+    pipelineMustNotUseUnsafeVariableExpansion:
+      enabled: true
+      dangerousVariables:
+        - CI_MERGE_REQUEST_TITLE
+        - CI_MERGE_REQUEST_DESCRIPTION
+        - CI_COMMIT_MESSAGE
+        - CI_COMMIT_TITLE
+        - CI_COMMIT_TAG_MESSAGE
+        - CI_COMMIT_REF_NAME
+        - CI_COMMIT_REF_SLUG
+        - CI_COMMIT_BRANCH
+        - CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        - CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_NAME
+      allowedPatterns:
+        - "helm.*--set.*\\$CI_"
+        - "docker build.*--build-arg.*\\$CI_"
 ```
 
 ### pipelineMustNotOverrideJobVariables
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-205" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -442,24 +595,27 @@ Flags a controlled variable defined in the pipeline file, where it can silently 
 | `variables` | 10 variables, see below | Variable names that must not be defined in `.gitlab-ci.yml`, at the top level or in a job. |
 
 ```yaml
-pipelineMustNotOverrideJobVariables:
-  enabled: true
-  variables:
-    - SECURE_ANALYZERS_PREFIX
-    - SAST_DISABLED
-    - SAST_EXCLUDED_PATHS
-    - SAST_EXCLUDED_ANALYZERS
-    - SECRET_DETECTION_DISABLED
-    - SECRET_DETECTION_EXCLUDED_PATHS
-    - CONTAINER_SCANNING_DISABLED
-    - DAST_DISABLED
-    - DEPENDENCY_SCANNING_DISABLED
-    - LICENSE_SCANNING_DISABLED
+gitlab:
+  controls:
+    pipelineMustNotOverrideJobVariables:
+      enabled: true
+      variables:
+        - SECURE_ANALYZERS_PREFIX
+        - SAST_DISABLED
+        - SAST_EXCLUDED_PATHS
+        - SAST_EXCLUDED_ANALYZERS
+        - SECRET_DETECTION_DISABLED
+        - SECRET_DETECTION_EXCLUDED_PATHS
+        - CONTAINER_SCANNING_DISABLED
+        - DAST_DISABLED
+        - DEPENDENCY_SCANNING_DISABLED
+        - LICENSE_SCANNING_DISABLED
 ```
 
 ### cicdVariablesMustBeProtected
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-201" variant="info" />
   <Badge text="Off by default" variant="note" />
   <Badge text="Needs an API token" variant="note" />
 </div>
@@ -469,6 +625,7 @@ Flags a CI/CD variable in the project settings that is not marked protected. Rai
 ### cicdVariablesMustBeMasked
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-202" variant="info" />
   <Badge text="Off by default" variant="note" />
   <Badge text="Needs an API token" variant="note" />
 </div>
@@ -478,6 +635,7 @@ Flags a CI/CD variable in the project settings that is not masked. Raises [ISSUE
 ### mergeRequestApprovalRulesMustRequireMinimumApprovals
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-502" variant="info" />
   <Badge text="Off by default" variant="note" />
   <Badge text="Needs configuration" variant="caution" />
   <Badge text="GitLab Premium" variant="note" />
@@ -491,14 +649,17 @@ Flags an approval rule covering all protected branches that requires fewer appro
 | `minimumRequiredApprovals` | `1` | The fewest approvals a rule covering all protected branches must require. Unset asserts nothing. |
 
 ```yaml
-mergeRequestApprovalRulesMustRequireMinimumApprovals:
-  enabled: true
-  minimumRequiredApprovals: 2
+gitlab:
+  controls:
+    mergeRequestApprovalRulesMustRequireMinimumApprovals:
+      enabled: true
+      minimumRequiredApprovals: 2
 ```
 
 ### mergeRequestApprovalRulesMustCoverAllProtectedBranches
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-504" variant="info" />
   <Badge text="Off by default" variant="note" />
   <Badge text="GitLab Premium" variant="note" />
 </div>
@@ -508,6 +669,7 @@ Flags a project where no approval rule targets all protected branches. Raises [I
 ### mergeRequestApprovalSettingsMustBeCompliant
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-503" variant="info" />
   <Badge text="Off by default" variant="note" />
   <Badge text="Needs configuration" variant="caution" />
   <Badge text="GitLab Premium" variant="note" />
@@ -525,18 +687,21 @@ Compares the project's merge request approval settings with the expectations you
 | `behaviorWhenCommitIsAdded` | unset | The minimum strictness when a commit is added to an open merge request: `keep_approvals`, `remove_approvals_by_code_owners` or `remove_all_approvals`, from least to most strict. A stricter project setting passes. |
 
 ```yaml
-mergeRequestApprovalSettingsMustBeCompliant:
-  enabled: true
-  preventApprovalByAuthor: true
-  preventApprovalsByCommitters: true
-  preventEditingApprovalRulesInMR: true
-  requireReAuthToApprove: true
-  behaviorWhenCommitIsAdded: remove_all_approvals
+gitlab:
+  controls:
+    mergeRequestApprovalSettingsMustBeCompliant:
+      enabled: true
+      preventApprovalByAuthor: true
+      preventApprovalsByCommitters: true
+      preventEditingApprovalRulesInMR: true
+      requireReAuthToApprove: true
+      behaviorWhenCommitIsAdded: remove_all_approvals
 ```
 
 ### mergeRequestSettingsMustBeCompliant
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-506" variant="info" />
   <Badge text="Off by default" variant="note" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -556,17 +721,20 @@ Compares the project's merge request settings with the expectations you set, for
 | `removeSourceBranchAfterMerge` | unset | The "delete source branch after merge" default. |
 
 ```yaml
-mergeRequestSettingsMustBeCompliant:
-  enabled: true
-  mergeMethod: ff
-  squashOption: default_on
-  allowMergeOnSkippedPipeline: false
-  removeSourceBranchAfterMerge: true
+gitlab:
+  controls:
+    mergeRequestSettingsMustBeCompliant:
+      enabled: true
+      mergeMethod: ff
+      squashOption: default_on
+      allowMergeOnSkippedPipeline: false
+      removeSourceBranchAfterMerge: true
 ```
 
 ### projectMustHaveSecurityPolicySource
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-601" variant="info" />
   <Badge text="Off by default" variant="note" />
   <Badge text="GitLab Ultimate" variant="note" />
 </div>
@@ -580,14 +748,17 @@ Checks that the project is linked to a security policy project, optionally a spe
 | `expectedProjectPath` | unset | The `namespace/project` path the linked policy project must have, compared case-insensitively. Ignored when `expectedProjectId` is set. |
 
 ```yaml
-projectMustHaveSecurityPolicySource:
-  enabled: true
-  expectedProjectPath: my-group/security-policy-project
+gitlab:
+  controls:
+    projectMustHaveSecurityPolicySource:
+      enabled: true
+      expectedProjectPath: my-group/security-policy-project
 ```
 
 ### pipelineMustNotIncludeHardcodedJobs
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-401" variant="info" />
   <Badge text="Off by default" variant="note" />
 </div>
 
@@ -596,6 +767,7 @@ Flags jobs defined directly in `.gitlab-ci.yml` instead of coming from an includ
 ### pipelineMustIncludeComponent
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-408" variant="info" />
   <Badge text="Off by default" variant="note" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -609,14 +781,17 @@ Checks that the pipeline includes the required CI/CD components and does not ove
 | `requiredGroups` | empty | The same requirement as a list of lists (an OR of ANDs). Exclusive with `required`. |
 
 ```yaml
-pipelineMustIncludeComponent:
-  enabled: true
-  required: components/sast/sast AND components/secret-detection/secret-detection AND getplumber/plumber/plumber
+gitlab:
+  controls:
+    pipelineMustIncludeComponent:
+      enabled: true
+      required: components/sast/sast AND components/secret-detection/secret-detection AND getplumber/plumber/plumber
 ```
 
 ### pipelineMustIncludeTemplate
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-405" variant="info" />
   <Badge text="Off by default" variant="note" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -630,11 +805,13 @@ Checks that the pipeline includes the required templates and does not override t
 | `requiredGroups` | empty | The same requirement as a list of lists (an OR of ANDs). Exclusive with `required`. |
 
 ```yaml
-pipelineMustIncludeTemplate:
-  enabled: true
-  requiredGroups:
-    - ["templates/go/go", "templates/trivy/trivy"]
-    - ["templates/full-go-pipeline"]
+gitlab:
+  controls:
+    pipelineMustIncludeTemplate:
+      enabled: true
+      requiredGroups:
+        - ["templates/go/go", "templates/trivy/trivy"]
+        - ["templates/full-go-pipeline"]
 ```
 
 ## GitHub controls
@@ -644,6 +821,7 @@ Blocks under `github.controls`.
 ### actionsMustBePinnedByCommitSha
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-701" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -655,14 +833,17 @@ Flags a third-party action referenced by a tag or branch instead of a full commi
 | `trustedOwners` | `actions`, `github` | Action owners exempt from the requirement. List only owners inside your trust boundary. |
 
 ```yaml
-actionsMustBePinnedByCommitSha:
-  enabled: true
-  trustedOwners: [actions, github, myorg]
+github:
+  controls:
+    actionsMustBePinnedByCommitSha:
+      enabled: true
+      trustedOwners: [actions, github, myorg]
 ```
 
 ### githubActionMustComeFromAuthorizedSources
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-713" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -678,20 +859,23 @@ Flags an action whose owner is not trusted by any of the four rules below. Raise
 | `includePlumberDefaults` | `true` | Overlay mode: `true` adds your `trustedGithubActions` to the curated list, `false` trusts only your entries. |
 
 ```yaml
-githubActionMustComeFromAuthorizedSources:
-  enabled: true
-  trustGithubOfficialActions: true
-  trustSameOrgActions: true
-  minimumStars: 20000
-  includePlumberDefaults: true
-  trustedGithubActions:
-    - myorg/*
-    - partner-org/deploy-action
+github:
+  controls:
+    githubActionMustComeFromAuthorizedSources:
+      enabled: true
+      trustGithubOfficialActions: true
+      trustSameOrgActions: true
+      minimumStars: 20000
+      includePlumberDefaults: true
+      trustedGithubActions:
+        - myorg/*
+        - partner-org/deploy-action
 ```
 
 ### actionsMustNotBeArchived
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-702" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs an API token" variant="note" />
 </div>
@@ -701,6 +885,7 @@ Flags an action hosted in an archived repository, which no longer receives fixes
 ### actionRefsMustExistUpstream
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-707" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs an API token" variant="note" />
 </div>
@@ -710,6 +895,7 @@ Flags a pinned commit SHA that does not belong to the action's repository. Raise
 ### actionsMustNotCarryKnownCVEs
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-703" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs an API token" variant="note" />
 </div>
@@ -719,6 +905,7 @@ Flags an action version that has a published advisory in the GitHub Advisory Dat
 ### actionsMustNotExecuteMutableRemoteCode
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-714" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs an API token" variant="note" />
 </div>
@@ -728,6 +915,7 @@ Inspects the source of each third-party action and flags one that downloads and 
 ### releaseWorkflowsMustNotRestoreUntrustedCache
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-705" variant="info" />
   <Badge text="On by default" variant="tip" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -752,70 +940,73 @@ Each `cacheActions` entry has an `action` (the `uses:` prefix) and a `mode`:
 | `opt-in` | only when the `with:` input `enableInput` is set (and, with `enableContains`, contains that substring) | `enableInput`, `enableContains` |
 
 ```yaml
-releaseWorkflowsMustNotRestoreUntrustedCache:
-  enabled: true
-  publishActions:
-    - pypa/gh-action-pypi-publish
-    - JS-DevTools/npm-publish
-    - gradle/publish-plugin
-    - softprops/action-gh-release
-    - ncipollo/release-action
-    - goreleaser/goreleaser-action
-    - crazy-max/ghaction-docker-buildx
-    - changesets/action
-  cacheActions:
-    - action: actions/cache
-      mode: always
-    - action: actions/cache/restore
-      mode: always
-    - action: Swatinem/rust-cache
-      mode: always
-    - action: actions/setup-go
-      mode: default
-      disableInput: cache
-      disableValue: false
-    - action: gradle/actions/setup-gradle
-      mode: default
-      disableInput: cache-disabled
-      disableValue: true
-    - action: actions/setup-node
-      mode: opt-in
-      enableInput: cache
-    - action: actions/setup-python
-      mode: opt-in
-      enableInput: cache
-    - action: actions/setup-java
-      mode: opt-in
-      enableInput: cache
-    - action: pnpm/action-setup
-      mode: opt-in
-      enableInput: cache
-    - action: docker/build-push-action
-      mode: opt-in
-      enableInput: cache-from
-      enableContains: type=gha
-  publishScriptPatterns:
-    - '(?i)(npm|pnpm|yarn|bun)\s+publish'
-    - '(?i)cargo\s+publish'
-    - '(?i)twine\s+upload'
-    - '(?i)poetry\s+publish'
-    - '(?i)gh\s+release\s+create'
-    - '(?i)goreleaser\s+release'
-    - '(?i)semantic-release'
-    - '(?i)gradlew?\b[^\n]*\bpublish'
-    - '(?i)\bmvnw?\b[^\n]*\bdeploy\b'
-    - '(?i)dotnet\s+nuget\s+push'
-    - '(?i)gem\s+push'
-    - '(?i)docker\s+push'
-  publishScriptExcludePatterns:
-    - '(?i)--dry-run'
-    - '(?i)publishToMavenLocal'
-  allowedJobs: []
+github:
+  controls:
+    releaseWorkflowsMustNotRestoreUntrustedCache:
+      enabled: true
+      publishActions:
+        - pypa/gh-action-pypi-publish
+        - JS-DevTools/npm-publish
+        - gradle/publish-plugin
+        - softprops/action-gh-release
+        - ncipollo/release-action
+        - goreleaser/goreleaser-action
+        - crazy-max/ghaction-docker-buildx
+        - changesets/action
+      cacheActions:
+        - action: actions/cache
+          mode: always
+        - action: actions/cache/restore
+          mode: always
+        - action: Swatinem/rust-cache
+          mode: always
+        - action: actions/setup-go
+          mode: default
+          disableInput: cache
+          disableValue: false
+        - action: gradle/actions/setup-gradle
+          mode: default
+          disableInput: cache-disabled
+          disableValue: true
+        - action: actions/setup-node
+          mode: opt-in
+          enableInput: cache
+        - action: actions/setup-python
+          mode: opt-in
+          enableInput: cache
+        - action: actions/setup-java
+          mode: opt-in
+          enableInput: cache
+        - action: pnpm/action-setup
+          mode: opt-in
+          enableInput: cache
+        - action: docker/build-push-action
+          mode: opt-in
+          enableInput: cache-from
+          enableContains: type=gha
+      publishScriptPatterns:
+        - '(?i)(npm|pnpm|yarn|bun)\s+publish'
+        - '(?i)cargo\s+publish'
+        - '(?i)twine\s+upload'
+        - '(?i)poetry\s+publish'
+        - '(?i)gh\s+release\s+create'
+        - '(?i)goreleaser\s+release'
+        - '(?i)semantic-release'
+        - '(?i)gradlew?\b[^\n]*\bpublish'
+        - '(?i)\bmvnw?\b[^\n]*\bdeploy\b'
+        - '(?i)dotnet\s+nuget\s+push'
+        - '(?i)gem\s+push'
+        - '(?i)docker\s+push'
+      publishScriptExcludePatterns:
+        - '(?i)--dry-run'
+        - '(?i)publishToMavenLocal'
+      allowedJobs: []
 ```
 
 ### reusableWorkflowsMustNotInheritSecrets
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-302" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -824,6 +1015,7 @@ Flags a reusable workflow call with `secrets: inherit`, which passes every repos
 ### checkoutMustNotPersistCredentials
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-307" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -832,6 +1024,7 @@ Flags an `actions/checkout` step that does not set `persist-credentials: false`,
 ### workflowMustNotExportEntireSecretsContext
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-309" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -840,6 +1033,7 @@ Flags `toJSON(secrets)` and other expressions that expose the whole secrets cont
 ### workflowMustNotInjectUserInputInScripts
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-207" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -848,6 +1042,7 @@ Flags a `run:` script that inlines a user-controlled expression such as `${{ git
 ### workflowMustNotWriteUntrustedContentToGitHubEnv
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-209" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -856,6 +1051,7 @@ Flags a step that writes user-controlled content to `$GITHUB_ENV` or `$GITHUB_PA
 ### workflowMustNotUseDangerousTriggers
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-802" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -864,6 +1060,7 @@ Flags the `pull_request_target` and `workflow_run` triggers, which run with writ
 ### pullRequestTargetMustNotCheckoutHead
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-804" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -872,6 +1069,7 @@ Flags a `pull_request_target` workflow that checks out the pull request head, ru
 ### workflowsMustDeclarePermissions
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-801" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -880,6 +1078,7 @@ Flags a workflow with no explicit `permissions:` block, which runs with the repo
 ### workflowMustNotGrantPermissionsWriteAll
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-803" variant="info" />
   <Badge text="On by default" variant="tip" />
 </div>
 
@@ -888,6 +1087,7 @@ Flags the `permissions: write-all` shortcut at the workflow or job level. Per-sc
 ### workflowMustIncludeRequiredActions
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-417" variant="info" />
   <Badge text="Off by default" variant="note" />
   <Badge text="Needs configuration" variant="caution" />
 </div>
@@ -901,7 +1101,9 @@ Checks that the workflows of the repository, taken together, reference the requi
 | `requiredGroups` | empty | The same requirement as a list of lists (an OR of ANDs). Exclusive with `required`. |
 
 ```yaml
-workflowMustIncludeRequiredActions:
-  enabled: true
-  required: myorg/sast-scan AND myorg/policy/.github/workflows/scan.yml
+github:
+  controls:
+    workflowMustIncludeRequiredActions:
+      enabled: true
+      required: myorg/sast-scan AND myorg/policy/.github/workflows/scan.yml
 ```

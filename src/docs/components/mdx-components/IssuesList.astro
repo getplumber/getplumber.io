@@ -19,6 +19,7 @@
 import { Icon } from "astro-icon/components";
 
 import ProviderTabs from "@/docs/components/mdx-components/ProviderTabs.astro";
+import { controlIdFor } from "@/data/controlIds";
 import { categoryOrderRank, issueCodeRank } from "@/data/issueCategoryOrder";
 import {
   type IssueProviderContent,
@@ -244,6 +245,14 @@ const defaultProvider: PanelId = "gitlab";
                       </span>
                     </div>
                     <div class="flex flex-wrap items-center gap-1.5 md:shrink-0">
+                      {controlIdFor(entry.content.controlConfigKey) && (
+                        <span
+                          class="inline-flex items-center rounded px-2 h-[26px] font-mono text-[10px] md:text-xs font-semibold text-foreground/80 bg-muted ring-1 ring-inset ring-border"
+                          title={`Control ${controlIdFor(entry.content.controlConfigKey)}, ${entry.content.controlName}: the id the Platform's Policies page shows`}
+                        >
+                          {controlIdFor(entry.content.controlConfigKey)}
+                        </span>
+                      )}
                       {entry.providers?.map((id) => <ProviderBadge provider={id} />)}
                       {SHOW_ROADMAP && entry.content.status === "roadmap" && (
                         <span

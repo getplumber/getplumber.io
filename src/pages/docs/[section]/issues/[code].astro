@@ -26,6 +26,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/starwind/breadcrumb";
 import { issueCodeRedirects } from "@/data/issueCodeRedirects";
+import { controlConfigHref, controlIdFor } from "@/data/controlIds";
 import {
   type IssueDoc,
   type IssueProviderContent,
@@ -216,7 +217,7 @@ function inlineCodeToHtml(text: string): string {
 // Page TOC reflects the default provider's section IDs. The inline script
 // at the bottom rewrites these hrefs on tab change so the right-sidebar
 // TOC always targets the visible panel.
-const showConfig = defaultContent.productScope !== "platform";
+const showConfig = defaultContent.status !== "removed";
 const pageHeadings: { depth: number; slug: string; text: string }[] = [
   { depth: 2, slug: `what-is-this-${defaultProvider}`, text: "What is this?" },
   { depth: 2, slug: `impact-${defaultProvider}`, text: "Impact" },
@@ -225,22 +226,15 @@ const pageHeadings: { depth: number; slug: string; text: string }[] = [
     ? [{ depth: 2, slug: `tips-${defaultProvider}`, text: "Tips" }]
     : []),
   ...(showConfig
-    ? [{ depth: 2, slug: `configuration-${defaultProvider}`, text: "Configuration" }]
+    ? [{ depth: 2, slug: `configuration-${defaultProvider}`, text: "Configure this control" }]
     : []),
   ...(defaultContent.relatedCodes.length > 0
     ? [{ depth: 2, slug: `related-issues-${defaultProvider}`, text: "Related issues" }]
     : []),
 ];
 
-function configKeyExample(provider: Provider, configKey: string): string {
-  if (provider === "github") {
-    return `github:\n  controls:\n    ${configKey}:\n      enabled: true`;
-  }
-  return `gitlab:\n  controls:\n    ${configKey}:\n      enabled: true`;
-}
-
 // Per-page structured data: BreadcrumbList mirrors the visible breadcrumb
-// (Controls → Issues → CODE) with absolute, resolvable URLs, prefixed by Home.
+// (Issues > CODE) with absolute, resolvable URLs, prefixed by Home.
 // TechArticle headline matches the default provider's visible H1.
 const siteBase = (Astro.site?.toString() ?? "").replace(/\/$/, "");
 
@@ -283,7 +277,6 @@ const structuredData = {
   headline: defaultPageTitle,
   breadcrumbs: [
     { name: "Home", item: `${siteBase}/` },
-    { name: "Controls", item: `${siteBase}${docsBase}/controls` },
     { name: "Issues", item: `${siteBase}${docsBase}/issues` },
     { name: code },
   ],
@@ -302,11 +295,7 @@ const structuredData = {
   <Breadcrumb class="mb-4 text-xs md:text-sm">
     <BreadcrumbList >
       <BreadcrumbItem class="pl-0!">
-        <BreadcrumbLink href={`${docsBase}/controls`} class={"mt-2"}>Controls</BreadcrumbLink>
-      </BreadcrumbItem>
-      <BreadcrumbSeparator />
-      <BreadcrumbItem>
-        <BreadcrumbLink href={`${docsBase}/issues`}>Issues</BreadcrumbLink>
+        <BreadcrumbLink href={`${docsBase}/issues`} class={"mt-2"}>Issues</BreadcrumbLink>
       </BreadcrumbItem>
       <BreadcrumbSeparator />
       <BreadcrumbItem>
@@ -328,7 +317,9 @@ const structuredData = {
       const c = p.content;
       const sev = severityColors[c.severity];
       const pn = prevNextFor(p.id);
-      const panelShowConfig = c.productScope !== "platform";
+      const panelShowConfig = c.status !== "removed";
+      const panelControlId = controlIdFor(c.controlConfigKey);
+      const panelConfigHref = controlConfigHref(c.controlConfigKey);
       return (
         <div
           data-provider-panel={p.id}
@@ -377,11 +368,26 @@ const structuredData = {
             <h1 class="docs-h1 docs-text-gradient mb-2">
               {issueDisplayTitle(issueDoc, p.id) ?? c.title}
             </h1>
-            <p class="mt-2 text-sm text-muted-foreground">
-              Control: <span class="text-foreground">{c.controlName}</span>
-              · Config key: <code class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground"
-                >{c.controlConfigKey}</code
-              >
+            <p class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+              <span>Control:</span>
+              {controlIdFor(c.controlConfigKey) &&
+                (controlConfigHref(c.controlConfigKey) ? (
+                  <a
+                    href={controlConfigHref(c.controlConfigKey)}
+                    class="font-mono text-xs font-semibold rounded bg-muted px-1.5 py-0.5 text-foreground ring-1 ring-border hover:ring-emerald-500/50"
+                    title="The control's id, as the Platform's Policies page shows it; opens its configuration reference"
+                  >
+                    {controlIdFor(c.controlConfigKey)}
+                  </a>
+                ) : (
+                  <span
+                    class="font-mono text-xs font-semibold rounded bg-muted px-1.5 py-0.5 text-foreground ring-1 ring-border"
+                    title="The control's id, as the Platform's Policies page shows it"
+                  >
+                    {controlIdFor(c.controlConfigKey)}
+                  </span>
+                ))}
+              <span class="text-foreground">{c.controlName}</span>
             </p>
           </header>
 
@@ -508,26 +514,44 @@ const structuredData = {
           {panelShowConfig && (
             <section id={`configuration-${p.id}`} class="mb-8 scroll-mt-[calc(var(--nav-height)+1rem)]">
               <h2 class="docs-h2 text-xl font-semibold text-foreground mb-3 flex items-center gap-2">
-                <span>⚙️</span> Configuration
+                <span>⚙️</span> Configure this control
               </h2>
-              <p class="text-foreground/80 mb-3">
-                This control is configured in{" "}
-                <code class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground">.plumber.yaml</code>{" "}
-                under the {p.id === "github" ? "github" : "gitlab"} section:
-              </p>
-              <pre
-                class="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm ring-1 ring-zinc-800"
-                ><code class="text-zinc-300">{configKeyExample(p.id, c.controlConfigKey)}</code></pre>
-              <p class="mt-3 text-sm text-muted-foreground">
-                See the <a href="/docs/cli" class="underline">CLI documentation</a> for the full configuration
-                reference.
+              <div class="rounded-lg border border-border bg-muted/30 p-4 text-sm leading-relaxed text-foreground/80 space-y-2">
                 {c.productScope !== "cli" && (
-                  <>
-                    {" "}
-                    On Plumber Platform, the same key is used in your policy configuration.
-                  </>
+                  <p>
+                    <strong class="text-foreground">On the Plumber Platform:</strong> open the{" "}
+                    <strong class="text-foreground">Policies</strong> page and set control{" "}
+                    {panelControlId && (
+                      <code class="text-xs bg-muted px-1.5 py-0.5 rounded text-foreground ring-1 ring-border">{panelControlId}</code>
+                    )}{" "}
+                    on the policy that governs the project.
+                  </p>
                 )}
-              </p>
+                {c.productScope !== "platform" && (
+                  <p>
+                    <strong class="text-foreground">With the CLI alone:</strong> set it in your configuration file.
+                    {panelConfigHref ? (
+                      <>
+                        {" "}
+                        Every field and default is in the{" "}
+                        <a href={panelConfigHref} class="text-primary underline underline-offset-2">
+                          controls configuration reference{panelControlId ? `, ${panelControlId}` : ""}
+                        </a>
+                        .
+                      </>
+                    ) : (
+                      <>
+                        {" "}
+                        See the{" "}
+                        <a href="/docs/cli/controls-configuration" class="text-primary underline underline-offset-2">
+                          controls configuration reference
+                        </a>
+                        .
+                      </>
+                    )}
+                  </p>
+                )}
+              </div>
             </section>
           )}
 
@@ -591,10 +615,10 @@ const structuredData = {
               <span />
             )}
             <a
-              href={`${docsBase}/controls?p=${p.id}`}
+              href={`${docsBase}/issues?p=${p.id}`}
               class="text-sm text-primary hover:text-primary/80 transition-colors"
             >
-              All Controls →
+              All issues →
             </a>
             {pn.next ? (
               <a

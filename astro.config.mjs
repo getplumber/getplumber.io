@@ -22,6 +22,13 @@ const blogLastmodByPath = getBlogLastmodByPath();
 // https://astro.build/config
 export default defineConfig({
   site: "https://getplumber.io",
+  // The Controls page was retired (2026-10-08): customers meet controls as CTRL-nnn ids on the
+  // Platform's Policies page, the issue pages carry the id, and the controls configuration
+  // reference carries the fields. Both of its routes land on the issues list.
+  redirects: {
+    "/docs/use-plumber/controls": "/docs/use-plumber/issues",
+    "/docs/cli/controls": "/docs/cli/issues",
+  },
   trailingSlash: "never",
   devToolbar: {
     placement: "bottom-left",

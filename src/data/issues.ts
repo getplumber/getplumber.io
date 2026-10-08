@@ -560,16 +560,7 @@ security-scan:
 sast:
   image: $CI_REGISTRY_IMAGE/custom-sast:1.2.0
   script:
-    - sast-scan .
-
-# .plumber.yaml: Authorized sources configuration
-# containerImageMustComeFromAuthorizedSources:
-#   enabled: true
-#   trustDockerHubOfficialImages: true
-#   trustedUrls:
-#     - registry.gitlab.com/security-products/*
-#     - $CI_REGISTRY_IMAGE:*
-#     - $CI_REGISTRY_IMAGE/*`,
+    - sast-scan .`,
       goodExampleCaption: "Only images from trusted registries should be used.",
       tips: [
         "Enable `trustDockerHubOfficialImages: true` to allow official Docker Hub images (e.g., `python`, `node`).",
@@ -589,7 +580,7 @@ sast:
       impact:
         "An untrusted registry can serve a backdoored image. Once the runner pulls it, the image executes inside the job with access to whichever secrets the job uses: `GITHUB_TOKEN`, deploy keys, AWS credentials.",
       remediation:
-        "Replace the image with one from a registry declared as trusted in `.plumber.yaml`. For public images, prefer `ghcr.io/owner/...` (where `owner` is a vetted organisation) or Docker Hub Official Images.",
+        "Replace the image with one from a registry declared as trusted in the control's configuration. For public images, prefer `ghcr.io/owner/...` (where `owner` is a vetted organisation) or Docker Hub Official Images.",
       badExample: `# .github/workflows/test.yml: ❌ Untrusted registries
 name: test
 on: [push]
@@ -624,16 +615,7 @@ jobs:
       redis:
         image: redis:7-alpine   # Docker Hub Official Image
     steps:
-      - run: pytest
-
-# .plumber.yaml: Authorized sources configuration
-github:
-  controls:
-    containerImageMustComeFromAuthorizedSources:
-      enabled: true
-      trustDockerHubOfficialImages: true
-      trustedUrls:
-        - ghcr.io/my-org/*`,
+      - run: pytest`,
       goodExampleCaption: "Images come from ghcr.io (your org) or Docker Hub Official Images.",
       tips: [
         "Enable `trustDockerHubOfficialImages: true` to allow short references like `redis:7-alpine` without listing each one.",
@@ -684,7 +666,6 @@ lint:
     - golangci-lint run`,
       goodExampleCaption: "Specific version tags ensure reproducible builds.",
       tips: [
-        "Configure forbidden tags in `.plumber.yaml` under `containerImageMustNotUseForbiddenTags.tags`.",
         "Common forbidden tags include: `latest`, `dev`, `staging`, `main`, `master`.",
       ],
       relatedCodes: ["ISSUE-101"],
@@ -718,17 +699,10 @@ jobs:
     container:
       image: node:20.18.1
     steps:
-      - run: npm ci && npm test
-
-# .plumber.yaml
-github:
-  controls:
-    containerImageMustNotUseForbiddenTags:
-      enabled: true
-      tags: [latest, dev, staging, main, master]`,
+      - run: npm ci && npm test`,
       goodExampleCaption: "Specific minor + patch version pinned for reproducibility.",
       tips: [
-        "Forbidden tags default to `latest`, `dev`, `staging`, `main`, `master`. Override via `containerImageMustNotUseForbiddenTags.tags`.",
+        "Forbidden tags default to `latest`, `dev`, `staging`, `main`, `master`. The list is part of the control's configuration.",
         "Pair with ISSUE-103 to require digest pinning on top of immutable tags.",
       ],
       relatedCodes: ["ISSUE-101", "ISSUE-103"],
@@ -858,13 +832,7 @@ jobs:
       - env:
           AWS_ACCESS_KEY_ID: \${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: \${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: aws s3 sync . s3://my-bucket
-
-# .plumber.yaml
-github:
-  controls:
-    workflowMustNotExportEntireSecretsContext:
-      enabled: true`,
+        run: aws s3 sync . s3://my-bucket`,
       goodExampleCaption: "Each secret stays a separate, redactable string.",
       tips: [
         "Same shape as ISSUE-213 (github-context dump) but with secrets, so it is one severity higher.",
@@ -1107,7 +1075,6 @@ include:
   - component: gitlab.com/my-org/custom-scanner/scan@3.0.1`,
       goodExampleCaption: "Specific version tags ensure reproducible pipelines.",
       tips: [
-        "Configure forbidden version patterns in `.plumber.yaml` under `includesMustNotUseForbiddenVersions.forbiddenVersions`.",
         "Default forbidden versions: `latest`, `~latest`, `main`, `master`, `HEAD`.",
         "Set `defaultBranchIsForbiddenVersion: true` to also forbid using the project's default branch name.",
       ],
@@ -1134,12 +1101,7 @@ include:
   - project: my-org/ci-templates
     ref: v2.1.0
     file: /templates/build.yml
-  # Missing: /templates/security.yml (required by policy)
-
-# .plumber.yaml
-# pipelineMustIncludeTemplate:
-#   enabled: true
-#   required: templates/build AND templates/security`,
+  # Missing: /templates/security.yml (required by policy)`,
       badExampleCaption: "The security template is required but not included.",
       goodExample: `# .gitlab-ci.yml: ✅ All required templates included
 include:
@@ -1224,15 +1186,7 @@ variables:
 # Anyone with Developer access can:
 #   - Push directly
 #   - Force push
-#   - Delete the branch
-
-# .plumber.yaml configuration requiring protection:
-branchMustBeProtected:
-  enabled: true
-  defaultMustBeProtected: true
-  namePatterns:
-    - main
-    - release/*`,
+#   - Delete the branch`,
       badExampleCaption: "The `main` branch has no protection, violating the policy.",
       goodExample: `# GitLab project settings: ✅ Branch properly protected
 # Settings > Repository > Protected Branches:
@@ -1241,19 +1195,7 @@ branchMustBeProtected:
 #   Allowed to merge: Developers + Maintainers
 #   Allowed to push: Maintainers
 #   Allow force push: No
-#   Code owner approval required: Yes
-
-# .plumber.yaml
-branchMustBeProtected:
-  enabled: true
-  defaultMustBeProtected: true
-  namePatterns:
-    - main
-    - release/*
-  allowForcePush: false
-  codeOwnerApprovalRequired: true
-  minMergeAccessLevel: 30   # Developer
-  minPushAccessLevel: 40    # Maintainer`,
+#   Code owner approval required: Yes`,
       goodExampleCaption: "Proper branch protection with restricted push access and code review requirements.",
       tips: [
         "Use `namePatterns` with wildcards to protect branch families (e.g., `release/*`).",
@@ -1274,7 +1216,7 @@ branchMustBeProtected:
       impact:
         "Without protection on the matching branches, anyone with write access can push directly, force-push, rewrite history, or delete the branch. Required reviews, code-owner approvals, and status checks are all bypassed.",
       remediation:
-        "This is a settings change in the GitHub web UI, not a code or `.plumber.yaml` change. The `.plumber.yaml` config only tells Plumber which branches to check. Protect the branch through **either** mechanism: a **Repository Ruleset** (recommended for new setups) or **classic Branch Protection**. Plumber reads both and merges them, so a rule defined in one is enough to satisfy the policy.",
+        "This is a settings change in the GitHub web UI, not a code change. The control's configuration only tells Plumber which branches to check. Protect the branch through **either** mechanism: a **Repository Ruleset** (recommended for new setups) or **classic Branch Protection**. Plumber reads both and merges them, so a rule defined in one is enough to satisfy the policy.",
       remediationSteps: [
         {
           title: "Open **Settings > Rules > Rulesets** and click **New branch ruleset**.",
@@ -1354,7 +1296,7 @@ branchMustBeProtected:
         "Create a dedicated security policy project in your organization to centralize all security policies.",
         "A policy source inherited from a parent group does not satisfy this control: the project must carry its own link.",
         "GitLab security policies require the Ultimate tier.",
-        "The control ships disabled: enable `projectMustHaveSecurityPolicySource` in `.plumber.yaml` and set the expected policy project.",
+        "The control ships disabled: enable it and set the expected policy project in the control's configuration.",
       ],
       relatedCodes: [],
     },
@@ -1430,7 +1372,6 @@ jobs:
 #   Approvals required: 2   ← Meets minimum requirement`,
       goodExampleCaption: "Approval rule meets the minimum number of required approvals.",
       tips: [
-        "Set the minimum in `.plumber.yaml` under `mergeRequestApprovalRulesMustRequireMinimumApprovals.minimumRequiredApprovals`.",
         "Consider requiring different approval counts for different branch patterns (e.g., more for `main`).",
         "Combine with code owner approvals for critical areas of your codebase.",
       ],
@@ -1472,7 +1413,7 @@ jobs:
       goodExampleCaption: "Approval settings prevent self-approval and reset on new commits.",
       tips: [
         "Merge request approval settings require GitLab Premium or Ultimate. On Free the API returns defaults rather than an error, so the control cannot tell the tier apart from a genuinely unlocked project. It ships disabled for that reason. Enable it only on Premium or Ultimate projects.",
-        "Set your expectations in `.plumber.yaml` under `mergeRequestApprovalSettingsMustBeCompliant`. Each one is optional: `preventApprovalByAuthor`, `preventApprovalsByCommitters`, `preventEditingApprovalRulesInMR` and `requireReAuthToApprove` are only checked when set to `true`.",
+        "Each expectation is optional: `preventApprovalByAuthor`, `preventApprovalsByCommitters`, `preventEditingApprovalRulesInMR` and `requireReAuthToApprove` are only checked when set to `true`.",
         "`behaviorWhenCommitIsAdded` is a minimum on the ladder `keep_approvals` < `remove_approvals_by_code_owners` < `remove_all_approvals`, so a stricter project than you asked for still passes.",
         "Enable 'Prevent approval by author' to ensure code is reviewed by someone other than the author.",
         "These settings can also be enforced at the group level for consistency.",
@@ -1610,7 +1551,7 @@ deploy:
 #   Allow force push: Yes                       (dangerous)
 #   Code owner approval required: No            (missing review)
 
-# Required by .plumber.yaml:
+# Required by the policy:
 #   minPushAccessLevel: 40 (Maintainer only)
 #   allowForcePush: false
 #   codeOwnerApprovalRequired: true`,
@@ -1620,15 +1561,7 @@ deploy:
 #   Allowed to merge: Developers + Maintainers
 #   Allowed to push: Maintainers only
 #   Allow force push: No
-#   Code owner approval required: Yes
-
-# Matches .plumber.yaml:
-branchMustBeProtected:
-  enabled: true
-  allowForcePush: false
-  codeOwnerApprovalRequired: true
-  minMergeAccessLevel: 30
-  minPushAccessLevel: 40`,
+#   Code owner approval required: Yes`,
       goodExampleCaption: "Branch protection meets all configured requirements.",
       tips: [
         "Plumber checks each setting independently - the output shows exactly which settings violate the policy.",
@@ -1649,22 +1582,13 @@ branchMustBeProtected:
       impact:
         "A protected-but-misconfigured branch creates a false sense of safety. Reviewers see the green check, the workflow runs, and the UI shows a protection rule, but a critical safeguard (force-push prevention, code-owner review, required checks) is disabled in practice.",
       remediation:
-        "Update whichever source carries the offending setting (the classic rule, a Repository Ruleset, or an inherited Organization Ruleset) so the merged effective configuration matches `.plumber.yaml`. Every setting that violates the policy is listed individually in Plumber's output so you know exactly what to change.",
+        "Update whichever source carries the offending setting (the classic rule, a Repository Ruleset, or an inherited Organization Ruleset) so the merged effective configuration matches the policy. Every setting that violates the policy is listed individually in Plumber's output so you know exactly what to change.",
       badExample: `# GitHub repo settings - ❌ Protection too permissive
 # Settings > Rules > Rulesets > \`main\` ruleset:
 #   Block force pushes: OFF        ← required by policy
 #   Require pull request reviews: ON
 #     Required approvals: 0        ← policy requires >= 1
-#     Require review from Code Owners: OFF   ← required by policy
-#
-# .plumber.yaml
-github:
-  controls:
-    branchMustBeProtected:
-      enabled: true
-      allowForcePush: false
-      codeOwnerApprovalRequired: true
-      minPullRequestReviews: 1`,
+#     Require review from Code Owners: OFF   ← required by policy`,
       badExampleCaption: "Ruleset exists but force-push is allowed and code-owner reviews are off.",
       goodExample: `# GitHub repo settings: ✅ Settings match policy
 # Settings > Rules > Rulesets > \`main\` ruleset:
@@ -1741,12 +1665,7 @@ github:
       badExample: `# .gitlab-ci.yml: ❌ Missing required SAST component
 include:
   - component: gitlab.com/components/secret-detection/secret-detection@2.4.1
-  # Missing: gitlab.com/components/sast/sast (required by policy)
-
-# .plumber.yaml: Requires both SAST and secret detection
-# pipelineMustIncludeComponent:
-#   enabled: true
-#   required: components/sast/sast AND components/secret-detection/secret-detection`,
+  # Missing: gitlab.com/components/sast/sast (required by policy)`,
       badExampleCaption: "The SAST component is required but missing from the pipeline.",
       goodExample: `# .gitlab-ci.yml: ✅ All required components included
 include:
@@ -1756,7 +1675,7 @@ include:
       tips: [
         "Use expression syntax (`AND`/`OR`) in `required` for complex rules: `(sast AND secret-detection) OR full-security`.",
         "Alternatively, use `requiredGroups` with arrays for OR-of-ANDs logic.",
-        "The `include` must match the component path pattern. Check your `.plumber.yaml` for the exact paths.",
+        "The `include` must match the component path pattern configured for the control.",
       ],
       relatedCodes: ["ISSUE-409", "ISSUE-405"],
     },
@@ -1881,14 +1800,7 @@ build:
 #   docker pull python:3.12.1
 #   docker inspect --format='{{index .RepoDigests 0}}' python:3.12.1
 # Or:
-#   crane digest python:3.12.1
-
-# .plumber.yaml
-gitlab:
-  controls:
-    containerImageMustNotUseForbiddenTags:
-      enabled: true
-      containerImagesMustBePinnedByDigest: true`,
+#   crane digest python:3.12.1`,
       goodExampleCaption: "SHA256 digest ensures the exact image content is always used.",
       tips: [
         "Digest pinning is a sub-option of the `containerImageMustNotUseForbiddenTags` control, not a control of its own: `containerImagesMustBePinnedByDigest` defaults to `true` in the shipped config.",
@@ -1926,14 +1838,7 @@ jobs:
     container:
       image: node@sha256:bd3b3b7...9a1c4
     steps:
-      - run: npm ci && npm test
-
-# .plumber.yaml
-github:
-  controls:
-    containerImageMustNotUseForbiddenTags:
-      enabled: true
-      containerImagesMustBePinnedByDigest: true`,
+      - run: npm ci && npm test`,
       goodExampleCaption: "SHA256 digest ensures the exact image content is always used.",
       tips: [
         "Digest pinning is a sub-option of the `containerImageMustNotUseForbiddenTags` control, not a control of its own: `containerImagesMustBePinnedByDigest` defaults to `true` in the shipped config.",
@@ -2023,16 +1928,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - run: ./build.sh
-
-# .plumber.yaml
-github:
-  controls:
-    pipelineMustNotEnableDebugTrace:
-      enabled: true
-      forbiddenVariables:
-        - ACTIONS_STEP_DEBUG
-        - ACTIONS_RUNNER_DEBUG`,
+      - run: ./build.sh`,
       goodExampleCaption: "Re-enable per-run only via GitHub's UI; never commit the toggles.",
       tips: [
         "Literal `env:` truthy values and `${{ }}` bindings on forbidden names are both flagged. `run:` steps that write a forbidden name to `$GITHUB_ENV` are flagged too.",
@@ -2059,7 +1955,7 @@ github:
       impact:
         "An attacker can craft a branch name, MR title, or commit message to inject arbitrary commands into your pipeline. This is a direct path to secret exfiltration, source code theft, and supply chain compromise. Maps to OWASP CICD-SEC-1 (Insufficient Flow Control).",
       remediation:
-        "Avoid passing user-controlled variables to commands that re-interpret input as shell code. Use the variable in a safe context (e.g., `echo`, environment variable assignment) or add the script line to `allowedPatterns` in `.plumber.yaml` if the usage is intentional and safe.",
+        "Avoid passing user-controlled variables to commands that re-interpret input as shell code. Use the variable in a safe context (e.g., `echo`, environment variable assignment) or add the script line to the control's `allowedPatterns` if the usage is intentional and safe.",
       badExample: `# .gitlab-ci.yml: ❌ Variables in shell re-interpretation contexts
 deploy:
   script:
@@ -2084,13 +1980,7 @@ notify:
 
 release:
   script:
-    - push_release "$CI_COMMIT_REF_NAME"
-
-# If you have legitimate sh -c usage, allow it in .plumber.yaml:
-# pipelineMustNotUseUnsafeVariableExpansion:
-#   allowedPatterns:
-#     - "helm.*--set.*\\\\$CI_"
-#     - "terraform workspace select.*\\\\$CI_"`,
+    - push_release "$CI_COMMIT_REF_NAME"`,
       goodExampleCaption: "Variables are used directly in shell commands without re-interpretation.",
       tips: [
         "Normal shell expansion (`echo $CI_COMMIT_BRANCH`) is safe. Only re-interpretation contexts (`eval`, `sh -c`, `bash -c`, `source`) are flagged.",
@@ -2116,7 +2006,7 @@ release:
       impact:
         "An attacker who can modify `.gitlab-ci.yml` could override variables like `SECURE_ANALYZERS_PREFIX` to point to a fake registry, or set `SAST_DISABLED: \"true\"` to silently disable security scanners. The pipeline still appears green, but no actual scanning occurs. This applies to any variable the organization considers controlled, not just security-related ones.",
       remediation:
-        "Remove the variable from `.gitlab-ci.yml` (both the root `variables:` keyword and per-job `variables:` blocks) and set it in **GitLab CI/CD Settings > Variables** instead. Configure the list of controlled variables in `.plumber.yaml` under `pipelineMustNotOverrideJobVariables.variables`.",
+        "Remove the variable from `.gitlab-ci.yml` (both the root `variables:` keyword and per-job `variables:` blocks) and set it in **GitLab CI/CD Settings > Variables** instead.",
       badExample: `# .gitlab-ci.yml: ❌ Controlled variables defined in the YAML
 variables:
   SECURE_ANALYZERS_PREFIX: "registry.evil.com/scanners"
@@ -2141,16 +2031,7 @@ build:
 
 # In GitLab: Settings > CI/CD > Variables
 # Add: SECURE_ANALYZERS_PREFIX, SAST_DISABLED, etc.
-# Set Protected: true, Masked: false (or true if appropriate)
-
-# .plumber.yaml
-# pipelineMustNotOverrideJobVariables:
-#   enabled: true
-#   variables:
-#     - SECURE_ANALYZERS_PREFIX
-#     - SAST_DISABLED
-#     - SECRET_DETECTION_DISABLED
-#     - SAST_EXCLUDED_PATHS`,
+# Set Protected: true, Masked: false (or true if appropriate)`,
       goodExampleCaption: "Controlled variables are managed in GitLab CI/CD Settings, not in the YAML.",
       tips: [
         "The control checks the raw user-authored `.gitlab-ci.yml` only. Variables defined by included components or templates are not flagged.",
@@ -2206,25 +2087,7 @@ include:
 # Customization is done through CI/CD variables:
 variables:
   SAST_EXCLUDED_PATHS: "test/**"
-  SECRET_DETECTION_HISTORIC_SCAN: "false"
-
-# .plumber.yaml
-# securityJobsMustNotBeWeakened:
-#   enabled: true
-#   securityJobPatterns:
-#     - "*-sast"
-#     - "secret_detection"
-#     - "container_scanning"
-#     - "*_dependency_scanning"
-#     - "dast"
-#     - "dast_*"
-#     - "license_scanning"
-#   allowFailureMustBeFalse:
-#     enabled: false   # opt-in (GitLab templates ship with allow_failure: true)
-#   rulesMustNotBeRedefined:
-#     enabled: true
-#   whenMustNotBeManual:
-#     enabled: true`,
+  SECRET_DETECTION_HISTORIC_SCAN: "false"`,
       goodExampleCaption: "Security templates are included without overrides. Configuration is done via variables.",
       tips: [
         "Security jobs are identified by matching job names against `securityJobPatterns` (wildcards supported). Customize patterns to match your pipeline's security jobs.",
@@ -2262,14 +2125,7 @@ jobs:
     permissions:
       security-events: write
     steps:
-      - uses: github/codeql-action/analyze@4e828ff8d448a8a6e532957b1811f387a63867e8 # v3.27.6
-
-# .plumber.yaml
-github:
-  controls:
-    securityJobsMustNotBeWeakened:
-      enabled: true
-      securityJobPatterns: [codeql, semgrep, snyk, trivy]`,
+      - uses: github/codeql-action/analyze@4e828ff8d448a8a6e532957b1811f387a63867e8 # v3.27.6`,
       goodExampleCaption: "Pipeline fails the merge if CodeQL finds an issue.",
       tips: [
         "Plumber identifies security jobs by glob-matching against `<workflow-file-basename-without-.yml>/<job-id>`. The full pattern reference (four shapes, real-world slash-form examples) lives in the [CLI documentation's Security Job Weakening Detection section](/docs/cli).",
@@ -2343,15 +2199,7 @@ signature_verified:
   image: alpine:3.19
   script:
     # cosign verify-blob on the same line works the same way; gpg --verify too.
-    - curl -sSL https://example.com/install.sh -o install.sh && cosign verify-blob --signature install.sig install.sh && bash install.sh
-
-# .plumber.yaml: exempt a known-good internal host
-# gitlab:
-#   controls:
-#     pipelineMustNotExecuteUnverifiedScripts:
-#       enabled: true
-#       trustedUrls:
-#         - https://internal-artifacts.example.com/*`,
+    - curl -sSL https://example.com/install.sh -o install.sh && cosign verify-blob --signature install.sig install.sh && bash install.sh`,
       goodExampleCaption: "Vendor in-tree, verify with sha256sum / gpg --verify / cosign verify on the same line as the download, or whitelist the host via trustedUrls.",
       tips: [
         "Recognised integrity checks (any on the same line as the download): `sha256sum`, `sha512sum`, `sha1sum`, `shasum`, `gpg --verify`, `cosign verify`, `cosign verify-blob`.",
@@ -2429,15 +2277,7 @@ jobs:
       - run: |
           curl -sSL https://example.com/install.sh -o install.sh
           cosign verify-blob --signature install.sig install.sh
-          bash install.sh
-
-# .plumber.yaml: exempt a known-good internal host
-# github:
-#   controls:
-#     pipelineMustNotExecuteUnverifiedScripts:
-#       enabled: true
-#       trustedUrls:
-#         - https://internal-artifacts.example.com/*`,
+          bash install.sh`,
       goodExampleCaption: "Vendor in-tree, verify with sha256sum / gpg --verify / cosign verify on the same line, or whitelist the host via trustedUrls.",
       tips: [
         "Recognised integrity checks (any on the same line as the download): `sha256sum`, `sha512sum`, `sha1sum`, `shasum`, `gpg --verify`, `cosign verify`, `cosign verify-blob`.",
@@ -2488,12 +2328,7 @@ build-image:
     - /kaniko/executor
       --context $CI_PROJECT_DIR
       --dockerfile $CI_PROJECT_DIR/Dockerfile
-      --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-
-# .plumber.yaml
-# pipelineMustNotUseDockerInDocker:
-#   enabled: true
-#   detectInsecureDaemon: true`,
+      --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA`,
       goodExampleCaption: "Kaniko builds container images without requiring a Docker daemon or privileged mode.",
       tips: [
         "Kaniko and Buildah are the most common alternatives to Docker-in-Docker for building container images in CI/CD.",
@@ -2540,13 +2375,7 @@ jobs:
         with:
           context: .
           push: false
-          tags: myimg:\${{ github.sha }}
-
-# .plumber.yaml
-github:
-  controls:
-    pipelineMustNotUseDockerInDocker:
-      enabled: true`,
+          tags: myimg:\${{ github.sha }}`,
       goodExampleCaption: "BuildKit runs without a privileged daemon and is the GitHub-recommended path.",
       tips: [
         "If DinD is unavoidable (rare on GitHub-hosted runners), use Kaniko or Buildah instead; both run rootless.",
@@ -2728,14 +2557,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: tj-actions/changed-files@cc733854b1f224978ef800d29e4709d5ee2883e4 # v46.0.5
-      - uses: some-third-party/action@a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4 # v2.1.0
-
-# .plumber.yaml: skip first-party actions
-github:
-  controls:
-    actionsMustBePinnedByCommitSha:
-      enabled: true
-      trustedOwners: [actions, github]`,
+      - uses: some-third-party/action@a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4 # v2.1.0`,
       goodExampleCaption: "Every `uses:` carries a full SHA; the trailing comment names the release.",
       tips: [
         "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions.",
@@ -2773,13 +2595,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: softprops/action-gh-release@01570a1f39cb168c169c802c3bceb9e93fb10974 # v2
-
-# .plumber.yaml
-github:
-  controls:
-    actionsMustNotBeArchived:
-      enabled: true`,
+      - uses: softprops/action-gh-release@01570a1f39cb168c169c802c3bceb9e93fb10974 # v2`,
       goodExampleCaption: "Active project receiving updates.",
       tips: [
         "Scope is step-level `uses:` in your workflow files only. Job-level reusable-workflow `uses:` lines, local `./.github/actions/*`, and `docker://` steps are out of scope.",
@@ -3007,13 +2823,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: tj-actions/changed-files@cc733854b1f224978ef800d29e4709d5ee2883e4 # v46.0.5
-
-# .plumber.yaml
-github:
-  controls:
-    actionsMustNotCarryKnownCVEs:
-      enabled: true`,
+      - uses: tj-actions/changed-files@cc733854b1f224978ef800d29e4709d5ee2883e4 # v46.0.5`,
       goodExampleCaption: "Patched release pinned by SHA.",
       tips: [
         "Exact tags (`@v45.2.0`) and SHA-resolved versions are point-checked against the advisory range. Moving partial tags (`@v45`, `@v45.2`) are span-checked across the whole release series and only fire when the entire span is vulnerable.",
@@ -3113,19 +2923,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4              # official
       - uses: mycompany/handy-action@v1        # allowed via mycompany/*
-      - uses: jdx/mise-action@v2               # allowed by exact entry
-
-# .plumber.yaml: opt in and define the trusted set
-github:
-  controls:
-    githubActionMustComeFromAuthorizedSources:
-      enabled: true
-      trustGithubOfficialActions: true   # trust actions/* and github/*
-      trustSameOrgActions: true          # trust your org's own actions
-      minimumStars: 0                    # > 0 to require a popularity floor (API)
-      trustedGithubActions:
-        - mycompany/*                    # whole-org wildcard
-        - jdx/mise-action               # exact owner/repo`,
+      - uses: jdx/mise-action@v2               # allowed by exact entry`,
       goodExampleCaption:
         "Every `uses:` resolves to an official owner, your own org, an allowlist match, or (when enabled) a starred repo.",
       tips: [
@@ -3309,13 +3107,7 @@ jobs:
         with:
           registry: ghcr.io
           username: \${{ github.actor }}
-          password: \${{ secrets.GITHUB_TOKEN }}
-
-# .plumber.yaml
-github:
-  controls:
-    containerRegistryCredentialsMustNotBeHardcoded:
-      enabled: true`,
+          password: \${{ secrets.GITHUB_TOKEN }}`,
       goodExampleCaption: "Credentials come from `secrets` (and ghcr.io supports `GITHUB_TOKEN` directly).",
       tips: [
         "ghcr.io accepts `GITHUB_TOKEN` for push, so no separate credential is needed.",
@@ -3341,7 +3133,7 @@ github:
       impact:
         "Whoever can open a PR can prime the cache the trusted release build reuses, injecting compromised artefacts into the published package while nothing changes in the release commit. This is the May 2026 TanStack vector. Pinning the cache action by SHA does not help - the poisoned bytes live in the cache, not the action.",
       remediation:
-        "Weave `github.ref_name` / `github.sha` into the cache key AND every `restore-keys` fallback, or disable caching on publish paths: `cache: false` on a `setup-*` action, the conditional form `cache: ${{ github.event_name != '<publish trigger>' && '<manager>' || '' }}`, or a caching step whose `if:` excludes the publish trigger - Plumber resolves these per trigger and stays silent when the restore and the publish can never share a run. The action/script inventory and a per-job allowlist are configurable in `.plumber.yaml`.",
+        "Weave `github.ref_name` / `github.sha` into the cache key AND every `restore-keys` fallback, or disable caching on publish paths: `cache: false` on a `setup-*` action, the conditional form `cache: ${{ github.event_name != '<publish trigger>' && '<manager>' || '' }}`, or a caching step whose `if:` excludes the publish trigger - Plumber resolves these per trigger and stays silent when the restore and the publish can never share a run. The action/script inventory and a per-job allowlist are part of the control's configuration.",
       badExample: `# .github/workflows/release.yml - ❌ Unscoped key on a release job
 on: [release]
 jobs:
@@ -3364,24 +3156,7 @@ jobs:
         with:
           path: ~/.npm
           key: release-\${{ github.ref_name }}-\${{ hashFiles('**/package-lock.json') }}
-      - uses: JS-DevTools/npm-publish@v3
-
-# .plumber.yaml - the inventories and the whitelist are configurable
-github:
-  controls:
-    releaseWorkflowsMustNotRestoreUntrustedCache:
-      enabled: true
-      publishActions:            # actions that mark a job as "release"
-        - JS-DevTools/npm-publish
-        - pypa/gh-action-pypi-publish
-      publishScriptPatterns:     # publish commands in run: scripts
-        - '(?i)cargo\\s+publish'
-      cacheActions:              # which actions restore a cache, and how
-        - {action: actions/cache, mode: always}
-        - {action: actions/setup-go, mode: default, disableInput: cache, disableValue: false}
-        - {action: actions/setup-node, mode: opt-in, enableInput: cache}
-      allowedJobs:               # jobs you have reviewed and accept (glob)
-        - 'docs/*'`,
+      - uses: JS-DevTools/npm-publish@v3`,
       goodExampleCaption: "The key includes `github.ref_name`, so a PR cache can't win the lookup.",
       tips: [
         "A `restore-keys` prefix fallback must be release-scoped too - a scoped `key` with an unscoped `restore-keys` is still poisonable.",
@@ -3477,13 +3252,7 @@ RUN npm ci`,
 FROM node:20-alpine@sha256:c628bdc7ebc15dbd31196b3a2b96e7f51a3e89a1c6f3...
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
-
-# .plumber.yaml
-github:
-  controls:
-    dockerfileFromMustBePinnedByDigest:
-      enabled: true`,
+RUN npm ci`,
       goodExampleCaption: "Digest pin prevents silent base swaps.",
       tips: [
         "Renovate's `dockerfile` manager auto-bumps digest pins on a schedule.",
@@ -3525,13 +3294,7 @@ jobs:
     steps:
       - env:
           PR_TITLE: \${{ github.event.pull_request.title }}
-        run: echo "Welcome $PR_TITLE!"
-
-# .plumber.yaml
-github:
-  controls:
-    workflowMustNotInjectUserInputInScripts:
-      enabled: true`,
+        run: echo "Welcome $PR_TITLE!"`,
       goodExampleCaption: "The shell sees a single argument; quoting is automatic.",
       tips: [
         "Flagged subfields (attacker-controlled free text): `*.title`, `*.body`, `head.ref`, `head.label`, `head.repo.default_branch` (and the `workflow_run` `head_repository.default_branch`), `*.message`, `*.description`, `*.homepage`, `author.name`, `author.email`, `committer.name`, `committer.email`, `page_name`, and `github.head_ref`.",
@@ -4047,13 +3810,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - run: npm test
-
-# .plumber.yaml
-github:
-  controls:
-    workflowsMustDeclarePermissions:
-      enabled: true`,
+      - run: npm test`,
       goodExampleCaption: "`contents: read` is sufficient for a test workflow.",
       tips: [
         "Override per-job when a specific job needs more (e.g. `release` needing `contents: write`).",
@@ -4345,13 +4102,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: \${{ github.event.workflow_run.head_sha }}
-      - run: npm install && npm test
-
-# .plumber.yaml
-github:
-  controls:
-    workflowMustNotUseDangerousTriggers:
-      enabled: true`,
+      - run: npm install && npm test`,
       goodExampleCaption: "The `if:` blocks fork-originated runs entirely; only same-repository commits ever reach the checkout.",
       tips: [
         "The `pull_request_target` exploit pattern is owned by ISSUE-804 (pullRequestTargetMustNotCheckoutHead); this rule excludes it to avoid double-firing on the same job.",
@@ -4434,15 +4185,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - run: make build
-
-# .plumber.yaml
-# github:
-#   controls:
-#     workflowMustIncludeRequiredActions:
-#       enabled: true
-#       requiredGroups:
-#         - ["myorg/sast-scan", "myorg/dependency-review"]`,
+      - run: make build`,
       badExampleCaption: "Neither `myorg/sast-scan` nor `myorg/dependency-review` is referenced anywhere; the policy fires for both.",
       goodExample: `# .github/workflows/ci.yml: ✅ Required actions wired up
 on: [push, pull_request]
