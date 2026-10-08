@@ -30,10 +30,9 @@ const sidebarNavData: DocsSidebarNavData = {
         {
           id: "cli",
           title: "CLI",
-          // Controls and Issues are siblings: same level, same styling,
-          // Controls first. Neither is nested under the other.
+          // Issues is the catalog: every control is reached from its issues (by its
+          // CTRL-nnn id) and configured on the Controls configuration page.
           navLinks: [
-            { text: "Controls", href: "/docs/use-plumber/controls" },
             { text: "Issues", href: "/docs/use-plumber/issues" },
           ],
         },

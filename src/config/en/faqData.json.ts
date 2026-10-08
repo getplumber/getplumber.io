@@ -31,7 +31,7 @@ export const faqData: FaqItem[] = [
       look for: exposed secrets and unmasked variables, untrusted container registries and mutable
       image tags, unpinned or vulnerable third-party actions, dangerous triggers and over-broad
       permissions, and missing branch protection. Every finding ships with a documented
-      <a href="/docs/cli/controls">remediation guide</a>.`,
+      <a href="/docs/cli/issues">remediation guide</a>.`,
   },
   {
     question: "How does Plumber fix the issues it finds?",
