@@ -4958,6 +4958,9 @@ build:
         "trustSameInstanceComponents (default true) trusts any component on the same GitLab instance. It is ignored on gitlab.com, where Plumber always turns it off because every gitlab.com user shares that instance.",
         "trustGitlabOfficialComponents (default true) trusts GitLab's curated gitlab.com/components/* and gitlab.com/gitlab-org/* namespaces. Only the literal gitlab.com host matches, not a same-named namespace on a self-hosted instance.",
         "Add third-party components you rely on to trustedComponents as an explicit allowlist (wildcards and $VAR/${VAR} notation supported).",
+        "Hosts and namespaces compare case-insensitively, as GitLab resolves them: gitlab.com/MyGroup/x is the same namespace as gitlab.com/mygroup/x.",
+        "A source with a . or .. path segment (also percent-encoded) is never trusted, even when it starts with your own namespace or an allowlisted prefix.",
+        "Plumber's own CI/CD component (gitlab.com/getplumber/plumber/plumber) is not trusted by default: add gitlab.com/getplumber/* to trustedComponents if you include it.",
       ],
       relatedCodes: ["ISSUE-415"],
     },
@@ -4987,15 +4990,17 @@ build:
       goodExample: `build:
   run:
     - name: say_hi
-      func: $CI_TEMPLATE_REGISTRY_HOST/$CI_PROJECT_PATH/echo:1
+      func: registry.gitlab.com/my-group/my-project/echo:1
       inputs:
         message: "Hi Sally!"`,
       goodExampleCaption: "Function trusted: lives under the project's own namespace",
       tips: [
         "trustSameGroupFunctions (default true) trusts functions under the project's own root namespace, hosted on the scanned instance's container registry (the supported OCI form, e.g. registry.gitlab.com) or its web host (the deprecated git form).",
-        "The shipped default allowlists $CI_TEMPLATE_REGISTRY_HOST/$CI_PROJECT_PATH/* (both $VAR and ${VAR} notation) so a project's own function registry is trusted out of the box. A pattern is rejected if the pipeline redefines a $CI_* variable it references, in the global variables: or the job's own variables:.",
+        "trustedFunctions is empty by default. The runner does not expand $VAR in a func: reference, so list literal hosts and paths. A pattern that references a $CI_* variable is rejected when the pipeline redefines that variable: globally, on the job, or through extends:.",
+        "The structured forms are checked like their string equivalents: func: {git: {url, rev, dir, file}} as url/-/dir/file@rev, and func: {oci: {registry, repository, tag}} as registry/repository:tag. A func: value Plumber cannot read is reported, never skipped.",
+        "Hosts and namespaces compare case-insensitively, and a reference with a . or .. path segment is never trusted.",
         "A deprecated reference form (step: instead of func:, or a deprecated git-repository ref) is tracked separately as a terminal stat — it does not by itself trigger this control.",
-        "Local (filesystem-path) function references are always out of scope.",
+        "Local (filesystem-path) function references and GitLab built-in functions (builtin://...) are always out of scope.",
       ],
       relatedCodes: ["ISSUE-414"],
     },

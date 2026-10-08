@@ -52,6 +52,8 @@ A few booleans are `true` when omitted from a full configuration. Every other om
 | `defaultBranchIsForbiddenVersion` | `includesMustNotUseForbiddenVersions` |
 | `includePlumberDefaults` | both allowlist controls |
 | `trustGithubOfficialActions`, `trustSameOrgActions` | `githubActionMustComeFromAuthorizedSources` |
+| `trustSameGroupComponents`, `trustSameInstanceComponents`, `trustGitlabOfficialComponents` | `componentMustComeFromAuthorizedSources` |
+| `trustSameGroupFunctions` | `functionMustComeFromAuthorizedSources` |
 | `allowFailureMustBeFalse.enabled`, `rulesMustNotBeRedefined.enabled`, `whenMustNotBeManual.enabled` | `securityJobsMustNotBeWeakened` |
 
 ### Controls that need configuration
@@ -100,6 +102,8 @@ requiredGroups:
 | Control | Baseline | Issues |
 |---|---|---|
 | [`containerImageMustComeFromAuthorizedSources`](#containerimagemustcomefromauthorizedsources) | on | 101 |
+| [`componentMustComeFromAuthorizedSources`](#componentmustcomefromauthorizedsources) | on | 414 |
+| [`functionMustComeFromAuthorizedSources`](#functionmustcomefromauthorizedsources) | on | 415 |
 | [`includesMustBeUpToDate`](#includesmustbeuptodate) | on | 403 |
 | [`includesMustNotUseForbiddenVersions`](#includesmustnotuseforbiddenversions) | on | 404 |
 | [`pipelineMustNotUseUnsafeVariableExpansion`](#pipelinemustnotuseunsafevariableexpansion) | on | 204 |
@@ -361,6 +365,61 @@ containerImageMustComeFromAuthorizedSources:
   trustedUrls:
     - $CI_REGISTRY_IMAGE:*
     - registry.example.com/platform/*
+```
+
+### componentMustComeFromAuthorizedSources
+
+<div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="On by default" variant="tip" />
+</div>
+
+Flags an `include: component:` whose source is not trusted by any of the rules below. Components run with the job's full context, secrets and `CI_JOB_TOKEN` included. Raises [ISSUE-414](/docs/use-plumber/issues/ISSUE-414) (high).
+
+| Field | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Turns the control on. |
+| `trustSameGroupComponents` | `true` | Trusts components under the scanned project's root namespace (top-level group) on the same GitLab instance. |
+| `trustSameInstanceComponents` | `true` | Trusts any component hosted on the scanned GitLab instance. Always off on gitlab.com, even when set to `true`, because every gitlab.com user shares that instance. |
+| `trustGitlabOfficialComponents` | `true` | Trusts GitLab's curated namespaces on gitlab.com, `gitlab.com/components/*` and `gitlab.com/gitlab-org/*`. A same-named namespace on a self-hosted instance is not covered. |
+| `trustedComponents` | empty | Trusted component sources, wildcards and `$VAR` / `${VAR}` notation supported. |
+
+Hosts and namespaces compare case-insensitively, as GitLab resolves them. A source with a `.` or `..` path segment is never trusted. Plumber's own component is not trusted by default: add `gitlab.com/getplumber/*` to `trustedComponents` if you include it.
+
+```yaml
+componentMustComeFromAuthorizedSources:
+  enabled: true
+  trustSameGroupComponents: true
+  trustSameInstanceComponents: true
+  trustGitlabOfficialComponents: true
+  trustedComponents:
+    - gitlab.com/getplumber/*
+    - gitlab.com/to-be-continuous/*
+```
+
+### functionMustComeFromAuthorizedSources
+
+<div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="On by default" variant="tip" />
+</div>
+
+Flags a [GitLab Function](https://docs.gitlab.com/ci/functions/) referenced by a `run:` step (`func:`, or the deprecated `step:`) whose source is not trusted. Functions run with the job's full context, the same exposure as components. Raises [ISSUE-415](/docs/use-plumber/issues/ISSUE-415) (high).
+
+| Field | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Turns the control on. |
+| `trustSameGroupFunctions` | `true` | Trusts functions under the scanned project's root namespace, hosted on the instance's container registry (OCI form, the registry host the GitLab API reports for the project) or its web host (deprecated git form). CI/CD variables such as `CI_REGISTRY` never move this anchor. |
+| `trustedFunctions` | empty | Trusted function references, wildcards supported. The runner does not expand `$VAR` in `func:`, so list literal hosts and paths. A pattern that references a `$CI_*` variable is rejected when the pipeline redefines that variable. |
+
+The structured forms are checked like their string equivalents: `func: {git: {url, rev, dir, file}}` as `url/-/dir/file@rev`, `func: {oci: {registry, repository, tag}}` as `registry/repository:tag`. A `func:` value Plumber cannot read is reported, never skipped. Local paths and GitLab built-in functions (`builtin://...`) are out of scope. Hosts and namespaces compare case-insensitively, and a reference with a `.` or `..` path segment is never trusted.
+
+The deprecated forms (`step:`, git references) are counted in the `Deprecated` stat of the report. Being deprecated does not raise a finding on its own, and does not exempt a reference from the trust check.
+
+```yaml
+functionMustComeFromAuthorizedSources:
+  enabled: true
+  trustSameGroupFunctions: true
+  trustedFunctions:
+    - registry.example.com/platform-team/*
 ```
 
 ### includesMustBeUpToDate
