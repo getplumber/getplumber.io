@@ -47,6 +47,8 @@ export const controlIds: Record<string, { id: string; name: string }> = {
   externalRefsMustNotCollide: { id: "CTRL-402", name: "Includes must not use ambiguous tag/branch refs" },
   includesMustBeUpToDate: { id: "CTRL-403", name: "Includes must be up to date" },
   includesMustNotUseForbiddenVersions: { id: "CTRL-404", name: "Includes must not use forbidden versions" },
+  componentMustComeFromAuthorizedSources: { id: "CTRL-414", name: "Components must come from authorized sources" },
+  functionMustComeFromAuthorizedSources: { id: "CTRL-415", name: "Functions must come from authorized sources" },
   pipelineMustIncludeTemplate: { id: "CTRL-405", name: "Pipeline must include required templates" },
   pipelineMustIncludeComponent: { id: "CTRL-408", name: "Pipeline must include required components" },
   securityJobsMustNotBeWeakened: { id: "CTRL-410", name: "Security jobs must not be weakened" },

@@ -4681,7 +4681,7 @@ or email security@my-org.example. We aim to acknowledge within 48 hours.
       impact:
         "Components run arbitrary code with the job's full context — variables, secrets, and CI_JOB_TOKEN. This is the GitLab analogue of a GitHub Actions \"pwn request\": an untrusted component source is a direct supply-chain entry point into every pipeline that includes it.",
       remediation:
-        "Include components only from a trusted source: add the source to `.plumber.yaml` under `componentMustComeFromAuthorizedSources.trustedComponents`, or rely on `trustSameGroupComponents` / `trustSameInstanceComponents` if it already lives in your own namespace or instance, or on `trustGitlabOfficialComponents` for GitLab's official `gitlab.com/components/*` and `gitlab.com/gitlab-org/*` components.",
+        "Include components only from a trusted source: add the source to `trustedComponents`, or rely on `trustSameGroupComponents` / `trustSameInstanceComponents` if it already lives in your own namespace or instance, or on `trustGitlabOfficialComponents` for GitLab's official `gitlab.com/components/*` and `gitlab.com/gitlab-org/*` components.",
       badExample: `include:
   - component: gitlab.com/attacker/evil-components/backdoor@1.0.0
 
@@ -4703,7 +4703,7 @@ build:
         "Add third-party components you rely on to trustedComponents as an explicit allowlist (wildcards and $VAR/${VAR} notation supported).",
         "Hosts and namespaces compare case-insensitively, as GitLab resolves them: gitlab.com/MyGroup/x is the same namespace as gitlab.com/mygroup/x.",
         "A source with a . or .. path segment (also percent-encoded) is never trusted, even when it starts with your own namespace or an allowlisted prefix.",
-        "Plumber's own CI/CD component (gitlab.com/getplumber/plumber/plumber) is not trusted by default: add gitlab.com/getplumber/* to trustedComponents if you include it.",
+        "Plumber's own CI/CD component (gitlab.com/getplumber/plumber/plumber) is trusted by default: the shipped trustedComponents list carries gitlab.com/getplumber/*.",
       ],
       relatedCodes: ["ISSUE-415"],
     },
@@ -4724,7 +4724,7 @@ build:
       impact:
         "Functions run arbitrary code with the job's full context, the same supply-chain exposure as CI/CD components (ISSUE-414). An untrusted function source lets an attacker-controlled namespace execute code inside the pipeline's trust boundary.",
       remediation:
-        "Reference functions only from a trusted source: add the source to `.plumber.yaml` under `functionMustComeFromAuthorizedSources.trustedFunctions`, or rely on `trustSameGroupFunctions` if it already lives in your own namespace.",
+        "Reference functions only from a trusted source: add the source to `trustedFunctions`, or rely on `trustSameGroupFunctions` if it already lives in your own namespace.",
       badExample: `build:
   run:
     - name: say_hi
