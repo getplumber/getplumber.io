@@ -42,8 +42,11 @@ jobs:
 
       # Both audit steps are enforcing: a new advisory turns the workflow
       # red (daily schedule gives at most a one-day detection delay).
+      # The full-tree step runs through scripts/npm-audit.mjs, which fails on
+      # anything not listed in .github/npm-audit-allowlist.json. The allowlist
+      # only holds advisories with no patched release, and every entry expires.
       - name: Run npm audit
-        run: npm audit --audit-level=moderate
+        run: node scripts/npm-audit.mjs --audit-level=moderate
 
       - name: Run npm audit (production only)
         run: npm audit --omit=dev --audit-level=high

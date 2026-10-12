@@ -44,7 +44,7 @@ Rules:
 
    ```bash
    npx -y npm@10 ci --dry-run          # lockfile in sync for CI's npm
-   npm audit --audit-level=moderate    # full tree (security.yml)
+   node scripts/npm-audit.mjs --audit-level=moderate   # full tree (security.yml); allowlist in .github/npm-audit-allowlist.json
    npm audit --omit=dev --audit-level=high
    npm run lint
    npm run build

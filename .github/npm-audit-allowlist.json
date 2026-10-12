@@ -1,0 +1,9 @@
+[
+  {
+    "id": "GHSA-vfj7-8cjw-p6xm",
+    "package": "braces",
+    "reason": "No patched release exists: 3.0.3 is the latest braces and the maintainer has not merged a fix (micromatch/braces#85). Reached only through dev tooling (semantic-release and @playform/compress expand glob patterns we author), never through untrusted input.",
+    "added": "2026-10-12",
+    "expires": "2027-01-12"
+  }
+]
