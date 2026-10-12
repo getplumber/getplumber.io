@@ -57,6 +57,7 @@
     "@eslint/js": "10.0.1",
     "@playform/compress": "0.2.5",
     "conventional-changelog-conventionalcommits": "10.2.1",
+    "esbuild": "^0.28.2",
     "eslint": "10.12.0",
     "eslint-plugin-astro": "3.2.1",
     "eslint-plugin-jsx-a11y": "6.10.2",
@@ -74,6 +75,10 @@
   },
   "//": "overrides note: @semantic-release/npm is stubbed with @semantic-release/error because this site never publishes to npm, the plugin is not in .releaserc.json, and its `npm` dependency bundles vulnerable tar/brace-expansion copies that overrides cannot patch. Remove the stub if npm publishing is ever needed.",
   "overrides": {
+    "@ai-sdk/provider-utils": "^4.0.33",
+    "@expressive-code/core": {
+      "postcss-nested": "^7.0.2"
+    },
     "@semantic-release/npm": "npm:@semantic-release/error@^4.0.0",
     "sharp": "^0.35.4",
     "@playform/compress": {
@@ -92,7 +97,6 @@
     "fast-uri": "^3.1.5",
     "fast-xml-builder": "^1.2.0",
     "brace-expansion": "^5.0.9",
-    "esbuild": "^0.28.1",
     "undici": "^7.28.0",
     "tar": "^7.5.22",
     "js-yaml": "^4.3.2",

@@ -126,7 +126,9 @@ export default defineConfig({
       assetsInlineLimit: 0,
       // Astro 7's Vite 8 defaults CSS minification to lightningcss, which can't
       // parse Tailwind's `@import "..." theme(reference)` in scoped <style> blocks.
-      // Use esbuild (the pre-Vite-8 default) to keep minification working.
+      // Use esbuild (the pre-Vite-8 default) to keep minification working. Vite only
+      // lists esbuild as an optional peer and Astro 7.3.8 stopped depending on it, so
+      // esbuild is an explicit devDependency.
       cssMinify: "esbuild",
     },
   },
