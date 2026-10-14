@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Plumber Platform API
-  version: 2.6.0
+  version: 2.9.0
   description: |-
     The HTTP API of the Plumber Platform, served by your Plumber instance under `/api/v1`.
 
@@ -116,7 +116,7 @@ paths:
             regression. A replay of a job whose run first landed out of order keeps answering 202
             `kind: out_of_order` with `evaluated: false`. Also answered for `kind: re_check`, the
             platform's own re-check of an existing run: that run's results and score are updated
-            in place, `recomputed` is true, `gate.evaluated` is true, and `freshness` reports the
+            in place, `gate.evaluated` is true, and `freshness` reports the
             project's current `fresh` state while the displayed run (score, deployment_status) is
             left untouched.
           content:
@@ -1133,11 +1133,11 @@ paths:
       operationId: onboardProjects
       summary: Start onboarding a batch of projects, applying a policy set (Maintainer, visible only)
       description: |-
-        Starts onboarding for every project in the batch: sets its directly-assigned policies to exactly the submitted `policy_ids` (never a diff), starts a new onboarding attempt and queues the merge request that adds the Plumber integration. Always 200 with per-item results: `{accepted: [{project_id, onboarding_id, warnings}], rejected: [{project_id, reason}]}`; a rejected item is left untouched. Requires Maintainer or above.
+        Starts onboarding for every project in the batch: sets its directly-assigned policies to exactly the submitted `policy_ids` (never a diff), starts a new onboarding attempt and queues the merge request that adds the Plumber integration. On an instance using the external CI configuration method there is no merge request: the project's CI configuration path is written to point at the instance's central CI file, the project moves to in progress and its first Plumber run is started; it becomes onboarded once that run's results arrive from its default branch. Always 200 with per-item results: `{accepted: [{project_id, onboarding_id, warnings}], rejected: [{project_id, reason}]}`; a rejected item is left untouched. Requires Maintainer or above.
 
         - `project_ids` must be non-empty; `project_ids` and `policy_ids` are each capped at 100 entries (400 otherwise, before any per-item work). An empty `policy_ids` clears every direct assignment; the project still resolves whatever a covering group grants it.
         - Removing a policy this way closes the project's open issues that no longer require any policy; the project is not marked stale.
-        - Rejection reasons: `not_found` (unknown, foreign or invisible project, indistinguishable), `not_onboardable` (already onboarded, or a removal in flight; an unboarded project is onboardable again), `no_component` (no integration component configured on the instance), `already_pending` (an attempt is already in flight), `provider_unsupported`, `policy_not_found` (a policy unknown or of another organization), `ci_disabled` (the project's CI/CD is disabled), `ci_config_external` (the project's `ci_config_path` points outside the repository).
+        - Rejection reasons: `not_found` (unknown, foreign or invisible project, indistinguishable), `not_onboardable` (already onboarded, or a removal in flight; an unboarded project is onboardable again), `no_component` (no integration component configured on the instance), `already_pending` (an attempt is already in flight), `provider_unsupported`, `policy_not_found` (a policy unknown or of another organization), `ci_disabled` (the project's CI/CD is disabled), `ci_config_external` (the project's CI configuration path names an external location other than this instance's central file, or any external location on an instance using the CI file method), `external_ci_config_not_ready` (the instance integrates through an external CI configuration and its central file is not ready: never checked, unreadable, or missing the component).
         - `warnings` on an accepted item are best-effort notes from the project's last synced listing: `no_shared_runners` (shared runners disabled for this project; a specific runner may still be configured).
         - Licence cap: if onboarding the whole batch would push the org past its licence's `project_limit`, the call answers 422 before any per-item work.
       security:
@@ -1200,9 +1200,9 @@ paths:
       operationId: unboardProjects
       summary: Start removing Plumber from a batch of onboarded or lost projects (Maintainer, visible only)
       description: |-
-        Starts removal of the Plumber integration for every project in the batch: marks the project `unboarding` immediately, starts a new unboarding attempt and queues the merge request that removes the integration from its CI configuration; no further analysis push updates its display until the removal merges (`unboarded`) or the attempt fails. Always 200 with per-item results: `{accepted: [{project_id, unboarding_id}], rejected: [{project_id, reason}]}`. `project_ids` must be non-empty and at most 100 entries (400 otherwise). Requires Maintainer or above.
+        Starts removal of the Plumber integration for every project in the batch: marks the project `unboarding` immediately, starts a new unboarding attempt and queues the merge request that removes the integration from its CI configuration (a project integrated through its CI configuration path instead has that setting reset to the project's own default, and goes straight to `unboarded` once the reset is confirmed); no further analysis push updates its display until the removal merges (`unboarded`) or the attempt fails. Always 200 with per-item results: `{accepted: [{project_id, unboarding_id}], rejected: [{project_id, reason}]}`. `project_ids` must be non-empty and at most 100 entries (400 otherwise). Requires Maintainer or above.
 
-        Rejection reasons: `not_found` (unknown, foreign or invisible, indistinguishable), `not_unboardable` (the project is neither `onboarded` nor `lost`), `already_pending` (an unboarding attempt is already in flight), `in_flight` (an analysis re-check is running for this project; retry once it settles), `provider_unsupported`.
+        Rejection reasons: `not_found` (unknown, foreign or invisible, indistinguishable), `not_unboardable` (the project is neither `onboarded` nor `lost`), `already_pending` (an unboarding attempt is already in flight), `in_flight` (an analysis re-check is running for this project; retry once it settles), `provider_unsupported`, `ci_config_path_changed` (the project was integrated through its CI configuration path, and that setting now names another external CI configuration file; it is not reset).
       security:
         - sessionCookie: []
       requestBody:
@@ -1467,6 +1467,31 @@ paths:
           description: 'An internal failure, not caused by the request; the body is the fixed string "sync request failed".'
         '503':
           description: 'The platform could not verify the session, determine the caller''s role, or resolve the caller''s visible project set (session store or provider unreachable). During a provider outage a GET or HEAD may still be served from a role cached before the outage (a bounded grace window, 15 minutes past the cache TTL by default); a write always answers 503.'
+  /projects/{id}/score-context:
+    get:
+      operationId: getProjectScoreContext
+      summary: The contextual score behind a project's score (Member, visible only)
+      description: |-
+        The policy results of one run with their score and, when the CLI sent one, their score context: the attack paths, the situation paragraph and the best fix (contextual score, `scoring-v4`). Without `run_id` the run is the one owning the project's displayed score; a project with no scored run answers `items: []` without `run_id`. A result scored with `scoring-v3`, a withheld result and a result pushed by a CLI older than v0.6.0 carry no `context`. Sentences, the situation, job names and the best-fix subject are plain text: render them as text. An unknown project, a project of another org and a project the caller cannot see all answer the same 404, as does a `run_id` of another project. Requires Member or above.
+      security:
+        - sessionCookie: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: policy_id, in: query, required: false, schema: { type: string, format: uuid }, description: 'Only this policy''s result.' }
+        - { name: run_id, in: query, required: false, schema: { type: string, format: uuid }, description: 'A run of this project; defaults to the run owning the displayed score.' }
+      responses:
+        '200':
+          description: The run's policy results with their score context.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectScoreContext' }
+        '400': { description: 'Malformed project id, policy_id or run_id, or an undocumented query parameter.' }
+        '401': { description: No live session. }
+        '403': { description: 'The caller is below Member, or the provider refused the caller''s token; log in again, or the account may have been blocked.' }
+        '404': { description: 'Unknown project id, a project of another org, a project not visible to the caller, or a run_id of another project.' }
+        '500': { description: 'An internal failure, not caused by the request; the body is the fixed string "sync request failed".' }
+        '503': { description: 'The platform could not verify the session, determine the caller''s role, or resolve the caller''s visible project set.' }
+
   /projects/{id}/dependencies:
     get:
       operationId: getProjectDependencies
@@ -1750,6 +1775,13 @@ paths:
           explode: true
           schema: { type: array, items: { type: string, enum: [critical, high, medium, low] }, maxItems: 100 }
           description: 'Multi-value: repeat `severity=<value>` to OR values, at most 100. Values are matched case-insensitively against critical/high/medium/low; any other value answers 400 naming the field. An issue with no severity never matches. Omitted means no filter.'
+        - name: base_severity
+          in: query
+          required: false
+          style: form
+          explode: true
+          schema: { type: array, items: { type: string, enum: [critical, high, medium, low] }, maxItems: 100 }
+          description: 'Multi-value, matched case-insensitively against critical/high/medium/low like `severity`, on the base severity.'
         - { name: project, in: query, required: false, schema: { type: string }, description: 'Exact provider project path.' }
         - { name: portfolio, in: query, required: false, schema: { type: string, format: uuid }, description: 'Portfolio id; resolved to its current project set.' }
         - name: policy
@@ -1844,6 +1876,13 @@ paths:
           explode: true
           schema: { type: array, items: { type: string, enum: [critical, high, medium, low] }, maxItems: 100 }
           description: 'MULTI-VALUE and case-insensitive against the frozen vocabulary, as on listIssues. Narrows all three numbers, `by_status` included.'
+        - name: base_severity
+          in: query
+          required: false
+          style: form
+          explode: true
+          schema: { type: array, items: { type: string, enum: [critical, high, medium, low] }, maxItems: 100 }
+          description: 'Multi-value, matched case-insensitively against critical/high/medium/low like `severity`, on the base severity.'
         - { name: project, in: query, required: false, schema: { type: string }, description: 'Exact provider project path.' }
         - { name: portfolio, in: query, required: false, schema: { type: string, format: uuid }, description: 'Portfolio id; resolved to its current project set.' }
         - { name: policy, in: query, required: false, schema: { type: string }, description: 'A policy id (uuid) or a policy name, matched as on listIssues.' }
@@ -2446,6 +2485,41 @@ paths:
         '404': { description: 'Unknown instance id, or an instance belonging to a different org.' }
         '422':
           description: 'Validation failed: a floating ref, a path carrying a scheme, host or `@`, a path outside the project-path charset, a ref with an empty path, or the pinned version resolved but its spec does not declare the platform input (the body names the missing input). A resolution that fails for any other reason never blocks the write.'
+  /settings/instances/{id}/integration:
+    put:
+      operationId: updateInstanceIntegration
+      summary: Set how projects are integrated on this instance (OrgAdmin only)
+      description: |-
+        Chooses between the CI file method (default) and the external CI configuration method, and names the central file for the latter. Answers 200 with the instance's settings. Requires OrgAdmin.
+
+        - Both body fields are optional; an absent field leaves the stored value unchanged. An unrecognized top-level key, or an `integration_mode` outside the enum, is a 400.
+        - Every write whose resulting method is external_ci_config reads the central file with the instance token and checks that it includes this instance's component with this installation's platform input; a passing check is stored as `ok` with its time, and saving again refreshes it. A write in the CI file method reads nothing from the provider: its location is checked for form only, and the stored check is cleared.
+        - The 422 message is one of: "the external CI configuration location must name a file in a project of this instance, path@group/project or path@group/project:ref"; "the external CI configuration mode needs a location"; "the external CI configuration file could not be read: ..." (the project is not visible, the file is absent at its ref, or the read failed); "the external CI configuration file does not include this instance's component with a platform input naming this install". A location longer than 512 bytes gets the first message. The last message also covers a component include whose ref cannot be read as a version, such as the snippet's `<version>` placeholder left in place. Nothing is stored on a 422.
+        - Switching back to the CI file method is always accepted; projects already integrated through the central file keep it.
+        - `{id}` must belong to the caller's org (404 otherwise, indistinguishable from an unknown id).
+      security:
+        - sessionCookie: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateInstanceIntegrationRequest' }
+      responses:
+        '200':
+          description: 'Stored; the body is the instance''s settings after the write.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InstanceSettings' }
+        '400': { description: 'Malformed body, an unrecognized top-level field, or an integration_mode outside the enum.' }
+        '401': { description: No live session. }
+        '403': { description: 'The caller is below OrgAdmin, or the provider refused the caller''s token (the body says to log in again).' }
+        '404': { description: 'Unknown instance id, or an instance belonging to a different org.' }
+        '422': { description: 'One of the four fixed messages listed in the operation description.' }
+        '500': { description: 'Internal failure; the body is the fixed string "settings update failed" with no further detail.' }
+        '503': { description: 'The platform could not verify the session or determine the caller''s role (an infrastructure failure, not a refusal); retry later.' }
+
   /settings/instances/{id}/component/version-check:
     get:
       operationId: checkInstanceComponentVersion
@@ -4461,7 +4535,7 @@ components:
             The CLI and component versions that produced this push. On every accepted push the platform reads component_version, falling back to version when component_version is absent, and refreshes the pushed project's stored component_ref from it. A value that is not shaped like a version (`^v?\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$`) is ignored. Values are normalized to the "v"-prefixed spelling before comparing or storing: a value naming the version the stored ref already names writes nothing; a different version is stored "v"-prefixed, but only when the stored ref is itself version-like or empty. A stored branch, `~latest` or commit-sha pin is never refreshed from a push. A refresh failure never fails the push. See ProjectUpdateEvent's component_ref/component_outdated for the SSE side of this refresh.
           properties:
             version: { type: string, description: "The pushing CLI binary's own version; used for the component_ref refresh when component_version is absent." }
-            component_version: { type: string, description: 'The pinned CI component''s own version, when the CLI populates it separately from its own binary version; read first for the component_ref refresh. Absent on every CLI build up to and including v0.5.8.' }
+            component_version: { type: string, description: 'The pinned CI component''s own version, when the CLI populates it separately from its own binary version; read first for the component_ref refresh. Absent on every CLI build up to and including v0.6.0.' }
         collection: { $ref: '#/components/schemas/CollectionMeta' }
         evaluation: { $ref: '#/components/schemas/PushEvaluation' }
         results:
@@ -4507,7 +4581,11 @@ components:
           allOf:
             - $ref: '#/components/schemas/Score'
           description: |-
-            The CLI's own pushed score for this policy. Optional: since CLI v0.4.61 a CLI that evaluated no control of this policy omits this key entirely; an absent score is "no result", never a grade, and differs from a present score carrying letter "" and points 0, which is a real pushed value. For a created or replayed push with a current-state tally the platform recomputes and stores its own score from this result's findings; a result none of whose findings carries status pass or fail is stored unscored (points 0 beside an empty letter) and flagged withheld, is left out of the run's displayed average and every score rollup, and never blocks a min_points gate. A push with no current-state tally (out-of-order, or a terminal-state skip: the pushed project is unboarded, unboarding or provider_deleted) keeps this pushed value verbatim (recomputed: false on the push response), and an absent score is then recorded as absent, never re-judged from the findings.
+            The CLI's own score for this policy, stored as pushed. Optional: a CLI that evaluated no control of this policy omits it; an absent score, or one with an empty letter, is stored as no result, never a grade.
+        score_context:
+          allOf:
+            - $ref: '#/components/schemas/ScoreContext'
+          description: 'Additive (CLI v0.6.0 and later, `scoring-v4` only): the attack paths the CLI priced for this policy, a plain-language situation paragraph and the best fix, next to the score they explain. Stored as checked, the known fields only (an unknown field is accepted but not kept beside the score), and served by `getProjectScoreContext`. A push whose section exceeds its bounds (512 KiB, at most 256 paths, sentences of at most 1 KiB, a situation of at most 4 KiB) or whose sections exceed 4 MiB in total is refused with 422.'
     Finding:
       type: object
       required: [control, status]
@@ -4534,19 +4612,82 @@ components:
 
             It is a claim about what /context told the CLI, never a write instruction: the platform's own stored issue status decides whether the underlying issue is Dismissed, and a marker on a finding whose issue is not (or no longer) Dismissed is treated as an ordinary fail.
 
-            A dismissed-marked finding stays visible everywhere on the platform, so a dismissal is never mistaken for a fix. Since CLI v0.4.59 the CLI excludes a marked finding from its own pushed score; the platform's recompute excludes dismissed issues by their stored status, never by this marker. Older CLIs never send this field.
+            A dismissed-marked finding stays visible everywhere on the platform, so a dismissal is never mistaken for a fix. Since CLI v0.4.59 the CLI excludes a marked finding from its own pushed score, which the platform stores as pushed. Older CLIs never send this field.
     Score:
       type: object
       required: [letter, points]
       description: |-
-        A grade A-E plus points. On a push (the CLI's own figure, recomputed server-side): points is the formula's signed raw points (100 minus capped per-code losses, no floor) and final_points, when the CLI sends it, is the formula's final points (floored at 0, capped at 30 while any Critical exists). On every response the platform builds (global_score, the SSE project.update score): points is the final points, the displayed score, and final_points is absent.
+        A grade A-E plus points. On a push it is the CLI's own score, which the platform stores as pushed: `points` is the formula's signed raw points (no floor), `final_points` the final points (floored at 0, capped at 30 while a Critical path or code exists), `profile_id` the formula that produced them. On every response the platform builds (`global_score`, the SSE `project.update` score): `points` is the final points, the displayed score, and `final_points` and `profile_id` are absent.
       properties:
         letter:
           type: string
           description: 'Grade A-E: the band of the final points, so the Critical malus is included.'
           examples: [A, B, C, D, E]
-        points: { type: integer, description: 'On a push: signed raw points, negative values kept, no clamping. On a response: the formula''s final points, the displayed score.' }
-        final_points: { type: integer, description: 'Push only, additive (sent by CLI releases that export it): the formula''s final points. Absent from responses, and absent on a push from an older CLI; never inferred, with one narrow exception on an out-of-order push (see PolicyResult.score).' }
+        points: { type: integer, description: 'On a push: signed raw points, negative values kept, between -100000 and 100. On a response: the final points, the displayed score.' }
+        final_points: { type: integer, description: 'Push only: the formula''s final points, 0 to 100. Absent from responses, and from a CLI older than v0.4.58, whose points are then read as final points (30 for an E above 30, never below 0).' }
+        profile_id: { type: string, pattern: '^[a-z0-9][a-z0-9.-]{0,63}$', description: 'Push only, additive (CLI v0.6.0 and later): the scoring formula that produced this score, `scoring-v4` for the contextual score. Absent under `scoring-v3` and from older CLIs; the platform then records `scoring-v3`.' }
+    ScoreContext:
+      type: object
+      required: [paths, situation]
+      description: 'The attack-path picture behind one policy score (contextual score, `scoring-v4`).'
+      properties:
+        paths:
+          type: array
+          items: { $ref: '#/components/schemas/ScorePath' }
+          description: 'Priced attack paths, worst first. The CLI sends at most 200.'
+        situation: { type: string, description: 'Three labelled facts as "Label: value." sentences: Repository (visibility), Default branch (name and protection), Workflows or Pipeline (job count). No best-fix text.' }
+        best_fix: { $ref: '#/components/schemas/ScoreBestFix' }
+    ScorePath:
+      type: object
+      required: [id, tier, state, entry_kind, jobs, reach_kind, sentence, finding_hashes]
+      properties:
+        id: { type: string, description: 'Deterministic path id (a hash of the path key).' }
+        tier: { type: string, description: 'critical, high, medium or low.' }
+        state: { type: string, description: 'proven, or unverified when a fact on the path could not be decided.' }
+        entry_kind:
+          type: string
+          description: 'How an attacker gets in: fork_pr, pr_target, untrusted_expression, mutable_dependency, unprotected_push or poisoned_cache. Open vocabulary (bounded by character class and length, not a closed set): a later CLI may add kinds and the platform accepts them without a contract change.'
+        jobs: { type: array, items: { type: string }, description: 'The entry job first, then the jobs the attack reaches.' }
+        reach_kind:
+          type: string
+          description: 'What the path reaches: impact:<kind> (for example impact:publishes, impact:deploys, impact:writes_repo, impact:signs_or_releases), secrets, token, execution or none. The STRONGEST single kind of the path''s reach, which may hold several (impact kinds rank above secrets/token/execution/none). Open vocabulary, like entry_kind.'
+        modifiers:
+          type: array
+          items: { type: string }
+          description: 'Tier modifiers applied: private_exposure, unresolvable, gate:<ISSUE code>, push_entry_cap, dependency_cap. Absent when none. Open vocabulary, like entry_kind.'
+        sentence: { type: string, description: 'One plain-language sentence explaining the path. Render as text.' }
+        finding_hashes: { type: array, items: { type: string }, description: 'The identity hashes of the findings that make up the path, anchors first, then gates.' }
+    ScoreBestFix:
+      type: object
+      required: [anchor_hash, code, points_gained, new_letter, sentence]
+      properties:
+        anchor_hash: { type: string }
+        code: { type: string, description: 'The ISSUE code of the finding to fix.' }
+        job: { type: string }
+        subject: { type: string, description: 'What to fix (an action, an image, an expression), as written in the workflow. Render as text.' }
+        points_gained: { type: number, format: double, description: 'Points the fix recovers, one decimal.' }
+        new_letter: { type: string, description: 'The letter after the fix.' }
+        sentence: { type: string, description: 'One plain-language sentence. Render as text.' }
+    ProjectScoreContext:
+      type: object
+      required: [items]
+      properties:
+        run_id: { type: string, format: uuid, description: 'The run served. Absent when the project has no scored run.' }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/PolicyScoreContext' }
+    PolicyScoreContext:
+      type: object
+      required: [policy, score_letter, score_points, raw_points, score_withheld, score_profile]
+      properties:
+        policy: { type: string, description: 'The policy name as pushed.' }
+        policy_id: { type: string, format: uuid, description: 'Absent for the derived default policy.' }
+        score_letter: { type: string, description: 'Grade A-E; empty when the score was withheld.' }
+        score_points: { type: integer, description: 'Final points, the displayed score; 0 when withheld.' }
+        raw_points: { type: integer, description: 'Signed raw points, history only.' }
+        score_withheld: { type: boolean, description: 'True when the CLI evaluated nothing for this policy: no score, not a grade.' }
+        score_profile: { type: string, description: 'The scoring formula that produced this result''s score: `scoring-v3`, `scoring-v4` (the contextual score), or a newer name from a later CLI.' }
+        context: { $ref: '#/components/schemas/ScoreContext' }
     CollectionMeta:
       type: object
       description: 'Degradation signal for the data collection the CLI consumed.'
@@ -4566,8 +4707,8 @@ components:
           description: 'The run''s displayed score: the integer average of the policies'' final points, with the letter read from that average (one policy: that policy''s result exactly). Display and aggregation only, never used for enforcement. Since CLI v0.4.60 the CLI prints it as the platform''s global score in its verdict, the badge and the MR comment headline.'
         recomputed:
           type: boolean
-          description: |-
-            True for a created, replayed, or re_check push with a current-state tally: the platform recomputed every policy result's score from the pushed findings. A re_check landing recomputes from the existing run for that pipeline, updated in place. False for a push with no current-state tally (out-of-order, or a terminal-state skip: the pushed project is unboarded, unboarding or provider_deleted), whose response and stored record carry the pushed score verbatim; the pushed score is retained either way. A nothing-evaluated push reports true: it was recomputed over zero policy results, and global_score carries the empty shape (an empty letter beside 0 points) rather than a grade; read gate.evaluated (false, with the marker's reason) for that case.
+          deprecated: true
+          description: 'Deprecated, always false: the platform stores each policy''s score as the CLI pushed it and no longer recomputes it. Kept for clients that still read it.'
         kind:
           type: string
           enum: [created, replayed, out_of_order, re_check]
@@ -4611,7 +4752,7 @@ components:
           description: 'This policy''s own enforcement, the same value Policy.enforcement carries.'
         blocking:
           type: boolean
-          description: 'When this policy''s min_points is unset: true when enforcement is block and live_fail_count > 0 for this policy alone. When min_points is set: true when enforcement is block and this push''s recomputed per-policy score is strictly below min_points; live_fail_count still reports the raw fail tally but no longer decides blocking alone. A min_points policy this push attributed no recomputed score to never blocks.'
+          description: 'When this policy''s min_points is unset: true when enforcement is block and live_fail_count > 0 for this policy alone. When min_points is set: true when enforcement is block and this push''s per-policy final points, as the CLI pushed them, are strictly below min_points; live_fail_count still reports the raw fail tally but no longer decides blocking alone. A result pushed without a score (or with an empty letter) while live_fail_count > 0 counts as below min_points. A min_points policy this push attributed no evaluated result to (no result, or one with no pass and no fail) never blocks.'
         live_fail_count:
           type: integer
           description: 'How many of the just-pushed fail findings are attributed to this policy and whose issue is not Dismissed. A finding whose policy never resolved (see unresolved_policies) is attributed to no policy and never counted here.'
@@ -4631,7 +4772,7 @@ components:
         min_points:
           type: integer
           nullable: true
-          description: 'The per-policy enforcement threshold, on the same scale as score points (final points). When set, a block-mode policy blocks when its per-policy recomputed score is below this value (letters derive from points); when unset (null or absent), the gate applies the any-fail rule. A report-mode policy never blocks regardless of this value. Since CLI v0.4.60 the CLI renders this value in its per-policy verdict line; the run''s exit code is the push response''s gate verdict, never a local threshold.'
+          description: 'The per-policy enforcement threshold, on the same scale as score points (final points). When set, a block-mode policy blocks when its per-policy final points, as the CLI pushed them, are below this value (letters derive from points); when unset (null or absent), the gate applies the any-fail rule. A report-mode policy never blocks regardless of this value. Since CLI v0.4.60 the CLI renders this value in its per-policy verdict line; the run''s exit code is the push response''s gate verdict, never a local threshold.'
         requirements:
           type: array
           description: 'This policy''s own control tree: control groups, each with its controls and this policy''s own per-control configuration, ordered deterministically. Two policies may declare the same control_type, each with its own config: a runner evaluating this policy must read its entry here, never assume a control_type''s config is shared across policies. Empty when the policy has no stored requirements yet (always empty for the [Plumber default] fallback). Legacy key: byte-identical to control_groups below, kept while the CLI still decodes `requirements`.'
@@ -4711,7 +4852,7 @@ components:
                 merged_yaml: { type: string, nullable: true }
                 raw_config:
                   type: string
-                  description: 'The raw, un-merged root CI config file exactly as fetched (at ci_config_path on the default branch). Present whenever the file fetch succeeded, including when the merge step failed or reported INVALID, so a reader can tell "no CI file" from "file exists but the merge is absent or broken". Capped at 1 MiB: past the cap this key is absent and "raw_config" appears in degraded_fields.'
+                  description: 'The raw, un-merged root CI config file exactly as fetched (at ci_config_path on the default branch). Present whenever the file fetch succeeded, including when the merge step failed or reported INVALID, so a reader can tell "no CI file" from "file exists but the merge is absent or broken". Capped at 1 MiB: past the cap this key is absent and "raw_config" appears in degraded_fields. When ci_config_path names the instance''s central file (external CI configuration mode), this is that file, read at its own ref. When ci_config_path names any other file outside the project, the platform does not read it: this key and merged_yaml are absent and both appear in degraded_fields.'
                 merged_yaml_status:
                   type: string
                   description: 'GitLab''s own merge status for merged_yaml, verbatim ("VALID" or "INVALID"). Absent when the merge response itself is absent: project archived (see project_details.archived) or the merge fetch failed (then "merged_yaml" appears in degraded_fields). With this key, all four causes of merged_yaml absence are distinguishable.'
@@ -4767,7 +4908,7 @@ components:
                 degraded_fields:
                   type: array
                   items: { type: string, enum: [branch_protection, mr_approvals, variables, merged_yaml, project_details, raw_config, source_catalog, security_policy_project, includes_jobs] }
-                  description: 'Stable identifiers of every field whose fetch failed in this collection. A name here means "could not be fetched, treat as not_evaluable"; a field absent from the payload and from this list is genuinely empty (a control may fail against it). One identifier can cover several fetches (mr_approvals: rules + settings; variables: group + project + instance scopes); each appears at most once. An archived project or an INVALID user CI config does not add "merged_yaml" here: those are facts, not fetch failures. `raw_config`: the file was fetched but exceeded 1 MiB. `source_catalog`: at least one component include''s catalog lookup failed (never when a lookup determined "not a catalog resource"). `security_policy_project`: the linkage read was not authoritative (known=false). `includes_jobs`: at least one include''s job attribution could not be established, or the derivation was capped or failed.'
+                  description: 'Stable identifiers of every field whose fetch failed in this collection. A name here means "could not be fetched, treat as not_evaluable"; a field absent from the payload and from this list is genuinely empty (a control may fail against it). One identifier can cover several fetches (mr_approvals: rules + settings; variables: group + project + instance scopes); each appears at most once. An archived project or an INVALID user CI config does not add "merged_yaml" here: those are facts, not fetch failures. `raw_config`: the file was fetched but exceeded 1 MiB, or ci_config_path names a file outside the project that could not be read or that the platform does not read (anything but the instance''s central file). `source_catalog`: at least one component include''s catalog lookup failed (never when a lookup determined "not a catalog resource"). `security_policy_project`: the linkage read was not authoritative (known=false). `includes_jobs`: at least one include''s job attribution could not be established, or the derivation was capped or failed.'
     DismissedIssue:
       type: object
       description: 'One entry of ProjectContext.dismissed_issues: the match key the CLI uses to mark its own findings as dismissed. See that field for the cap, ordering, version-skip, and branch-blindness rules.'
@@ -4928,7 +5069,7 @@ components:
     InstanceSettings:
       type: object
       description: 'OrgAdmin settings view of one configured git instance: metadata and flags only, never a secret.'
-      required: [id, provider, instance, token_set, oauth_app_set, scope_pending, component_path, component_ref, component_resolution]
+      required: [id, provider, instance, token_set, oauth_app_set, scope_pending, component_path, component_ref, component_resolution, integration_mode, external_ci_config_location, external_ci_config_check, external_ci_config_snippet]
       properties:
         id: { type: string, format: uuid }
         provider: { type: string }
@@ -4957,6 +5098,23 @@ components:
           type: string
           enum: [resolved, pinned, unset]
           description: 'Which mode this instance''s onboarding component is configured in, derived from component_path and component_ref. `unset`: no component_path configured, nothing is added to a CI file at all. `resolved`: a component_path with an empty component_ref; the platform resolves the newest immutable tag of that component repository at MR time and refreshes it as releases land. `pinned`: a component_path with an explicit component_ref, moved only by re-saving this setting.'
+        integration_mode:
+          type: string
+          enum: [ci_file, external_ci_config]
+          description: 'How onboarding integrates a project on this instance. ci_file (the default): a merge request adds the component include to the project''s CI file. external_ci_config: the project''s CI configuration path setting is pointed at the central file named by external_ci_config_location, which the customer owns; no file is written in the project. The platform reads only that central file outside a project: a project whose CI configuration path names any other external file is not read (its detection is inconclusive and its configuration is not collected or resolved), and in ci_file mode no external file is read at all.'
+        external_ci_config_location:
+          type: string
+          description: 'The central CI file every project is pointed at in external_ci_config mode, as GitLab writes it in a project''s CI configuration path: path@group/project, or path@group/project:ref. Empty when not configured.'
+        external_ci_config_check:
+          type: object
+          required: [status]
+          description: 'What the last check of the central file found. Checked on every settings write in external_ci_config mode and once per synchronization pass in that mode; cleared by a settings write in ci_file mode.'
+          properties:
+            status: { type: string, enum: ['', ok, unreadable, component_missing], description: 'Empty until first checked. ok: the file exists and includes this instance''s component with the platform input of this installation. unreadable: the file could not be read when last checked: absent at its ref, not visible to the instance token, or a transport failure; a re-save or the next synchronization pass re-checks it. component_missing: the file exists but does not include the component with that input, or includes it at a ref that is not a version (the snippet''s <version> placeholder left in place).' }
+            checked_at: { type: string, format: date-time, nullable: true }
+        external_ci_config_snippet:
+          type: string
+          description: 'The content to put in the central file, rendered from this instance''s component and this installation''s platform input, with workflow rules that run the pipeline on the default branch and on schedules. Empty when no component is configured. When the instance does not pin a component version, the ref reads <version>: replace <version> with the component version to pin. The stage input reads test: a pipeline whose only job sits in the component''s default stage .pre does not run on GitLab, so a central file holding one include needs a stage of its own; drop the stage input only if your component declares none.'
     InstanceSettingsList:
       type: object
       description: 'The listSettingsInstances response envelope: one page of InstanceSettings rows, ordered by (provider, instance). Offset-paginated.'
@@ -5033,6 +5191,12 @@ components:
       properties:
         component_path: { type: string, description: 'The project path (on this instance) of the component to add, e.g. plumber-org/plumber-component. Must not carry a URL scheme, a host, or an @ sign. Explicit "" clears the setting; a component_ref with an empty component_path is rejected (422) - it names nothing to pin.' }
         component_ref: { type: string, description: 'Optional: absent or "" with a component_path means the platform resolves the newest immutable tag of the component repository at MR time and refreshes it as releases land; a present value is an explicit pin and follows the pin rules (never a floating name; verified when the MR is opened).' }
+    UpdateInstanceIntegrationRequest:
+      type: object
+      description: 'Body of updateInstanceIntegration. Both fields are optional: an absent field leaves the stored value unchanged.'
+      properties:
+        integration_mode: { type: string, enum: [ci_file, external_ci_config] }
+        external_ci_config_location: { type: string, description: 'path@group/project or path@group/project:ref, a file in a project of this instance. Needed while integration_mode is external_ci_config; an empty string clears it, which is refused while the mode is external_ci_config.' }
     ComponentVerification:
       type: object
       description: 'The 200 body for updateInstanceComponent: whether the just-stored component pin could be checked against the provider at write time. An unverified result never blocks the write; see that operation for the full verified/unverified split.'
@@ -5048,7 +5212,7 @@ components:
               description: '`verified`: the pin was resolved against the provider and its spec declares the platform input, or the write cleared the setting (an empty component_path). `unverified`: the resolution could not be completed for a benign reason (no token or base_url configured yet, the component template unreadable or unparseable at this ref, a transport failure, or a resolved-mode save, which has no version to check yet); the setting is still stored, never blocked.'
             reason:
               type: string
-              description: 'Empty string when status is verified (including a clear). A short cause when status is unverified, e.g. "no token configured". A save with a component_path and no component_ref reports "no version pinned yet; the resolved tag is verified at merge request time": nothing was checked because there is nothing to check yet, which is not a provider failure.'
+              description: 'Empty string when status is verified (including a clear). A short cause when status is unverified, e.g. "no token configured". A save with a component_path and no component_ref reports "no version pinned yet; the resolved tag is verified at deployment time": nothing was checked because there is nothing to check yet, which is not a provider failure.'
     ComponentVersionCheck:
       type: object
       description: 'The 200 body for checkInstanceComponentVersion: the instance''s current component pin alongside its component repository''s newest published tag (a repository-wide lookup, see latest), or a degraded answer when that resolution could not complete on this request. See the operation for the full checked/reason contract.'
@@ -5282,7 +5446,7 @@ components:
     InventoryProject:
       type: object
       description: 'One entry in the visibility-filtered asset inventory (see listProjects).'
-      required: [id, path, name, name_with_namespace, provider_project_id, deployment_status, freshness, coverage, has_plumber_yaml, archived, provider_deleted, score_letter, score_points, score_degraded, newest_run_unscorable, component_ref, is_component_repo, official_component_repo, last_onboarding_error, policy_count, portfolio_count, policy_ids, portfolio_ids, open_issue_count, score_source, worst_live_branch, worst_live_branch_score_points, worst_live_branch_score_letter]
+      required: [id, path, name, name_with_namespace, provider_project_id, deployment_status, freshness, coverage, has_plumber_yaml, archived, provider_deleted, score_letter, score_points, score_degraded, score_profile, newest_run_unscorable, component_ref, is_component_repo, official_component_repo, last_onboarding_error, policy_count, portfolio_count, policy_ids, portfolio_ids, open_issue_count, score_source, worst_live_branch, worst_live_branch_score_points, worst_live_branch_score_letter, integration_method]
       properties:
         id: { type: string, format: uuid }
         path: { type: string }
@@ -5315,6 +5479,9 @@ components:
           description: 'Empty string when the project has never been scored, or (with newest_run_unscorable true) when its very first push had no scorable policy. Otherwise the project''s last scored state, which stays displayed while newest_run_unscorable is true; such a project is excluded from every as-of average, so this grade and a fleet average can disagree by construction.'
         score_points: { type: integer }
         score_degraded: { type: boolean, description: 'True when the run owning the displayed score (score_letter/score_points) carried collection_degraded on push. Follows the same display ownership and ordering guard as score_letter/score_points: an out-of-order push never flips it. Aggregates (org, portfolio and policy scores, score histories) carry no such flag.' }
+        score_profile:
+          type: string
+          description: 'The scoring formula that produced score_letter and score_points: `scoring-v3`, `scoring-v4` (the contextual score), a newer name from a later CLI, or `mixed` when the policies of the run owning the score were scored by different formulas. Meaningless while the project is unscored. Follows the same display ownership as score_letter.'
         newest_run_unscorable:
           type: boolean
           description: 'True when the newest analysis run had no scorable policy: every pushed result''s policy was unresolved, every policy withheld its score because none of its controls was evaluated, or the run evaluated nothing at all. The score fields then keep the last scorable state rather than being wiped. Resets to false on the next newest push with at least one scored policy.'
@@ -5351,6 +5518,10 @@ components:
         last_onboarding_error:
           type: string
           description: 'The diagnostic from the project''s most recent onboarding attempt when that attempt failed. Empty string (never a literal null) when there is no unresolved onboarding failure: never onboarded, or a later attempt superseded the failure. An accepted-then-failed onboarding is readable here with its stored error.'
+        integration_method:
+          type: string
+          enum: ['', ci_file, ci_config_path]
+          description: 'How the project was integrated: ci_file, a merge request added the component include to its CI file; ci_config_path, its CI configuration path setting points at the instance''s central file; empty for a project integrated before this distinction existed or detected without a platform onboarding.'
         last_trigger:
           allOf: [ { $ref: '#/components/schemas/InventoryLastTrigger' } ]
           nullable: true
@@ -5409,7 +5580,7 @@ components:
         status:
           type: string
           enum: [pending, mr_opened]
-          description: 'Only the two live onboarding statuses appear here; a merged or failed attempt resolves InventoryProject.pending_onboarding to null instead.'
+          description: 'Only the two live onboarding statuses appear here; a merged, applied or failed attempt resolves InventoryProject.pending_onboarding to null instead.'
         mr_url:
           type: string
           nullable: true
@@ -5649,7 +5820,7 @@ components:
         min_points:
           type: integer
           nullable: true
-          description: 'The per-policy enforcement threshold, optional and nullable, on the same scale as score_points (final points). When set, a block-mode policy blocks when its recomputed score is below this value; when unset, omitted or explicit null, the gate keeps the any-fail behavior. A report-mode policy never blocks either way. A negative value is rejected with a 400 naming the field. Never carried in .plumber.yaml; served to the CLI on /context as Policy.min_points.'
+          description: 'The per-policy enforcement threshold, optional and nullable, on the same scale as score_points (final points). When set, a block-mode policy blocks when its pushed final points are below this value; when unset, omitted or explicit null, the gate keeps the any-fail behavior. A report-mode policy never blocks either way. A negative value is rejected with a 400 naming the field. Never carried in .plumber.yaml; served to the CLI on /context as Policy.min_points.'
         scope_filter:
           allOf: [{ $ref: '#/components/schemas/PolicyScopeFilter' }]
           nullable: true
@@ -5951,7 +6122,7 @@ components:
           items: { $ref: '#/components/schemas/ControlLibraryEntry' }
         cli_version:
           type: string
-          description: 'The pinned CLI version (e.g. "v0.5.8"). Empty string when the running binary carries no version record for the CLI.'
+          description: 'The pinned CLI version (e.g. "v0.6.0"). Empty string when the running binary carries no version record for the CLI.'
         catalog_version:
           type: integer
           description: 'The pinned CLI''s own `catalogVersion` for this control catalog.'
@@ -5981,7 +6152,7 @@ components:
           items: { $ref: '#/components/schemas/IssueTypeCatalogEntry' }
         cli_version:
           type: string
-          description: 'The pinned CLI version (e.g. "v0.5.8"). Empty string when the running binary carries no version record for the CLI; the same rule as ControlLibraryList.cli_version.'
+          description: 'The pinned CLI version (e.g. "v0.6.0"). Empty string when the running binary carries no version record for the CLI; the same rule as ControlLibraryList.cli_version.'
         catalog_version:
           type: integer
           description: 'The pinned CLI''s own `catalogVersion` for this issue-type catalog; the same field ControlLibraryList.catalog_version carries for the control library.'
@@ -6393,7 +6564,7 @@ components:
     IssueSummary:
       type: object
       description: 'One row of the issues list (see listIssues). A finding is one run''s per-control observation as the CLI pushed it; an issue is the durable, deduplicated, status-carrying entity the platform builds from findings across runs.'
-      required: [id, project_path, project, control_type, severity, status, owner, requiring_policies, requiring_policy_refs, analysis_in_progress, first_detected_at, updated_at, fixable, display]
+      required: [id, project_path, project, control_type, severity, base_severity, status, owner, requiring_policies, requiring_policy_refs, analysis_in_progress, first_detected_at, updated_at, fixable, display]
       properties:
         id: { type: string, format: uuid }
         project_path: { type: string }
@@ -6404,7 +6575,8 @@ components:
         code:
           type: string
           description: 'The finding''s ISSUE-nnn code, the join key for GET /issue-types (one control owns several issue types). Present on every issue; never an empty string.'
-        severity: { type: string, description: 'The finding''s severity as pushed by the CLI (critical, high, medium, low); empty string when the finding carries none.' }
+        severity: { type: string, description: 'The severity the CLI pushed for this run (critical, high, medium, low): with the contextual score, the tier of the strongest attack path the finding belongs to; otherwise the base severity. Empty string when the finding carries none.' }
+        base_severity: { type: string, description: 'The issue type''s base severity from the CLI''s registry (critical, high, medium, low). `severity` is the severity shown for this run: with the contextual score it is the tier of the strongest attack path the finding belongs to, so the two can differ. Equals `severity` for a finding of a CLI older than v0.6.0; empty when the finding carries neither.' }
         status: { $ref: '#/components/schemas/IssueStatus' }
         owner: { type: string, description: 'The owner''s platform user id; empty string when unassigned.' }
         owner_avatar_url:
@@ -6838,17 +7010,23 @@ components:
 
     OnboardRejectionReason:
       type: string
-      description: 'The vocabulary of onboardProjects per-item rejection reasons.'
-      enum: [not_found, not_onboardable, no_component, already_pending, provider_unsupported, policy_not_found, policy_import_failed, ci_disabled, ci_config_external]
+      description: |-
+        The vocabulary of onboardProjects per-item rejection reasons.
+
+        - `ci_config_external`: the project's CI configuration path names an external location other than this instance's central file, or any external location on an instance using the CI file method.
+        - `external_ci_config_not_ready`: the instance integrates through an external CI configuration and its central file is not ready: never checked, unreadable, or missing the component.
+      enum: [not_found, not_onboardable, no_component, already_pending, provider_unsupported, policy_not_found, policy_import_failed, ci_disabled, ci_config_external, external_ci_config_not_ready]
     OnboardWarningReason:
       type: string
       description: |-
-        Non-blocking warnings computed for an accepted onboarding item; further values may be added, so treat an unknown value as informational. OnboardAccepted.warnings is computed by the onboard request itself and carries `no_shared_runners` and `plumber_yaml_controls_skipped` only; InventoryPendingOnboarding.warnings is recorded later by the onboarding and carries `stage_input_undeclared` and `no_plumber_job`.
+        Non-blocking warnings computed for an accepted onboarding item; further values may be added, so treat an unknown value as informational. OnboardAccepted.warnings is computed by the onboard request itself and carries `no_shared_runners` and `plumber_yaml_controls_skipped` only; InventoryPendingOnboarding.warnings is recorded later by the onboarding and carries `stage_input_undeclared` and `no_plumber_job`. `in_repo_ci_ignored` and `first_run_not_started` are recorded on the onboarding attempt by the external CI configuration method; no field of this API serves them yet.
 
         - `plumber_yaml_controls_skipped`: the `.plumber.yaml` import left at least one control out because its configuration does not match the schema the platform serves; the policy was still created or matched from the rest of the file, and `dropped_controls` on the same item names each skipped control and its violations.
         - `stage_input_undeclared`: no `stage` input was written into the component include, either because the component version declares no such input or because the project's own CI configuration could not be read (too large, or not valid YAML). The merge request was still opened and says which case it is; the component runs at its own default stage, before the project's own stages.
         - `no_plumber_job`: the provider's merged CI for the file this onboarding wrote carries no job named exactly `plumber`, so the platform's re-check and pipeline signal cannot find it and the project analyses only when its pipeline runs on its own. The merge request was still opened.
-      enum: [no_shared_runners, plumber_yaml_controls_skipped, stage_input_undeclared, no_plumber_job]
+        - `in_repo_ci_ignored`: the project has its own CI file; while its CI configuration path points at the central file, GitLab ignores that file.
+        - `first_run_not_started`: the setting was written but the first pipeline could not be started; the next push, or a later re-check once a run exists, starts it.
+      enum: [no_shared_runners, plumber_yaml_controls_skipped, stage_input_undeclared, no_plumber_job, in_repo_ci_ignored, first_run_not_started]
     OnboardRequest:
       type: object
       description: 'Body of onboardProjects: a batch of projects to start onboarding, plus the complete directly-assigned policy set to apply to each of them.'
@@ -6937,7 +7115,7 @@ components:
     UnboardRejectionReason:
       type: string
       description: 'The closed vocabulary of unboardProjects per-item rejection reasons.'
-      enum: [not_found, not_unboardable, already_pending, in_flight, provider_unsupported]
+      enum: [not_found, not_unboardable, already_pending, in_flight, provider_unsupported, ci_config_path_changed]
     UnboardRequest:
       type: object
       description: 'Body of unboardProjects: a batch of onboarded projects to start removing Plumber from.'
@@ -7560,6 +7738,7 @@ components:
         raw_points:
           type: integer
           description: 'Present when kind is run: the run''s signed raw points (100 minus capped losses, no floor, no malus), kept for history only.'
+        score_profile: { type: string, description: 'Present when kind is run: the scoring formula of the run''s score (`scoring-v3`, `scoring-v4`, or `mixed`).' }
         collection_degraded:
           type: boolean
           description: 'Present when kind is run: the CLI''s collection.degraded signal. True means the analysis ran on incomplete collected data and the CLI withheld the score from its operator; the platform stores and serves the score anyway, with this flag. False for a run pushed before this signal existed.'
