@@ -62,7 +62,7 @@ const authorsData = await getEntries(authors);
     <!-- title -->
     <a href={`/blog/${post.id}`} class="hover:text-primary-700 dark:hover:text-primary-400">
       <h2
-        class="mt-1 line-clamp-2 text-lg font-medium transition-colors md:line-clamp-none md:text-2xl lg:text-3xl"
+        class="mt-2 line-clamp-2 text-lg font-medium leading-tight transition-colors md:line-clamp-none md:text-2xl lg:text-3xl"
       >
         {title}
       </h2>
@@ -71,7 +71,7 @@ const authorsData = await getEntries(authors);
     <!-- description -->
     {
       showDescription && (
-        <p class="description mt-2 line-clamp-3 hidden text-sm md:block lg:text-base">
+        <p class="description mt-4 line-clamp-3 hidden text-sm leading-relaxed opacity-80 md:block lg:text-base lg:leading-relaxed">
           {description}
         </p>
       )
