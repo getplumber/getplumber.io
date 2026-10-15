@@ -667,6 +667,7 @@ lint:
       goodExampleCaption: "Specific version tags ensure reproducible builds.",
       tips: [
         "Common forbidden tags include: `latest`, `dev`, `staging`, `main`, `master`.",
+        "To accept one image on a forbidden tag, for example an internal tool only published as `latest`, list it in `exemptImages` instead of turning the control off. It is then skipped by ISSUE-102 and ISSUE-103 while it uses one of the forbidden tags; its other tags are still checked. See [Exempting an image](/docs/cli/controls-configuration#exempting-an-image).",
       ],
       relatedCodes: ["ISSUE-101"],
     },
@@ -704,6 +705,7 @@ jobs:
       tips: [
         "Forbidden tags default to `latest`, `dev`, `staging`, `main`, `master`. The list is part of the control's configuration.",
         "Pair with ISSUE-103 to require digest pinning on top of immutable tags.",
+        "To accept one image on a forbidden tag, for example an internal tool only published as `latest`, list it in `exemptImages` instead of turning the control off. It is then skipped by ISSUE-102 and ISSUE-103 while it uses one of the forbidden tags; its other tags are still checked. See [Exempting an image](/docs/cli/controls-configuration#exempting-an-image).",
       ],
       relatedCodes: ["ISSUE-101", "ISSUE-103"],
     },
@@ -1806,6 +1808,7 @@ build:
         "Digest pinning is a sub-option of the `containerImageMustNotUseForbiddenTags` control, not a control of its own: `containerImagesMustBePinnedByDigest` defaults to `true` in the shipped config.",
         "Use `crane digest <image>:<tag>` (from `go-containerregistry`) for a quick digest lookup.",
         "Consider automating digest updates with tools like Renovate or Dependabot.",
+        "To accept one image on a forbidden tag, for example an internal tool only published as `latest`, list it in `exemptImages` instead of turning the control off. It is then skipped by ISSUE-102 and ISSUE-103 while it uses one of the forbidden tags; its other tags are still checked. See [Exempting an image](/docs/cli/controls-configuration#exempting-an-image).",
       ],
       relatedCodes: ["ISSUE-101", "ISSUE-102"],
     },
@@ -1844,6 +1847,7 @@ jobs:
         "Digest pinning is a sub-option of the `containerImageMustNotUseForbiddenTags` control, not a control of its own: `containerImagesMustBePinnedByDigest` defaults to `true` in the shipped config.",
         "This control reads job `container:` and `services:` images. Pinning third-party actions by SHA is a separate check, ISSUE-701.",
         "Use `crane digest <image>:<tag>` (from `go-containerregistry`) for a quick digest lookup.",
+        "To accept one image on a forbidden tag, for example an internal tool only published as `latest`, list it in `exemptImages` instead of turning the control off. It is then skipped by ISSUE-102 and ISSUE-103 while it uses one of the forbidden tags; its other tags are still checked. See [Exempting an image](/docs/cli/controls-configuration#exempting-an-image).",
       ],
       relatedCodes: ["ISSUE-101", "ISSUE-102", "ISSUE-701"],
     },

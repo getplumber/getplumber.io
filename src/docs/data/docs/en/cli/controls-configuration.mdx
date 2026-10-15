@@ -164,6 +164,7 @@ Flags container images referenced by a mutable tag and, when digest pinning is r
 | `enabled` | `true` | Turns the control on. |
 | `tags` | 6 tags, see below | Tags considered mutable and therefore forbidden. |
 | `containerImagesMustBePinnedByDigest` | `true` (unset: `false`) | Requires every image to be referenced by an immutable `@sha256:` digest. Takes precedence over `tags`: a version tag such as `alpine:3.19` is then also flagged. |
+| `exemptImages` | empty | Images that neither ISSUE-102 nor ISSUE-103 checks while they use one of the `tags`. See [Exempting an image](#exempting-an-image). |
 
 <Tabs defaultValue="gitlab" syncKey="provider">
   <TabsList>
@@ -195,6 +196,40 @@ github:
 
   </TabsContent>
 </Tabs>
+
+#### Exempting an image
+
+Some images are only published on a mutable tag, for example an internal tool released as `:latest` only. Rather than turning the whole control off, list them in `exemptImages`.
+
+An image is exempt from both ISSUE-102 and ISSUE-103 when its registry and name match an entry **and** its tag is one of the `tags`. Its digest plays no part. Any other tag of the same image is still checked. With the configuration below:
+
+| Image | Result |
+|---|---|
+| `ghcr.io/my-org/report-tool:latest` | Exempt |
+| `ghcr.io/my-org/report-tool:latest@sha256:…` | Exempt: the digest is ignored |
+| `ghcr.io/my-org/report-tool:v1.0.2` | Not exempt: `v1.0.2` is not a forbidden tag, so ISSUE-103 is raised |
+| `debian:latest`, `docker.io/library/debian:latest` | Exempt |
+| `public.ecr.aws/docker/library/debian:latest` | Not exempt: another registry |
+
+```yaml
+github:
+  controls:
+    containerImageMustNotUseForbiddenTags:
+      enabled: true
+      tags: [latest, dev, development, staging, main, master]
+      containerImagesMustBePinnedByDigest: true
+      exemptImages:
+        - ghcr.io/my-org/report-tool
+        - debian
+        - "quay.io/my-org/*"
+```
+
+- **No tag in the entries.** An entry is a registry and an image name. Which tags are accepted comes from `tags`.
+- **Docker Hub spellings match each other.** `debian`, `library/debian`, `docker.io/debian` and `docker.io/library/debian` name the same image, in the entry and in the pipeline alike. A namespace still counts, so `redis` does not match `redis/redis-stack-server`.
+- **Globs.** `*` matches any characters, slashes included: `quay.io/my-org/*` covers every image of that namespace, and `*/busybox` covers `busybox` on any registry. Quote an entry that starts with `*`.
+- **Variables.** `$REGISTRY/tool` and `${REGISTRY}/tool` match each other. The variable is compared by name, not expanded.
+- **One block per provider.** The list is read from the block of the provider being analyzed. An entry under `gitlab.controls` has no effect on a GitHub analysis.
+- **Exempt images stay visible.** The report lists them under *Exempted by configuration*, and they are not counted as unpinned.
 
 ### branchMustBeProtected
 

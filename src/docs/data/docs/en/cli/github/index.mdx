@@ -486,6 +486,10 @@ github:
         - main
         - master
       containerImagesMustBePinnedByDigest: true
+      # Images exempt from both checks while they use one of `tags`
+      # (registry/name, no tag; Docker Hub spellings are equivalent).
+      # exemptImages:
+      #   - ghcr.io/my-org/report-tool
 
     # Truthy ACTIONS_STEP_DEBUG / ACTIONS_RUNNER_DEBUG in any merged env
     # block, expression binding, or runtime $GITHUB_ENV write.
