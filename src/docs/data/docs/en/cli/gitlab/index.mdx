@@ -472,6 +472,10 @@ gitlab:
       # When true, ALL images must be pinned by digest. Takes precedence
       # over the tags list, so even version tags like alpine:3.19 fail.
       containerImagesMustBePinnedByDigest: false
+      # Images exempt from both checks while they use one of `tags`
+      # (registry/name, no tag; Docker Hub spellings are equivalent).
+      # exemptImages:
+      #   - registry.example.com/my-group/internal-tool
 
     containerImageMustComeFromAuthorizedSources:
       enabled: true
