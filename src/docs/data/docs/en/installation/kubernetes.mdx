@@ -376,13 +376,12 @@ together.
    ```sh
    git clone https://github.com/getplumber/plumber-platform.git plumber-platform
    cd plumber-platform
-   read -rs -p "GitLab token: " PLUMBER_COMPONENT_TOKEN; echo; export PLUMBER_COMPONENT_TOKEN
-   ./scripts/component-mirror.sh --gitlab-url https://gitlab.mydomain.com --group my-group
+   ./scripts/component-update.sh --gitlab-url https://gitlab.mydomain.com --project my-group/plumber
    ```
 
-   What it needs and what to set in Plumber afterwards is described in the
+   The script asks for the Owner token. What it needs and what to set in Plumber afterwards:
    [Docker Compose guide](/docs/installation/docker-compose#-plumber-component-in-your-gitlab).
-   Run it again after a Plumber release to publish the new version.
+   After each Plumber update, [refresh the copy](/docs/installation/component-update).
 
 </Steps>
 
@@ -507,6 +506,9 @@ Scale the single backend vertically (`backend.resources`, `PLUMBER_DB_MAX_OPEN_C
    ```
 
 4. You have successfully updated Plumber 🎉
+
+5. If your GitLab holds a copy of the Plumber component,
+   [refresh it](/docs/installation/component-update).
 
 </Steps>
 

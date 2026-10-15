@@ -1,0 +1,107 @@
+---
+title: Update the Plumber component copy
+seoTitle: Update your GitLab's copy of the Plumber CI/CD component
+description: Refresh the copy of the Plumber CI/CD component hosted on your own GitLab after a Plumber release, on any kind of installation.
+sidebar:
+  order: 5
+  label: Component update
+---
+
+If your GitLab holds a [copy of the Plumber CI/CD component](/docs/installation/docker-compose#-plumber-component-in-your-gitlab),
+refresh it after each Plumber update so pipelines get the matching version. Pipelines that
+include the component from `gitlab.com` need nothing.
+
+## 🧰 The script
+
+`scripts/component-update.sh`, in the [installation repository](https://github.com/getplumber/plumber-platform),
+works for any install (Docker Compose, Kubernetes, other). It copies every branch and tag of
+`gitlab.com/getplumber/plumber` into your project, runs the release pipeline on the latest tag
+and checks the version is in the catalog. Running it again when nothing is new changes nothing.
+
+It needs:
+
+- a clone of the installation repository, `curl` and `git`
+- a GitLab token with the `api` scope from an **Owner** of the group (or an instance Admin),
+  used for this run only
+- a runner on the project that can pull `registry.gitlab.com/gitlab-org/release-cli`
+
+## ⚙️ Inputs
+
+Each value comes from the environment, else from the option, else from a prompt. The token is
+never an option.
+
+| Value             | Environment                 | Option                 |
+| ----------------- | --------------------------- | ---------------------- |
+| GitLab URL        | `GITLAB_URL`                | `--gitlab-url URL`     |
+| Component project | `PLUMBER_COMPONENT_PROJECT` | `--project GROUP/NAME` |
+| GitLab token      | `PLUMBER_COMPONENT_TOKEN`   | prompt only            |
+
+## 🚀 Run it
+
+<Tabs defaultValue="compose">
+<TabsList>
+  <TabsTrigger value="compose" class="text-base font-bold py-2.5 px-5">Docker Compose</TabsTrigger>
+  <TabsTrigger value="other" class="text-base font-bold py-2.5 px-5">Kubernetes and other installs</TabsTrigger>
+  <TabsTrigger value="batch" class="text-base font-bold py-2.5 px-5">Without a terminal</TabsTrigger>
+</TabsList>
+<TabsContent value="compose">
+
+With the Platform update, reading `GITLAB_URL` and `PLUMBER_COMPONENT_PROJECT` from `.env`:
+
+```bash
+./scripts/update.sh --component
+```
+
+Alone (the script does not read `.env`):
+
+```bash
+./scripts/component-update.sh --project my-group/plumber
+```
+
+</TabsContent>
+<TabsContent value="other">
+
+From any machine that reaches your GitLab:
+
+```bash
+git clone https://github.com/getplumber/plumber-platform.git plumber-platform
+cd plumber-platform
+./scripts/component-update.sh --gitlab-url https://gitlab.mydomain.com --project my-group/plumber
+```
+
+Run `git pull` before each run.
+
+</TabsContent>
+<TabsContent value="batch">
+
+Export the three values; a missing one is an error, not a hang:
+
+```bash
+export GITLAB_URL="https://gitlab.mydomain.com"
+export PLUMBER_COMPONENT_PROJECT="my-group/plumber"
+export PLUMBER_COMPONENT_TOKEN="<owner token>"
+./scripts/component-update.sh
+```
+
+</TabsContent>
+</Tabs>
+
+The script ends with `Component published: gitlab.mydomain.com/my-group/plumber/plumber@<version>`.
+If `component_ref` in `Settings > Component` is empty, pipelines pick up the new version on their
+next run; if it is pinned, move it.
+
+## 🔧 Options
+
+| Option              | Effect                                                      |
+| ------------------- | ----------------------------------------------------------- |
+| `--publish-only`    | Skip the copy, publish the latest tag already in the project |
+| `--timeout SECONDS` | Wait for the release pipeline (default: 600)                |
+| `--dry-run`         | Print the plan, touch nothing, no token needed              |
+
+If no runner picks up the release pipeline in time, fix the runner and run again with
+`--publish-only`.
+
+<Aside variant="info">
+The component's job still pulls the `getplumber/plumber` image from Docker Hub. To use your own
+registry, set the `image` input of the component.
+</Aside>

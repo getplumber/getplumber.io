@@ -283,8 +283,7 @@ project of your instance and to publish its latest version to your CI/CD catalog
 operation runs on its own at any time, from the installation repository:
 
 ```bash
-read -rs -p "GitLab token: " PLUMBER_COMPONENT_TOKEN; echo; export PLUMBER_COMPONENT_TOKEN
-./scripts/component-mirror.sh --gitlab-url https://gitlab.mydomain.com --group my-group
+./scripts/component-update.sh --gitlab-url https://gitlab.mydomain.com --project my-group/plumber
 ```
 
 It creates (or reuses) the project `my-group/plumber` with the description the catalog requires,
@@ -292,9 +291,12 @@ copies every branch and tag, flags the project as a CI/CD catalog project, runs 
 pipeline on the latest tag and checks that the version is listed in the catalog before it reports
 success. It needs:
 
-- a token with the `api` scope from an **Owner** of the group (or an instance Admin), read from
-  the environment for this run only and never stored
+- a token with the `api` scope from an **Owner** of the group (or an instance Admin): the script
+  asks for it (or reads `PLUMBER_COMPONENT_TOKEN` from the environment), uses it for this run only
+  and never stores it
 - a runner available to the new project that can pull `registry.gitlab.com/gitlab-org/release-cli`
+
+After each Plumber update, [refresh the copy](/docs/installation/component-update).
 
 When it succeeds, set the copy as the component in Plumber, as an Admin, in `Settings > Component`:
 `component_path` is `my-group/plumber`, and `component_ref` stays empty to follow the latest
@@ -316,7 +318,7 @@ To move to a new version, run the update script from the repository root:
 
 The backend migrates the database on boot, so the first start after an update can take longer than
 usual. Add `--component` to also refresh your [copy of the Plumber component](#-plumber-component-in-your-gitlab)
-and publish its newest version (the script asks for the Owner token).
+(details: [Update the Plumber component copy](/docs/installation/component-update)).
 
 <Aside variant="caution">
 Upgrades are **sequential and additive**: go through the releases in order, do not skip a line of
