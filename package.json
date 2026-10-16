@@ -10,6 +10,7 @@
     "winsearch": "robocopy dist/pagefind public/pagefind /E",
     "osxsearch": "cp -r dist/pagefind public/",
     "start": "astro dev",
+    "prebuild": "node ./scripts/fetch-adopters.js",
     "build": "astro build && pagefind --site .vercel/output/static",
     "preview": "astro preview",
     "astro": "astro",
