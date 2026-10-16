@@ -5,18 +5,18 @@
  */
 @theme {
   /* site theme config */
-  /* primary colors — based on #008700 */
-  --color-primary-50: #e6f5e6;
-  --color-primary-100: #b3deb3;
-  --color-primary-200: #80c680;
-  --color-primary-300: #4dad4d;
-  --color-primary-400: #1a951a;
-  --color-primary-500: #008700;
-  --color-primary-600: #006f00;
-  --color-primary-700: #005700;
-  --color-primary-800: #003f00;
-  --color-primary-900: #002700;
-  --color-primary-950: #001300;
+  /* primary colors, the brand teal scale (dark theme #09c3c3, light theme #0ccdcd, deep #005d5d) */
+  --color-primary-50: #e3fbfa;
+  --color-primary-100: #c9faf9;
+  --color-primary-200: #9cf3f3;
+  --color-primary-300: #67e3e2;
+  --color-primary-400: #0ccdcd;
+  --color-primary-500: #09c3c3;
+  --color-primary-600: #059292;
+  --color-primary-700: #005d5d;
+  --color-primary-800: #004747;
+  --color-primary-900: #003333;
+  --color-primary-950: #002020;
 
   /* base colors */
   --color-base-50: var(--color-zinc-50);

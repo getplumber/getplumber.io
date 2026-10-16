@@ -47,15 +47,15 @@ const isActionCard = Boolean(href && highlight);
     "group relative flex flex-col overflow-hidden text-center transition duration-500",
     href && "cursor-pointer no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 dark:focus-visible:ring-primary-400 dark:focus-visible:ring-offset-base-900",
     isActionCard &&
-      "hover:border-primary-400 hover:shadow-[0_0_40px_-6px_rgba(34,197,94,0.5)] dark:hover:border-primary-300 dark:hover:bg-primary-500/[0.07] dark:hover:shadow-[0_0_44px_-4px_rgba(34,197,94,0.45)]",
+      "hover:border-primary-400 hover:shadow-[0_0_40px_-6px_rgba(9,195,195,0.5)] dark:hover:border-primary-300 dark:hover:bg-primary-500/[0.07] dark:hover:shadow-[0_0_44px_-4px_rgba(9,195,195,0.45)]",
     compact ? "gap-1.5 px-3 py-5 sm:px-3.5 sm:py-6" : "gap-2 px-4 py-8",
     highlight &&
-      "ring-2 ring-primary-500/45 shadow-[0_0_28px_-8px_rgba(34,197,94,0.45)] dark:ring-primary-400/55 dark:shadow-[0_0_32px_-6px_rgba(34,197,94,0.35)]",
+      "ring-2 ring-primary-500/45 shadow-[0_0_28px_-8px_rgba(9,195,195,0.45)] dark:ring-primary-400/55 dark:shadow-[0_0_32px_-6px_rgba(9,195,195,0.35)]",
     isHiw
       ? [
-          "rounded-xl border border-slate-400/90 bg-slate-50/70 hover:border-primary-400/45 dark:border-slate-600/45 dark:bg-[#1e293b]/60 dark:shadow-[inset_0_1px_0_0_rgba(34,197,94,0.12)] dark:hover:border-primary-500/40 dark:hover:shadow-[inset_0_1px_0_0_rgba(34,197,94,0.2)]",
+          "rounded-xl border border-slate-400/90 bg-slate-50/70 hover:border-primary-400/45 dark:border-slate-600/45 dark:bg-[#1e293b]/60 dark:shadow-[inset_0_1px_0_0_rgba(9,195,195,0.12)] dark:hover:border-primary-500/40 dark:hover:shadow-[inset_0_1px_0_0_rgba(9,195,195,0.2)]",
           highlight &&
-            "border-primary-400/70 dark:border-primary-500/50 dark:shadow-[inset_0_1px_0_0_rgba(34,197,94,0.22),0_0_28px_-8px_rgba(34,197,94,0.4)]",
+            "border-primary-400/70 dark:border-primary-500/50 dark:shadow-[inset_0_1px_0_0_rgba(9,195,195,0.22),0_0_28px_-8px_rgba(9,195,195,0.4)]",
         ]
       : [
           "rounded-2xl border border-base-400 bg-transparent hover:border-primary-300 dark:border-base-600/60 dark:bg-base-900 dark:hover:border-base-500",
