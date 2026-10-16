@@ -139,7 +139,7 @@ function IconBtn({ children, onClick, title }) {
 /* ───────────────────────── Palette ───────────────────────── */
 const C = {
   bg: '#070809', ink: '#F5F5F5', dim: 'rgba(245,245,245,0.55)',
-  green: '#00E000', greenBright: '#3BFF6A', greenDeep: '#008700',
+  green: '#09C3C3', greenBright: '#9CF3F3', greenDeep: '#005D5D',
   red: '#FF2D3D', redDeep: '#B30010',
   node: '#0d1417', nodeEdge: 'rgba(255,255,255,0.16)',
 };
@@ -310,8 +310,8 @@ function PipelineGraph({ p, idx, t, scanX, healAt, flowDim = 1, heroBlockedDim =
         const tR = isLeak ? revealTime(n.x) : 0;
         const ping = isLeak ? win(t, tR, tR + 0.6, Easing.easeOutCubic) : 0;
         const pulse = 0.5 + 0.5 * Math.sin(t * 6 + i);
-        let fill = healed ? C.green : '#1a2a1e';
-        let ring = healed ? C.green : 'rgba(0,224,0,0.45)';
+        let fill = healed ? C.green : '#14282a';
+        let ring = healed ? C.green : 'rgba(9,195,195,0.45)';
         if (isLeak && !leakHealed) {
           const amt = revealed ? 1 : 0.32;
           fill = `rgba(255,45,61,${0.55 + 0.35 * pulse * amt})`;
@@ -565,7 +565,7 @@ function HeroFix() {
           )}
           {/* SECURE chip — pinned INSIDE the .gitlab-ci.yml card, top-right, with a pulsing ring */}
           {secure && (
-            <div style={{ position: 'absolute', right: 18, top: 18, display: 'flex', alignItems: 'center', gap: 9, padding: '8px 15px 8px 13px', borderRadius: 9, background: 'rgba(4,20,10,0.92)', border: `1.5px solid ${C.green}`, color: C.greenBright, fontFamily: MONO, fontWeight: 700, fontSize: 15, letterSpacing: '0.12em', transform: `scale(${secureIn})`, transformOrigin: 'right top', boxShadow: `0 0 24px ${C.green}55` }}>
+            <div style={{ position: 'absolute', right: 18, top: 18, display: 'flex', alignItems: 'center', gap: 9, padding: '8px 15px 8px 13px', borderRadius: 9, background: 'rgba(4,20,20,0.92)', border: `1.5px solid ${C.green}`, color: C.greenBright, fontFamily: MONO, fontWeight: 700, fontSize: 15, letterSpacing: '0.12em', transform: `scale(${secureIn})`, transformOrigin: 'right top', boxShadow: `0 0 24px ${C.green}55` }}>
               <span style={{ position: 'relative', width: 10, height: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ position: 'absolute', width: 10, height: 10, borderRadius: '50%', border: `2px solid ${C.green}`, opacity: (1 - (0.5 + 0.5 * Math.sin(t * 4))) * secureIn, transform: `scale(${1 + 1.6 * (0.5 + 0.5 * Math.sin(t * 4))})` }}/>
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.greenBright, boxShadow: `0 0 8px ${C.green}` }}/>
@@ -597,7 +597,7 @@ function HeroFix() {
             <PlumberMark size={30} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2, lineHeight: 1.05 }}>
               <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: 17, letterSpacing: '0.1em', color: C.greenBright }}>PIPELINE BLOCKED</span>
-              <span style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.16em', color: 'rgba(59,255,106,0.62)' }}>BY PLUMBER</span>
+              <span style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.16em', color: 'rgba(156,243,243,0.62)' }}>BY PLUMBER</span>
             </div>
           </div>
           {/* connector line from the badge down to the gate */}
@@ -608,7 +608,7 @@ function HeroFix() {
 
       {/* Merged card: Plumber Oracle validation + the resulting MR, one place, main info only */}
       {termVisible && (
-        <div style={{ position: 'absolute', left: '50%', bottom: 200, transform: `translateX(-50%) scale(${termIn})`, transformOrigin: 'bottom center', width: 660, background: 'rgba(6,9,10,0.97)', border: '1px solid rgba(0,224,0,0.32)', borderRadius: 14, boxShadow: `0 24px 70px rgba(0,0,0,0.62), 0 0 34px ${C.green}22`, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', left: '50%', bottom: 200, transform: `translateX(-50%) scale(${termIn})`, transformOrigin: 'bottom center', width: 660, background: 'rgba(6,9,10,0.97)', border: '1px solid rgba(9,195,195,0.32)', borderRadius: 14, boxShadow: `0 24px 70px rgba(0,0,0,0.62), 0 0 34px ${C.green}22`, overflow: 'hidden' }}>
           {/* Oracle validation */}
           <div style={{ padding: '16px 20px 15px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
@@ -625,12 +625,12 @@ function HeroFix() {
           </div>
           {/* MR footer */}
           {mrVisible && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderTop: `1px solid ${C.green}26`, background: 'rgba(0,224,0,0.05)', opacity: mrIn, transform: `translateY(${(1 - mrIn) * 8}px)` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderTop: `1px solid ${C.green}26`, background: 'rgba(9,195,195,0.05)', opacity: mrIn, transform: `translateY(${(1 - mrIn) * 8}px)` }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: MONO, fontSize: 12, color: C.dim, marginBottom: 3 }}>!247 · plumber/fix</div>
                 <div style={{ fontFamily: DISP, fontWeight: 600, fontSize: 18, color: C.ink, whiteSpace: 'nowrap' }}>Remove malicious deploy step</div>
               </div>
-              <div style={{ padding: '10px 22px', borderRadius: 9, background: C.green, color: '#001a00', fontFamily: DISP, fontWeight: 700, fontSize: 15, whiteSpace: 'nowrap', boxShadow: `0 0 20px ${C.green}66` }}>Ready to merge</div>
+              <div style={{ padding: '10px 22px', borderRadius: 9, background: C.green, color: '#001a1a', fontFamily: DISP, fontWeight: 700, fontSize: 15, whiteSpace: 'nowrap', boxShadow: `0 0 20px ${C.green}66` }}>Ready to merge</div>
             </div>
           )}
         </div>
@@ -685,19 +685,19 @@ function KnowledgeGraph({ progress, orgHi, t, matchHi = 0 }) {
           <g key={i}>
             {n.match && mp > 0.02 && <circle cx={n.x} cy={n.y} r={rad + 4 + mPulse * 8 * mp} fill="none" stroke={C.greenBright} strokeWidth="1.6" opacity={mp * (1 - mPulse * 0.5)} />}
             <circle cx={n.x} cy={n.y} r={rad * (0.6 + 0.4 * progress)} fill={C.greenBright} opacity={progress * (0.4 + 0.55 * (n.match ? mp : (n.org ? (0.4 + 0.6 * orgHi) : 0.45)))} style={{ filter: hi > 0 ? `drop-shadow(0 0 ${7 * hi}px ${C.green})` : 'none' }} />
-            <text x={n.x} y={n.y < 72 ? n.y - 11 : n.y - 13} textAnchor="middle" fontFamily={MONO} fontWeight={n.match ? 700 : 400} fontSize={n.match ? 12.5 : 11} fill={n.match ? C.greenBright : (n.org ? 'rgba(59,255,106,0.82)' : 'rgba(0,224,0,0.5)')} opacity={progress * (n.match ? (0.4 + 0.6 * mp) : (n.org ? (0.45 + 0.55 * orgHi) : 0.42))}>{n.label}</text>
+            <text x={n.x} y={n.y < 72 ? n.y - 11 : n.y - 13} textAnchor="middle" fontFamily={MONO} fontWeight={n.match ? 700 : 400} fontSize={n.match ? 12.5 : 11} fill={n.match ? C.greenBright : (n.org ? 'rgba(156,243,243,0.82)' : 'rgba(9,195,195,0.5)')} opacity={progress * (n.match ? (0.4 + 0.6 * mp) : (n.org ? (0.45 + 0.55 * orgHi) : 0.42))}>{n.label}</text>
           </g>
         );
       })}
       {/* matched callout */}
       {mp > 0.05 && (
         <foreignObject x={rules[4].x - 66} y={rules[4].y + 16} width="132" height="26" style={{ overflow: 'visible' }}>
-          <div style={{ opacity: mp, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 10px', background: C.green, color: '#001a00', borderRadius: 6, fontFamily: MONO, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap' }}>✓ threat pattern matched</div>
+          <div style={{ opacity: mp, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 10px', background: C.green, color: '#001a1a', borderRadius: 6, fontFamily: MONO, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap' }}>✓ threat pattern matched</div>
         </foreignObject>
       )}
       {/* your-org model badge over the org cluster */}
       <foreignObject x="270" y="-34" width="240" height="30" style={{ overflow: 'visible' }}>
-        <div style={{ opacity: orgHi, display: 'inline-flex', alignItems: 'center', gap: 7, padding: '4px 12px', background: 'rgba(0,224,0,0.14)', border: `1px solid ${C.green}`, borderRadius: 20, fontFamily: MONO, fontSize: 13, color: C.greenBright, whiteSpace: 'nowrap' }}>★ your-org model</div>
+        <div style={{ opacity: orgHi, display: 'inline-flex', alignItems: 'center', gap: 7, padding: '4px 12px', background: 'rgba(9,195,195,0.14)', border: `1px solid ${C.green}`, borderRadius: 20, fontFamily: MONO, fontSize: 13, color: C.greenBright, whiteSpace: 'nowrap' }}>★ your-org model</div>
       </foreignObject>
     </svg>
   );
@@ -715,7 +715,7 @@ function FinalRecap() {
         const p = win(t, 30.9 + i * 0.4, 31.4 + i * 0.4, Easing.easeOutBack);
         return (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 18, opacity: p, transform: `translateX(${(1 - p) * -26}px)` }}>
-            <span style={{ width: 40, height: 40, borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,224,0,0.16)', border: `2px solid ${C.green}`, color: C.green, fontSize: 20, fontWeight: 700, boxShadow: `0 0 18px ${C.green}55` }}>✓</span>
+            <span style={{ width: 40, height: 40, borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,195,195,0.16)', border: `2px solid ${C.green}`, color: C.green, fontSize: 20, fontWeight: 700, boxShadow: `0 0 18px ${C.green}55` }}>✓</span>
             <span style={{ fontFamily: DISP, fontWeight: 600, fontSize: 40, color: C.ink, letterSpacing: '-0.01em', display: 'inline-block', whiteSpace: 'nowrap' }}>{i === 2 ? (<>Plumber Score: <GradeChip g="A" size={30} /> everywhere</>) : s}</span>
           </div>
         );
@@ -739,19 +739,19 @@ function Signature() {
 
 // Full Plumber wordmark + mark from the brand SVG (src/assets/images/site-logo.svg)
 function PlumberWordmark({ width = 520 }) {
-  const ratio = 103 / 774;
+  const ratio = 95 / 728;
   return (
-    <svg width={width} height={width * ratio} viewBox="0 0 774 103" fill="none" style={{ filter: `drop-shadow(0 0 30px ${C.green}44)` }}>
-      <path d="M54.4922 25.1555H46.7061V56.2932L77.8447 56.2932V48.509H101.198V98.135H91.4678V64.0774H77.8447V66.0237L28.2188 66.0237L28.2188 56.2932H36.9756L36.9756 12.5051H38.9229V11.5325L4.86621 11.5325L4.86621 1.802L54.4922 1.802L54.4922 25.1555Z" fill="#AEF1B8"/>
-      <path d="M46.7085 25.1555H38.9224L38.9224 64.0784L77.8462 64.0784V56.2932H93.4146V97.1614H77.8462V93.1682L29.9087 93.1682L29.9087 73.8088H8.75732L8.75732 25.1555H4.8667L4.8667 9.58618L46.7085 9.58618V25.1555Z" fill="#35DC4E"/>
-      <path d="M101.198 103H77.8447V95.2161H101.198V103ZM23.3525 71.8616H31.1387L31.1387 79.6467L77.8447 79.6467V95.2151L23.3535 95.2151V87.4309H15.5693L15.5693 79.6467H7.78418L7.78418 25.1555L23.3525 25.1555L23.3525 71.8616ZM7.78418 25.1555H0L0 1.802L7.78418 1.802L7.78418 25.1555Z" fill="#147423"/>
-      <path d="M130.032 101.189V0H167.603C175.3 0 181.758 1.44931 186.976 4.34794C192.227 7.24657 196.19 11.2322 198.864 16.3048C201.571 21.3445 202.925 27.0758 202.925 33.4989C202.925 39.9879 201.571 45.7522 198.864 50.7919C196.157 55.8316 192.162 59.8007 186.878 62.6993C181.595 65.565 175.088 66.9979 167.359 66.9979H142.458V51.9283H164.913C169.413 51.9283 173.099 51.1378 175.969 49.5567C178.839 47.9756 180.959 45.8016 182.329 43.0348C183.731 40.2679 184.432 37.0893 184.432 33.4989C184.432 29.9086 183.731 26.7464 182.329 24.0125C180.959 21.2786 178.823 19.154 175.92 17.6388C173.05 16.0907 169.348 15.3166 164.815 15.3166H148.182V101.189H130.032Z" fill="white"/>
-      <path d="M218.689 101.189V0H236.839V85.8225H280.966V101.189H218.689Z" fill="white"/>
-      <path d="M359.877 0H378.026V66.1085C378.026 73.3551 376.33 79.7288 372.939 85.2296C369.579 90.7304 364.85 95.0289 358.751 98.1252C352.653 101.189 345.526 102.72 337.373 102.72C329.187 102.72 322.044 101.189 315.945 98.1252C309.846 95.0289 305.117 90.7304 301.758 85.2296C298.399 79.7288 296.719 73.3551 296.719 66.1085V0H314.869V64.5768C314.869 68.793 315.782 72.5481 317.609 75.842C319.468 79.1359 322.077 81.7216 325.436 83.5991C328.795 85.4437 332.774 86.366 337.373 86.366C341.971 86.366 345.95 85.4437 349.31 83.5991C352.701 81.7216 355.311 79.1359 357.137 75.842C358.963 72.5481 359.877 68.793 359.877 64.5768V0Z" fill="white"/>
-      <path d="M397.754 0H419.964L449.708 73.3221H450.883L480.627 0H502.837V101.189H485.421V31.6708H484.492L456.802 100.892H443.789L416.099 31.5226H415.17V101.189H397.754V0Z" fill="white"/>
-      <path d="M522.601 101.189V0H560.956C568.196 0 574.213 1.15286 579.008 3.45859C583.835 5.73138 587.438 8.84411 589.819 12.7968C592.233 16.7495 593.439 21.2292 593.439 26.2359C593.439 30.3533 592.657 33.8777 591.091 36.8093C589.526 39.7079 587.422 42.0631 584.78 43.8747C582.139 45.6864 579.187 46.9874 575.926 47.778V48.7661C579.481 48.9638 582.889 50.0672 586.15 52.0765C589.444 54.0529 592.135 56.8527 594.222 60.4759C596.309 64.0992 597.353 68.4801 597.353 73.6186C597.353 78.8559 596.097 83.5662 593.586 87.7494C591.075 91.8997 587.292 95.1772 582.236 97.5817C577.181 99.9862 570.821 101.189 563.157 101.189H522.601ZM540.751 85.8719H560.271C566.859 85.8719 571.604 84.6037 574.507 82.0674C577.442 79.4982 578.91 76.2043 578.91 72.1858C578.91 69.1883 578.176 66.4873 576.708 64.0828C575.241 61.6453 573.153 59.7348 570.446 58.3514C567.739 56.935 564.511 56.2268 560.76 56.2268H540.751V85.8719ZM540.751 43.0348H558.705C561.836 43.0348 564.657 42.4583 567.169 41.3055C569.68 40.1197 571.653 38.4562 573.088 36.3152C574.556 34.1412 575.29 31.572 575.29 28.6075C575.29 24.6878 573.92 21.4597 571.18 18.9234C568.473 16.3871 564.445 15.119 559.097 15.119H540.751V43.0348Z" fill="white"/>
-      <path d="M613.142 101.189V0H678.306V15.366H631.292V42.8371H674.93V58.2032H631.292V85.8225H678.697V101.189H613.142Z" fill="white"/>
-      <path d="M696.822 101.189V0H734.394C742.091 0 748.549 1.3505 753.767 4.05149C759.018 6.75249 762.981 10.5405 765.655 15.4154C768.362 20.2575 769.715 25.9065 769.715 32.3625C769.715 38.8515 768.346 44.4841 765.606 49.2602C762.899 54.0034 758.904 57.6761 753.62 60.2783C748.337 62.8476 741.846 64.1322 734.149 64.1322H707.39V48.9144H731.703C736.204 48.9144 739.89 48.2885 742.76 47.0369C745.63 45.7522 747.75 43.8912 749.119 41.4537C750.522 38.9833 751.223 35.9529 751.223 32.3625C751.223 28.7722 750.522 25.7089 749.119 23.1726C747.717 20.6033 745.581 18.6599 742.711 17.3424C739.841 15.9919 736.139 15.3166 731.606 15.3166H714.972V101.189H696.822ZM748.581 55.3375L773.384 101.189H753.131L728.768 55.3375H748.581Z" fill="white"/>
+    <svg width={width} height={width * ratio} viewBox="0 0 728 95" fill="none" style={{ filter: `drop-shadow(0 0 30px ${C.green}44)` }}>
+      <path d="M93.667 43.2295L93.667 89.1621H84.6621V57.6396H72.0566L72.0566 43.2295H93.667ZM50.4346 9.00684H50.4316V21.6152H43.2324L43.2324 50.4365L72.0332 50.4365V59.4424L26.1104 59.4424L26.1104 50.4365L34.2275 50.4365L34.2275 9.90527H36.0244V9.00684L4.51172 9.00684L4.51172 0L50.4346 0V9.00684Z" fill="#9CF3F3"/>
+      <path d="M43.2314 21.6157H36.0391L36.0391 57.6421L72.0352 57.6421L72.0352 50.436H86.4424L86.4424 88.2632H72.0352V84.5669L27.6914 84.5669L27.6914 66.647H8.125L8.125 21.6157H4.51172L4.51172 7.20557L43.2314 7.20557V21.6157Z" fill="#09C3C3"/>
+      <path d="M93.6455 93.6694H72.0342V86.4644H93.6455V93.6694ZM21.6064 64.8491H28.8115V72.0522L72.0273 72.0522V86.4624L21.6025 86.4624V79.2603H14.4033V72.0542H7.19922L7.19922 21.6177H0L0 0.00244141L7.2041 0.00244141L7.2041 21.6177L21.6064 21.6177L21.6064 64.8491Z" fill="#005D5D"/>
+      <path d="M131.773 93.4486V0H165.083C172.353 0 178.376 1.32325 183.152 3.96974C187.928 6.61623 191.502 10.2362 193.875 14.8295C196.248 19.3924 197.434 24.5333 197.434 30.2522C197.434 36.0014 196.232 41.1728 193.829 45.7661C191.456 50.329 187.867 53.9489 183.061 56.6258C178.285 59.2723 172.277 60.5956 165.037 60.5956H142.131V48.6407H163.76C168.353 48.6407 172.079 47.8498 174.939 46.268C177.798 44.6558 179.897 42.4656 181.235 39.6974C182.574 36.9292 183.243 33.7808 183.243 30.2522C183.243 26.7235 182.574 23.5903 181.235 20.8525C179.897 18.1148 177.783 15.9702 174.893 14.4188C172.034 12.8674 168.262 12.0917 163.577 12.0917H145.873V93.4486H131.773Z" fill="white"/>
+      <path d="M213.963 93.4486V0H228.062V81.3112H270.406V93.4486H213.963Z" fill="white"/>
+      <path d="M346.584 0H360.729V61.4625C360.729 68.0027 359.193 73.7976 356.121 78.8473C353.048 83.8665 348.729 87.821 343.162 90.7109C337.595 93.5703 331.07 95 323.587 95C316.134 95 309.625 93.5703 304.058 90.7109C298.491 87.821 294.172 83.8665 291.099 78.8473C288.027 73.7976 286.491 68.0027 286.491 61.4625V0H300.59V60.3218C300.59 64.5501 301.518 68.3069 303.373 71.5922C305.259 74.8775 307.921 77.4632 311.359 79.3492C314.796 81.2048 318.872 82.1326 323.587 82.1326C328.333 82.1326 332.424 81.2048 335.861 79.3492C339.329 77.4632 341.976 74.8775 343.801 71.5922C345.657 68.3069 346.584 64.5501 346.584 60.3218V0Z" fill="white"/>
+      <path d="M381.228 0H398.339L428.089 72.6417H429.185L458.935 0H476.046V93.4486H462.631V25.8261H461.764L434.204 93.3117H423.07L395.51 25.7805H394.643V93.4486H381.228V0Z" fill="white"/>
+      <path d="M496.545 93.4486V0H530.767C537.398 0 542.889 1.0951 547.239 3.2853C551.589 5.44509 554.844 8.38056 557.003 12.0917C559.163 15.7725 560.243 19.9248 560.243 24.5485C560.243 28.4422 559.528 31.7275 558.098 34.4044C556.669 37.0509 554.752 39.1803 552.349 40.7925C549.976 42.3743 547.36 43.5303 544.501 44.2603V45.1729C547.604 45.325 550.631 46.3289 553.581 48.1844C556.562 50.0096 559.026 52.6105 560.973 55.987C562.92 59.3636 563.893 63.4702 563.893 68.3069C563.893 73.0828 562.768 77.3719 560.517 81.1744C558.296 84.9464 554.859 87.9427 550.205 90.1633C545.55 92.3535 539.603 93.4486 532.364 93.4486H496.545ZM510.644 81.3569H530.995C537.748 81.3569 542.585 80.0488 545.505 77.4328C548.425 74.8167 549.885 71.5466 549.885 67.6225C549.885 64.6718 549.14 61.9645 547.649 59.5005C546.159 57.0365 544.029 55.0744 541.261 53.6143C538.524 52.1542 535.269 51.4241 531.497 51.4241H510.644V81.3569ZM510.644 40.4275H529.535C532.698 40.4275 535.542 39.8191 538.067 38.6023C540.622 37.3855 542.645 35.682 544.136 33.4918C545.657 31.2712 546.417 28.6551 546.417 25.6436C546.417 21.7803 545.064 18.5407 542.356 15.9246C539.649 13.3085 535.497 12.0005 529.9 12.0005H510.644V40.4275Z" fill="white"/>
+      <path d="M580.617 93.4486V0H639.204V12.1374H594.716V40.61H636.147V52.7017H594.716V81.3112H639.752V93.4486H580.617Z" fill="white"/>
+      <path d="M658.038 93.4486V0H691.347C698.587 0 704.595 1.2472 709.371 3.74159C714.177 6.23599 717.766 9.6886 720.139 14.0994C722.512 18.4798 723.698 23.5447 723.698 29.294C723.698 35.0128 722.497 40.0472 720.094 44.3972C717.721 48.7168 714.131 52.0781 709.325 54.4813C704.549 56.8844 698.541 58.086 691.302 58.086H666.069V45.9486H690.024C694.587 45.9486 698.298 45.2946 701.157 43.9866C704.047 42.6785 706.161 40.7773 707.5 38.2829C708.838 35.7885 709.508 32.7922 709.508 29.294C709.508 25.7653 708.823 22.7081 707.454 20.1225C706.116 17.5368 704.002 15.5596 701.112 14.1907C698.252 12.7914 694.496 12.0917 689.841 12.0917H672.137V93.4486H658.038ZM704.169 51.2872L727.257 93.4486H711.196L688.564 51.2872H704.169Z" fill="white"/>
     </svg>
   );
 }
@@ -759,10 +759,10 @@ function PlumberWordmark({ width = 520 }) {
 // Just the Plumber mark (no wordmark), for inline badges
 function PlumberMark({ size = 26 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 248 248" fill="none" style={{ display: 'block' }}>
-      <path d="M133.523 57.2236L114.449 57.2236L114.448 133.523H190.747V114.448L247.972 114.448V236.05H224.128V152.598H198.277V157.115L69.2715 157.115V133.523H90.6055L90.6055 26.2275H95.374V23.8437L11.9219 23.8438L11.9219 0L133.523 0V57.2236Z" fill="#AEF1B8"/>
-      <path d="M114.45 19.0752V57.2236H95.374L95.373 152.598L190.749 152.598V133.522L228.898 133.523V233.665H190.749V223.877L73.2871 223.877V176.441H21.459L21.459 57.2236H11.9238L11.9238 19.0742L114.45 19.0752Z" fill="#35DC4E"/>
-      <path d="M247.972 247.972H190.747V228.896H247.972V247.972ZM57.2246 171.672L76.2988 171.673V190.747L190.748 190.747L190.747 228.896L57.2246 228.896V209.822H38.1494L38.1494 190.748H19.0742L19.0752 57.2246L57.2246 57.2246L57.2246 171.672ZM19.0752 57.2236H0L0 0L19.0752 0L19.0752 57.2236Z" fill="#147423"/>
+    <svg width={size} height={size} viewBox="0 0 768 768" fill="none" style={{ display: 'block' }}>
+      <path d="M767.695 730.736H693.898V472.375H590.583V354.27H767.695V730.736ZM413.402 73.8164H413.375L413.375 177.158H354.438V413.336L590.386 413.336V487.152L214.023 487.152L214.023 413.336H280.641L280.641 81.1641H295.301V73.8164L37.0391 73.8164L37.0391 0L413.402 0V73.8164Z" fill="#9CF3F3"/>
+      <path d="M354.364 177.152H295.414L295.414 472.383L590.363 472.383V413.32H708.438V723.348H590.363V693.055L226.982 693.055L226.982 546.286H66.6445L66.6445 177.152H37.0391L37.0391 59.0469L354.364 59.0469V177.152Z" fill="#09C3C3"/>
+      <path d="M767.477 767.693H590.364V708.641H767.477V767.693ZM59.0371 177.148L177.035 177.148L177.035 531.531H236.148V590.469L590.359 590.469V708.574L177.099 708.574V649.544H118.074V590.584H59.0361V590.52H58.9609L58.9609 177.159H0L0 0L59.0371 0L59.0371 177.148Z" fill="#005D5D"/>
     </svg>
   );
 }
