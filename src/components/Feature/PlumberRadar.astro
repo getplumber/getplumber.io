@@ -252,16 +252,16 @@ const projectRows: ProjectRow[] = [
     background: #080a08;
     overflow: hidden;
     color: rgba(245, 245, 245, 0.9);
-    /* Light mode: soft neutral depth + a hint of green. */
+    /* Light mode: soft neutral depth + a hint of teal. */
     box-shadow:
       0 30px 70px -45px rgba(2, 6, 23, 0.4),
-      0 24px 80px -45px rgba(0, 212, 0, 0.18);
+      0 24px 80px -45px rgba(9, 195, 195, 0.18);
   }
 
-  /* Dark mode: prominent directional green glow. */
+  /* Dark mode: prominent directional teal glow. */
   :global(.dark) .radar-window {
     box-shadow:
-      0 40px 90px -50px rgba(0, 212, 0, 0.3),
+      0 40px 90px -50px rgba(9, 195, 195, 0.3),
       0 20px 60px -35px rgba(0, 0, 0, 0.55);
   }
 
@@ -293,22 +293,22 @@ const projectRows: ProjectRow[] = [
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    border: 1px solid rgba(0, 212, 0, 0.4);
+    border: 1px solid rgba(9, 195, 195, 0.4);
     border-radius: 999px;
     padding: 4px 11px;
     font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1px;
-    color: #00d400;
+    color: #09c3c3;
   }
 
   .live-dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #00d400;
-    box-shadow: 0 0 8px #00d400;
+    background: #09c3c3;
+    box-shadow: 0 0 8px #09c3c3;
     animation: radar-pulse 1.6s ease-in-out infinite;
   }
 
@@ -469,7 +469,7 @@ const projectRows: ProjectRow[] = [
   }
 
   .radar-trend--up {
-    color: #4fe24f;
+    color: #4fe2e2;
   }
 
   .radar-trend--down {
@@ -536,9 +536,9 @@ const projectRows: ProjectRow[] = [
     height: 24px;
     padding: 0 10px;
     border-radius: 6px;
-    border: 1px solid rgba(0, 212, 0, 0.4);
-    background: rgba(0, 135, 0, 0.12);
-    color: #4fe24f;
+    border: 1px solid rgba(9, 195, 195, 0.4);
+    background: rgba(9, 195, 195, 0.12);
+    color: #4fe2e2;
     font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 700;
@@ -546,10 +546,10 @@ const projectRows: ProjectRow[] = [
   }
 
   .radar-improve--focus {
-    border-color: #00d400;
-    background: rgba(0, 212, 0, 0.22);
-    color: #7bf07b;
-    box-shadow: 0 0 0 3px rgba(0, 212, 0, 0.25);
+    border-color: #09c3c3;
+    background: rgba(9, 195, 195, 0.22);
+    color: #7bf0f0;
+    box-shadow: 0 0 0 3px rgba(9, 195, 195, 0.25);
   }
 
   .radar-cursor {

@@ -94,7 +94,7 @@
     --card-foreground: var(--color-base-100);
     --popover: oklch(1% 0 0);
     --popover-foreground: var(--color-base-100);
-    --primary: var(--color-primary-400);
+    --primary: var(--color-primary-500);
     --primary-foreground: oklch(1% 0 0);
     --secondary: var(--color-fuchsia-300);
     --secondary-foreground: oklch(1% 0 0);

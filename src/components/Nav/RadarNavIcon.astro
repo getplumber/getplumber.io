@@ -20,8 +20,8 @@ const { class: className } = Astro.props as Props;
 >
   <defs>
     <linearGradient id="rn-sweep-grad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="rgba(34,197,94,0.55)" />
-      <stop offset="100%" stop-color="rgba(34,197,94,0)" />
+      <stop offset="0%" stop-color="rgba(9,195,195,0.55)" />
+      <stop offset="100%" stop-color="rgba(9,195,195,0)" />
     </linearGradient>
   </defs>
 
@@ -52,12 +52,12 @@ const { class: className } = Astro.props as Props;
   }
 
   .rn-ring {
-    stroke: rgba(34, 197, 94, 0.45);
+    stroke: rgba(9, 195, 195, 0.45);
     stroke-width: 1;
   }
 
   .rn-cross {
-    stroke: rgba(34, 197, 94, 0.3);
+    stroke: rgba(9, 195, 195, 0.3);
     stroke-width: 1;
     stroke-dasharray: 1.5 2.5;
   }
@@ -77,7 +77,7 @@ const { class: className } = Astro.props as Props;
   }
 
   .rn-blip {
-    fill: #4ade80;
+    fill: #09c3c3;
     animation: rn-blip-pulse 3s linear infinite;
   }
 
@@ -92,7 +92,7 @@ const { class: className } = Astro.props as Props;
   }
 
   .rn-center {
-    fill: #4ade80;
+    fill: #09c3c3;
   }
 
   @media (prefers-reduced-motion: reduce) {
