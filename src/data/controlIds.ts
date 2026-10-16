@@ -70,7 +70,7 @@ export const controlIds: Record<string, { id: string; name: string }> = {
   actionsMustNotBeArchived: { id: "CTRL-702", name: "Actions must not reference archived repositories" },
   actionsMustNotCarryKnownCVEs: { id: "CTRL-703", name: "Actions must not carry known CVEs" },
   containerCredentialsMustComeFromSecrets: { id: "CTRL-704", name: "Container credentials must come from secrets" },
-  releaseWorkflowsMustNotRestoreUntrustedCache: { id: "CTRL-705", name: "Release workflows must not restore an untrusted cache" },
+  untrustedTriggersMustNotWriteCache: { id: "CTRL-705", name: "Untrusted triggers must not write the cache" },
   dockerfilesMustPinBaseImageByDigest: { id: "CTRL-706", name: "Dockerfiles must pin base images by digest" },
   actionRefsMustExistUpstream: { id: "CTRL-707", name: "Actions must pin commits that exist upstream" },
   actionPinCommentsMustMatchSha: { id: "CTRL-708", name: "Action pin comments must match the pinned SHA" },

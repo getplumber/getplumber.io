@@ -129,7 +129,7 @@ requiredGroups:
 | `CTRL-707` | [`actionRefsMustExistUpstream`](#actionrefsmustexistupstream) | on | 707 |
 | `CTRL-703` | [`actionsMustNotCarryKnownCVEs`](#actionsmustnotcarryknowncves) | on | 703 |
 | `CTRL-714` | [`actionsMustNotExecuteMutableRemoteCode`](#actionsmustnotexecutemutableremotecode) | on | 714, 715, 716 |
-| `CTRL-705` | [`releaseWorkflowsMustNotRestoreUntrustedCache`](#releaseworkflowsmustnotrestoreuntrustedcache) | on | 705 |
+| `CTRL-705` | [`untrustedTriggersMustNotWriteCache`](#untrustedtriggersmustnotwritecache) | on | 705 |
 | `CTRL-302` | [`reusableWorkflowsMustNotInheritSecrets`](#reusableworkflowsmustnotinheritsecrets) | on | 302 |
 | `CTRL-307` | [`checkoutMustNotPersistCredentials`](#checkoutmustnotpersistcredentials) | on | 307, 310 |
 | `CTRL-309` | [`workflowMustNotExportEntireSecretsContext`](#workflowmustnotexportentiresecretscontext) | on | 309 |
@@ -1008,96 +1008,36 @@ Flags an action version that has a published advisory in the GitHub Advisory Dat
 
 Inspects the source of each third-party action and flags one that downloads and runs code from a mutable location. Raises [ISSUE-714](/docs/use-plumber/issues/ISSUE-714?p=github) (high) for a fetch in the open, [ISSUE-715](/docs/use-plumber/issues/ISSUE-715?p=github) (critical) for an obfuscated one, and [ISSUE-716](/docs/use-plumber/issues/ISSUE-716?p=github) (low) when the action source could not be read. No field beyond `enabled`.
 
-### releaseWorkflowsMustNotRestoreUntrustedCache
+### untrustedTriggersMustNotWriteCache
 
 <div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
   <Badge text="CTRL-705" variant="info" />
   <Badge text="On by default" variant="tip" />
-  <Badge text="Needs configuration" variant="caution" />
 </div>
 
-Flags a release or publish job that restores a build cache which a pull request could have poisoned. A job has release intent when it uses one of `publishActions` or runs a command matching `publishScriptPatterns`; it restores a cache when it uses one of `cacheActions` in a restoring mode. Raises [ISSUE-705](/docs/use-plumber/issues/ISSUE-705?p=github) (high), or [ISSUE-717](/docs/use-plumber/issues/ISSUE-717?p=github) (medium) when a cache condition cannot be resolved per trigger. Job and step `if:` conditions and `github.event_name ==/!= '<event>'` comparisons in the cache inputs are resolved per trigger, so a cache that is off on the publish trigger stays silent.
+Flags a job whose triggers include an event GitHub restricts to read-only cache access (`pull_request_target`, `issue_comment`, `workflow_run`, `discussion`...) and whose `cache-mode` is `write` or `write-only`, set on the job or inherited from its workflow. Code running in such a job can write caches every default-branch run restores. Raises [ISSUE-705](/docs/use-plumber/issues/ISSUE-705?p=github) (high). `push`, `workflow_dispatch`, `repository_dispatch`, `delete`, `registry_package`, `page_build`, `schedule`, `pull_request` and its review events, `release` and `merge_group` are safe triggers, and a job without `cache-mode` is silent.
 
 | Field | Default | Description |
 |---|---|---|
 | `enabled` | `true` | Turns the control on. |
-| `publishActions` | 8 actions, see below | `uses:` prefixes that mark a job as a release job. |
-| `cacheActions` | 10 entries, see below | One entry per cache-restoring action, with the rule that decides whether it restores (see the `mode` table). |
-| `publishScriptPatterns` | 12 patterns, see below | A list of regular expressions on shell commands that mark a job as a release job, even under a plain push or tag trigger. |
-| `publishScriptExcludePatterns` | 2 patterns, see below | A list of regular expressions; a run block matching one is not a release, even if it also matches `publishScriptPatterns`. |
-| `allowedJobs` | empty | A list of globs on `<workflow file>/<job id>`; a matching job is exempt. |
+| `exemptWorkflows` | empty | A list of globs on the workflow file name, such as `triage.yml`; every job of a matching workflow is exempt. |
+| `exemptJobs` | empty | A list of globs on `<workflow>/<job id>`, such as `triage/label`; a matching job is exempt. |
 
-Each `cacheActions` entry has an `action` (the `uses:` prefix) and a `mode`:
-
-| `mode` | Restores the cache | Extra keys |
-|---|---|---|
-| `always` | whenever the action is present | none |
-| `default` | unless the `with:` input `disableInput` is set to `disableValue` | `disableInput`, `disableValue` |
-| `opt-in` | only when the `with:` input `enableInput` is set (and, with `enableContains`, contains that substring) | `enableInput`, `enableContains` |
+An exemption accepts the risk: the check skips the job, and the output lists every exempted job it would have flagged under **Exempted by configuration**, so the exemption stays visible.
 
 ```yaml
 github:
   controls:
-    releaseWorkflowsMustNotRestoreUntrustedCache:
+    untrustedTriggersMustNotWriteCache:
       enabled: true
-      publishActions:
-        - pypa/gh-action-pypi-publish
-        - JS-DevTools/npm-publish
-        - gradle/publish-plugin
-        - softprops/action-gh-release
-        - ncipollo/release-action
-        - goreleaser/goreleaser-action
-        - crazy-max/ghaction-docker-buildx
-        - changesets/action
-      cacheActions:
-        - action: actions/cache
-          mode: always
-        - action: actions/cache/restore
-          mode: always
-        - action: Swatinem/rust-cache
-          mode: always
-        - action: actions/setup-go
-          mode: default
-          disableInput: cache
-          disableValue: false
-        - action: gradle/actions/setup-gradle
-          mode: default
-          disableInput: cache-disabled
-          disableValue: true
-        - action: actions/setup-node
-          mode: opt-in
-          enableInput: cache
-        - action: actions/setup-python
-          mode: opt-in
-          enableInput: cache
-        - action: actions/setup-java
-          mode: opt-in
-          enableInput: cache
-        - action: pnpm/action-setup
-          mode: opt-in
-          enableInput: cache
-        - action: docker/build-push-action
-          mode: opt-in
-          enableInput: cache-from
-          enableContains: type=gha
-      publishScriptPatterns:
-        - '(?i)(npm|pnpm|yarn|bun)\s+publish'
-        - '(?i)cargo\s+publish'
-        - '(?i)twine\s+upload'
-        - '(?i)poetry\s+publish'
-        - '(?i)gh\s+release\s+create'
-        - '(?i)goreleaser\s+release'
-        - '(?i)semantic-release'
-        - '(?i)gradlew?\b[^\n]*\bpublish'
-        - '(?i)\bmvnw?\b[^\n]*\bdeploy\b'
-        - '(?i)dotnet\s+nuget\s+push'
-        - '(?i)gem\s+push'
-        - '(?i)docker\s+push'
-      publishScriptExcludePatterns:
-        - '(?i)--dry-run'
-        - '(?i)publishToMavenLocal'
-      allowedJobs: []
+      exemptWorkflows: []
+      exemptJobs: []
+        # - 'bot/warm-cache'
 ```
+
+<Aside variant="info">
+  This control replaces `releaseWorkflowsMustNotRestoreUntrustedCache`, which flagged release jobs restoring a cache not scoped to the release ref. A configuration that still uses the old key is ignored with a warning: run `plumber config migrate` to rename it. `publishActions`, `cacheActions`, `publishScriptPatterns`, `publishScriptExcludePatterns` and `allowedJobs` are gone; list the jobs you accept under `exemptJobs`.
+</Aside>
 
 ### reusableWorkflowsMustNotInheritSecrets
 
