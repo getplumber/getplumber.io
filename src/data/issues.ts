@@ -382,7 +382,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Step-level `uses: owner/repo@ref` in committed workflows. Queries GitHub for `archived: true` (one cached API call per `owner/repo`). Requires `gh` / `GH_TOKEN`; abstains without auth.",
       controlWhyItMatters:
-        "Archived repos stop receiving patches. Does not inspect reusable-workflow callees, local actions, or runtime installs. PBOM: `archived: true`.",
+        "Archived repos stop receiving patches. Also inspects the composite actions and called workflows referenced from committed workflow files, though not local actions or runtime installs. PBOM: `archived: true`.",
     },
   },
   actionRefsMustExistUpstream: {
@@ -2565,8 +2565,11 @@ jobs:
       goodExampleCaption: "Every `uses:` carries a full SHA; the trailing comment names the release.",
       tips: [
         "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions.",
-        "Local actions (`uses: ./.github/actions/foo`) are always exempt because they live in the same repo.",
+        "Local actions (`uses: ./.github/actions/foo`) are exempt from this rule because the local reference itself lives in the same repo, but a third-party action it pulls in through that local composite is judged like any other nested reference.",
         "Pair with ISSUE-702, ISSUE-707 and ISSUE-709 for a complete supply-chain ruleset (archived repos, impostor SHAs, stale pins).",
+        "A reference pulled in by a composite action or by a workflow called in another repository is judged like a direct one, at the same severity. Its message ends its finding part with `pulled in via <outer> > ...` (the chain, outermost first), and its link points at the line of the container that declares it, while the finding's location stays the workflow step that pulls the chain in.",
+        "The fix for a nested reference is on the outermost action: pin it to a commit whose chain pins, vendor the chain into `./.github/actions/` and pin it there, or ask the container's maintainer to pin it.",
+        "Plumber resolves at most 100 containers per run, 1000 nested entries per job and 1000 nested jobs per run. A reference past that budget, or whose definition cannot be read (including when `PLUMBER_DISABLE_GITHUB_API=1` disables the GitHub API), is listed as unexpanded and the action controls report an error rather than a pass.",
       ],
       relatedCodes: ["ISSUE-702", "ISSUE-707", "ISSUE-708", "ISSUE-709", "ISSUE-703"],
     },
@@ -2582,7 +2585,7 @@ jobs:
       controlName: "Actions must not reference archived repositories",
       controlConfigKey: "actionsMustNotBeArchived",
       description:
-        "A workflow step uses a third-party action (`uses: owner/repo@ref`) whose upstream repository is archived on GitHub. Plumber scans committed `.github/workflows/*.{yml,yaml}` only, queries `GET /repos/{owner}/{repo}` for the `archived` flag, and caches one result per `owner/repo` (not per ref). Requires `gh auth login` or `GH_TOKEN`; without authentication the control abstains and emits no finding.",
+        "A workflow step uses a third-party action (`uses: owner/repo@ref`) whose upstream repository is archived on GitHub. Plumber scans committed `.github/workflows/*.{yml,yaml}` and the definitions of the composite actions and called workflows those files reference, queries `GET /repos/{owner}/{repo}` for the `archived` flag, and caches one result per `owner/repo` (not per ref). Requires `gh auth login` or `GH_TOKEN`; without authentication the control abstains and emits no finding.",
       impact:
         "Archived repositories don't receive security fixes. Any vulnerability discovered after the archive date stays open forever, but the action keeps running inside your workflow with whatever permissions you grant it. Pinning by SHA does not save the caller either: the last maintainer (or whoever later acquires the namespace) can still push new code under the same repository name.",
       remediation:
@@ -2604,7 +2607,7 @@ jobs:
       tips: [
         "Scope is step-level `uses:` in your workflow files only. Job-level reusable-workflow `uses:` lines, local `./.github/actions/*`, and `docker://` steps are out of scope.",
         "Without `gh` / `GH_TOKEN`, the rule abstains on every ref (degraded contract, no false positives). This is not a clean pass.",
-        "Does not fetch callee reusable-workflow YAML from other repositories; only what is committed under `.github/workflows/` in the analyzed ref.",
+        "Also reads the definitions of the composite actions and called workflows that those workflow files reference, not only what is committed under `.github/workflows/` in the analyzed ref.",
         "The PBOM tags each archived include with `archived: true` (JSON) / `plumber:archived` (CycloneDX) so dashboards can dedupe across multiple callers of the same abandoned action.",
       ],
       status: "shipping",
@@ -2832,7 +2835,7 @@ jobs:
       tips: [
         "Exact tags (`@v45.2.0`) and SHA-resolved versions are point-checked against the advisory range. Moving partial tags (`@v45`, `@v45.2`) are span-checked across the whole release series and only fire when the entire span is vulnerable.",
         "SHA pins are resolved through the repo's tag list to the most specific tag that points at the commit, so a moving major alias never shadows the exact release. A SHA without a resolvable release tag (and mutable non-numeric tags like `@rc` / `@main`) abstains with a 'could not verify' warning rather than flagging every advisory for that `owner/repo`.",
-        "Same scope limits as ISSUE-702: step `uses:` only, static YAML, no nested composite internals, no reusable-workflow callee files unless they live in this repo's `.github/workflows/`.",
+        "Same scope limits as ISSUE-702: step `uses:` only, static YAML. Reads the definitions of the composite actions and called workflows those files reference too, not only what is committed under this repo's `.github/workflows/`.",
         "Without API auth the rule abstains (not a pass). Pair with Dependabot `package-ecosystem: github-actions` for ongoing alerts.",
         "The PBOM tags affected includes with `hasCve: true` plus `advisories: [GHSA-…]` (JSON) / `plumber:has-cve` plus `plumber:advisories` properties (CycloneDX).",
       ],
@@ -2937,6 +2940,10 @@ jobs:
         "Job-level reusable-workflow calls (`jobs.<id>.uses`) are checked too, but only against the official-owner and allowlist rules, since they carry no star metadata.",
         "`minimumStars` reads star counts from the GitHub API and needs `gh` / `GH_TOKEN`. Without it, a reference falls back to the allowlist rather than being flagged on missing data.",
         "Local actions (`uses: ./.github/actions/foo`) and `docker://` image steps are always exempt.",
+        "A reference pulled in by a composite action or by a workflow called in another repository is judged like a direct one, at the same severity. Its message ends its finding part with `pulled in via <outer> > ...` (the chain, outermost first), and its link points at the line of the container that declares it, while the finding's location stays the workflow step that pulls the chain in.",
+        "The official-owner and allowlist exemptions apply to the reference itself: a trusted composite is exempt, the third-party action it pulls in is judged.",
+        "The fix for a nested reference is on the outermost action: replace it with one whose chain only pulls authorized sources, vendor the chain into `./.github/actions/` and replace the reference there, or ask the container's maintainer to depend on authorized sources.",
+        "Plumber resolves at most 100 containers per run, 1000 nested entries per job and 1000 nested jobs per run. A reference past that budget, or whose definition cannot be read (including when `PLUMBER_DISABLE_GITHUB_API=1` disables the GitHub API), is listed as unexpanded and the action controls report an error rather than a pass.",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-701", "ISSUE-702", "ISSUE-703"],
