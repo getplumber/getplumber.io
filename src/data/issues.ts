@@ -481,12 +481,12 @@ export const controlCatalog: Record<
         "GitHub's log redaction masks known secret values, not a JSON blob derived from them, so a single `echo` of the dump leaks every repository, organisation and environment secret the job can see, and a compromised reusable action gets them directly. Pass each secret by name instead.",
     },
   },
-  releaseWorkflowsMustNotRestoreUntrustedCache: {
+  untrustedTriggersMustNotWriteCache: {
     github: {
       controlDescription:
-        "Flags a release or publish job that restores a build cache (`actions/cache`, `actions/cache/restore`, or a `setup-*` action's built-in cache) with a key not scoped to the release ref. Release context is a `release` trigger, a canonical publish action such as `pypa/gh-action-pypi-publish` or `softprops/action-gh-release`, or a publish command in a `run:` script. Job and step `if:` conditions and `github.event_name` comparisons in the cache inputs are resolved per trigger, so the finding fires only when a restore and a publish can share a run; a cache condition it cannot resolve reports ISSUE-717 (medium) instead of the High.",
+        "Flags a job whose triggers include an event GitHub restricts to read-only cache access (`pull_request_target`, `issue_comment`, `workflow_run`, `discussion`...) and whose `cache-mode` (the job's own, else the workflow's) is `write` or `write-only`. `push`, `workflow_dispatch`, `repository_dispatch`, `delete`, `registry_package`, `page_build`, `schedule`, `pull_request` and its review events, `release` and `merge_group` are safe. An exempted workflow or job is listed in the output as accepted risk.",
       controlWhyItMatters:
-        "Actions caches are shared across branches with a permissive fallback, so a PR run on any feature branch can populate the same key a release job later restores, injecting compromised artefacts into the published package. Weave `github.ref_name` or `github.sha` into the key, or disable caching on publish paths. The May 2026 TanStack attack used this exact fallback.",
+        "GitHub isolates caches by ref: a run restores caches from its own ref and from the default branch, and only trusted triggers can write the default branch's. An explicit `cache-mode: write` lifts the read-only default of a low-trust event, so code running in that job (a comment body, a pull request's head, an upstream run's artifact) can poison caches every default-branch run restores, release and publish jobs included.",
     },
   },
   checkoutMustNotPersistCredentials: {
@@ -3126,52 +3126,53 @@ jobs:
   "ISSUE-705": {
     code: "ISSUE-705",
     github: {
-      title: "Release workflow restores a cache with an unscoped key",
+      title: "Untrusted trigger granted cache write",
       category: "Third-party actions",
       severity: "high",
       productScope: "cli",
-      controlName: "Release workflows must not restore an untrusted cache",
-      controlConfigKey: "releaseWorkflowsMustNotRestoreUntrustedCache",
+      controlName: "Untrusted triggers must not write the cache",
+      controlConfigKey: "untrustedTriggersMustNotWriteCache",
       description:
-        "A release or publish job restores a build cache whose key is not scoped to the release ref. GitHub Actions caches are shared across branches with a permissive prefix fallback, so a run on any feature branch - including an attacker's PR - can populate the same key (or a `restore-keys` prefix) that the release job later restores.",
+        "A job runs on an event GitHub restricts to read-only cache access (`pull_request_target`, `issue_comment`, `workflow_run` and every other event that runs on the default branch, apart from `push`, `workflow_dispatch`, `repository_dispatch`, `delete`, `registry_package`, `page_build` and `schedule`), and its `cache-mode`, set on the job or on its workflow, is `write` or `write-only`.",
       impact:
-        "Whoever can open a PR can prime the cache the trusted release build reuses, injecting compromised artefacts into the published package while nothing changes in the release commit. This is the May 2026 TanStack vector. Pinning the cache action by SHA does not help - the poisoned bytes live in the cache, not the action.",
+        "GitHub isolates caches by ref: a run restores caches saved for its own ref and for the default branch, and a low-trust event only reads the default branch's. The explicit grant lifts that restriction, so code running in the job (a comment body pasted into a shell, a pull request's head, an artifact from an upstream run) can create or overwrite caches every default-branch run restores, and inject compromised artefacts into a release or publish job while nothing changes in its commit. Pinning the cache action by SHA does not help: the poisoned bytes live in the cache.",
       remediation:
-        "Weave `github.ref_name` / `github.sha` into the cache key AND every `restore-keys` fallback, or disable caching on publish paths: `cache: false` on a `setup-*` action, the conditional form `cache: ${{ github.event_name != '<publish trigger>' && '<manager>' || '' }}`, or a caching step whose `if:` excludes the publish trigger - Plumber resolves these per trigger and stays silent when the restore and the publish can never share a run. The action/script inventory and a per-job allowlist are part of the control's configuration.",
-      badExample: `# .github/workflows/release.yml - ❌ Unscoped key on a release job
-on: [release]
+        "Set `cache-mode: read` on the job, or on the workflow, for these events: it is GitHub's default for them. Keep the cache maintained by a trusted workflow instead, for example one triggered by `push` on the default branch. If the job must write the cache and runs no untrusted code, exempt the workflow or the job to accept the risk: it is then listed in the output instead of raising a finding.",
+      badExample: `# .github/workflows/triage.yml - ❌ An issue_comment job allowed to write the default branch's caches
+on:
+  issue_comment:
+    types: [created]
 jobs:
-  publish:
+  triage:
     runs-on: ubuntu-latest
+    cache-mode: write
     steps:
-      - uses: actions/cache@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          path: ~/.npm
-          key: deps-\${{ hashFiles('**/package-lock.json') }}   # shared with every branch
-      - uses: JS-DevTools/npm-publish@v3`,
-      badExampleCaption: "A PR run populates `deps-<hash>`; the release job restores it and publishes the result.",
-      goodExample: `# .github/workflows/release.yml - ✅ Key woven with the release ref
-on: [release]
+          cache: npm`,
+      badExampleCaption: "Anyone who can comment runs this job, and the grant lets its run save the npm cache the release job restores.",
+      goodExample: `# .github/workflows/triage.yml - ✅ Read-only, GitHub's default for this trigger
+on:
+  issue_comment:
+    types: [created]
 jobs:
-  publish:
+  triage:
     runs-on: ubuntu-latest
+    cache-mode: read
     steps:
-      - uses: actions/cache@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          path: ~/.npm
-          key: release-\${{ github.ref_name }}-\${{ hashFiles('**/package-lock.json') }}
-      - uses: JS-DevTools/npm-publish@v3`,
-      goodExampleCaption: "The key includes `github.ref_name`, so a PR cache can't win the lookup.",
+          cache: npm`,
+      goodExampleCaption: "The job still restores the cache, and only trusted runs write it.",
       tips: [
-        "A `restore-keys` prefix fallback must be release-scoped too - a scoped `key` with an unscoped `restore-keys` is still poisonable.",
-        "Release context = a `release` trigger, a publish action (`publishActions`), or a publish command in a script (`publishScriptPatterns`).",
-        "`cacheActions` carries per-action semantics: `always`, `default` (off via `disableInput`/`disableValue`), or `opt-in` (on via `enableInput`). Add your org's cache actions there - nothing is hardcoded.",
-        "`allowedJobs` is a glob over the `<workflow-file>/<job-id>` name - the escape hatch for release jobs you have reviewed and accept.",
-        "`setup-*` actions only cache when their `cache:` input is set; `actions/cache` always restores, so a bogus `cache: false` on it does not exempt it.",
-        "The rule reasons per trigger: job-level and step-level `if:` conditions and enable/disable inputs of the shape `github.event_name ==/!= '<event>'` restrict a step to the events they admit, and the finding fires only when a restore and a publish can share an event. An enable expression Plumber cannot resolve reports ISSUE-717 (medium, verify manually) instead of this High.",
+        "Safe triggers: `push`, `workflow_dispatch`, `repository_dispatch`, `delete`, `registry_package`, `page_build` and `schedule`, which GitHub lets write the default branch's caches, plus `pull_request` and its review events, `release` and `merge_group`, which run on their own ref and write only its scope.",
+        "A job-level `cache-mode` overrides the workflow-level one. A job in a reusable workflow (`workflow_call`) runs under its callers' events.",
+        "No `cache-mode` at all is silent: a low-trust event only reads the cache by default.",
+        "A constant expression such as `${{ 'write' }}` counts as a write grant. An expression reading a context (`github.event_name`, `vars`, `inputs`) makes GitHub reject the workflow file, so it never runs.",
+        "The finding starts an attack path when another finding already gets code into the job, for example an untrusted expression in a `run:` script: the path then reaches every job that restores a cache.",
       ],
       status: "shipping",
-      relatedCodes: ["ISSUE-717", "ISSUE-802", "ISSUE-701"],
+      relatedCodes: ["ISSUE-802", "ISSUE-804", "ISSUE-207"],
     },
   },
 
@@ -3182,51 +3183,18 @@ jobs:
       category: "Third-party actions",
       severity: "medium",
       productScope: "cli",
-      controlName: "Release workflows must not restore an untrusted cache",
-      controlConfigKey: "releaseWorkflowsMustNotRestoreUntrustedCache",
+      controlName: "Untrusted triggers must not write the cache",
+      controlConfigKey: "untrustedTriggersMustNotWriteCache",
       description:
-        "A release or publish job enables or disables a build cache through a GitHub expression Plumber cannot resolve per trigger: an opt-in enable input or a default-mode disable input outside the `github.event_name ==/!= '<event>'` shapes. The cache may be off exactly on the runs that publish - the safe pattern - or on for them; the expression does not say which statically.",
+        "A release or publish job enabled or disabled a build cache through a GitHub expression Plumber could not resolve per trigger.",
       impact:
-        "If the expression yields a cache manager on the trigger that publishes, the job restores a cache any PR run can poison (the ISSUE-705 vector). If it yields an empty value there, the job is safe. Because the restore is conditional and unproven, Plumber reports this medium verify-manually finding instead of asserting the High.",
+        "This finding belonged to the previous version of ISSUE-705, which flagged release jobs restoring a cache not scoped to the release ref.",
       remediation:
-        "Make the condition statically checkable: use the `${{ github.event_name != '<publish trigger>' && '<manager>' || '' }}` form (or its `==` inverse) so the cache is provably off on the publish trigger, split caching into a step whose `if:` excludes the publish trigger, or scope the cache key (and any `restore-keys`) to the release ref.",
-      badExample: `# .github/workflows/release.yml - ❌ Cache enablement Plumber cannot resolve
-on:
-  workflow_dispatch:
-  pull_request:
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-java@v4
-        with:
-          cache: \${{ vars.CACHE_MANAGER }}   # on? off? depends on a repo variable
-      - run: npm publish`,
-      badExampleCaption:
-        "`vars.CACHE_MANAGER` is resolved at runtime; Plumber cannot prove the cache is off on the publishing run.",
-      goodExample: `# .github/workflows/release.yml - ✅ Provably off on the publish trigger
-on:
-  workflow_dispatch:
-  pull_request:
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-java@v4
-        with:
-          cache: \${{ github.event_name != 'workflow_dispatch' && 'maven' || '' }}
-      - name: Publish
-        if: github.event_name == 'workflow_dispatch'
-        run: npm publish`,
-      goodExampleCaption:
-        "The expression is empty exactly on `workflow_dispatch`, the only trigger that publishes - Plumber resolves it and stays silent.",
-      tips: [
-        "The resolvable shapes are `github.event_name ==/!= '<event>'` comparisons: as a step or job `if:`, as the enable form `... && '<manager>' || ''`, or as a bare comparison on a default-mode disable input (`cache: ${{ github.event_name != 'release' }}` on `actions/setup-go`).",
-        "Any other whole-value expression (a `vars.*`, an `inputs.*`, a compound condition) is unresolvable and reports this code when the step can still share an event with a publish.",
-        "In a reusable workflow (`workflow_call`) `github.event_name` is the caller's event, and Plumber resolves the comparisons against it - conditions on the same event still cancel out.",
-        "PR builds keep their cache: the point of the conditional form is disabling the restore only on publish runs, not everywhere.",
-      ],
-      status: "shipping",
+        "Nothing to do: the code no longer fires.",
+      tips: [],
+      status: "removed",
+      removedNote:
+        "This finding was retired with the rework of [ISSUE-705](/docs/use-plumber/issues/ISSUE-705?p=github) ([issue #533](https://github.com/getplumber/plumber/issues/533), [pull request #555](https://github.com/getplumber/plumber/pull/555)). GitHub isolates caches by ref and gives low-trust events read-only cache access, so ISSUE-705 now flags an explicit `cache-mode: write` on such a job instead of a release job's cache restore, and that grant has no conditional form left to resolve: GitHub rejects a `cache-mode` expression that reads a context. The ISSUE-717 code is retired and will not be reused.",
       relatedCodes: ["ISSUE-705"],
     },
   },
