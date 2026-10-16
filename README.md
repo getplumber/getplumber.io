@@ -1,6 +1,6 @@
 # Plumber - Website
 
-![Plumber logo](src/assets/images/plumber-banner.svg)
+![Plumber](src/assets/images/readme-banner.png)
 
 **The website for Plumber, the open-source CI/CD security CLI and platform for GitLab CI/CD and GitHub Actions, built with Astro, Tailwind CSS, and React.**
 
