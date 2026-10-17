@@ -382,7 +382,7 @@ export const controlCatalog: Record<
       controlDescription:
         "Step-level `uses: owner/repo@ref` in committed workflows. Queries GitHub for `archived: true` (one cached API call per `owner/repo`). Requires `gh` / `GH_TOKEN`; abstains without auth.",
       controlWhyItMatters:
-        "Archived repos stop receiving patches. Does not inspect reusable-workflow callees, local actions, or runtime installs. PBOM: `archived: true`.",
+        "Archived repos stop receiving patches. Also inspects the composite actions and called workflows referenced from committed workflow files, though not local actions or runtime installs. PBOM: `archived: true`.",
     },
   },
   actionRefsMustExistUpstream: {
@@ -2565,8 +2565,9 @@ jobs:
       goodExampleCaption: "Every `uses:` carries a full SHA; the trailing comment names the release.",
       tips: [
         "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions.",
-        "Local actions (`uses: ./.github/actions/foo`) are always exempt because they live in the same repo.",
+        "Local actions (`uses: ./.github/actions/foo`) are exempt from this rule because the local reference itself lives in the same repo, but a third-party action it pulls in through that local composite is judged like any other nested reference.",
         "Pair with ISSUE-702, ISSUE-707 and ISSUE-709 for a complete supply-chain ruleset (archived repos, impostor SHAs, stale pins).",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       relatedCodes: ["ISSUE-702", "ISSUE-707", "ISSUE-708", "ISSUE-709", "ISSUE-703"],
     },
@@ -2582,7 +2583,7 @@ jobs:
       controlName: "Actions must not reference archived repositories",
       controlConfigKey: "actionsMustNotBeArchived",
       description:
-        "A workflow step uses a third-party action (`uses: owner/repo@ref`) whose upstream repository is archived on GitHub. Plumber scans committed `.github/workflows/*.{yml,yaml}` only, queries `GET /repos/{owner}/{repo}` for the `archived` flag, and caches one result per `owner/repo` (not per ref). Requires `gh auth login` or `GH_TOKEN`; without authentication the control abstains and emits no finding.",
+        "A workflow step uses a third-party action (`uses: owner/repo@ref`) whose upstream repository is archived on GitHub. Plumber scans committed `.github/workflows/*.{yml,yaml}` and the definitions of the composite actions and called workflows those files reference, queries `GET /repos/{owner}/{repo}` for the `archived` flag, and caches one result per `owner/repo` (not per ref). Requires `gh auth login` or `GH_TOKEN`; without authentication the control abstains and emits no finding.",
       impact:
         "Archived repositories don't receive security fixes. Any vulnerability discovered after the archive date stays open forever, but the action keeps running inside your workflow with whatever permissions you grant it. Pinning by SHA does not save the caller either: the last maintainer (or whoever later acquires the namespace) can still push new code under the same repository name.",
       remediation:
@@ -2604,8 +2605,9 @@ jobs:
       tips: [
         "Scope is step-level `uses:` in your workflow files only. Job-level reusable-workflow `uses:` lines, local `./.github/actions/*`, and `docker://` steps are out of scope.",
         "Without `gh` / `GH_TOKEN`, the rule abstains on every ref (degraded contract, no false positives). This is not a clean pass.",
-        "Does not fetch callee reusable-workflow YAML from other repositories; only what is committed under `.github/workflows/` in the analyzed ref.",
+        "Also reads the definitions of the composite actions and called workflows that those workflow files reference, not only what is committed under `.github/workflows/` in the analyzed ref.",
         "The PBOM tags each archived include with `archived: true` (JSON) / `plumber:archived` (CycloneDX) so dashboards can dedupe across multiple callers of the same abandoned action.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-701", "ISSUE-703"],
@@ -2645,6 +2647,7 @@ jobs:
       tips: [
         "Get the right SHA with `gh api repos/OWNER/REPO/git/refs/tags/vX.Y.Z`.",
         "This rule needs upstream lookup: running offline or against a private upstream where the token has no access will report `partialControls` (abstain).",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       relatedCodes: ["ISSUE-701", "ISSUE-708"],
     },
@@ -2683,6 +2686,7 @@ jobs:
       tips: [
         "Dependabot keeps the comment in sync automatically when updating SHA pins.",
         "If you write the comment by hand, run `gh api repos/OWNER/REPO/commits/<sha>` and check the `committer.date` / surrounding tag.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-701", "ISSUE-707", "ISSUE-709"],
@@ -2722,6 +2726,7 @@ jobs:
       tips: [
         "Enable Dependabot for `package-ecosystem: github-actions` to get automatic update PRs.",
         "The stale-window threshold is configurable via `actionsMustBePinnedByCommitSha.staleAfterReleases`.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-701", "ISSUE-708"],
@@ -2761,6 +2766,7 @@ jobs:
       tips: [
         "This rule fires regardless of the `actionsMustBePinnedByCommitSha` opt-in, since collisions are a clear bug.",
         "Upstream maintainers should delete the branch (or rename the tag) to clear the collision for all consumers.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "shipping",
       relatedCodes: [],
@@ -2832,9 +2838,10 @@ jobs:
       tips: [
         "Exact tags (`@v45.2.0`) and SHA-resolved versions are point-checked against the advisory range. Moving partial tags (`@v45`, `@v45.2`) are span-checked across the whole release series and only fire when the entire span is vulnerable.",
         "SHA pins are resolved through the repo's tag list to the most specific tag that points at the commit, so a moving major alias never shadows the exact release. A SHA without a resolvable release tag (and mutable non-numeric tags like `@rc` / `@main`) abstains with a 'could not verify' warning rather than flagging every advisory for that `owner/repo`.",
-        "Same scope limits as ISSUE-702: step `uses:` only, static YAML, no nested composite internals, no reusable-workflow callee files unless they live in this repo's `.github/workflows/`.",
+        "Same scope limits as ISSUE-702: step `uses:` only, static YAML. Reads the definitions of the composite actions and called workflows those files reference too, not only what is committed under this repo's `.github/workflows/`.",
         "Without API auth the rule abstains (not a pass). Pair with Dependabot `package-ecosystem: github-actions` for ongoing alerts.",
         "The PBOM tags affected includes with `hasCve: true` plus `advisories: [GHSA-…]` (JSON) / `plumber:has-cve` plus `plumber:advisories` properties (CycloneDX).",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-701", "ISSUE-702", "ISSUE-709"],
@@ -2880,6 +2887,7 @@ jobs:
       tips: [
         "GitHub-hosted runners come with `gh`, `jq`, `yq`, `aws`, `gcloud`, `kubectl`, `docker` and many others pre-installed. See https://github.com/actions/runner-images.",
         "Self-hosted runners can vary. Check what's on yours before disabling the rule.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-701"],
@@ -2937,6 +2945,7 @@ jobs:
         "Job-level reusable-workflow calls (`jobs.<id>.uses`) are checked too, but only against the official-owner and allowlist rules, since they carry no star metadata.",
         "`minimumStars` reads star counts from the GitHub API and needs `gh` / `GH_TOKEN`. Without it, a reference falls back to the allowlist rather than being flagged on missing data.",
         "Local actions (`uses: ./.github/actions/foo`) and `docker://` image steps are always exempt.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-701", "ISSUE-702", "ISSUE-703"],
@@ -2986,6 +2995,7 @@ jobs:
         "This is a static, text-level match on the action's source: a clean result means \"no known pattern seen\", not \"safe\". An author who deliberately hides the fetch is ISSUE-715.",
         "Plumber reads the action's source over the GitHub API; running offline, against GHES, or against a private action reports could-not-verify (ISSUE-716) instead.",
         "The scanned repo can itself be the action (producer side): the same pattern in your own `action.yml` fires too.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-715", "ISSUE-716", "ISSUE-701"],
@@ -3031,6 +3041,7 @@ runs:
       tips: [
         "This deliberately does not chase every possible encoding - it flags the act of hiding, which is what makes a clean result meaningful.",
         "Because hiding is the signal, this fires regardless of whether the fetched ref is a branch, tag, or SHA.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-714", "ISSUE-716"],
@@ -3071,6 +3082,7 @@ jobs:
       tips: [
         "This is informational and low severity by design: it marks an unchecked dependency, not a detected problem.",
         "Docker-image actions (`uses: docker://…`) have no action source to read and always surface here.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-714", "ISSUE-715"],
@@ -3876,6 +3888,7 @@ jobs:
       goodExampleCaption: "Default revocation behaviour: the token is invalidated when the job ends.",
       tips: [
         "If you need the token across multiple jobs, generate one per job rather than reusing one with revoke skipped.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-302"],
@@ -3924,6 +3937,7 @@ jobs:
       tips: [
         "If a subsequent step needs to push back to the repo, configure git credentials explicitly via `git remote set-url origin https://x-access-token:$GH_TOKEN@github.com/...`.",
         "Never upload the entire workspace as an artifact. Always narrow the path.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-310", "ISSUE-801", "ISSUE-309"],
@@ -3973,6 +3987,7 @@ jobs:
       tips: [
         "Scoping the upload path is the more durable fix: it also keeps build artifacts free of source history and secrets files.",
         "If a later step must push back, set the remote URL explicitly with a scoped token rather than relying on the checkout's persisted credential.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-307", "ISSUE-801", "ISSUE-309"],
@@ -4129,6 +4144,7 @@ jobs:
         "If a workflow truly needs both PR code AND secrets, the right pattern is: PR workflow uploads diff artefact → trusted workflow_run consumes it (no checkout).",
         "A job-level same-repository `if:` guard (e.g. `github.event.pull_request.head.repo.full_name == github.repository`, `head.repo.fork == false`) silences the finding: fork-controlled code never reaches the checkout.",
         "Plumber's default-on `actionsMustBePinnedByCommitSha` + ISSUE-802 + this rule cover the tj-actions class of vulnerabilities end-to-end.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-802", "ISSUE-701"],
@@ -4322,6 +4338,7 @@ jobs:
         "On Windows: prefer `pwsh` over `cmd` or legacy `powershell`.",
         "Replace `curl | sh` style installers with vendored or checksum-verified downloads (see ISSUE-411).",
         "Never upload the entire workspace. Narrow to `dist/`, `target/`, `build/`.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-307", "ISSUE-411"],
@@ -4410,6 +4427,7 @@ jobs:
       tips: [
         "PyPI: register a trusted publisher at https://pypi.org/manage/account/publishing/.",
         "npm: enable trusted publishers under the package's Settings > OIDC.",
+        "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
       status: "roadmap",
       relatedCodes: ["ISSUE-712", "ISSUE-302"],
