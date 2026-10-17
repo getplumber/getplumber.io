@@ -1,0 +1,290 @@
+---
+title: "How the analysis works"
+seoTitle: "How Plumber builds attack paths and the Plumber Score"
+description: "From your pipeline files to the A-E grade: how the Plumber CLI reads facts, proves claims, assembles attack paths, prices them and reports what it could not check."
+sidebar:
+  label: "How the analysis works"
+  order: 8
+  hidden: true
+---
+
+Plumber does not add up findings. It reads facts about every job, keeps track of
+how sure it is of each one, assembles the findings into attack paths, and prices
+each path for what an attacker could really reach. This page follows that order.
+The [Plumber Score](/docs/plumber-score) page says what the grade means and how to
+publish it.
+
+<figure class="my-10">
+<svg viewBox="0 0 1050 340" role="img" aria-label="Five steps from the pipeline files to the grade: findings, facts per job, attack paths, score; claims feed the facts and the paths, moves and ceilings feed the score" style="max-width:100%;height:auto;display:block" font-family="ui-sans-serif, system-ui, sans-serif">
+  <defs>
+    <marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+    </marker>
+  </defs>
+  <g fill="none" stroke="currentColor" stroke-width="1.25">
+    <rect x="20" y="30" width="170" height="112" rx="8" />
+    <rect x="230" y="30" width="170" height="112" rx="8" />
+    <rect x="440" y="30" width="170" height="112" rx="8" />
+    <rect x="650" y="30" width="170" height="112" rx="8" />
+    <rect x="860" y="30" width="170" height="112" rx="8" />
+    <rect x="440" y="222" width="380" height="90" rx="8" stroke-dasharray="5 4" />
+    <rect x="860" y="222" width="170" height="90" rx="8" stroke-dasharray="5 4" />
+  </g>
+  <g stroke="currentColor" stroke-width="1.25" fill="none" marker-end="url(#flow-arrow)">
+    <line x1="190" y1="86" x2="228" y2="86" />
+    <line x1="400" y1="86" x2="438" y2="86" />
+    <line x1="610" y1="86" x2="648" y2="86" />
+    <line x1="820" y1="86" x2="858" y2="86" />
+    <line x1="525" y1="222" x2="525" y2="144" />
+    <line x1="735" y1="222" x2="735" y2="144" />
+    <line x1="945" y1="222" x2="945" y2="144" />
+  </g>
+  <g fill="currentColor" font-size="15" font-weight="600" text-anchor="middle">
+    <text x="105" y="60">Your pipeline</text>
+    <text x="315" y="60">Findings</text>
+    <text x="525" y="60">Facts per job</text>
+    <text x="735" y="60">Attack paths</text>
+    <text x="945" y="60">Score</text>
+    <text x="630" y="252">Claims</text>
+    <text x="945" y="252">Moves, ceilings</text>
+  </g>
+  <g fill="currentColor" font-size="13" text-anchor="middle" opacity="0.8">
+    <text x="105" y="88">workflow, CI files</text>
+    <text x="105" y="108">provider facts</text>
+
+    <text x="315" y="88">every control runs</text>
+    <text x="315" y="108">fixed severity</text>
+
+    <text x="525" y="88">who can run it</text>
+    <text x="525" y="108">what it holds</text>
+    <text x="525" y="128">does it run at all</text>
+
+    <text x="735" y="88">entry, walk, reach</text>
+    <text x="735" y="108">one entry, one path</text>
+
+    <text x="945" y="88">a price per tier</text>
+    <text x="945" y="108">points, then letter</text>
+
+    <text x="630" y="278">proven, assumed or unknown</text>
+    <text x="630" y="298">only a proven claim moves a tier</text>
+
+    <text x="945" y="278">lower or hold</text>
+    <text x="945" y="298">a tier</text>
+  </g>
+</svg>
+<figcaption class="text-muted-foreground mt-3 text-center text-sm">What Plumber could not prove is shown under the path and listed by <code>plumber explain -a</code>, never priced.</figcaption>
+</figure>
+
+## 1. Findings
+
+Every control runs on your workflow or CI files as written. Each finding has a
+fixed severity of its own, and a finding never disappears because of what comes
+next: the later steps decide what it is worth, not whether it exists.
+
+Plumber also reads what the provider knows about the repository: the default
+branch and its protection, the environments, whether Actions or a workflow is
+disabled, and the default token's real scopes when a run log or a release reveals
+them.
+
+## 2. Three questions about every job
+
+Each answer comes from a fact Plumber can point to: a file and a line, or a
+provider response. Nothing is filled in from a default.
+
+**Who can make it run?** The job's `if:` and its environment give the gate.
+
+| Gate | Meaning | Effect on the path |
+|---|---|---|
+| outsider | anyone can produce the triggering event | open |
+| maintainer approved | a label, the author's identity, a merge or a required review comes first | held at High, at Medium when the job only checks out the approved commit |
+| same repository, no outsider | the condition proves an outsider never reaches the job | no path; the finding is priced Low with a note |
+| unknown | the condition compares something Plumber cannot evaluate | kept, one tier down, marked unverified |
+
+A reusable workflow's job takes the weakest gate of its callers.
+
+**What does it hold and change?**
+
+- Every secret the job references, by name. The runner hands them all over when the
+  job starts, so the step that names a secret does not matter. `toJson(secrets)` or
+  `secrets: inherit` means every secret of the repository.
+- The job token, from its declared `permissions`. A job without a block carries the
+  repository default; Plumber reads its real scopes from a run log or a bot-authored
+  release when it can, and otherwise keeps it as an assumption.
+- What the job changes: a publish, a deploy, a release, a write to the repository.
+
+**Does it run at all?** A job whose workflow is disabled, whose repository has
+Actions disabled, that nothing triggers, that waits for a retired runner label, or
+whose condition is false for this repository, never runs. It starts no path, is
+walked by none and writes no cache.
+
+## 3. Claims
+
+Every fact a path rests on is a claim with a state.
+
+| State | Meaning | Example |
+|---|---|---|
+| proven | every fact behind it is settled | a secret named in the job, `contents: write` declared |
+| assumed | a default taken for lack of a declared signal | a repository-default token whose write could not be read |
+| unknown | a fact it needs could not be decided | a provider read refused, an output computed at run time |
+
+Only a proven claim moves a tier. The two others stay in the path so the report
+names them, but they never raise, lower or cap anything. A path that runs code
+with nothing proven reached is Low, whether or not its secrets could be listed.
+
+## 4. Attack paths
+
+A path reads **entry, walk, reach**.
+
+**Entry**: how someone outside your team gets code or input into a job.
+
+- A dependency that can change without a commit in your repository: an action, a
+  reusable workflow, an image, an include, a script fetched from the network.
+- An expression an attacker controls that ends up in a script.
+- A privileged trigger that runs fork code.
+- A job granted cache write on an untrusted trigger.
+- An unprotected default branch that runs a job on every push.
+
+A workflow or action inside the repository itself is not an entry: it changes only
+with a commit.
+
+**Walk**: from the entry job to the jobs it feeds directly, through `needs`, an
+artifact or a shared cache. Only an edge the fed job actually runs carries the
+reach. An artifact that is only moved or published carries an impact and no
+secret. An output only compared in an `if:` crosses nothing.
+
+**Reach**: everything the walked jobs hold and change, each item with its claim
+state.
+
+One entry makes one path, however many jobs it enters: one thing to fix, charged
+once. Each job the entry enters is a branch with its own walk and reach, and the
+path takes the tier of its strongest branch.
+
+## 5. The tier
+
+The tier follows what is proven.
+
+| Tier | The path reaches |
+|---|---|
+| Critical | a proven secret or write token, **and** either something the job changes or an entry anyone opening a pull request controls |
+| High | one of the two alone: something the job changes, or a proven secret or write token |
+| Medium | a High path lowered by a move below, or a dependency path whose reference is only not pinned |
+| Low | code runs, but nothing proven is reached |
+
+A declared `contents`, `packages` or `deployments` write token counts as both a
+privilege and a change.
+
+Then the moves apply, one tier each. A ceiling only ever lowers a path from the
+tier its proven reach gives.
+
+| Move or ceiling | Effect | When |
+|---|---|---|
+| Maintainer gate | High at most | the entry's job runs only once a maintainer lets it |
+| Pinned head | Medium at most | the same gate, and the job only checks out the approved commit |
+| Dependency | Medium at most; High when the source is not authorized, a script, or code downloaded at run time | changing what runs needs a compromise first. A known-bad dependency lifts the ceiling |
+| Insider | Medium at most | the party who can change what runs is the repository's owner or a sibling organisation |
+| Push entry | High at most | pushing to an unprotected branch already needs write access |
+| Cache writer | the ceiling of the paths that enter the writing job | poisoning the cache needs getting into that job first |
+| Private repository | one tier down | an entry that needs a contributor, on a repository proven private |
+| Missing protection | one tier up | a branch protection or environment approval that would have stopped a proven secret, token or impact |
+| Could not decide | one tier down, marked unverified | the tier rests on a fact Plumber could not confirm |
+
+A privilege that could not be settled, such as secrets Plumber could not list, is
+never the fact a tier rests on. It adds nothing, lowers nothing and marks nothing
+unverified. It is simply shown.
+
+## 6. Individual findings
+
+A finding on no path is an individual finding. It costs its own severity's price,
+and all individual findings together cost at most 30 points, the worst first.
+
+A finding on a path costs nothing more: the path pays for it. Each finding shows
+the severity it is charged at, so a finding on a path shows the path's tier. Two
+findings read their severity from context:
+
+- a missing branch protection (`ISSUE-501`) is Critical on the default branch and
+  High elsewhere;
+- an action from an unauthorized owner (`ISSUE-713`) is Medium when pinned by a
+  full commit SHA and High otherwise.
+
+Every output keeps the issue's own severity next to it as `baseSeverity`.
+
+## 7. Points and letter
+
+Every run starts at 100 points.
+
+| Item | Points lost |
+|------|:-----------:|
+| Critical attack path | 30 |
+| High attack path | 15 |
+| Medium attack path | 6 |
+| Low attack path | 3 |
+| Critical individual finding | 20 |
+| High individual finding | 10 |
+| Medium individual finding | 5 |
+| Low individual finding | 2 |
+
+```text
+lost   = Critical + min(69, High + min(49, Medium + min(29, Low)))
+points = max(0, 100 − lost), capped at 30 while an attack path is Critical
+```
+
+`High`, `Medium` and `Low` are the summed prices of the non-Critical items of
+that severity, paths and individual findings together. The grade reads A from 90
+points, B from 71, C from 51, D from 31, E below.
+
+- The nested limit gives the letters their meaning: no Critical item, D or better;
+  no High item, C or better; nothing above Low, B or better.
+- Moving an item down a tier never lowers the score.
+- Dismissed findings cost nothing, and repeated occurrences of one finding count
+  once.
+
+<Aside variant="caution" title="A Critical attack path forces an E">
+While an attack path is Critical, final points are capped at 30 and the grade reads
+E. A Critical individual finding costs its 20 points and forces nothing.
+</Aside>
+
+**Example**: `getplumber-examples/plumber-example-demo`, a public repository.
+`main` is unprotected and its `plumber` job runs on every push with a write token.
+Its `ci/build` job runs on pull requests with a read token and no secret, puts the
+pull request title in a shell, runs `node:latest`, pipes a script from the network
+into `bash`, and uses an action with a published advisory.
+
+- One High path: a push to `main` runs a job holding a declared write token. 15 points.
+- Four Low paths into `ci/build`: the title in the shell, `node:latest`, the fetched
+  script, the action with the advisory. The job holds nothing proven, so code
+  running there is Low whatever brought it. 12 points.
+- 100 − 27 = **73, B**. Protecting `main` gives back 15: 88, still B.
+
+<Aside variant="info" title="When no score is produced">
+A run whose data collection was degraded, or that evaluated no control, gets no
+score: the report says so, and the JSON report, the run cache and the PBOM carry
+none.
+</Aside>
+
+The [Plumber Platform](/docs/installation) stores the score the CLI pushes and
+never recomputes one.
+
+## 8. Reading a path
+
+Each path block in the report names:
+
+- **Entry**: what to search for in your files;
+- one branch per job the entry enters, with what an attacker reaches there;
+- **So**: who gets in and what they can do. It says `may` instead of `can` for what
+  rests on an assumed token or an unconfirmed impact;
+- **Note**: what Plumber could not check, `Plumber assumed the token can write: ...`
+  or `Plumber could not read: ...`;
+- **Fix**: one thing to do.
+
+`plumber explain -a N` prints path N again with every finding on it and a
+**Claims** section: each claim, its state and, when it is not proven, where the
+assumption or the gap comes from. The JSON report carries the same under
+`plumberScore.paths[].claims` and `pathBlocks[].claimsNote`.
+
+## What Plumber never does
+
+- It never guesses: a fact it cannot read stays unknown, is shown, and prices nothing.
+- It never hides a path behind a condition it cannot evaluate: the path stays, one tier down and marked unverified.
+- It never looks at the runner: every runner counts as one that is not self-hosted.
+- It never charges a finding twice: a finding on a path costs nothing on its own.
+- It never recomputes a score on the platform: the CLI is the only engine.

@@ -34,6 +34,8 @@ const sidebarNavData: DocsSidebarNavData = {
           // CTRL-nnn id) and configured on the Controls configuration page.
           navLinks: [
             { text: "Issues", href: "/docs/use-plumber/issues" },
+            // Last on purpose: the detailed walk-through of the analysis, read after the rest.
+            { text: "How the analysis works", href: "/docs/cli/how-the-analysis-works" },
           ],
         },
         {
