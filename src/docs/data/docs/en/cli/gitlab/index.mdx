@@ -447,7 +447,7 @@ Score
   ╚═════╝  Best fix: protect the branch (dev), +10 pts, 85 / 100 (B)
 ```
 
-Each attack path names its **entry** (what to search for in your pipeline), the job it enters and what an attacker reaches there, what that means (`So`), what Plumber could not check (`Note`) and one thing to do (`Fix`). `plumber explain -a 1` prints the path again with every finding on it. How the paths and the individual findings turn into points is explained on the [Plumber Score](/docs/plumber-score#how-is-the-score-determined) page.
+Each attack path names its **entry** (what to search for in your pipeline), the job it enters and what an attacker reaches there, what that means (`So`), what Plumber could not check (`Note`) and one thing to do (`Fix`). `plumber explain -a 1` prints the path again with every finding on it. How the paths and the individual findings turn into points is explained on the [Plumber Score](/docs/cli/how-the-analysis-works#7-points-and-letter) page.
 
 <Aside variant="tip">
   When using `--output`, results are saved as JSON for programmatic access and CI/CD integration, attack paths included (`plumberScore.paths` and `pathBlocks`, see the [JSON report structure](/docs/cli/reference#json-report-structure)).

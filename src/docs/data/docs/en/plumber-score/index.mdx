@@ -17,19 +17,23 @@ import { Icon } from "astro-icon/components";
 Plumber Score is a single **A-E** grade for your CI/CD security. The open-source
 [Plumber CLI](https://github.com/getplumber/plumber) produces it on **every
 run**, locally or in your CI pipeline. The score is **contextual**: Plumber
-assembles its findings into [attack paths](#attack-paths) and grades the worst
-realistic consequences, not a flat count of findings.
+assembles its findings into [attack paths](/docs/cli/how-the-analysis-works#4-attack-paths) and grades the
+worst realistic consequences, not a flat count of findings. Only what Plumber can
+prove moves the grade: a fact it had to assume or could not read is shown in the
+report, never priced.
 
-| Grade | What it means |
-|:-----:|---------------|
-| <span class="font-bold text-primary-400 dark:text-primary-300">A</span> | **Excellent**: no significant exposure found |
-| <span class="font-bold text-primary-400 dark:text-primary-300">B</span> | **Good**: minor exposure |
-| <span class="font-bold text-yellow-500 dark:text-yellow-400">C</span> | **Moderate**: exposure worth fixing |
-| <span class="font-bold text-orange-500 dark:text-orange-400">D</span> | **Poor**: significant accumulated exposure |
-| <span class="font-bold text-red-400 dark:text-red-300">E</span> | **Critical**: a Critical attack path remains, or heavy accumulated losses |
+| Grade | Points | What it means |
+|:-----:|:------:|---------------|
+| <span class="font-bold text-primary-400 dark:text-primary-300">A</span> | ≥ 90 | **Excellent**: no significant exposure found |
+| <span class="font-bold text-primary-400 dark:text-primary-300">B</span> | 71 – 89 | **Good**: minor exposure |
+| <span class="font-bold text-yellow-500 dark:text-yellow-400">C</span> | 51 – 70 | **Moderate**: exposure worth fixing |
+| <span class="font-bold text-orange-500 dark:text-orange-400">D</span> | 31 – 50 | **Poor**: significant accumulated exposure |
+| <span class="font-bold text-red-400 dark:text-red-300">E</span> | < 31 | **Critical**: a Critical attack path remains, or heavy accumulated losses |
 
 A grade from A to D says nothing about the number of paths. An **E needs a
 Critical item**: a Critical attack path keeps the score at 30 points or below.
+How Plumber gets from your files to the grade, and how the points add up, is on
+[How the analysis works](/docs/cli/how-the-analysis-works).
 
 ## Publish your score
 
@@ -433,135 +437,6 @@ with the correct workflow `permissions` and `score-push` enabled in the action
 2. Add a badge in your repo: **Settings → General → Badges**
     - **Link**: `https://score.getplumber.io/gitlab.com/%{project_path}`
     - **Badge image URL**: `https://score.getplumber.io/gitlab.com/%{project_path}.svg`
-
-## How is the score determined?
-
-Plumber does not add up findings. It assembles them into **attack paths** and
-charges each path for what an attacker could reach. Findings outside any path
-cost less and can never produce an E on their own.
-
-Every run starts at **100 points**. The remaining points map to the A-E grade:
-
-| Grade | Points |
-|:-----:|:------:|
-| <span class="font-bold text-primary-400 dark:text-primary-300">A</span> | ≥ 90 |
-| <span class="font-bold text-primary-400 dark:text-primary-300">B</span> | 71 – 89 |
-| <span class="font-bold text-yellow-500 dark:text-yellow-400">C</span> | 51 – 70 |
-| <span class="font-bold text-orange-500 dark:text-orange-400">D</span> | 31 – 50 |
-| <span class="font-bold text-red-400 dark:text-red-300">E</span> | < 31 |
-
-### Attack paths
-
-A path reads **entry, job, reach**.
-
-- **Entry**: how someone outside your team gets code or input into a job. A
-  dependency that can change without a commit (an action, an image, an include,
-  a script fetched at build time), an expression an attacker controls in a script
-  (a pull request title), a privileged trigger that runs fork code, a cache an
-  untrusted run can write, an unprotected branch.
-- **Walk**: the jobs that job feeds, through `needs`, an artifact or a cache.
-- **Reach**: what those jobs hold (secrets, a write token, an OIDC token) and what
-  they change (a publish, a deploy, a release, a write to the repository).
-
-One entry makes one path, whatever the number of jobs it enters: one thing to
-fix, charged once. The path takes the tier of its strongest branch.
-
-| Tier | The path reaches |
-|------|------------------|
-| **Critical** | secrets or a write token, **and** something the job changes. For an entry anyone can use from a pull request, a secret or a write token alone |
-| **High** | one of the two: secrets or a write token, or something the job changes. Code execution alone is also High |
-| **Medium** | a High path held down by one of the limits below |
-| **Low** | the entry exists, but no attacker code runs |
-
-Some facts move a path one tier, or hold it under a ceiling:
-
-- **A dependency that can change** never makes a Critical path alone. Not pinned:
-  Medium at most. Not pinned and from an unauthorized source: High at most. Known
-  bad (a published advisory, a commit absent from the action's repository, a
-  hidden remote fetch): no ceiling.
-- **A push to an unprotected branch**: High at most, pushing needs write access.
-- **A poisoned cache** inherits the ceiling of the paths that reach the jobs able
-  to write it.
-- **A missing branch protection or environment approval** raises a path one tier
-  when it would have stopped the damage. An environment is never an impact by
-  itself.
-- **A private repository** lowers a path that needs a contributor by one tier. A
-  fact Plumber could not settle lowers the path one tier and marks it unverified.
-
-Plumber also applies what the platform guarantees: a fork pull request on GitHub
-gets no secrets and a read-only token, a fork merge request on GitLab never sees
-protected variables.
-
-### Individual findings
-
-A finding on no path is an **individual finding**. It costs its own severity's
-price, and all individual findings together cost **at most 30 points**, worst
-first.
-
-A finding on a path costs nothing more: the path pays for it. Each finding shows
-the severity it is charged at, so a finding on a path shows the path's tier. Two
-findings read their severity from context: a missing branch protection
-(`ISSUE-501`) is Critical on the default branch and High elsewhere, an action
-from an unauthorized owner (`ISSUE-713`) is Medium when pinned by a full commit
-SHA and High otherwise. Outputs keep the issue's own severity as `baseSeverity`.
-
-### The formula
-
-| Item | Points lost |
-|------|:-----------:|
-| Critical attack path | 30 |
-| High attack path | 15 |
-| Medium attack path | 6 |
-| Low attack path | 3 |
-| Critical individual finding | 20 |
-| High individual finding | 10 |
-| Medium individual finding | 5 |
-| Low individual finding | 2 |
-
-```text
-lost   = Critical + min(69, High + min(49, Medium + min(29, Low)))
-points = max(0, 100 − lost), capped at 30 while an attack path is Critical
-```
-
-`High`, `Medium` and `Low` are the summed prices of the non-Critical items of
-that severity, paths and individual findings together, the individual findings
-within their 30-point budget.
-
-The nested limit gives the letters their meaning: no Critical item, D or better;
-no High item, C or better; nothing above Low, B or better. Moving an item down a
-tier never lowers the score. Dismissed findings cost nothing, and repeated
-occurrences of one finding count once.
-
-<Aside variant="caution" title="A Critical attack path forces an E">
-While an attack path is Critical, final points are capped at **30** and the grade
-reads **E**. A Critical individual finding costs its 20 points and forces nothing.
-</Aside>
-
-**Example.** A public repository: `main` is unprotected and its `plumber` job
-runs on every push with write tokens. Its `ci/build` job runs on pull requests
-with a read token, puts the pull request title in a shell, pipes a script from
-the network into `bash`, runs `node:latest` and an action with a published
-advisory.
-
-- One High path: a push to `main` reaches the write tokens.
-- Three High paths into `ci/build`: the title in the shell, the fetched script,
-  the action with the advisory. Code execution alone is High.
-- One Medium path: `node:latest`, only not pinned.
-
-4 × 15 + 6 = 66: **100 − 66 = 34, D**. Fixing the title in the shell gives back
-15 points: 49, still D.
-
-In the report, each attack path ends with the command that prints its findings
-in full: [`plumber explain -a N`](/docs/cli/reference#plumber-explain).
-
-<Aside variant="info" title="When no score is produced">
-A run whose data collection was degraded, or that evaluated no control, gets no
-score: the report says so, and the JSON report, the run cache and the PBOM carry
-none.
-</Aside>
-
-The [Plumber Platform](/docs/installation) stores the score the CLI pushes and
-never recomputes one.
 
 ## Gate your CI on the score
 
