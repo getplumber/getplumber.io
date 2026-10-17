@@ -189,7 +189,7 @@ Use outputs in downstream steps:
 When `upload-sarif` is `true` (the default), the action uploads a SARIF 2.1.0 report to [GitHub Code Scanning](https://docs.github.com/en/code-security/code-scanning). Each Plumber finding becomes an alert in the **Security** tab with:
 
 - The issue code as the rule ID (e.g. `ISSUE-701`)
-- Severity mapped to SARIF level (`error`, `warning`, `note`) and a numeric `security-severity` for triage. The severity is the finding's contextual one (a finding on an [attack path](/docs/plumber-score#attack-paths) takes the path's tier); the issue's own severity rides in the result properties as `plumber/baseSeverity`, with `plumber/role` and `plumber/pathIds`
+- Severity mapped to SARIF level (`error`, `warning`, `note`) and a numeric `security-severity` for triage. The severity is the finding's contextual one (a finding on an [attack path](/docs/cli/how-the-analysis-works#4-attack-paths) takes the path's tier); the issue's own severity rides in the result properties as `plumber/baseSeverity`, with `plumber/role` and `plumber/pathIds`
 - File location pointing at the workflow YAML line
 - A `helpUri` linking to the issue's documentation page on getplumber.io
 
@@ -375,7 +375,7 @@ Score
  ╚═════╝   Best fix: protect the default branch (push to main), +15 pts, 100 / 100 (A)
 ```
 
-Each attack path names its **entry** (what to search for in your workflows), the jobs it enters and what an attacker reaches there, what that means (`So`) and one thing to do (`Fix`). `plumber explain -a 1` prints the path again with every finding on it. How the paths and the individual findings turn into points is explained on the [Plumber Score](/docs/plumber-score#how-is-the-score-determined) page.
+Each attack path names its **entry** (what to search for in your workflows), the jobs it enters and what an attacker reaches there, what that means (`So`) and one thing to do (`Fix`). `plumber explain -a 1` prints the path again with every finding on it. How the paths and the individual findings turn into points is explained on the [Plumber Score](/docs/cli/how-the-analysis-works#7-points-and-letter) page.
 
 <Aside variant="tip">
   When using `--output`, results are saved as JSON for programmatic access and CI/CD integration, attack paths included (`plumberScore.paths` and `pathBlocks`, see the [JSON report structure](/docs/cli/reference#json-report-structure)).

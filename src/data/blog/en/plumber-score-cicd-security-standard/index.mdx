@@ -87,7 +87,7 @@ A standard has to be more than accurate. It has to be trustworthy at a glance, s
 - **Hard to game.** **A single Critical attack path forces the grade to E**, no matter how many other controls pass: a way for someone outside your team to run code in a job that holds a secret or a write token and publishes, deploys or writes to the repository, and the grade reads E, full stop. Findings on no path still cost points, worst first, so distinct problems keep costing.
 - **Independently verifiable.** Every published score has a public page at `score.getplumber.io` showing when it was computed, on which branch, and under which policy, and it discloses when a project used a customized scanning configuration instead of the default one.
 
-The scoring model itself is open source and versioned (profile id `scoring-v4`). The attack path tiers, the prices and the limits live in the [scoring documentation](/docs/plumber-score#how-is-the-score-determined), and `plumber analyze --score-point` prints the arithmetic for your own pipeline.
+The scoring model itself is open source and versioned (profile id `scoring-v4`). The attack path tiers, the prices and the limits live in the [scoring documentation](/docs/cli/how-the-analysis-works#7-points-and-letter), and `plumber analyze --score-point` prints the arithmetic for your own pipeline.
 
 ## A standard works both ways: prove yours, check theirs
 
