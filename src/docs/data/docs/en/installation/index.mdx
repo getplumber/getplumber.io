@@ -17,7 +17,7 @@ continuous governance.
 Analysis stays where it belongs: in the open-source [Plumber CLI](/docs/cli/installation),
 running inside your pipelines. The Platform never re-runs an analysis and never produces a
 verdict of its own. Your pipelines **push** their results to it with their own native CI OIDC
-token (`id_tokens`), and the Platform:
+token (`id_tokens` on GitLab, `id-token: write` on GitHub Actions), and the Platform:
 
 - keeps the score and the findings of every project, on the default branch and per branch
 - applies your **policies** and **portfolios** to the estate, and proves coverage
@@ -27,7 +27,8 @@ token (`id_tokens`), and the Platform:
 
 <Aside variant="info">
 No shared secret ever lives in a runner: pipelines authenticate with the identity token
-GitLab mints for them, and the Platform verifies it.
+GitLab or GitHub Actions mints for them, and the Platform verifies it. On GitHub.com the Platform
+also checks that the repository belongs to your organization.
 </Aside>
 
 ## Quick Installation Guide
@@ -62,6 +63,9 @@ Everything is published from the
 [getplumber/plumber-platform](https://github.com/getplumber/plumber-platform) repository: the
 Compose stack, the installer, the update, backup and restore scripts, and the Helm chart.
 
+To connect a **GitHub.com organization** instead of GitLab, deploy with Docker Compose and follow
+[GitHub installation](/docs/installation/github).
+
 ## Infrastructure
 
 A Plumber Platform install is made of four components:
@@ -79,9 +83,9 @@ are released together on one version tag, and both must always run the same one.
 
 <Aside variant="caution">
 **Run exactly one backend replica.** The backend is a single process that owns the job queues,
-the schedulers, the database migration on boot and the per-user GitLab token refresh. A second
+the schedulers, the database migration on boot and the per-user provider token refresh. A second
 backend replica is not supported: two processes would compete for the same jobs, both would try to
-migrate on boot, and both could refresh the same user's GitLab token at once. Neither
+migrate on boot, and both could refresh the same user's token at once. Neither
 `docker compose up --scale backend=2` nor `backend.replicaCount` above `1` in the Helm chart is a
 supported configuration. To handle a larger estate, give the one backend more CPU and memory and
 raise its database pool, and read [Update](/docs/installation/kubernetes#-update) for the
@@ -97,9 +101,10 @@ split the frontend and the API across two hostnames.
 
 ## 💻 Requirements
 
-**GitLab**
+**Git provider**, one of:
 
 - **GitLab 17.7 or later**
+- **GitHub.com**, through a GitHub App you create (see [GitHub installation](/docs/installation/github))
 
 **Runtime**, one of:
 
@@ -109,12 +114,15 @@ split the frontend and the API across two hostnames.
 **Network**
 
 - Users must be able to reach the Plumber server on TCP ports 80 and 443
-- The Plumber server must be able to reach your GitLab instance
+- The Plumber server must be able to reach your GitLab instance, or `api.github.com`, `github.com` and
+  `token.actions.githubusercontent.com` (where it reads the keys that verify a push from GitHub Actions)
 - The installation requires write access to the DNS zone of the domain you pick for Plumber
 
 ## GitLab OAuth application
 
-Every installation method needs a GitLab OAuth application: it is how users sign in to Plumber.
+On GitLab, every installation method needs a GitLab OAuth application: it is how users sign in
+to Plumber. On GitHub.com, the GitHub App plays that role: see
+[GitHub installation](/docs/installation/github).
 Create it before you start (the Docker Compose installer prints the link and the exact values),
 on the whole instance (`Admin > Applications`) or in the root group you want to connect
 (`Settings > Applications`):

@@ -38,6 +38,17 @@ To complete the Plumber onboarding process after installation, the user must hav
 - This role has no permissions and cannot perform any actions on the platform.
 - **Who is No one**: any user not in the previously described roles.
 
+### GitHub roles
+
+When Plumber is connected to a **GitHub.com organization**, roles come from the organization:
+
+- **Admin**: an owner of the organization.
+- **Maintainer**: a direct member of a team added in `Settings > Authorization` (members of a child team are not included).
+- **Member**: any other member of the organization.
+- **No one**: anyone else. A pending invitation, a billing manager, an outside collaborator or a stranger is refused at sign-in, and nothing is stored about them.
+
+A Member sees the repositories of the App installation that they can read on GitHub; an Admin sees every repository of the installation.
+
 ## 🔒 Permissions
 
 | Permission                            | Admin | Maintainer | Member | No one |
@@ -53,7 +64,7 @@ To complete the Plumber onboarding process after installation, the user must hav
 | Run new analysis                      | ✅    | ✅         | ❌     | ❌     |
 | Edit authorized maintainers settings  | ✅    | ❌         | ❌     | ❌     |
 
-🟡 : access filtered on projects and groups that users can read on GitLab
+🟡 : access filtered on the projects, groups or repositories that users can read on GitLab or GitHub
 
 ## 🔑 GitLab Token Configuration
 
