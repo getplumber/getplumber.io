@@ -293,6 +293,45 @@ plumber analyze --github-url github.com --project myorg/myrepo
 
 On GitHub Enterprise Server, pass the GHES host via `--github-url ghes.example.com`. Plumber auto-detects `github.com` from your git remote.
 
+## Nested references
+
+Before any control runs, Plumber resolves the complete closure of what a workflow pulls in: every composite action it calls (a remote `uses:`, a `./` composite that lives inside the scanned repository, or a local action under `.github/actions/*`) and every workflow called in another repository, recursively through as many levels as the chain has. A reference found anywhere in that closure is judged by the same controls, at the same severity, as a reference written directly in the workflow file.
+
+A finding on a nested reference ends its finding part with `pulled in via <outer> > ...` (the chain, outermost first). The terminal shows that chain in backticks. The finding's **location** stays the workflow step that pulls the chain in, while its **link** points at the line of the container that declares the nested reference.
+
+Exemptions bind to the reference itself: a trusted or allowlisted composite is exempt, but the third-party action it pulls in is still judged on its own merits. A `./` reference is always the scanned repository's own code, at any depth, so it is never treated as a third-party action no matter how many composites it passes through.
+
+The fix for a nested finding belongs on the **outermost** action: pin it or replace it, vendor the whole chain into `./.github/actions/`, or ask its maintainer to fix it. A reference inside a composite that already lives in the scanned repository keeps the direct fix instead, since that composite is your own code.
+
+Nested jobs pulled in from a called workflow run under the calling job's triggers, so trigger-gated controls judge them in the caller's context. The permission controls ([ISSUE-801](/docs/cli/issues/ISSUE-801), [ISSUE-803](/docs/cli/issues/ISSUE-803)) and the workflow-hygiene controls ([ISSUE-418](/docs/cli/issues/ISSUE-418), [ISSUE-422](/docs/cli/issues/ISSUE-422)) skip nested jobs entirely.
+
+Resolution has bounds: 100 containers per run, 1000 nested entries per job, and 1000 nested jobs per run. Past any of those limits the run is degraded, and the action controls that depend on resolution report an error rather than a pass. With the GitHub API disabled (`PLUMBER_DISABLE_GITHUB_API=1`), or a definition Plumber cannot reach, the unexpanded references are listed as a warning and the score is computed on direct references only. Two independent paths that both reach the same action are two findings, not one deduplicated finding.
+
+The controls below read nested references:
+
+| Issue | Finding |
+|-------|---------|
+| [ISSUE-701](/docs/cli/issues/ISSUE-701) | Third-party action is not pinned by commit SHA |
+| [ISSUE-702](/docs/cli/issues/ISSUE-702) | Action is hosted in an archived repository |
+| [ISSUE-703](/docs/cli/issues/ISSUE-703) | Action version carries a published security advisory |
+| [ISSUE-707](/docs/cli/issues/ISSUE-707) | Pinned SHA does not exist in upstream repository |
+| [ISSUE-708](/docs/cli/issues/ISSUE-708) | Action version comment does not match the resolved SHA |
+| [ISSUE-709](/docs/cli/issues/ISSUE-709) | Pinned action is stale relative to the latest release |
+| [ISSUE-402](/docs/cli/issues/ISSUE-402) | Action ref collides with both a tag and a branch upstream |
+| [ISSUE-711](/docs/cli/issues/ISSUE-711) | Action duplicates a runner built-in |
+| [ISSUE-713](/docs/cli/issues/ISSUE-713) | Action comes from an unauthorized source |
+| [ISSUE-714](/docs/cli/issues/ISSUE-714) | Action fetches and runs remote code from a mutable ref |
+| [ISSUE-715](/docs/cli/issues/ISSUE-715) | Action obfuscates a remote code fetch/exec |
+| [ISSUE-716](/docs/cli/issues/ISSUE-716) | Action source could not be verified |
+| [ISSUE-307](/docs/cli/issues/ISSUE-307) | Checkout persists credentials in .git/config |
+| [ISSUE-310](/docs/cli/issues/ISSUE-310) | Persisted checkout credentials packed into an uploaded artifact |
+| [ISSUE-804](/docs/cli/issues/ISSUE-804) | pull_request_target workflow checks out the PR head |
+| [ISSUE-421](/docs/cli/issues/ISSUE-421) | Publish workflow uses a static token instead of OIDC trusted publishing |
+| [ISSUE-306](/docs/cli/issues/ISSUE-306) | GitHub App token issued with revocation disabled |
+| [ISSUE-419](/docs/cli/issues/ISSUE-419) | Workflow uses a known misfeature pattern |
+
+The counting controls ([ISSUE-417](/docs/cli/issues/ISSUE-417), [ISSUE-904](/docs/cli/issues/ISSUE-904), [ISSUE-712](/docs/cli/issues/ISSUE-712)) see the actions inside a composite too.
+
 ## Examples
 
 ### Selective Control Execution
