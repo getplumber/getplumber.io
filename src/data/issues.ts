@@ -1365,7 +1365,7 @@ jobs:
         "A file under `.github/workflows` cannot be parsed as a workflow: an undefined YAML anchor, a duplicate key, a tab-indented block, a syntax error. GitHub shows such a file as an invalid workflow on the Actions tab and does not run it.",
       descriptionPoints: [
         "One finding per file, with the parser's own message (`unknown anchor 'checkout_with' referenced`, `mapping key runs-on already defined`).",
-        "The other workflow files of the repository are analyzed and scored as usual; only a file Plumber could not fetch withholds the score.",
+        "The other workflow files of the repository are analyzed and scored as usual; a file that could not be read or fetched is reported separately, as a collection problem, not as this finding.",
         "An empty file, or a file with no `jobs:` block, is not flagged, although GitHub may still refuse it.",
       ],
       impact:
@@ -1386,7 +1386,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.7
         with: *checkout_with`,
-      badExampleCaption: "GitHub refuses the file: 'unknown anchor checkout_with referenced'. Neither job ever runs.",
+      badExampleCaption: "Plumber reports \"unknown anchor 'checkout_with' referenced\"; GitHub refuses the file and neither job ever runs.",
       goodExample: `# .github/workflows/anchor-aliases.yml: ✅ the anchor is defined before it is used
 name: Anchor Aliases
 on: [push]
@@ -1406,6 +1406,7 @@ jobs:
       goodExampleCaption: "The same anchor, defined once in the file and reused by alias.",
       tips: [
         "A duplicate key (`on:` twice, or `runs-on:` twice in one job) is refused too, even though many YAML parsers silently keep the last value.",
+        "A YAML merge key (`<<: *anchor`) is not flagged: Plumber's parser resolves it, but GitHub Actions does not, so such a file can pass this control and still be refused by GitHub.",
         "With the control turned off, or absent from a full configuration without `extends`, an invalid file degrades the run instead: the report says it could not be parsed and the score is withheld until it is fixed or the control is enabled.",
       ],
       relatedCodes: ["ISSUE-422"],
