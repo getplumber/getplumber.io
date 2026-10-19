@@ -139,6 +139,7 @@ requiredGroups:
 | `CTRL-804` | [`pullRequestTargetMustNotCheckoutHead`](#pullrequesttargetmustnotcheckouthead) | on | 804 |
 | `CTRL-801` | [`workflowsMustDeclarePermissions`](#workflowsmustdeclarepermissions) | on | 801 |
 | `CTRL-803` | [`workflowMustNotGrantPermissionsWriteAll`](#workflowmustnotgrantpermissionswriteall) | on | 803 |
+| `CTRL-423` | [`workflowsMustBeValid`](#workflowsmustbevalid) | on | 423 |
 | `CTRL-417` | [`workflowMustIncludeRequiredActions`](#workflowmustincluderequiredactions) | off | 417 |
 
 <Aside variant="info">
@@ -1119,6 +1120,15 @@ Flags a workflow with no explicit `permissions:` block, which runs with the repo
 </div>
 
 Flags the `permissions: write-all` shortcut at the workflow or job level. Per-scope permissions are not audited. Raises [ISSUE-803](/docs/use-plumber/issues/ISSUE-803?p=github) (high). No field beyond `enabled`.
+
+### workflowsMustBeValid
+
+<div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-423" variant="info" />
+  <Badge text="On by default" variant="tip" />
+</div>
+
+Flags a file under `.github/workflows` that cannot be parsed as a workflow (an undefined YAML anchor, a duplicate key, a tab-indented block, a syntax error), which GitHub shows as an invalid workflow and never runs. The other workflow files are analyzed and scored as usual. Raises [ISSUE-423](/docs/use-plumber/issues/ISSUE-423?p=github) (low). No field beyond `enabled`. When the control is off, an invalid file degrades the run instead and the score is withheld.
 
 ### workflowMustIncludeRequiredActions
 
