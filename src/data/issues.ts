@@ -1364,9 +1364,9 @@ jobs:
       description:
         "A file under `.github/workflows` cannot be parsed as a workflow: an undefined YAML anchor, a duplicate key, a tab-indented block, a syntax error. GitHub shows such a file as an invalid workflow on the Actions tab and does not run it.",
       descriptionPoints: [
-        "One finding per file, with the parser's own message (`unknown anchor 'checkout_with' referenced`, `mapping key \"on\" already defined`).",
+        "One finding per file, with the parser's own message (`unknown anchor 'checkout_with' referenced`, `mapping key runs-on already defined`).",
         "The other workflow files of the repository are analyzed and scored as usual; only a file Plumber could not fetch withholds the score.",
-        "An empty file, or a file with no `jobs:` block, parses fine and is not flagged.",
+        "An empty file, or a file with no `jobs:` block, is not flagged, although GitHub may still refuse it.",
       ],
       impact:
         "Whatever that workflow was meant to do, a test suite, a security scan, a release gate, never happens, and nothing else in the repository notices: the file sits in `.github/workflows` looking like coverage it does not provide.",
@@ -1406,7 +1406,7 @@ jobs:
       goodExampleCaption: "The same anchor, defined once in the file and reused by alias.",
       tips: [
         "A duplicate key (`on:` twice, or `runs-on:` twice in one job) is refused too, even though many YAML parsers silently keep the last value.",
-        "With the control turned off, an invalid file degrades the run instead: the report says it could not be parsed and the score is withheld until it is fixed or the control is enabled.",
+        "With the control turned off, or absent from a full configuration without `extends`, an invalid file degrades the run instead: the report says it could not be parsed and the score is withheld until it is fixed or the control is enabled.",
       ],
       relatedCodes: ["ISSUE-422"],
     },

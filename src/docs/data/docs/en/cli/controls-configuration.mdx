@@ -1128,7 +1128,7 @@ Flags the `permissions: write-all` shortcut at the workflow or job level. Per-sc
   <Badge text="On by default" variant="tip" />
 </div>
 
-Flags a file under `.github/workflows` that cannot be parsed as a workflow (an undefined YAML anchor, a duplicate key, a tab-indented block, a syntax error), which GitHub shows as an invalid workflow and never runs. The other workflow files are analyzed and scored as usual. Raises [ISSUE-423](/docs/use-plumber/issues/ISSUE-423?p=github) (low). No field beyond `enabled`. When the control is off, an invalid file degrades the run instead and the score is withheld.
+Flags a file under `.github/workflows` that cannot be parsed as a workflow (an undefined YAML anchor, a duplicate key, a tab-indented block, a syntax error), which GitHub shows as an invalid workflow and never runs. The other workflow files are analyzed and scored as usual. Raises [ISSUE-423](/docs/use-plumber/issues/ISSUE-423?p=github) (low). No field beyond `enabled`. When the control is off, or absent from a [full configuration](/docs/cli/configuration#full-configuration) without `extends`, an invalid file degrades the run instead and the score is withheld; it is not reported as `skipped` like other controls.
 
 ### workflowMustIncludeRequiredActions
 
