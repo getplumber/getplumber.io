@@ -369,6 +369,14 @@ export const controlCatalog: Record<
         "Required status checks bind to the resolved workflow name, so a file rename can silently disable a compliance gate when the name is implicit.",
     },
   },
+  workflowsMustBeValid: {
+    github: {
+      controlDescription:
+        "Verifies that every file under `.github/workflows` can be parsed as a workflow (no undefined anchor, duplicate key or syntax error). On by default; the rest of the repository is scored whatever this finds.",
+      controlWhyItMatters:
+        "GitHub refuses a workflow file it cannot read and runs nothing from it, so a broken file is a test, a scan or a release gate that silently stopped existing.",
+    },
+  },
   actionsMustBePinnedByCommitSha: {
     github: {
       controlDescription:
@@ -1341,6 +1349,66 @@ jobs:
       ],
       status: "roadmap",
       relatedCodes: [],
+    },
+  },
+
+  "ISSUE-423": {
+    code: "ISSUE-423",
+    github: {
+      title: "Workflow file is not valid",
+      category: "Pipeline Composition",
+      severity: "low",
+      productScope: "cli",
+      controlName: "Workflow files must be valid",
+      controlConfigKey: "workflowsMustBeValid",
+      description:
+        "A file under `.github/workflows` cannot be parsed as a workflow: an undefined YAML anchor, a duplicate key, a tab-indented block, a syntax error. GitHub shows such a file as an invalid workflow on the Actions tab and does not run it.",
+      descriptionPoints: [
+        "One finding per file, with the parser's own message (`unknown anchor 'checkout_with' referenced`, `mapping key \"on\" already defined`).",
+        "The other workflow files of the repository are analyzed and scored as usual; only a file Plumber could not fetch withholds the score.",
+        "An empty file, or a file with no `jobs:` block, parses fine and is not flagged.",
+      ],
+      impact:
+        "Whatever that workflow was meant to do, a test suite, a security scan, a release gate, never happens, and nothing else in the repository notices: the file sits in `.github/workflows` looking like coverage it does not provide.",
+      remediation:
+        "Open the Actions tab and read the error GitHub reports for the file, then fix it. For an undefined anchor, define it in the same file before using it or inline the block: GitHub Actions resolves YAML anchors within one file only, and never merge keys. Confirm the workflow appears without the invalid-workflow banner once fixed.",
+      badExample: `# .github/workflows/anchor-aliases.yml: ❌ the alias has no anchor in this file
+name: Anchor Aliases
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.7
+        with: *checkout_with
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.7
+        with: *checkout_with`,
+      badExampleCaption: "GitHub refuses the file: 'unknown anchor checkout_with referenced'. Neither job ever runs.",
+      goodExample: `# .github/workflows/anchor-aliases.yml: ✅ the anchor is defined before it is used
+name: Anchor Aliases
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.7
+        with: &checkout_with
+          persist-credentials: false
+          fetch-depth: 0
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.7
+        with: *checkout_with`,
+      goodExampleCaption: "The same anchor, defined once in the file and reused by alias.",
+      tips: [
+        "A duplicate key (`on:` twice, or `runs-on:` twice in one job) is refused too, even though many YAML parsers silently keep the last value.",
+        "With the control turned off, an invalid file degrades the run instead: the report says it could not be parsed and the score is withheld until it is fixed or the control is enabled.",
+      ],
+      relatedCodes: ["ISSUE-422"],
     },
   },
 

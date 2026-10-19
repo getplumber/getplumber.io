@@ -597,6 +597,13 @@ github:
     workflowsMustDeclarePermissions:
       enabled: true
 
+    # A file under .github/workflows that cannot be parsed (an undefined
+    # anchor, a duplicate key, a syntax error): GitHub shows it as an
+    # invalid workflow and runs nothing from it. The rest of the
+    # repository is still scored.
+    workflowsMustBeValid:
+      enabled: true
+
     # `permissions: write-all` at workflow or job scope.
     workflowMustNotGrantPermissionsWriteAll:
       enabled: true
@@ -673,6 +680,7 @@ The complete, always-current catalogs and command reference:
 | Configuration warnings | Run `plumber config validate` to list unknown keys and invalid values |
 | No repo-level findings on a local scan | Without a token a local scan checks workflow contents only. Run `gh auth login` or set `GH_TOKEN` to add branch protection and action-metadata checks |
 | Need details on a finding | Run `plumber explain ISSUE-XXX` for its description and remediation; `plumber explain -a N` prints attack path `N` of the last run with every finding on it |
+| `ISSUE-423 Workflow file is not valid` | A file under `.github/workflows` that GitHub cannot read either (an undefined YAML anchor, a duplicate key, a syntax error). Fix the file as the Actions tab's error says; the rest of the repository is scored meanwhile |
 | SARIF upload fails with 403 | The job needs `security-events: write` permission. Add it under the workflow or job-level `permissions:` block |
 | Attestation verification fails | The runner cannot reach sigstore or `gh` CLI is not installed. Set `verify-attestation: "false"` to skip |
 | Score badge not published | `score-push` needs `permissions: id-token: write` in the workflow. The **public badge** only reflects your default branch; pull request runs can't publish (their OIDC token has no branch ref), so the badge updates when the PR merges. A local run never publishes. The push warns, never fails, when the token or permission is missing. See [Plumber Score](/docs/plumber-score) |

@@ -60,6 +60,7 @@ export const controlIds: Record<string, { id: string; name: string }> = {
   workflowMustNotContainObfuscation: { id: "CTRL-420", name: "Workflows must not contain obfuscation" },
   publishWorkflowsMustUseOidcTrustedPublishing: { id: "CTRL-421", name: "Publish workflows must use OIDC trusted publishing" },
   workflowsMustHaveExplicitName: { id: "CTRL-422", name: "Workflows must have an explicit name" },
+  workflowsMustBeValid: { id: "CTRL-423", name: "Workflow files must be valid" },
   branchMustBeProtected: { id: "CTRL-501", name: "Branch must be protected" },
   mergeRequestApprovalRulesMustRequireMinimumApprovals: { id: "CTRL-502", name: "MR approval rules must require a minimum number of approvals" },
   mergeRequestApprovalSettingsMustBeCompliant: { id: "CTRL-503", name: "MR approval settings must be compliant" },
