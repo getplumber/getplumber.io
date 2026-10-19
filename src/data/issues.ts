@@ -372,7 +372,7 @@ export const controlCatalog: Record<
   workflowsMustBeValid: {
     github: {
       controlDescription:
-        "Verifies that every file under `.github/workflows` can be parsed as a workflow (no undefined anchor, duplicate key or syntax error). On by default; the rest of the repository is scored whatever this finds.",
+        "Verifies that every file under `.github/workflows` can be parsed as a workflow (no undefined anchor, duplicate key or syntax error). On by default; the other workflow files are scored whatever this finds, and when every file is invalid the controls that read them show as not evaluated.",
       controlWhyItMatters:
         "GitHub refuses a workflow file it cannot read and runs nothing from it, so a broken file is a test, a scan or a release gate that silently stopped existing.",
     },
@@ -1364,9 +1364,10 @@ jobs:
       description:
         "A file under `.github/workflows` cannot be parsed as a workflow: an undefined YAML anchor, a duplicate key, a tab-indented block, a syntax error. GitHub shows such a file as an invalid workflow on the Actions tab and does not run it.",
       descriptionPoints: [
-        "One finding per file, with the parser's own message (`unknown anchor 'checkout_with' referenced`, `mapping key runs-on already defined`).",
-        "The other workflow files of the repository are analyzed and scored as usual; a file that could not be read or fetched is reported separately, as a collection problem, not as this finding.",
+        "One finding per file, with the parser's own message (`unknown anchor 'checkout_with' referenced`, `line 7: mapping key \"runs-on\" already defined`).",
+        "The other workflow files of the repository are analyzed and scored as usual. When every file is invalid there is nothing left to analyze: the controls that read the workflows show as not evaluated rather than passed, and only this finding and repository-level controls such as branch protection report a result. A file that could not be read or fetched is reported separately, as a collection problem, not as this finding.",
         "An empty file, or a file with no `jobs:` block, is not flagged, although GitHub may still refuse it.",
+        "Only a YAML parse failure is reported. A file that is well-formed YAML but that GitHub still rejects is not flagged: a job without `runs-on`, an unterminated `${{ }}` expression, a `needs:` naming a job that does not exist. The Actions tab, or a linter such as actionlint, reports those.",
       ],
       impact:
         "Whatever that workflow was meant to do, a test suite, a security scan, a release gate, never happens, and nothing else in the repository notices: the file sits in `.github/workflows` looking like coverage it does not provide.",
@@ -1405,9 +1406,9 @@ jobs:
         with: *checkout_with`,
       goodExampleCaption: "The same anchor, defined once in the file and reused by alias.",
       tips: [
-        "A duplicate key (`on:` twice, or `runs-on:` twice in one job) is refused too, even though many YAML parsers silently keep the last value.",
+        "A duplicate key (`on:` twice, or `runs-on:` twice in one job) is refused too, even though many YAML parsers silently keep the last value. Keys are compared ignoring case, as GitHub does: `on:` next to `ON:`, or `FOO` next to `foo` under `env:`, is a duplicate.",
         "A YAML merge key (`<<: *anchor`) is not flagged: Plumber's parser resolves it, but GitHub Actions does not, so such a file can pass this control and still be refused by GitHub.",
-        "With the control turned off, or absent from a full configuration without `extends`, an invalid file degrades the run instead: the report says it could not be parsed and the score is withheld until it is fixed or the control is enabled.",
+        "With the control turned off, or absent from a full configuration without `extends`, the control shows as skipped and an invalid file degrades the run instead: the report says it could not be parsed and the score is withheld until it is fixed or the control is enabled.",
       ],
       relatedCodes: ["ISSUE-422"],
     },
