@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Plumber Platform API
-  version: 2.9.0
+  version: 2.11.0
   description: |-
     The HTTP API of the Plumber Platform, served by your Plumber instance under `/api/v1`.
 
@@ -1500,7 +1500,7 @@ paths:
         Returns what one project's pipeline depends on, grouped by resource kind, each entry carrying how many other visible projects use the same resource. Requires Member; the project must be visible to the caller.
 
         - The bill comes from the project's latest default-branch run that pushed one, plus the CI/CD variables of its latest project snapshot; runs on other branches never contribute. A push without a bill of materials leaves the previous one in place, so `run_id` names the run the bill actually came from. An unboarded project answers empty arrays until its next default-branch push or snapshot refresh after re-onboarding.
-        - `by_kind` always carries every DependencyKind as a key: a project with no bill and no variables answers six empty arrays with `run_id` and `last_seen` both null. `run_id` describes the pushed half alone, `last_seen` whichever half refreshed most recently.
+        - `by_kind` always carries every DependencyKind as a key: a project with no bill and no variables answers seven empty arrays with `run_id` and `last_seen` both null. `run_id` describes the pushed half alone, `last_seen` whichever half refreshed most recently.
         - Every `key`, `version` and `attrs` member is the CLI's own value, served unchanged. A variable entry carries the metadata read from the provider (masked, protected, hidden, environment, type, origin); the value is never stored or served.
         - `consumer_count` counts visible projects only. An unknown id, a project of a different org and an invisible project all answer the same 404.
         - Not paginated: the bill is bounded at ingest and served whole.
@@ -1921,7 +1921,7 @@ paths:
       description: |-
         For each day in the range, the count of matching issues that were `Detected` or `In progress` at the end of that day in the org calendar, reconstructed exactly from the issue history. Requires Member.
 
-        - Accepts the same filters as `listIssues` except `status` (the series itself is the status dimension): `control_type`, `issue_type`, `severity`, `project`, `portfolio`, `policy`, `owner`, `q`, `fixable` and `provider_deleted`, with the same semantics.
+        - Accepts the same filters as `listIssues` except `status` (the series itself is the status dimension): `control_type`, `issue_type`, `severity`, `project`, `portfolio`, `policy`, `owner`, `q`, `fixable` and `provider_deleted`, with the same semantics, except `fixable`: see its own parameter description below for the one difference.
         - Filters evaluate against each issue's current attributes, not its attributes on that day: `owner` and `severity` narrow every day of the series to issues currently owned by that user or currently at that severity.
         - `from`/`to` are `YYYY-MM-DD` calendar dates in the org calendar, both optional: `to` defaults to today, `from` to `to` minus 89 days. The range must not exceed 400 days and `from` must not be after `to` (400 otherwise).
         - `items` has one entry per day in the range, ascending; a day with zero open issues still gets an entry with `open_count` 0.
@@ -1973,7 +1973,7 @@ paths:
           in: query
           required: false
           schema: { type: boolean }
-          description: 'true narrows to issues currently eligible for triggerFix (a fix exists for the issue''s control and its status is Detected or In progress), evaluated against each issue''s current state. Only true/false are accepted; any other value answers 400.'
+          description: 'true narrows the candidate set to issues whose control and code are fixable (direct fixers, or MR fixers on an onboarded project), WITHOUT reading the issue''s current status: each day''s open count is reconstructed from the status history at that day''s end, so a fixable issue that was open on a given day still counts on that day even if it has since been fixed or dismissed. Only true/false are accepted; any other value answers 400.'
         - { name: provider_deleted, in: query, required: false, schema: { type: boolean, default: false }, description: 'Omitted or false hides the issues of projects deleted on the provider from every daily point, the same population the list and the summary show; true includes them, as on listIssues.' }
       responses:
         '200':
@@ -2248,7 +2248,7 @@ paths:
       operationId: listDependencies
       summary: The pipeline resources of one kind, with who uses them (Member)
       description: |-
-        One page of the resources the org's pipelines depend on, of one kind at a time: components, templates (project, remote or provider-template includes), container images, service images, runner tags or CI/CD variables, with who uses each and at which version. Requires Member.
+        One page of the resources the org's pipelines depend on, of one kind at a time: components, templates (project, remote or provider-template includes), container images, service images, runner tags, CI/CD variables or pipeline capabilities (such as secret detection), with who uses each and at which version or tool. Requires Member.
 
         - Every row, count and version tally is cut to the caller's visible projects: a resource is listed only when at least one visible project uses it, and no count reveals an invisible project.
         - Keys, versions and flags are the CLI's own values, served unchanged. `outdated_count` counts the uses the CLI reported as not up to date; a bill without that flag contributes nothing. Variables come from the project snapshot and their value is never stored or served, only the provider's metadata.
@@ -2296,6 +2296,7 @@ paths:
         - `key`, every `version` and every `attrs` member are the CLI's own values, served unchanged. `outdated` on a neighbourhood edge is true only when the CLI reported the use as not up to date. A variable edge carries provider metadata only (masked, protected, environment, origin), never the value.
         - A consuming project is one distinct visible project (`consumer_count`); a consumer edge is one use by one project in one job (`edge_count`, `consumer_edges_total`, one entry of `consumers[]`), so `consumer_edges_total` can exceed `consumer_count`.
         - `consumers` is offset-paginated with `page` and `per_page`, ordered by project path then project id; `consumer_edges_total` counts every visible consumer edge across every page. It is not the standard list envelope.
+        - `version` optionally narrows `consumers` to the edges whose own `version` equals it exactly (case-sensitive, no substring match); for the capability kind the version is the tool, so this is how a caller lists the projects providing one capability with a specific tool (for example `gitleaks` for secret detection). `consumer_edges_total` reflects the filter; the resource's own `consumer_count`, `edge_count` and `version_spread` do not, since they describe the resource rather than this one page. An unknown version answers an empty page with `consumer_edges_total: 0`, never a 404.
         - `neighbourhood` is capped at 200 project nodes; beyond that it carries `truncated: true`. The resource itself is the one further node, and the edges are those of the nodes served.
         - A project's edges come from its latest default-branch push carrying a bill of materials; a push without one leaves them unchanged, so a project can still be listed as a consumer of something it has since removed. `run_id` on each consumer names the run its edge came from. Runs on other branches never contribute.
         - An unknown id, a resource of a different org, and a resource no visible project uses all answer the same 404.
@@ -2305,13 +2306,14 @@ paths:
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
         - { name: page, in: query, required: false, schema: { type: integer, default: 1 }, description: 'Page of the consumers half. Minimum 1; values below 1 are clamped up to 1.' }
         - { name: per_page, in: query, required: false, schema: { type: integer, default: 20 }, description: 'Consumers per page. Capped at 100; values above 100 are clamped down; zero, negative or malformed values fall back to the default (20).' }
+        - { name: version, in: query, required: false, schema: { type: string }, description: 'Narrows the consumers page to an exact match on this version; for the capability kind the version is the tool (for example gitleaks for secret detection). Omitted means no filter. 1 to 256 bytes; longer values answer 400. consumer_edges_total reflects the filter; the resource''s own counts and version spread do not. An unknown value is an empty page with consumer_edges_total 0, never a 404.' }
       responses:
         '200':
           description: The resource with its visible consumers and its neighbourhood.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/DependencyResourceDetail' }
-        '400': { description: 'Malformed resource id (not a valid uuid), or an undocumented query parameter was supplied (named in the body).' }
+        '400': { description: 'Malformed resource id (not a valid uuid), version longer than 256 bytes, or an undocumented query parameter was supplied (named in the body).' }
         '401': { description: No live session. }
         '403':
           description: 'The caller is below Member, or the provider refused the caller''s token; the body says to log in again, or that your account may have been blocked.'
@@ -2605,6 +2607,80 @@ paths:
           description: 'Internal failure; the body is the fixed string "org settings request failed" with no further detail.'
         '503':
           description: 'The platform could not verify the session or determine the caller''s role (an infrastructure failure, not a refusal); retry later. During a provider outage a read may still be served from a bounded role cache (default 15 minutes past the cache TTL), a write never is.'
+  /settings/capabilities:
+    get:
+      operationId: getCapabilities
+      summary: The organization's capabilities (Member)
+      description: |-
+        The capabilities the organization declares: a name for something your pipelines do (`secret_detection`, `sast`, any name you choose) and the recognizers that reveal it, per tool. Served to the CLI with every project context, so the dependencies graph shows which jobs do what and with which tool. The list is the whole set the CLI applies: a capability removed from it is no longer recognized in any project from its next analysis. An organization that never customized the list reads the default list, the CLI's built-in declaration (`secret_detection` with its tools), with `customized` false; once it is replaced, `customized` is true. Requires Member.
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: The list.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CapabilityList' }
+        '401': { description: No live session. }
+        '403':
+          description: 'The caller is below Member, or the provider refused the caller''s token (the body says to log in again).'
+        '500':
+          description: 'Internal failure; the body is the fixed string "capabilities request failed" with no further detail.'
+        '503':
+          description: 'The platform could not verify the session or determine the caller''s role (an infrastructure failure, not a refusal); retry later. During a provider outage a read may still be served from a bounded role cache (default 15 minutes past the cache TTL), a write never is.'
+    put:
+      operationId: replaceCapabilities
+      summary: Replace the organization's capabilities (OrgAdmin)
+      description: |-
+        Replaces the whole list and returns the stored value with `customized` true; an empty list clears it (no capability is recognized until the list is edited or the default restored). Requires OrgAdmin. The change is recorded in the configuration audit log as `capabilities` / `updated`.
+
+        - `capabilities` is required; an absent or null member, an unknown field at any depth (so a misspelled pattern list is never silently ignored), or a malformed body is rejected (400). `customized` is accepted and ignored if present: it is read-only, so the body returned by getCapabilities can be sent back here unchanged.
+        - Refused with 422 and one of nine fixed sentences when a bound is exceeded: "at most 50 capabilities"; "a capability name must be 1 to 64 bytes of lowercase letters, digits, underscore or hyphen"; "capability names must be unique"; "at most 32 recognizers per capability"; "a recognizer must carry at least one pattern"; "tool must be 1 to 64 bytes without control characters"; "at most 64 patterns per field"; "a pattern must be 1 to 256 bytes without control characters"; "a pattern must be a valid glob". Nothing is stored.
+        - A pattern is checked for its syntax only; whether it matches anything shows in the dependencies graph after the next analysis.
+        - A pattern list left out is served back as an empty array; a `tool` left out is served back absent.
+        - A capability declared with an empty `recognizers` list is accepted and served back as given: it is never recognized. To stop recognizing a capability, remove it from the list.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CapabilityListInput' }
+      responses:
+        '200':
+          description: The stored list.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CapabilityList' }
+        '400': { description: 'Malformed request body, an unknown field at any depth, or `capabilities` absent or null.' }
+        '401': { description: No live session. }
+        '403':
+          description: 'The caller is below OrgAdmin, or the provider refused the caller''s token (the body says to log in again).'
+        '500':
+          description: 'Internal failure; the body is the fixed string "capabilities request failed" with no further detail.'
+        '503':
+          description: 'The platform could not verify the session or determine the caller''s role (an infrastructure failure, not a refusal); retry later. During a provider outage a read may still be served from a bounded role cache (default 15 minutes past the cache TTL), a write never is.'
+        '422': { description: 'A bound is exceeded; the body is one of the nine fixed sentences listed above. Nothing is stored.' }
+    delete:
+      operationId: resetCapabilities
+      summary: Restore the default capabilities (OrgAdmin)
+      description: |-
+        Restores the default list: the CLI's built-in declaration; the organization's own list is discarded. Returns the default list with `customized` false. Takes no body. Requires OrgAdmin. The change is recorded in the configuration audit log as `capabilities` / `deleted`.
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: The default list.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CapabilityList' }
+        '401': { description: No live session. }
+        '403':
+          description: 'The caller is below OrgAdmin, or the provider refused the caller''s token (the body says to log in again).'
+        '500':
+          description: 'Internal failure; the body is the fixed string "capabilities request failed" with no further detail.'
+        '503':
+          description: 'The platform could not verify the session or determine the caller''s role (an infrastructure failure, not a refusal); retry later. A write is never served from the role cache.'
   /settings/licence:
     get:
       operationId: getLicenceStatus
@@ -4802,7 +4878,7 @@ components:
           x-go-type: json.RawMessage
     ProjectContext:
       type: object
-      required: [schema_version, project, policies, dismissed_issues, snapshot]
+      required: [schema_version, project, policies, dismissed_issues, capabilities, snapshot]
       properties:
         schema_version: { type: integer }
         project: { type: string, description: 'Resolved project path (matches the {project_path} route parameter).' }
@@ -4821,6 +4897,10 @@ components:
 
             A dismissal made after this context was fetched takes effect at the CLI's next run. Identity is branch-blind: one dismissal suppresses the same finding on every branch of this project; there is no per-branch dismissal scoping.
           items: { $ref: '#/components/schemas/DismissedIssue' }
+        capabilities:
+          type: array
+          items: { $ref: '#/components/schemas/Capability' }
+          description: 'The organization''s effective capabilities (getCapabilities): the organization''s own list when it customized it, the default list (the CLI''s built-in declaration) when it never did, and for a project the platform does not know yet. The CLI applies this list as is, without adding its built-in capabilities. Always present: `[]` only when the organization cleared the list.'
         snapshot:
           type: object
           properties:
@@ -4919,7 +4999,7 @@ components:
           description: 'The dismissed issue''s identity hash, computed under the shared identity recipe at recipe_version. Together with recipe_version this is the CLI''s match key; control_type is not part of the match, it only lets the CLI pre-filter cheaply.'
         recipe_version:
           type: integer
-          description: 'The identity-recipe version identity_hash was computed under (currently 6), served verbatim from the stored identity. Versions never mix: a CLI whose own recipe version differs from this value must skip this entry rather than match across versions.'
+          description: 'The identity-recipe version identity_hash was computed under (currently 8), served verbatim from the stored identity. Versions never mix: a CLI whose own recipe version differs from this value must skip this entry rather than match across versions.'
         control_type: { type: string, description: 'Rides along so the CLI can cheaply pre-filter its own findings by control before hashing each one against every served dismissed identity. Not itself part of the match key.' }
     ResolveConfigRequest:
       type: object
@@ -5271,6 +5351,39 @@ components:
         timezone:
           type: string
           description: 'The IANA time zone name (e.g. "UTC", "America/New_York") the scheduled report''s cron is interpreted in; see updateReportSchedule for how it composes with a schedule''s cron and the catch-up policy. Validated at write time (400, naming the field); "" and "Local" are rejected. "UTC" by default for every org that has never set it.'
+    Capability:
+      type: object
+      description: 'One capability the organization declares: a name for something a job does, and the recognizers that reveal it.'
+      required: [name, recognizers]
+      properties:
+        name: { type: string, description: 'The capability''s name, 1 to 64 bytes of lowercase letters, digits, underscore or hyphen, unique within the list. Shown as the resource in the dependencies graph. A name the CLI also ships (`secret_detection`) replaces the built-in declaration whole.' }
+        recognizers: { type: array, items: { $ref: '#/components/schemas/CapabilityRecognizer' }, description: 'At most 32. Tried in order: the first that matches a job names the tool. An empty list is allowed: a declared name with no recognizer disables the CLI''s built-in capability of that name, since a declaration replaces the built-in whole.' }
+    CapabilityRecognizer:
+      type: object
+      description: 'One way to recognize a capability''s tool on a job: lists of glob patterns, each optional, at least one pattern across them. A pattern is a glob (`*` matches any run of characters including `/`, `?` one character, `[...]` a class), case-sensitive, matched against the whole subject: `*gitleaks*` matches any subject containing gitleaks, `gitleaks` alone only that exact text. Each list holds at most 64 patterns, each 1 to 256 bytes without control characters.'
+      properties:
+        tool: { type: string, description: 'The tool name shown in the dependencies graph as the version of each match, 1 to 64 bytes without control characters. Optional: without it, the pattern that matched is shown. An explicit empty string is treated the same as leaving it out.' }
+        images: { type: array, items: { type: string }, description: 'Globs on a job''s image as registry/name (tag and digest removed, Docker Hub short names expanded, for example `docker.io/zricethezav/gitleaks`), and on the image of a `docker run`, `podman run` or `nerdctl run` script line.' }
+        commands: { type: array, items: { type: string }, description: 'Globs on each whole line of a job''s before_script, script and after_script (comments and surrounding whitespace removed), and on the lines of a repository shell script such a line runs.' }
+        gitlab_report_types: { type: array, items: { type: string }, description: 'GitLab only. Globs on each key of the job''s artifacts:reports (for example `secret_detection`).' }
+        gitlab_include_template: { type: array, items: { type: string }, description: 'GitLab only. Globs on the template path, as written, of the include:template entry that defines the job (for example `Jobs/Secret-Detection*`).' }
+        gitlab_include_component: { type: array, items: { type: string }, description: 'GitLab only. Globs on the component source of the include:component entry that defines the job, as host/path/name without its version (for example `*/secret-detection/*`).' }
+        gitlab_include_project: { type: array, items: { type: string }, description: 'GitLab only. Globs on the project path of the `include: project:` entry that defines the job, as written (`group/project`), without the ref and the file.' }
+    CapabilityList:
+      type: object
+      description: 'The organization''s capabilities (getCapabilities/replaceCapabilities/resetCapabilities).'
+      required: [capabilities, customized]
+      properties:
+        capabilities: { type: array, items: { $ref: '#/components/schemas/Capability' }, description: 'At most 50.' }
+        customized: { type: boolean, description: 'False when the organization never customized the list and the CLI''s built-in declaration is in force.' }
+    CapabilityListInput:
+      type: object
+      description: 'Body of replaceCapabilities: the whole list to store.'
+      required: [capabilities]
+      properties:
+        capabilities: { type: array, items: { $ref: '#/components/schemas/Capability' }, description: 'At most 50.' }
+        customized: { type: boolean, description: 'Read-only. Accepted and ignored on this operation, so a CapabilityList read from getCapabilities can be sent back here as is.' }
+
     OnboardingStatus:
       type: object
       description: 'Body of getOnboardingStatus: the stored onboarding "done" flag plus eight signals derived live from existing data; see that operation for what each signal means.'
@@ -7843,8 +7956,8 @@ components:
 
     AuditConfigKind:
       type: string
-      description: 'The entity_kind vocabulary of listAuditConfig: which class of config surface a row describes. project_badge is PUT /projects/{id}/badge, licence is PUT /settings/licence, ai is PUT /settings/ai, official_component is PUT /projects/{id}/official-component.'
-      enum: [policy, portfolio, assignment, instance, token, org_settings, smtp, schedule, authorization_group, catalog_repo, catalog_label, project_badge, onboarding_status, licence, ai, official_component]
+      description: 'The entity_kind vocabulary of listAuditConfig: which class of config surface a row describes. project_badge is PUT /projects/{id}/badge, licence is PUT /settings/licence, ai is PUT /settings/ai, official_component is PUT /projects/{id}/official-component, capabilities is PUT and DELETE /settings/capabilities.'
+      enum: [policy, portfolio, assignment, instance, token, org_settings, smtp, schedule, authorization_group, catalog_repo, catalog_label, project_badge, onboarding_status, licence, ai, official_component, capabilities]
     AuditConfigAction:
       type: string
       description: 'The action vocabulary of listAuditConfig: what happened to the entity. rotated is used only for token; every other kind uses created/updated/deleted.'
@@ -7980,9 +8093,9 @@ components:
           description: 'False activates the schedule (requires a valid cron and at least one recipient); true stops it from firing while keeping cron and recipients stored. Required on every write: omitting it returns 400 naming the field.'
     DependencyKind:
       type: string
-      enum: [component, template, image, service, runner_tag, variable]
+      enum: [component, template, image, service, runner_tag, variable, capability]
       description: |-
-        The pipeline resource kinds the dependencies graph knows; a resource is exactly one of these six.
+        The pipeline resource kinds the dependencies graph knows; a resource is exactly one of these seven.
 
         - `component`: a CI component include, keyed `<source project path>/<component name>`.
         - `template`: a project include (keyed `<project path>:<location>`), a remote include (keyed by its URL) or a GitLab-shipped template (keyed `template:<name>`). A local include is never a resource: it is the project's own file.
@@ -7990,6 +8103,7 @@ components:
         - `service`: the same shape as `image`, for an image attached to a job as a service.
         - `runner_tag`: a job's own `tags:` entry, keyed by the tag string.
         - `variable`: a CI/CD variable name, read from the project on the provider rather than from the push. Its value is never stored and never served.
+        - `capability`: something the pipeline does, as the CLI recognized it (`secret_detection`), keyed by the capability. The tool that provides it is carried on each usage edge as the version, the evidence the match rested on in the edge attributes.
     DependencyVersionSpread:
       type: object
       description: 'One version of a resource with the number of visible projects using that exact version.'
@@ -7997,7 +8111,7 @@ components:
       properties:
         version:
           type: string
-          description: 'The version as the CLI reported it: an include''s `version`, an image''s tag or digest. Empty for a kind that carries no version (runner_tag, variable) and for a use the CLI reported without one.'
+          description: 'The version as the CLI reported it: an include''s `version`, an image''s tag or digest, or the tool for a capability. Empty for a kind that carries no version (runner_tag, variable) and for a use the CLI reported without one.'
         consumer_count:
           type: integer
           description: 'Distinct projects visible to the caller using the resource at this exact version.'
@@ -8048,12 +8162,12 @@ components:
         project_name: { type: string, description: 'The consuming project''s display name as the provider reports it; empty when the sync has never named it.' }
         job:
           type: string
-          description: 'The job this use belongs to, for the per-job kinds (image, service, runner_tag); empty for an include and for a variable, which are pipeline-level.'
-        version: { type: string, description: 'The version of this particular use: the include''s `version`, the image''s tag or digest. Empty for runner_tag and variable, and for a use the CLI reported without one.' }
+          description: 'The job this use belongs to, for the per-job kinds (image, service, runner_tag, capability); empty for an include and for a variable, which are pipeline-level.'
+        version: { type: string, description: 'The version of this particular use: the include''s `version`, the image''s tag or digest, or the tool for a capability. Empty for runner_tag and variable, and for a use the CLI reported without one.' }
         attrs:
           type: object
           additionalProperties: true
-          description: 'The flags reported for this use, as pushed: `latest_version`, `up_to_date`, `from_catalog`, `nested`, `overridden`, `overridden_jobs`, `authorized`, `forbidden_tag` on a pushed edge, reported by the CLI; and `masked`, `protected`, `hidden`, `environment`, `type`, `origin` on a variable edge, read from the provider. Every boolean is three-state (true, false, absent): a flag the bill did not carry is absent. A variable''s value is never included.'
+          description: 'The flags reported for this use, as pushed: `latest_version`, `up_to_date`, `from_catalog`, `nested`, `overridden`, `overridden_jobs`, `via`, `authorized`, `forbidden_tag` on a pushed edge, reported by the CLI; and `masked`, `protected`, `hidden`, `environment`, `type`, `origin` on a variable edge, read from the provider; and `evidence` on a capability edge, what the CLI''s recognition rested on (`images`, `commands`, `wrapper_script`, `gitlab_report_types`, `gitlab_include_template`, `gitlab_include_component` or `gitlab_include_project`). Every boolean is three-state (true, false, absent): a flag the bill did not carry is absent. A variable''s value is never included.'
         first_seen:
           type: string
           format: date-time
@@ -8087,11 +8201,11 @@ components:
       properties:
         from: { type: string, description: 'The source node id, always the resource node in this version of the graph.' }
         to: { type: string, description: 'The target node id, a project node.' }
-        version: { type: string, description: 'The version this project uses, as the CLI reported it. Empty for a kind that carries none; when one project uses several versions the edge carries the one of its most recent use.' }
+        version: { type: string, description: 'The version this project uses, as the CLI reported it, or the tool for a capability. Empty for a kind that carries none; when one project uses several versions the edge carries the one of its most recent use.' }
         outdated:
           type: boolean
           nullable: true
-          description: 'The CLI''s `up_to_date` flag, inverted: true when the bill said this use is not up to date, false when the bill carried no such flag (an image, service, runner_tag or variable edge never carries one). Never null.'
+          description: 'The CLI''s `up_to_date` flag, inverted: true when the bill said this use is not up to date, false when the bill carried no such flag (an image, service, runner_tag, variable or capability edge never carries one). Never null.'
     DependencyNeighbourhood:
       type: object
       description: 'The graph a resource page draws: the resource plus one node per visible consuming project, and the edges between them. Capped at 200 project nodes; beyond that `truncated` is true. The cap counts consuming projects, not consumer edges.'
@@ -8121,7 +8235,7 @@ components:
             attrs:
               type: object
               additionalProperties: true
-              description: 'The attributes of the resource itself rather than of one use, as the CLI reported them: `from_catalog`, `archived`, `has_cve`, `advisories` for a component or a template. An attribute no bill reported is absent; empty for image, service, runner_tag and variable. They come from the most recent bill that named the resource, whichever project pushed it and whichever version it uses: not merged across projects and not per version. Read `has_cve` as "the latest bill reported this", not as a standing verdict about the resource.'
+              description: 'The attributes of the resource itself rather than of one use, as the CLI reported them: `from_catalog`, `archived`, `has_cve`, `advisories` for a component or a template. An attribute no bill reported is absent; empty for image, service, runner_tag, variable and capability. They come from the most recent bill that named the resource, whichever project pushed it and whichever version it uses: not merged across projects and not per version. Read `has_cve` as "the latest bill reported this", not as a standing verdict about the resource.'
             consumers:
               type: array
               items: { $ref: '#/components/schemas/DependencyConsumer' }
@@ -8142,12 +8256,12 @@ components:
           format: uuid
           description: 'The resource this project depends on, the path parameter of getDependency.'
         key: { type: string, description: 'The resource key, as the CLI pushed it.' }
-        job: { type: string, description: 'The job this use belongs to (image, service, runner_tag); empty for an include and for a variable, which are pipeline-level.' }
-        version: { type: string, description: 'The version of this use: the include''s `version`, the image''s tag or digest. Empty for runner_tag and variable, and for a use the CLI reported without one.' }
+        job: { type: string, description: 'The job this use belongs to (image, service, runner_tag, capability); empty for an include and for a variable, which are pipeline-level.' }
+        version: { type: string, description: 'The version of this use: the include''s `version`, the image''s tag or digest, or the tool for a capability. Empty for runner_tag and variable, and for a use the CLI reported without one.' }
         attrs:
           type: object
           additionalProperties: true
-          description: 'The flags reported for this use, as pushed: `latest_version`, `up_to_date`, `from_catalog`, `nested`, `overridden`, `overridden_jobs`, `authorized`, `forbidden_tag` on a pushed edge, reported by the CLI; and `masked`, `protected`, `hidden`, `environment`, `type`, `origin` on a variable edge, read from the provider. Every boolean is three-state, so a flag the bill did not carry is absent rather than false. A variable''s value is never included.'
+          description: 'The flags reported for this use, as pushed: `latest_version`, `up_to_date`, `from_catalog`, `nested`, `overridden`, `overridden_jobs`, `via`, `authorized`, `forbidden_tag` on a pushed edge, reported by the CLI; and `masked`, `protected`, `hidden`, `environment`, `type`, `origin` on a variable edge, read from the provider; and `evidence` on a capability edge, what the CLI''s recognition rested on (`images`, `commands`, `wrapper_script`, `gitlab_report_types`, `gitlab_include_template`, `gitlab_include_component` or `gitlab_include_project`). Every boolean is three-state, so a flag the bill did not carry is absent rather than false. A variable''s value is never included.'
         consumer_count:
           type: integer
           description: 'Distinct visible projects using the same resource, this one included; limited to the caller''s visibility.'
@@ -8170,7 +8284,7 @@ components:
           description: 'When these entries were last refreshed: the most recent moment either the pushed bill or the variable refresh named one of them, whichever is later. Null only when the project has no entry at all.'
         by_kind:
           type: object
-          description: 'The project''s entries grouped by resource kind. Every DependencyKind value is always a key; a kind this project has no entry of carries an empty array, never a missing key. A project that has never pushed a bill of materials and has no variables answers six empty arrays.'
+          description: 'The project''s entries grouped by resource kind. Every DependencyKind value is always a key; a kind this project has no entry of carries an empty array, never a missing key. A project that has never pushed a bill of materials and has no variables answers seven empty arrays.'
           additionalProperties:
             type: array
             items: { $ref: '#/components/schemas/ProjectDependencyEntry' }
@@ -8202,6 +8316,10 @@ components:
           type: array
           description: 'The jobs that carry services or runner tags. At most 500.'
           items: { $ref: '#/components/schemas/PushBOMJob' }
+        capabilities:
+          type: array
+          description: 'The capabilities the CLI recognized on the pipeline''s jobs. At most 500.'
+          items: { $ref: '#/components/schemas/PushBOMCapability' }
     PushBOMInclude:
       type: object
       description: 'One include of the pipeline, as the CLI reports it. A `component` include becomes a component resource keyed `<project>/<component_name>`; a `project`, `remote` or `template` include becomes a template resource; a `local` include is never a resource (it is the project''s own file). A GitHub include type (`action`, `reusableWorkflow`) is stored if pushed but not surfaced.'
@@ -8226,6 +8344,11 @@ components:
           type: array
           items: { type: string }
           description: 'The advisory identifiers the CLI reported. At most 50.'
+        via:
+          type: array
+          items: { type: string }
+          maxItems: 8
+          description: 'The chain of nested actions the include was reached through, outermost first; the CLI keeps the outermost eight. Empty on a direct include.'
     PushBOMOverriddenJob:
       type: object
       description: 'One job an include defines that the project overrides, with the keys overridden.'
@@ -8272,4 +8395,13 @@ components:
         name: { type: string, description: 'The repository half of the resolved reference.' }
         tag: { type: string, description: 'The tag, when the reference carries one.' }
         digest: { type: string, description: 'The digest, when the reference carries one.' }
+    PushBOMCapability:
+      type: object
+      description: 'One capability the CLI recognized on one job: what the job does, which tool, and the evidence the match rested on. Becomes a capability resource edge; the tool is the edge''s version.'
+      required: [kind, job, tool, evidence]
+      properties:
+        kind: { type: string, description: 'The capability''s declared name, 1 to 64 bytes of lowercase letters, digits, underscore or hyphen; the platform stores names and never looks them up.' }
+        job: { type: string, description: 'The job this capability was recognized on.' }
+        tool: { type: string, description: 'The tool that provides the capability, 1 to 256 bytes, carried as the edge''s version.' }
+        evidence: { type: string, enum: [images, commands, wrapper_script, gitlab_report_types, gitlab_include_template, gitlab_include_component, gitlab_include_project], description: 'What the match rested on.' }
 
