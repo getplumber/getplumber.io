@@ -924,6 +924,8 @@ Blocks under `github.controls`.
 
 Flags a third-party action referenced by a tag or branch instead of a full commit SHA. Raises [ISSUE-701](/docs/use-plumber/issues/ISSUE-701?p=github) (high).
 
+A tag backed by an immutable GitHub release counts as pinned: such a tag can never be moved or deleted. Only the exact released tag qualifies (`@v4.2.1`, not the floating `@v4`). Plumber reads the release through the GitHub API, so the exemption needs a token (`gh auth login`, `GH_TOKEN` or `PLUMBER_METADATA_TOKEN`). Without one, or when the release cannot be read, the reference is reported.
+
 | Field | Default | Description |
 |---|---|---|
 | `enabled` | `true` | Turns the control on. |
