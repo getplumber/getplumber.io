@@ -380,7 +380,7 @@ export const controlCatalog: Record<
   actionsMustBePinnedByCommitSha: {
     github: {
       controlDescription:
-        "Verifies step-level `uses:` references and job-level reusable-workflow calls are pinned by a 40-character commit SHA, not a mutable tag or branch. Local `./…` actions and `trustedOwners` (default: `actions`, `github`) are exempt.",
+        "Verifies step-level `uses:` references and job-level reusable-workflow calls are pinned by a 40-character commit SHA, not a mutable tag or branch. Local `./…` actions and `trustedOwners` (default: `actions`, `github`) are exempt. A tag backed by an immutable GitHub release counts as pinned.",
       controlWhyItMatters:
         "Defends against the March 2025 tj-actions / reviewdog supply chain compromise pattern (CVE-2025-30066), where attackers retag actions to point at malicious code that then runs with the caller's secrets.",
     },
@@ -2610,11 +2610,11 @@ jobs:
       controlName: "Third-party actions must be pinned by commit SHA",
       controlConfigKey: "actionsMustBePinnedByCommitSha",
       description:
-        "A workflow step (or a job-level reusable-workflow call) references a third-party action by a mutable ref (tag like `v4` or branch like `main`) instead of a 40-character commit SHA.",
+        "A workflow step (or a job-level reusable-workflow call) references a third-party action by a mutable ref (tag like `v4` or branch like `main`) instead of a 40-character commit SHA. A tag backed by an immutable release is accepted: it can never be moved or deleted.",
       impact:
         "Tag and branch refs are mutable. The March 2025 `tj-actions/changed-files` compromise (CVE-2025-30066) retagged a stable version to point at malicious code that exfiltrated repo secrets from every CI run consuming the action, and there were thousands of them.",
       remediation:
-        "Replace each `uses: owner/repo@vX` with `uses: owner/repo@<40-char-sha>  # vX.Y.Z`. Use Dependabot or Renovate to bump the SHA when upstream releases.",
+        "Replace each `uses: owner/repo@vX` with `uses: owner/repo@<40-char-sha>  # vX.Y.Z`, or, when the action publishes immutable releases, reference the exact released tag (`uses: owner/repo@v4.2.1`). Use Dependabot or Renovate to bump the SHA when upstream releases.",
       badExample: `# .github/workflows/test.yml: ❌ Mutable refs everywhere
 jobs:
   test:
@@ -2634,6 +2634,7 @@ jobs:
       - uses: some-third-party/action@a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4 # v2.1.0`,
       goodExampleCaption: "Every `uses:` carries a full SHA; the trailing comment names the release.",
       tips: [
+        "A tag backed by an [immutable release](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/immutable-releases) counts as pinned, for steps and reusable workflows. Only the exact released tag qualifies: `docker/build-push-action@v7.4.0` is accepted, the floating `@v7` (no release behind it) is not, and neither is a tag that a same-named branch shadows. Plumber reads the release with `GET /repos/{owner}/{repo}/releases/tags/{tag}`, so this needs a GitHub token. Without one, or when the release cannot be read, the reference is reported. Accepted references are listed in the JSON report under `actionPinningResult.immutableReleaseRefs` with `pinnedVia: immutable_release`.",
         "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions.",
         "Local actions (`uses: ./.github/actions/foo`) are exempt from this rule because the local reference itself lives in the same repo, but a third-party action it pulls in through that local composite is judged like any other nested reference.",
         "Pair with ISSUE-702, ISSUE-707 and ISSUE-709 for a complete supply-chain ruleset (archived repos, impostor SHAs, stale pins).",

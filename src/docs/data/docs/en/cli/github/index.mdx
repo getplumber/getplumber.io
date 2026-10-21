@@ -673,6 +673,7 @@ The complete, always-current catalogs and command reference:
 | `401 Unauthorized` | Token is invalid or expired. Fine-grained PAT needs `Contents: Read` + `Metadata: Read`; classic PAT needs `repo` |
 | `branchMustBeProtected` shows in `partialControls` | Token lacks `Administration: Read` (fine-grained) or `repo` (classic). The rule abstains rather than claim a false pass |
 | `403` / rate-limit errors | Anonymous or under-scoped token. Authenticate with a PAT or `gh auth login` |
+| ISSUE-701 still reports an action pinned to an immutable release tag | The exemption needs the release to be read: without a token, or when the lookup fails (listed as a check that could not be completed), the reference is reported. Run `gh auth login` or set `GH_TOKEN` / `PLUMBER_METADATA_TOKEN`. Also check the ref is the exact released tag: a floating tag (`@v4`) has no release behind it, and a branch with the same name as the tag disqualifies it |
 | ISSUE-703 fires in CI but not locally, or "could not verify" an action's version | The action's org enforces an IP allow list that blocks the runner's `GITHUB_TOKEN`. Set `metadata-token` (action) or `PLUMBER_METADATA_TOKEN` (CLI) to a public-repo-read token |
 | `404 Not Found` | Verify `--project owner/repo` and, for GHES, that `--github-url` points at the right host |
 | Branch protection rule not detected | Plumber reads classic Branch Protection AND Rulesets; confirm the rule is enabled (not in evaluate mode) on a branch matching your `namePatterns` |
