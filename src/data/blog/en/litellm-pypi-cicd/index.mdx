@@ -19,14 +19,18 @@ On October 21, 2026, litellm 1.107.0 went up on PyPI with three files that are n
 
 <Aside variant="caution" title="Are you exposed? 60-second check">
 
-1. **Pinned to the bad version today** (repo files, GitHub or GitLab):
+**1. Pinned to the bad version today** (repo files, GitHub or GitLab):
+
 ~~~bash
 P='(^|[^a-z0-9_.-])litellm(\[[^]]*\])? *===? *1\.107\.0([^0-9a-z.]|$)|litellm-1\.107\.0([- ]|\.tar\.gz|\.dist-info|$)|7598727f209d717041db|0aaf7ba346d41ef2f403|668169d35b87bf513240|462d0c9f67ca522d9e0e|c2e32d0ce2548aa662c1|1bbce8caa94f01c0aaa0|12d4ccc5c6f8d35cf4f2|2befe2a79fb4fbbd9a54'
 grep -rnE "$P" .
 ~~~
+
 It covers requirements files, `uv.lock`, `poetry.lock` and `Pipfile.lock`.
-2. **Installed during the window** (October 21 from 11:39 UTC): search the logs of every CI job that installed Python packages that day for the same pattern (commands below). This is the check that matters for unpinned installs.
-3. **Your pipeline config**: `plumber analyze github.com/OWNER/REPO` or [your score](https://score.getplumber.io/github.com/OWNER/REPO). ISSUE-103 lists every job or service image that is not pinned by digest, including `litellm/litellm:main-latest`.
+
+**2. Installed during the window** (October 21 from 11:39 UTC): search the logs of every CI job that installed Python packages that day for the same pattern (commands below). This is the check that matters for unpinned installs.
+
+**3. Your pipeline config**: `plumber analyze github.com/OWNER/REPO` or [your score](https://score.getplumber.io/github.com/OWNER/REPO). ISSUE-103 lists every job or service image that is not pinned by digest, including `litellm/litellm:main-latest`.
 
 </Aside>
 
