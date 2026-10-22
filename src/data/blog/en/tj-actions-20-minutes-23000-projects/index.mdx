@@ -1,0 +1,204 @@
+---
+title: "The 20 minutes that burned 23,000 projects"
+description: "In March 2025, an attacker who had just failed to rob Coinbase sat with a stolen master key for twenty minutes, then used it on everyone. The tj-actions/changed-files supply chain attack, rebuilt from the public commits and timestamps, and why one year later 68% of public GitHub projects still have the same door open."
+draft: false
+authors:
+  - thomas_boni
+pubDate: 2026-10-22
+heroImage: ./heroImage.png
+categories:
+  - "Security"
+  - "CI/CD"
+  - "Supply Chain"
+  - "GitHub Actions"
+  - "DevSecOps"
+  - "TJ Actions"
+---
+
+<style>{`
+  .markdown-content p:not(li):not(:where(.not-content *)) { margin-top: 1rem; line-height: 1.75; }
+  .markdown-content :is(h2):not(:where(.not-content *)) { margin-top: 3rem; }
+  .markdown-content :is(ul, ol):not(:where(.not-content *)) { margin-top: 1rem; }
+  .markdown-content li:not(:where(.not-content *)) { margin-top: 0.5rem; line-height: 1.7; }
+  .markdown-content .expressive-code { margin-block: 1.5rem; }
+  .markdown-content blockquote.pull-quote {
+    margin: 2.5rem 0; padding: 0.25rem 0 0.25rem 1.5rem;
+    font-size: clamp(1.4rem, 1.1rem + 1.2vw, 1.9rem); line-height: 1.35;
+    font-style: normal; font-weight: 700; letter-spacing: -0.01em;
+  }
+  .markdown-content blockquote.pull-quote p { margin: 0; color: inherit; line-height: 1.35; }
+  .markdown-content blockquote.pull-quote code { font-size: 0.85em; }
+`}</style>
+
+Five GitHub accounts. All deleted. Behind each of them, the same attacker. One person, one group, nobody knows.
+
+What we do know is that between December 2024 and the afternoon of March 14th, 2025, that attacker got the master key of a GitHub Action used by **23,000 repositories**, and in a single day exposed the secrets of **218 of them** to the public internet.
+
+This story happened more than a year ago. Everybody wrote about it. Everybody said "never again". And still, if you use GitHub Actions today, there is a **two-in-three chance** the exact same door is open in your pipeline. Right now.
+
+That is not a guess. We checked. Our [Radar](/radar) scans the pipelines of public repositories on GitHub, and **68% of them still use at least one action from a mutable tag**. The same door, not fixed.
+
+So I went back through it. Every commit, every timestamp, every public log that is still online. This is the story of the twenty minutes that burned 23,000 projects.
+
+<div style={{ position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden", borderRadius: "12px", margin: "2rem 0" }}>
+  <iframe
+    src="https://www.youtube-nocookie.com/embed/-dY6bB2pegk"
+    title="The 20 minutes that burned 23,000 projects"
+    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }}
+    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerPolicy="strict-origin-when-cross-origin"
+    loading="lazy"
+    allowFullScreen
+  ></iframe>
+</div>
+
+## The handshake
+
+One boring thing first, and I promise it is the only boring part.
+
+Nobody writes a pipeline alone. You borrow pieces: little tools someone else wrote, pulled in by name. On GitHub, they are called Actions. Need to know which files changed in a pull request? There is an action for that. It is called `changed-files`. One simple job, and it is used by 23,000 projects: Fortune 500 companies, crypto exchanges, solo developers, everyone.
+
+```yaml
+steps:
+  - uses: actions/checkout@v4
+  - uses: tj-actions/changed-files@v44
+```
+
+Now look at the end of that line. `v44` is not a thing. It is a label, a sticky note stuck on one specific version of the code. By writing it, you tell the repository: "I trust you. Give me whatever `v44` points to."
+
+<blockquote class="pull-quote">
+
+So here is the question I could not let go of: what happens if tomorrow someone moves the sticky note?
+
+</blockquote>
+
+## The staircase
+
+This story does not start on March 14th. It starts three months earlier, and so quietly that nobody noticed for a long time.
+
+**December 2024.** A small Java project in the SpotBugs organization gets a pull request from a stranger. Routine work; some projects get dozens of these a day. But this one was special. It is what we call today a **pwn request**: a pull request that runs a stranger's code inside your own pipeline, with your secrets. Using it, the attacker got a maintainer's personal access token.
+
+And then they did nothing. For three months, they just held it.
+
+Think about that. You have a working key to someone else's house, and you wait ninety days. Because the house is not the target. The house is the one that holds the key to the next house.
+
+**March 11th, 10:50 UTC.** With the stolen key, they add a brand-new account to SpotBugs' main repository. Two minutes later, that account pushes a branch. The branch exists for about a second. A second is enough: a workflow runs, collects every secret it can see, and in those secrets is the key of another maintainer, one who also maintained **reviewdog**.
+
+**Same evening, 18:42 UTC.** With that key, they poison reviewdog's setup action. For one hour and forty-nine minutes, everyone installing it gets hidden code. Then they revert it, force-push over their tracks, and leave. Most of the world never saw that window.
+
+Why reviewdog? Because reviewdog is used by thousands of other projects, including one very specific one: a tiny action in the **tj-actions** organization, `eslint-changed-files`. Tiny, but its pipeline runs with the organization's bot account, the bot that holds the keys to everything. So when the poisoned reviewdog ran inside it, it dumped the secrets, and in the dump was the master key of tj-actions. The key to `changed-files`. The key to 23,000 projects.
+
+Look at it: a pull request on a tiny Java project, a security tool, a linting tool, a bot. Four steps, three months. And not one of those steps broke a rule. Nobody clicked a bad link. Nobody shared a password. Every project trusted exactly what everyone tells you to trust.
+
+<blockquote class="pull-quote">
+
+That is a supply chain attack. Not a wall being broken. A staircase of trust, climbed one step at a time.
+
+</blockquote>
+
+## The target, the heist, and the twenty minutes
+
+With the master key in hand, we finally learn what all of this was for.
+
+**March 12th.** The attacker forks several Coinbase repositories. They test. They prepare. The payload they wrote was built to wake up only inside Coinbase; anywhere else, it slept.
+
+**March 14th, 15:10 UTC.** Coinbase's pipeline runs a poisoned version and a write token leaks. For about an hour, the attacker is inside Coinbase. Everything they built, for three months, was for this hour.
+
+**16:37 UTC.** Coinbase deletes the vulnerable workflow. Door closed. Coinbase would later confirm the token was never used. The heist is over. The attacker got nothing.
+
+Now sit in their chair. Three months of work, a perfect chain, and the target just slipped away. You still hold the master key to `changed-files`, but any minute now Coinbase will understand why that token leaked, and the key will be worthless.
+
+What do you do?
+
+**Twenty minutes.** That is how long they sat with it.
+
+**16:57 UTC.** They made a choice. If they could not have Coinbase quietly, they would take everything, loudly. Remember the boring tags? They moved every single one of them, `v44`, `v45`, `v35`, dozens of versions, to point at their poisoned commit. Retroactively. So every pipeline on earth asking for "the version I have always used" got the poison. Silently.
+
+## 23,000
+
+Still the same day, a security company's monitoring started seeing build servers make a network call they had never made before.
+
+Here is what the poison did. It fetched a small script, ran it, and the script read every secret in the build machine's memory and printed them into the build log, encoded twice. Nothing was sent anywhere. No server to trace, no traffic to block. The secrets just sat quietly in the logs, waiting to be collected. And on public projects, build logs are public to everyone.
+
+The numbers, as counted by Endor Labs:
+
+- **23,000** repositories used the action.
+- **5,416** had it wired into their pipelines.
+- **614** ran it during the window the poison was live.
+- **218** leaked real secrets into public logs.
+- **72** different kinds of secrets: cloud tokens, GitHub tokens, private keys, npm publish tokens.
+
+218 front doors, left open, published to the internet, on a Friday.
+
+That same night, PyTorch was ripping the action out of its repositories; the commit title says it all: ["Tags in tj-actions/changed-files are compromised"](https://github.com/pytorch/serve/commit/4f2b031681ca7d02f5ee51105ac3406ef147cd8c). Picture that room. A Friday afternoon, a thousand teams running the same horrible checklist. Did we run it? In the window? What did we leak? Rotate everything. Now.
+
+The next day, GitHub took the action offline. The maintainer moved every tag back to clean code and rotated the bot's key. Fire out.
+
+## The ghost
+
+Which leaves the question every good story ends on: who?
+
+And this is where it goes cold. Every account they used is gone. The December stranger, the one who walked into SpotBugs, the one who forked Coinbase: all deleted. The malicious commits were signed as `renovate[bot]`, a trusted automation account, so they would wear a friendly face in the history.
+
+So what do we actually know? Patient enough to wait three months. Precise enough to target one company. Skilled enough to run the whole chain and vanish completely. We do not know their name, or their names. We do not know their country. We know they wanted Coinbase, they missed, and on their way out they set fire to 23,000 projects.
+
+And thousands of staircases like the one they climbed still exist today.
+
+## The one-line flaw
+
+Every project that got burned had the same flaw, and it fits on one line. They asked for the tool by its label.
+
+```yaml
+- uses: tj-actions/changed-files@v44 # a sticky note the attacker can move
+```
+
+The projects that were untouched asked for it by its fingerprint: the exact commit, forty characters that no stolen key can move.
+
+```yaml
+- uses: tj-actions/changed-files@a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0 # v44.5.7
+```
+
+When the attacker moved the tags, those pipelines kept running the safe version. The fire went straight past them.
+
+That was the classic defense, and for a year it was the only one. It works. It is also painful to maintain: forty hex characters on every line, and it says nothing about what the action itself pulls in underneath, which is exactly where this attack travelled.
+
+In October 2026, GitHub shipped the thing that should have existed in March 2025: a [lockfile for Actions](https://github.blog/changelog/2026-10-14-github-actions-workflow-lockfiles-in-public-preview/). You keep `@v44` in your workflow, readable. One command, `gh actions-lock`, records the exact commit of every action and of everything it depends on into `.github/workflows/actions.lock`, and GitHub runs the lock, not the label. It is `package-lock`, for your pipeline.
+
+## Where your pipeline stands
+
+Remember the number from the start: **two out of three** public projects have not even done the classic fix.
+
+If your project is open source, it is probably already on the [Radar](/radar). Search for it, and in ten seconds you will know whether your pipeline has the same door open, and what grade it gets.
+
+If it is private, run the same scanner locally. It reads every pipeline in the repository and shows every place you trust a label instead of a fingerprint, and every place a stranger's pull request would run with your secrets. Both doors this attack walked through.
+
+```bash
+brew tap getplumber/plumber && brew install plumber
+plumber analyze
+```
+
+## Key takeaways
+
+- A tag is a **pointer**, and a pointer can be moved. `uses: something@v44` trusts whoever controls that tag today.
+- This was not one maintainer getting phished. It was a **chain of four trusted projects**, each doing exactly what it was built to do.
+- The attack went from a targeted heist to a mass fire in **twenty minutes**, because one stolen key could rewrite every version at once.
+- In the mass phase, secrets were **printed into public logs**, not sent to a server. There was nothing to block, only something to read.
+- **Pin by commit SHA**, or use GitHub's new **Actions lockfile**. One year later, 68% of public projects have done neither.
+
+## Sources
+
+- Wiz, [tj-actions/changed-files supply chain attack (CVE-2025-30066)](https://www.wiz.io/blog/github-action-tj-actions-changed-files-supply-chain-attack-cve-2025-30066) and [reviewdog/action-setup (CVE-2025-30154)](https://www.wiz.io/blog/new-github-action-supply-chain-attack-reviewdog-action-setup)
+- Palo Alto Unit 42, [the full chain, the Coinbase targeting and the December 2024 prequel](https://unit42.paloaltonetworks.com/github-actions-supply-chain-attack/)
+- StepSecurity, [Harden-Runner detection of the compromise](https://www.stepsecurity.io/blog/harden-runner-detection-tj-actions-changed-files-action-is-compromised)
+- Endor Labs, [blast radius of the attack](https://www.endorlabs.com/learn/blast-radius-of-the-tj-actions-changed-files-supply-chain-attack)
+- The Hacker News, [Coinbase targeting](https://thehackernews.com/2025/03/github-supply-chain-breach-coinbase.html) and [the SpotBugs token theft](https://thehackernews.com/2025/04/spotbugs-access-token-theft-identified.html)
+- [tj-actions/changed-files issue #2463](https://github.com/tj-actions/changed-files/issues/2463), where people found out
+- [NVD, CVE-2025-30066](https://nvd.nist.gov/vuln/detail/CVE-2025-30066)
+- Plumber, [The State of CI/CD Security 2026](/blog/state-of-cicd-security-2026), the 68% figure and its methodology
+- GitHub changelog, [workflow lockfiles in public preview](https://github.blog/changelog/2026-10-14-github-actions-workflow-lockfiles-in-public-preview/)
+
+## Next steps
+
+- [Search your project on the Radar](/radar): live scores for 15k+ public pipelines.
+- [Run Plumber locally](/docs/cli/github#run-locally): one command, every attack path in your pipeline, in about 30 seconds.
+- [Check continuously with Plumber in your pipeline](/docs/cli/github#run-with-github-actions): so every change to your workflows is analyzed before it merges.
