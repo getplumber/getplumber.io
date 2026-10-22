@@ -70,6 +70,10 @@ The project's release pipeline was on the path. Per [Socket](https://socket.dev/
 
 ## How the attack runs inside a pipeline
 
+![The litellm 1.107.0 attack path, step by step: a lookalike fork, the project's release workflow and PyPI upstream, then the five steps inside your pipeline, from an unpinned pip install to a detached process on the runner](./attack-path.svg)
+
+The upstream half is the maintainer's pipeline; the lower half is yours. Step by step:
+
 1. **Entry point.** Your job runs `pip install litellm`, `pip install -U litellm` or a `>=` range, and the resolver picks the newest version: 1.107.0 during the window. A Docker job image or service on `litellm/litellm:main-latest` or `:latest` also moved that day.
 2. **Code execution on the runner.** Python processes the `.pth` files in site-packages at startup, and `cook.pth` makes the payload run on the next Python start in that job: your tests, your build script, even `pip` itself.
 3. **What was reachable.** Everything in that process environment and on that machine: CI secrets passed as env vars, cloud credentials (the job's OIDC or instance role), `GITHUB_TOKEN` or `CI_JOB_TOKEN`, SSH keys, and LLM provider keys if the job runs the litellm proxy.
