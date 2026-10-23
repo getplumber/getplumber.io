@@ -53,6 +53,11 @@ jobs:
 
       - name: Build Project Artifacts
         run: .github/vercel/node_modules/.bin/vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        # Read-only job token: the prebuild step (scripts/fetch-adopters.js)
+        # needs an authenticated GitHub code search to refresh the homepage
+        # adopter logos. Without it the build keeps the committed snapshot.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Deploy Project Artifacts to Vercel
         id: deploy
