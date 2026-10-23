@@ -47,8 +47,6 @@ The release came out of the project's own pipeline.
 - In its 20:30 UTC update, the team said the tokens may have been exposed in the logs of an internal LiteLLM deployment reachable from the internet, and that a GitHub organization owner's token was used to disable branch protections. How the attacker got into that deployment is not confirmed.
 - Customers of the private enterprise release were not affected.
 
-Every event, with its time and source, is in the [detailed description](#detailed-description-of-the-attack) below.
-
 ## The Plumber take
 
 Every week the same thing happens in a different registry. A trusted package ships a bad version, and the pipelines that install "whatever is newest" run it within minutes.
@@ -158,93 +156,7 @@ A hit means you pulled the compromised `1.107.0` image. Socket verified the payl
 - Replace it with the `v1.106.2` image, pinned by digest.
 - Check your Kubernetes manifests, Helm values and compose files: any `litellm` image on `latest`, `main-latest`, `main-stable` or `v1.107.0` restarted since then pulled it.
 
-#### IOCs
-
-From the [report](https://github.com/BerriAI/litellm/issues/47826), [SafeDep](https://safedep.io/litellm-pypi-compromise-credential-stealer-backdoor) and [Wiz](https://www.wiz.io/blog/litellm-compromised-steals-credentials).
-
-- **Package**: `litellm` `1.107.0` on PyPI. Reported clean: `1.106.2` and earlier, `1.107.0rc1`, `1.107.0rc2`.
-- **Files in site-packages**: `cook.pth`, `cook.py`, `sitecustomize.py`.
-- **File SHA-256** (Linux and macOS, per Wiz):
-  - `cook.pth`: `7f191632e7320705d154b85204f1ae546b543acbd7e8861229b76f5042b92bdb`
-  - `cook.py`: `9dd0a3926f96a37eb86cf1ee2310d9be93139cc4ebef3ef9e2efe9531390be25`
-  - `sitecustomize.py`: `34bef04fe88ac9d0aae0475630b1738681d15b94f233ac8aa46eacf5968305fa`
-- **Network**: `www.litellm.dev` (POST to `/healthcheck`) with the HTTP header `X-Token: XWiA8gZNa7NcX2XRoAEb`; `raw.githubusercontent.com/letters9813/pythonclient-test/main/domain.txt`; requests to `169.254.169.254` (cloud instance metadata) from Python processes (per SafeDep).
-- **Cloud**: stolen AWS instance role credentials used from `168.100.8[.]57` and `165.227.201[.]8` (per Wiz).
-- **Host**: `/tmp/remote_code_loader.lock`, `/tmp/.pc_once_*`, `/tmp/.pc_sq_*`, `/tmp/.pc_e_*`, the environment variable `PRIVCOLLECT_ACTIVE=1`, a detached `python` process with working directory `/`.
-- **Image digests** behind `latest`, `main-latest`, `main-stable` and `v1.107.0` since October 21:
-  - `litellm/litellm` and `ghcr.io/berriai/litellm`: index `sha256:1bbcb1443bc962e45f5aad53fe3d2c30600e0379715fb6c664cdd3ac126c339e`; amd64 `sha256:bd1aeee419ea36da9aa2b657288da4101887be468f020ac63d22ba6ed84a3ea5`, arm64 `sha256:56b74573eed6e4aafe4b50603dbe7853e0345f188c8e44a09f1098caf1f4bcdf` (platform manifests verified by Socket).
-  - `ghcr.io/berriai/litellm-database`: index `sha256:c00f9d92c427...`; amd64 `sha256:24581ddc30767f16ecb69d2b0517556f2cd7dea56971adb42a3d1beb97d69523`, arm64 `sha256:827dd893c74cf621a860a66a3a447a5c732533f087589ce905573e285c0a239c` (per the reporter and Wiz; payload not independently extracted, treat it as malicious).
-  - `ghcr.io/berriai/litellm-non_root`: index `sha256:7b00e91cd2fe...`; amd64 `sha256:645a67d810628252d63df85dcc8824c58bcc77cf8383f4d3e6321f0ccc3ce9e4`, arm64 `sha256:f75c8edae59b72b1ebfd617295833f465c85bb2fab9c1d60f21b496db86cb8da` (same caveat).
-- **Source**: ten commits by the account `Berri-AI` in its fork, from `9b98cd93983def67454c4832207fd62836d67665` (08:56 UTC) to `20535d8fa11f786a6c24df7488a0e449ed5f09ad` (10:46 UTC), including `783c43bc455d2e05d3cfaf194c2f325cfeab1433`.
-
-## Detailed description of the attack
-
-### Timeline
-
-| Date (UTC) | Event | Source |
-|---|---|---|
-| Oct 21, 06:59 | GitHub release `v1.107.0` created (published at 11:50) | [GitHub API](https://api.github.com/repos/BerriAI/litellm/releases) |
-| Oct 21, 08:56 to 10:46 | Ten commits by `Berri-AI`, a lookalike of the `BerriAI` owner, in its fork `Berri-AI/litellm`: the payload files are added, the version set to `1.107.0`, the payload wired into the build config and three Dockerfiles. Forks share git objects, so the commits stay reachable from the real repository | [Wiz](https://www.wiz.io/blog/litellm-compromised-steals-credentials), [GitHub API](https://api.github.com/repos/BerriAI/litellm/compare/a8113b0d...20535d8f) |
-| Oct 21, 10:08 | Branch protection rejects an unauthorized change to the private release workflow. Five seconds later a privileged developer credential overrides it | [litellm incident post](https://docs.litellm.ai/blog/security-incident-oct-21-2026) |
-| Oct 21, 10:46 | The modified workflow starts a staging run from `Berri-AI/litellm` at commit `20535d8f` | [litellm incident post](https://docs.litellm.ai/blog/security-incident-oct-21-2026) |
-| Oct 21, 10:51 to 11:06 | Per Socket, the private release workflow builds the `v1.107.0` image with its source owner set to `Berri-AI` | [Socket](https://socket.dev/blog/litellm-compromise) |
-| Oct 21, 11:11 | A second developer's credential satisfies the production approval gate | [litellm incident post](https://docs.litellm.ai/blog/security-incident-oct-21-2026) |
-| Oct 21, 11:39 to 11:40 | Seven `1.107.0` wheels and the sdist uploaded to PyPI. It becomes the latest version | [PyPI](https://pypi.org/project/litellm/) |
-| Oct 21, 11:47 to 11:48 | Docker Hub tags `1.107.0`, `v1.107.0`, `latest`, `main-stable` and `main-latest` all point at digest `sha256:1bbcb1443bc9...` | [Docker Hub](https://hub.docker.com/r/litellm/litellm/tags) |
-| Oct 21, 11:50 | GitHub release `v1.107.0` published | [GitHub](https://github.com/BerriAI/litellm/releases/tag/v1.107.0) |
-| Oct 21, 11:53 to 11:54 | A third developer's credential deletes the production and staging workflow run records | [litellm incident post](https://docs.litellm.ai/blog/security-incident-oct-21-2026) |
-| Oct 21, 12:06 | A GitHub user, crediting the Upwind research team, reports `cook.pth`, `cook.py` and `sitecustomize.py` in the wheels, with file hashes and IOCs | [Issue #47826](https://github.com/BerriAI/litellm/issues/47826) |
-| Oct 21, 12:25 | `1.107.0` is still PyPI's latest version and is not yanked | [PyPI](https://pypi.org/project/litellm/) |
-| Oct 21, 12:57 | The reporter adds that the Docker tags point at an infected image. Socket later verifies the payload in the GitHub Container Registry image | [Issue #47826](https://github.com/BerriAI/litellm/issues/47826) |
-| Oct 21, before 13:10 | PyPI quarantines `1.107.0`: "It cannot be installed or modified until a security review is complete." The latest version goes back to `1.106.2` | [PyPI](https://pypi.org/project/litellm/1.107.0/) |
-| Oct 21, by 13:23 | PyPI has removed `1.107.0` | [litellm incident post](https://docs.litellm.ai/blog/security-incident-oct-21-2026) |
-| Oct 21, 13:24 | The reporter says the floating tags on GitHub Container Registry (`ghcr.io/berriai/litellm`, `litellm-database`, `litellm-non_root`) and Docker Hub still serve the `1.107.0` build | [Issue #47826](https://github.com/BerriAI/litellm/issues/47826#issuecomment-6317194658) |
-| Oct 21, 13:30 | GitHub takes down `letters9813/pythonclient-test`, the repository the payload reads its second-stage address from | [Wiz](https://www.wiz.io/blog/litellm-compromised-steals-credentials) |
-| Oct 21, 13:50 | A litellm contributor says the team is "treating this as SEV-0" | [Issue #47826](https://github.com/BerriAI/litellm/issues/47826#issuecomment-6317746839) |
-| Oct 21, 13:51 | The affected GitHub Container Registry tags are found unavailable | [litellm incident post](https://docs.litellm.ai/blog/security-incident-oct-21-2026) |
-| Oct 21, 14:20 | All affected Docker Hub tags and image variants removed or repointed to verified clean artifacts | [litellm incident post](https://docs.litellm.ai/blog/security-incident-oct-21-2026) |
-| Oct 21, 14:32 | "The malicious docker images have been removed." The team has not yet identified how the release was published | [Issue #47826](https://github.com/BerriAI/litellm/issues/47826#issuecomment-6318617930) |
-| Oct 21, 16:20 to 17:01 | Per Wiz, stolen AWS instance role credentials from CI runners and Kubernetes nodes are tested and used to list Amazon Bedrock models, about 4.5 hours after they were stolen | [Wiz](https://www.wiz.io/blog/litellm-compromised-steals-credentials) |
-| Oct 21, 16:32 | The litellm team: the malicious actions went through three engineers' GitHub accounts, "appearing to be by way of stolen GitHub CLI OAuth tokens"; one started the release run, another approved it. Tokens revoked, all but one user removed from the organization, trusted links to public registries removed. Vector not yet identified | [Issue #47826](https://github.com/BerriAI/litellm/issues/47826#issuecomment-6321116451) |
-| Oct 21, 18:30 | A potential vector found for one leaked token, not yet for the other accounts. Registries stay locked, ordinary releases paused | [Issue #47826](https://github.com/BerriAI/litellm/issues/47826#issuecomment-6323520915), [incident post](https://docs.litellm.ai/blog/security-incident-oct-21-2026) |
-| Oct 21, 20:30 | The team believes it has identified the attack chain: GitHub CLI tokens possibly exposed in the logs of an internet-reachable internal deployment, and an organization owner's token used to disable branch protections | [litellm incident post](https://docs.litellm.ai/blog/security-incident-oct-21-2026) |
-| Oct 21, 23:37 | Every token in the organization is being revoked or rotated. Questions about the initial access remain open | [Issue #47826](https://github.com/BerriAI/litellm/issues/47826) |
-| Oct 21 | SafeDep publishes its analysis and more IOCs, and infers "a compromised release pipeline or stolen PyPI credentials" | [SafeDep](https://safedep.io/litellm-pypi-compromise-credential-stealer-backdoor) |
-
-### How it ran inside a pipeline
-
-1. **Entry point.** Your job runs `pip install litellm`, `pip install -U litellm` or a `>=` range, and the resolver picks the newest version: `1.107.0` during the window. A job image or service on `litellm/litellm:main-latest` or `:latest` also moved that day.
-2. **Code execution on the runner.** Python processes the `.pth` files in site-packages at startup. `cook.pth` makes the payload run on the next Python start in that job: your tests, your build script, even `pip` itself.
-3. **What was reachable.** Everything in that process environment and on that machine:
-   - CI secrets passed as environment variables,
-   - cloud credentials (the job's OIDC token or instance role),
-   - `GITHUB_TOKEN` or `CI_JOB_TOKEN`,
-   - SSH keys,
-   - LLM provider keys, if the job runs the `litellm` proxy.
-4. **Exfiltration.** Data is sent to `www.litellm.dev`, a lookalike of the project's real domain `litellm.ai`.
-5. **Persistence.** The report describes a detached Python process that stays alive after the step. On a self-hosted runner, it outlives the job.
-
-The vulnerable pattern is one line most of us have written:
-
-~~~yaml
-- name: Install deps
-  run: pip install litellm pytest   # no version, no hashes
-~~~
-
-### Why the pipeline was the weak link
-
-| Pattern | Whose pipeline | Plumber control | What it catches |
-|---|---|---|---|
-| Job or service image on a moving tag (`litellm/litellm:main-latest`) | Yours | [`ISSUE-103`](/docs/cli/issues/ISSUE-103) | Any job or service image not pinned by digest. On by default |
-| Job image on `:latest` | Yours | [`ISSUE-102`](/docs/cli/issues/ISSUE-102) | Images on a forbidden tag. The default list has `latest`, `main` and `master`, not `main-latest` or `main-stable`: add those two |
-| `pip install litellm` with no version or hashes | Yours | None today | Manual check: the greps in the detailed check above |
-| A release workflow that builds from a source owner typed in when the run starts | The maintainer's | None today | Manual check: your release workflow should build only from your own repository and a reviewed commit |
-| A release run approved from a second maintainer account | The maintainer's | None (Plumber does not read GitHub approval settings) | Both accounts were used through stolen GitHub CLI tokens: an approval gate does not stop an attacker who holds the approver's token |
-| Branch protection that a privileged account can override | The maintainer's | None today | Manual check: on the branch that holds your release workflow, nobody, administrators included, should be able to bypass the protection |
-
-Plumber does not flag an unpinned `pip install` today. Find those lines with `grep`, and treat `ISSUE-103` as the second half of the same rule: nothing in your pipeline should change without a commit in your repo.
-
-### The fix that would have stopped it
+## The fix that would have stopped it
 
 GitHub Actions, before:
 
