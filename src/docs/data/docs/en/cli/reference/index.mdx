@@ -507,7 +507,7 @@ Flags that read or publish a verdict have nothing to act on and are ignored, wit
 | `ciMissing` | boolean | True when no CI configuration file was found. |
 | `ciErrors` | array | CI configuration parse errors reported by the provider. Omitted when none. |
 | `pipelineOriginMetrics` | object | Counts and origins of pipeline jobs (hardcoded, from include, from component). |
-| `pipelineImageMetrics` | object | Counts of container images per source / registry. |
+| `pipelineImageMetrics` | object | Counts of container images per source / registry. On GitHub this includes the images of `uses: docker://…` steps. |
 | `minScore` | string | Letter gate from `--min-score` (A–E). Present only when set. |
 | `minPoints` | number | Points gate from `--min-points` (default 100). Omitted when only `--min-score` gates or the deprecated `--threshold` is used. |
 | `threshold` | number | Deprecated gate from `--threshold`. Present only when that flag is supplied. |
@@ -557,6 +557,8 @@ Each entry describes one finding. Beyond the keys below, a rule adds its own str
 | `explanation` | string | The path's one-sentence explanation. Present under the contextual score only. |
 
 To track a control across runs (history, remediation state, trend dashboards), key on the pair `controlName` + `status`: `controlName` is the check's stable identity and `status` its verdict for that run. To track one individual finding within a control, use its `fingerprint`.
+
+On GitHub, a finding points at the line that triggered it: the `run:` line, the container `image:`, the `env:` entry that sets a variable, or a job key such as `permissions:`, `uses:`, `secrets: inherit` or `continue-on-error`. Rules that judge a whole job or a whole script still point at the job header, as GitLab findings do for now. The same line is used by `url`, the CSV `line` column, SARIF and every other output. It is not part of the fingerprint, so a finding that moves to a more precise line keeps its fingerprint and its dismissals.
 
 **`partialControls` entry**
 
