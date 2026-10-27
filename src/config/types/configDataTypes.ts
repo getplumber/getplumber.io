@@ -25,6 +25,7 @@ export interface navLinkItem {
   link: string;
   newTab?: boolean; // adds target="_blank" rel="noopener noreferrer" to link
   icon?: string; // adds an icon to the left of the text
+  hidden?: boolean; // kept in the data but not rendered yet (page does not exist)
 }
 
 export interface navDropdownItem {
@@ -43,6 +44,14 @@ export interface navMegaDropdownItem {
 }
 
 export type navItem = navLinkItem | navDropdownItem | navMegaDropdownItem;
+
+// call-to-action buttons rendered at the end of the navbar
+export interface navCta {
+  text: string;
+  link: string;
+  variant: "primary" | "secondary";
+  newTab?: boolean;
+}
 
 // --------------------------------------------------------
 // faq data types
@@ -74,4 +83,68 @@ export interface teamMember {
 export interface SiteSettingsProps {
   useViewTransitions?: boolean;
   useAnimations?: boolean;
+}
+
+// --------------------------------------------------------
+// footer data types
+export interface FooterColumn {
+  title: string;
+  links: { text: string; link: string; newTab?: boolean }[];
+}
+
+export interface SocialLink {
+  text: string;
+  link: string;
+  icon: string; // icon name in src/icons, e.g. "tabler/brand-github"
+}
+
+// --------------------------------------------------------
+// home page data types (src/config/en/homeData.json.ts)
+export interface Cta {
+  text: string;
+  link: string;
+  variant: "primary" | "secondary" | "secondary-trailing" | "ghost";
+  newTab?: boolean;
+}
+
+export interface Stat {
+  value: string;
+  label: string;
+  source?: string;
+  sourceLink?: string;
+}
+
+export interface Step {
+  number: string;
+  title: string;
+  text: string;
+}
+
+export interface Incident {
+  date: string;
+  figure: string;
+  text: string;
+  source: string;
+  sourceLink?: string;
+  highlight?: boolean;
+}
+
+export interface YamlLine {
+  n: number;
+  key: string; // dimmed part of the line, e.g. "    runs-on: "
+  value?: string; // highlighted part, e.g. "ubuntu-latest"
+  flag?: number; // issue number when the line is flagged
+}
+
+export interface Callout {
+  title: string;
+  text: string;
+}
+
+export interface ProductColumn {
+  number: string;
+  title: string;
+  text: string;
+  quote?: string;
+  ctas: Cta[];
 }

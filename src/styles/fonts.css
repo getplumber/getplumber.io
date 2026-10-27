@@ -54,3 +54,26 @@
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
+
+/* geist-mono-latin-wght-normal (variable) */
+@font-face {
+  font-family: "Geist Mono Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url(@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2)
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* HaxrCorp 4089 pixel font by sahwar, CC BY-SA 3.0.
+   Files and license: src/assets/fonts/haxrcorp-4089/ */
+@font-face {
+  font-family: "HaxrCorp 4089";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(@/assets/fonts/haxrcorp-4089/haxrcorp-4089.otf) format("opentype");
+}

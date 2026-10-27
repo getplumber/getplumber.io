@@ -1,0 +1,166 @@
+---
+/**
+ * Home hero (Figma HOME_Last, node 2513:1347, 1440 x 700).
+ * Letter-spaced "PLUMBER" wordmark, pixel rain columns under it, eyebrow and lead copy,
+ * a dotted bar with a static 12px marker at its start, and the two calls to action.
+ *
+ * The rain columns are placed by a small script on the ink edges of the letters:
+ * first column on the left edge of the P, last column on the right edge of the R,
+ * one on the stem of the E and one at the centre. The copy block, bar and buttons are
+ * inset to the same edges, as in Figma.
+ */
+import Button from "@components/Button/Button.astro";
+import { hero } from "@config/en/homeData.json";
+
+import PixelAnimation from "./PixelAnimation.astro";
+
+const letters = "PLUMBER".split("");
+---
+
+<section id="hero" class="bg-background relative overflow-hidden pt-[76px]">
+  <div class="home-container">
+    <div class="hero-inner relative">
+      <!-- wordmark: live text so it scales and stays selectable for search engines -->
+      <p
+        class="hero-wordmark font-heading text-foreground/95 flex justify-between pt-[75px] leading-[1.04] tracking-[-0.04em]"
+        aria-hidden="true"
+      >
+        {letters.map((letter) => (
+          <span>{letter}</span>
+        ))}
+      </p>
+      <h1 class="sr-only">
+        Plumber: {hero.headline} {hero.headlineMuted}
+      </h1>
+
+      <!-- pixel rain starts right under the letters; columns are positioned by the script -->
+      <PixelAnimation class="hero-rain" />
+
+      <div class="hero-content relative">
+        <div class="mt-16 flex max-w-[485px] flex-col gap-4 pl-0 lg:mt-[153px] lg:pl-[38px]">
+          <p class="eyebrow">{hero.eyebrow}</p>
+          <p class="body-xl">
+            <span class="text-base-700 dark:text-base-200">{hero.headline}</span>{" "}
+            <span class="text-base-500 dark:text-base-600">{hero.headlineMuted}</span>
+          </p>
+        </div>
+
+        <div class="hero-bar relative mt-8 h-px w-full max-w-[576px]" aria-hidden="true">
+          <span class="hero-bar__marker"></span>
+        </div>
+
+        <div class="mt-10 flex flex-col gap-4 pb-12 sm:flex-row sm:justify-between">
+          <Button
+            variant="secondary"
+            href={hero.ctas[0].link}
+            target={hero.ctas[0].newTab ? "_blank" : undefined}
+            rel={hero.ctas[0].newTab ? "noopener noreferrer" : undefined}
+            class="self-start"
+          >
+            {hero.ctas[0].text}
+          </Button>
+          <Button variant="primary" href={hero.ctas[1].link} class="self-start sm:self-auto">
+            {hero.ctas[1].text}
+          </Button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* the wordmark scales with the container width: 190px for the 1320px Figma frame */
+  .hero-inner {
+    container-type: inline-size;
+    --hero-left: 0px;
+    --hero-right: 0px;
+  }
+  .hero-wordmark {
+    font-size: clamp(2.5rem, 14.4cqw, 11.875rem);
+  }
+
+  /* rain columns start at the baseline of the letters (Inter ascender 0.969em, leading 1.04) */
+  :global(.hero-rain) {
+    top: calc(75px + clamp(2.5rem, 14.4cqw, 11.875rem) * 0.884);
+    left: 0;
+    right: 0;
+  }
+
+  .hero-content {
+    margin-left: var(--hero-left);
+    margin-right: var(--hero-right);
+  }
+
+  .hero-bar {
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-tint-25) 0 2px,
+      transparent 2px 5px
+    );
+  }
+
+  .hero-bar__marker {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    width: 12px;
+    height: 12px;
+    background-color: var(--color-base-600);
+  }
+</style>
+
+<script>
+  /**
+   * Place the rain columns on the ink edges of the wordmark letters and inset the
+   * content block to the same edges. Uses canvas text metrics so side bearings of
+   * the glyphs are accounted for. Re-runs on resize, font load and view transitions.
+   */
+  function placeHeroRain() {
+    const inner = document.querySelector<HTMLElement>(".hero-inner");
+    const wordmark = inner?.querySelector<HTMLElement>(".hero-wordmark");
+    const rain = inner?.querySelector<HTMLElement>(".hero-rain");
+    if (!inner || !wordmark || !rain) return;
+
+    const letters = Array.from(wordmark.querySelectorAll<HTMLElement>("span"));
+    if (letters.length < 7) return;
+
+    const style = getComputedStyle(wordmark);
+    const ctx = document.createElement("canvas").getContext("2d");
+    if (ctx) ctx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+
+    const ink = (el: HTMLElement) => {
+      const rect = el.getBoundingClientRect();
+      if (!ctx) return { left: rect.left, right: rect.right };
+      const m = ctx.measureText(el.textContent ?? "");
+      return {
+        left: rect.left - m.actualBoundingBoxLeft,
+        right: rect.left + m.actualBoundingBoxRight,
+      };
+    };
+
+    const base = rain.getBoundingClientRect();
+    const p = ink(letters[0]);
+    const e = ink(letters[5]);
+    const r = ink(letters[6]);
+    const left = p.left - base.left;
+    const right = base.right - r.right;
+
+    // columns are 5px wide and drawn 2px left of their coordinate
+    const targets = [left + 2, base.width / 2, e.left - base.left + 2, base.width - right - 3];
+    rain.querySelectorAll<HTMLElement>("[data-col]").forEach((col, i) => {
+      if (targets[i] !== undefined) col.style.left = `${targets[i]}px`;
+    });
+
+    inner.style.setProperty("--hero-left", `${Math.max(0, left)}px`);
+    inner.style.setProperty("--hero-right", `${Math.max(0, right)}px`);
+  }
+
+  function initHero() {
+    placeHeroRain();
+    document.fonts?.ready.then(placeHeroRain);
+  }
+
+  initHero();
+  window.addEventListener("resize", placeHeroRain, { passive: true });
+  document.addEventListener("astro:after-swap", initHero);
+</script>

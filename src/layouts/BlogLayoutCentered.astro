@@ -33,22 +33,20 @@ const authorsData = await getEntries(authors);
     <div class="mt-10 w-full">
       <div class="mx-auto max-w-2xl">
         <div class="text-base-content text-base">
-          {
-            updatedDate && (
-              <div class="mb-6 italic">
-                <time datetime={updatedDate.toISOString()}>
-                  Updated: {formatDate(updatedDate, currLocale)}
-                </time>
-              </div>
-            )
-          }
+          {updatedDate && (
+            <div class="mb-6 italic">
+              <time datetime={updatedDate.toISOString()}>
+                Updated: {formatDate(updatedDate, currLocale)}
+              </time>
+            </div>
+          )}
           <section id="blog-post-content" class="markdown-content mx-auto md:text-lg">
             <slot />
           </section>
 
           <!-- button to go back to all posts -->
           <div class="mt-16 flex justify-center">
-            <Button variant="outline" href={"/blog"} arrow="left" class="py-2">
+            <Button variant="secondary" href={"/blog"} class="py-2">
               Back to all posts
             </Button>
           </div>

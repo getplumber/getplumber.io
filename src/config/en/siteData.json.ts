@@ -9,9 +9,9 @@ const siteData: SiteDataProps = {
     "Continuously detect and fix the CI/CD security leaks attackers exploit across GitHub and GitLab. Grade your setup A-E, audit-ready for ISO 27001 and NIS2.",
 
   // Homepage (`/`) — open-source CI/CD security positioning (GitHub + GitLab)
-  homepageTitle: "Plumber - Spot & fix CI/CD security leaks | GitHub & GitLab",
+  homepageTitle: "Plumber - CI/CD security posture management | GitHub & GitLab",
   homepageDescription:
-    "The open-source tool that maps your pipelines, detects the CI/CD security leaks attackers exploit, and continuously grades your GitHub and GitLab security A-E.",
+    "Leaking CI/CD pipelines kill your company. Plumber checks every GitHub and GitLab pipeline before it runs, grades it from A to E, and opens the pull request that fixes what it finds.",
 
   // Your information for blog post purposes
   author: {
@@ -23,7 +23,7 @@ const siteData: SiteDataProps = {
   // default image for Open Graph / Twitter card (big link preview)
   defaultImage: {
     src: "/social-media-card.png",
-    alt: "Plumber - Spot & fix CI/CD security leaks for GitHub and GitLab",
+    alt: "Plumber - CI/CD security posture management for GitHub and GitLab",
   },
 };
 

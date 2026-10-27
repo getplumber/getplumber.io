@@ -1,0 +1,176 @@
+---
+/**
+ * "Attackers moved to the pipeline" (Figma HOME_Last, node 2513:1630, 1440 x 952).
+ * Left-aligned heading and an "Incident log" table in a tinted card. The first row is
+ * highlighted. Below the md breakpoint the table stacks into cards with the column
+ * names injected from data-label attributes.
+ */
+import { incidents } from "@config/en/homeData.json";
+
+import SectionHeading from "./SectionHeading.astro";
+
+const { columns } = incidents;
+---
+
+<section id="incidents" class="bg-background">
+  <div class="home-container flex flex-col gap-16 py-16 lg:gap-[88px] lg:py-[88px]">
+    <SectionHeading
+      eyebrow={incidents.eyebrow}
+      headline={incidents.headline}
+      headlineStrong={incidents.headlineStrong}
+      invert
+      text={incidents.text}
+      class="max-w-[1006px] [&>h2]:max-w-[1006px] [&>p:last-child]:max-w-[991px]"
+    />
+
+    <div class="card-tint rounded-r15 overflow-hidden pt-8">
+      <p class="subtitle-pixel text-base-700 dark:text-base-200 px-6 pb-8">{incidents.logTitle}</p>
+      <table class="incident-table w-full border-collapse">
+        <thead>
+          <tr class="bg-background stroke-tint border-y">
+            <th scope="col" class="incident-table__date">
+              {columns.date}
+            </th>
+            <th scope="col" class="incident-table__figure">
+              {columns.figure}
+            </th>
+            <th scope="col" class="incident-table__text">
+              {columns.text}
+            </th>
+            <th scope="col" class="incident-table__source">
+              {columns.source}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {incidents.rows.map((row) => (
+            <tr
+              class:list={[
+                "stroke-tint border-b last:border-b-0",
+                row.highlight ? "incident-row--highlight" : "text-muted-foreground",
+              ]}
+            >
+              <td class="incident-table__date subtitle-pixel" data-label={columns.date}>
+                {row.date}
+              </td>
+              <td class="incident-table__figure h3" data-label={columns.figure}>
+                {row.figure}
+              </td>
+              <td class="incident-table__text body" data-label={columns.text}>
+                {row.text}
+              </td>
+              <td
+                class="incident-table__source body-sm font-medium md:text-right"
+                data-label={columns.source}
+              >
+                {row.sourceLink ? (
+                  <a
+                    href={row.sourceLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hover:text-foreground underline underline-offset-2"
+                  >
+                    {row.source}
+                  </a>
+                ) : (
+                  row.source
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<style>
+  .incident-table th {
+    font-family: var(--font-pixel);
+    font-size: 1.375rem;
+    line-height: 0.8;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 400;
+    text-align: left;
+    color: var(--foreground);
+    padding: 24px 12px;
+    white-space: nowrap;
+  }
+  .incident-table td {
+    padding: 32px 12px;
+    vertical-align: middle;
+  }
+  .incident-table th:first-child,
+  .incident-table td:first-child {
+    padding-left: 24px;
+  }
+  .incident-table th:last-child,
+  .incident-table td:last-child {
+    padding-right: 24px;
+  }
+  .incident-table__date {
+    width: 88px;
+    white-space: nowrap;
+  }
+  .incident-table__figure {
+    width: 224px;
+    white-space: nowrap;
+  }
+  .incident-table__source {
+    width: 200px;
+  }
+  .incident-table th.incident-table__source {
+    text-align: right;
+  }
+
+  .incident-row--highlight {
+    background-color: color-mix(in srgb, var(--color-primary-500) 5%, transparent);
+    color: var(--foreground);
+  }
+  .incident-row--highlight .incident-table__date,
+  .incident-row--highlight .incident-table__source {
+    color: var(--color-base-200);
+  }
+  :root:not(.dark) .incident-row--highlight .incident-table__date,
+  :root:not(.dark) .incident-row--highlight .incident-table__source {
+    color: var(--color-base-700);
+  }
+
+  /* stacked cards below the md breakpoint */
+  @media (max-width: 767px) {
+    .incident-table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+    .incident-table,
+    .incident-table tbody,
+    .incident-table tr,
+    .incident-table td {
+      display: block;
+      width: auto;
+    }
+    .incident-table tr {
+      padding: 24px;
+    }
+    .incident-table td {
+      padding: 4px 0;
+    }
+    .incident-table td::before {
+      content: attr(data-label);
+      display: block;
+      font-family: var(--font-pixel);
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--muted-foreground);
+      margin-bottom: 4px;
+    }
+    .incident-table td.incident-table__date::before {
+      display: none;
+    }
+  }
+</style>

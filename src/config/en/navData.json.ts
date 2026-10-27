@@ -1,27 +1,54 @@
 /**
- * * This file is used to define the navigation links for the site.
+ * * Navigation links and call-to-action buttons for the site header.
  * Notes:
  * 1 level of dropdown is supported
- * Mega menus look best with 3-5 columns, but supports anything > 2 columns
- * If using icons, the icon should be saved in the src/icons folder. If filename is "tabler/icon.svg" then input "tabler/icon"
- * Recommend getting icons from https://tabler.io/icons
+ * Items with "hidden: true" stay in the data but are not rendered (their page does not exist yet).
  */
 
+import { PLUMBER_GITHUB_ACTION_URL } from "@js/plumberGithubRepo";
+
 // types
-import { type navItem } from "../types/configDataTypes";
+import { type navCta, type navItem } from "../types/configDataTypes";
 
 const navConfig: navItem[] = [
   {
+    text: "About us",
+    link: "/about",
+    hidden: true,
+  },
+  {
+    text: "Product",
+    link: "/#product",
+  },
+  {
     text: "Docs",
     link: "/docs/getting-started",
+  },
+  {
+    text: "Radar",
+    link: "/radar",
   },
   {
     text: "Blog",
     link: "/blog",
   },
   {
-    text: "Radar",
-    link: "/radar",
+    text: "Contact",
+    link: "/contact",
+  },
+];
+
+export const navCtas: navCta[] = [
+  {
+    text: "Install GitHub agent",
+    link: PLUMBER_GITHUB_ACTION_URL,
+    variant: "secondary",
+    newTab: true,
+  },
+  {
+    text: "Book a demo",
+    link: "/#book-a-demo",
+    variant: "primary",
   },
 ];
 

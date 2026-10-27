@@ -1,0 +1,113 @@
+---
+/**
+ * "One product. Two ways to use it." (Figma HOME_Last, node 2513:1766, 1440 x 677).
+ * Centred heading and two columns on dashed strokes that fade out at both ends.
+ * The developer column CTAs are muted in the design; the organisation column has the
+ * primary CTA.
+ */
+import Button from "@components/Button/Button.astro";
+import { oneProduct } from "@config/en/homeData.json";
+
+import SectionHeading from "./SectionHeading.astro";
+---
+
+<section id="product" class="bg-background scroll-mt-[76px]">
+  <div class="home-container flex flex-col gap-16 py-16 lg:gap-[88px] lg:py-[88px]">
+    <SectionHeading
+      eyebrow={oneProduct.eyebrow}
+      headline={oneProduct.headline}
+      headlineStrong={oneProduct.headlineStrong}
+      text={oneProduct.text}
+      align="center"
+      class="mx-auto max-w-[954px] [&>p:last-child]:max-w-none"
+    />
+
+    <div class="grid gap-16 lg:grid-cols-2 lg:gap-8">
+      {oneProduct.columns.map((column, i) => (
+        <div class="path group flex flex-col gap-16 pl-6 lg:pl-10">
+          <span class="eyebrow text-base-600 group-hover:text-foreground text-[26px] normal-case transition-colors duration-300">
+            {column.number}
+          </span>
+          <div class="flex flex-1 flex-col gap-4">
+            <h3 class="h2 text-muted-foreground group-hover:text-foreground transition-colors duration-300">
+              {column.title}
+            </h3>
+            <div class="flex flex-1 flex-col justify-between gap-8">
+              <div class="flex flex-col gap-8">
+                <p class="text-base-500 dark:text-base-600 group-hover:text-muted-foreground max-w-[608px] text-base leading-[1.4] transition-colors duration-300">
+                  {column.text}
+                </p>
+                {column.quote && (
+                  <blockquote class="text-muted-foreground border-base-400 max-w-[608px] border-l pl-4 text-base leading-[1.4]">
+                    {column.quote}
+                  </blockquote>
+                )}
+              </div>
+              <div class="flex flex-wrap gap-4">
+                {column.ctas.map((cta) => (
+                  <Button
+                    variant={cta.variant}
+                    href={cta.link}
+                    target={cta.newTab ? "_blank" : undefined}
+                    rel={cta.newTab ? "noopener noreferrer" : undefined}
+                    class={
+                      i === 0
+                        ? "text-muted-foreground group-hover:text-foreground"
+                        : "transition-colors duration-300"
+                    }
+                  >
+                    {cta.text}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* dashed stroke that fades out over the first and last 100px, like the Figma pix-anim strips */
+  @property --path-dash {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  .path {
+    position: relative;
+    --path-dash: var(--color-tint-25);
+    transition: --path-dash 300ms ease;
+  }
+  .path:hover {
+    --path-dash: var(--color-accent-20);
+  }
+  .path::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 2px;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--path-dash) 0 6px,
+      transparent 6px 12px
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 100px,
+      #000 calc(100% - 100px),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 100px,
+      #000 calc(100% - 100px),
+      transparent
+    );
+  }
+</style>

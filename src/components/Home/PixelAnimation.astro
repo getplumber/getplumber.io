@@ -1,0 +1,81 @@
+---
+/**
+ * Decorative pixel "rain" from the Figma hero: static vertical columns of 5px squares with a
+ * 5px gap, fading out at about 72 percent of their height. One lit accent pixel steps down
+ * each column (the 10 keyframes of the Figma component). Hidden from assistive tech; the
+ * drop stops under prefers-reduced-motion.
+ */
+interface Props {
+  /** horizontal positions, as CSS lengths or percentages of the wrapper width */
+  columns?: string[];
+  /** column height */
+  height?: string;
+  /** render without motion */
+  static?: boolean;
+  class?: string;
+}
+
+const {
+  columns = ["0%", "50%", "78%", "100%"],
+  height = "735px",
+  static: isStatic = false,
+  class: className,
+} = Astro.props;
+---
+
+<div
+  class:list={["pointer-events-none absolute inset-x-0 top-0", className]}
+  style={`height: ${height};`}
+  aria-hidden="true"
+>
+  {columns.map((left, i) => (
+    <span class="pixel-rain" style={`left: ${left}; --drop-delay: ${i * 0.9}s;`} data-col={i}>
+      {!isStatic && <i class="pixel-rain__drop" />}
+    </span>
+  ))}
+</div>
+
+<style>
+  .pixel-rain {
+    position: absolute;
+    top: 0;
+    width: 5px;
+    height: 100%;
+    margin-left: -2px;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--color-tint-25) 0 5px,
+      transparent 5px 10px
+    );
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 72.6%);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 72.6%);
+  }
+
+  /* the lit pixel: 5px square on the dot grid, stepping 10px at a time down the column */
+  .pixel-rain__drop {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 5px;
+    height: 5px;
+    background-color: var(--color-primary-500);
+    animation: pixel-drop 3.6s steps(36, end) infinite;
+    animation-delay: var(--drop-delay, 0s);
+  }
+
+  @keyframes pixel-drop {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(360px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pixel-rain__drop {
+      animation: none;
+      opacity: 0;
+    }
+  }
+</style>

@@ -1,66 +1,65 @@
 import { type FaqItem } from "../types/configDataTypes";
 
 /**
- * Homepage FAQ. Each item feeds the visible FAQ section and its FAQPage JSON-LD
- * (see src/components/Faq/FaqSection.astro), so keep answers factual and
- * self-contained; they are written to be quotable by search and answer engines.
+ * Homepage FAQ (Figma HOME_Last, "Questions" section). Each item feeds the visible
+ * accordion and its FAQPage JSON-LD (see src/components/Home/Faq.astro), so keep
+ * answers factual and self-contained; they are written to be quotable by search
+ * and answer engines.
  *
- * Positioning: open-source CI/CD security that maps, detects, fixes, and grades
- * (the Plumber Score) across GitLab and GitHub. CLI and Platform are covered in a
- * single merged question rather than split across two sets.
+ * Only the first answer is spelled out in the Figma file. The others are adapted
+ * from the previous FAQ and can be replaced when final copy arrives.
  */
 export const faqData: FaqItem[] = [
   {
     question: "What is Plumber?",
-    answer: `Plumber is an open-source tool that secures your CI/CD pipelines. It maps every
-      pipeline, detects the security leaks attackers exploit, fixes them, and grades your setup
-      with a letter score (A–E). It runs continuously on GitLab CI/CD and GitHub Actions, in
-      one loop: map, detect, fix, prove. The code lives on
+    answer: `Plumber is CI/CD security posture management that fixes what it finds. It checks how
+      every pipeline is built, grades it from A to E, and sends the fix as a pull request your
+      team reviews and merges. It runs on GitHub Actions and GitLab CI/CD, and the engine is
+      open source on
       <a href="https://github.com/getplumber/plumber" target="_blank" rel="noopener noreferrer">GitHub</a>.`,
   },
   {
-    question: "What is the Plumber Score?",
-    answer: `The Plumber Score is a single A-to-E grade for the security of your CI/CD setup. Read
-      it like a credit rating: it turns dozens of technical checks into one number that everyone
-      on the team understands, so you can track your CI/CD security posture over time and prove it
-      at a glance.`,
+    question: "How is it different from runtime security tools?",
+    answer: `Runtime tools watch what your application does once it is deployed. Plumber looks at
+      the stage before that: how the pipeline itself is built. It checks the workflow and CI
+      configuration, the tokens and permissions a job can use, the third-party actions it pulls
+      in and the branch protection around it, so a leak is caught before anything ships.`,
   },
   {
-    question: "What security issues does Plumber detect?",
-    answer: `Plumber scans your pipeline configuration and project settings for the issues attackers
-      look for: exposed secrets and unmasked variables, untrusted container registries and mutable
-      image tags, unpinned or vulnerable third-party actions, dangerous triggers and over-broad
-      permissions, and missing branch protection. Every finding ships with a documented
-      <a href="/docs/cli/issues">remediation guide</a>.`,
+    question: "Can I trust a fix written by AI?",
+    answer: `Every fix is checked by a deterministic, rule-based engine before your team sees it,
+      and it always arrives as a pull request. Nothing is applied to your repository on its own.
+      You can read the diff, run your tests, and reject it. The same input produces the same fix,
+      so what the agent changed and why stays auditable.`,
   },
   {
-    question: "How does Plumber fix the issues it finds?",
-    answer: `The open-source CLI gives you advisory fixes: clear, step-by-step guidance for every
-      issue. On the platform, a deterministic AI agent applies the fix for you and opens a merge
-      request. Every action the agent takes is checked against rules, so you can audit what
-      changed, understand why, and get the same result every time.`,
+    question: "Does it work on GitHub and GitLab?",
+    answer: `Yes. Plumber runs the same checks on GitHub Actions workflows and GitLab CI/CD
+      pipelines and produces the same A to E grade, so teams that use both get one comparable
+      score. The CLI runs locally or in CI, as a
+      <a href="/docs/cli/github">GitHub Action</a> or a
+      <a href="/docs/cli/gitlab">GitLab CI component</a>.`,
   },
   {
-    question: "What is the difference between the open-source CLI and the Plumber Platform?",
-    answer: `The <a href="/docs/cli">CLI</a> is free, open source, and scans one pipeline at a time
-      from your terminal or CI. It is built for developers. The <a href="/#platform">Platform</a>
-      monitors your whole organization continuously: dashboards, history, drift alerts when a
-      pipeline's security silently regresses, and AI-agent fixes. It is free for up to 10 projects
-      and works across both GitLab and GitHub.`,
+    question: "What does the grade mean?",
+    answer: `The Plumber Score is a single A to E grade for the security posture of a pipeline.
+      Read it like a credit rating: it turns dozens of technical checks into one letter that
+      everyone on the team understands, so you can track CI/CD security over time, set a
+      threshold, and block merges that fall below it.`,
   },
   {
-    question: "Does Plumber help with security regulations like NIS2 and DORA?",
-    answer: `Yes. Plumber checks your CI/CD security against the pipeline and software-supply-chain
-      requirements behind ISO 27001, NIS2, DORA, SOC 2, and the EU Cyber Resilience Act (CRA), and
-      keeps continuously updated reports of which pipelines meet your security policy and where the
-      gaps are. Meeting those regulations becomes a by-product of strong CI/CD security.`,
+    question: "What access does Plumber need?",
+    answer: `The open-source CLI needs nothing beyond the repository it scans: it reads the
+      pipeline configuration and reports. The platform needs read access to your organization
+      to discover pipelines and project settings, and write access only when you want it to open
+      the pull requests that carry the fixes.`,
   },
   {
-    question: "How do I get started?",
-    answer: `<a href="/docs/cli/installation">Install the Plumber CLI</a> (Homebrew, mise, Docker, or
-      a prebuilt binary) and point it at your repository, or connect your GitLab or GitHub
-      organization to the platform. The first scan runs in minutes, with no agents to install and
-      no pipeline changes required. See the <a href="/docs/getting-started">getting started guide</a>.`,
+    question: "Is it free?",
+    answer: `The CLI is open source and free, with no account required. The platform is free for
+      up to 10 projects and includes continuous monitoring, history and the AI agent fixes.
+      Larger organizations can
+      <a href="/#book-a-demo">book a demo</a> to discuss unlimited projects and dedicated support.`,
   },
 ];
 

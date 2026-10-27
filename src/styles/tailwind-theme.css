@@ -1,35 +1,52 @@
 /**
  * * Tailwind theme settings
- * 
- * These are in a separate file so it can be imported into <style> tags in .astro components
+ *
+ * These are in a separate file so it can be imported into <style> tags in .astro components.
+ * Color, type, spacing and radius values come from the Figma design system
+ * (file OEp1QcJ16wgu5JP7ZbfRJh, frame "Design System").
  */
 @theme {
-  /* site theme config */
-  /* primary colors, the brand teal scale (dark theme #09c3c3, light theme #0ccdcd, deep #005d5d) */
-  --color-primary-50: #e3fbfa;
-  --color-primary-100: #c9faf9;
+  /* primary: Figma accent blue #09c3c3 (hover #079d9d, logo dark #005d5d, logo light #9cf3f3) */
+  --color-primary-50: #e6fafa;
+  --color-primary-100: #c9f5f5;
   --color-primary-200: #9cf3f3;
-  --color-primary-300: #67e3e2;
-  --color-primary-400: #0ccdcd;
+  --color-primary-300: #5fe3e3;
+  --color-primary-400: #09c3c3;
   --color-primary-500: #09c3c3;
-  --color-primary-600: #059292;
-  --color-primary-700: #005d5d;
-  --color-primary-800: #004747;
-  --color-primary-900: #003333;
-  --color-primary-950: #002020;
+  --color-primary-600: #079d9d;
+  --color-primary-700: #067c7c;
+  --color-primary-800: #005d5d;
+  --color-primary-900: #004242;
+  --color-primary-950: #002a2a;
 
-  /* base colors */
-  --color-base-50: var(--color-zinc-50);
-  --color-base-100: var(--color-zinc-100);
-  --color-base-200: var(--color-zinc-200);
-  --color-base-300: var(--color-zinc-300);
-  --color-base-400: var(--color-zinc-400);
-  --color-base-500: var(--color-zinc-500);
-  --color-base-600: var(--color-zinc-600);
-  --color-base-700: var(--color-zinc-700);
-  --color-base-800: var(--color-zinc-800);
-  --color-base-900: var(--color-zinc-900);
-  --color-base-950: var(--color-zinc-950);
+  /* base: Figma neutrals (#f2f3f3 white, #c6c6c6 light grey, #8d9596 grey, #5c6262 darker grey, #0c0c0c black) */
+  --color-base-50: #f2f3f3;
+  --color-base-100: #e6e8e8;
+  --color-base-200: #c6c6c6;
+  --color-base-300: #a3a9a9;
+  --color-base-400: #8d9596;
+  --color-base-500: #6f7676;
+  --color-base-600: #5c6262;
+  --color-base-700: #3a3e3e;
+  --color-base-800: #1f2222;
+  --color-base-900: #141616;
+  --color-base-950: #0c0c0c;
+
+  /* danger: Figma reds (accent, light, edge) */
+  --color-danger-300: #e89496;
+  --color-danger-400: #ff6b5e;
+  --color-danger-500: #fb3033;
+
+  /* Figma tints: darker grey, accent blue and accent red at low alpha, over any background */
+  --color-tint-5: rgba(92, 98, 98, 0.05);
+  --color-tint-10: rgba(92, 98, 98, 0.1);
+  --color-tint-25: rgba(92, 98, 98, 0.25);
+  --color-accent-20: rgba(9, 195, 195, 0.2);
+  --color-danger-5: rgba(251, 48, 51, 0.05);
+  --color-danger-10: rgba(251, 48, 51, 0.1);
+  --color-danger-25: rgba(251, 48, 51, 0.25);
+  /* dashed separators between stats (Figma blue_stroke) */
+  --color-dash: #385153;
 
   /* Breakpoints */
   --breakpoint-xs: 400px;
@@ -39,16 +56,34 @@
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
 
-  /* font families */
-  --font-mono:
-    "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace";
+  /* font families (faces declared in fonts.css) */
   --font-fallback:
     "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif",
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  --font-heading: "Inter Variable", var(--font-fallback);
-  --font-sans: "Inter Variable", var(--font-fallback);
-  --font-mono:
-    "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace";
+  --font-heading: "InterVariable", "Inter", var(--font-fallback);
+  --font-sans: "InterVariable", "Inter", var(--font-fallback);
+  --font-mono: "Geist Mono Variable", "SFMono-Regular", "Menlo", "Consolas", "monospace";
+  --font-pixel: "HaxrCorp 4089", "Geist Mono Variable", "monospace";
+
+  /* spacing scale from Figma (utilities: p-s8, gap-s32, mt-s88 ...) */
+  --spacing-s8: 8px;
+  --spacing-s14: 14px;
+  --spacing-s16: 16px;
+  --spacing-s20: 20px;
+  --spacing-s24: 24px;
+  --spacing-s32: 32px;
+  --spacing-s40: 40px;
+  --spacing-s48: 48px;
+  --spacing-s60: 60px;
+  --spacing-s64: 64px;
+  --spacing-s88: 88px;
+  --spacing-s208: 208px;
+
+  /* radius scale from Figma (utilities: rounded-r0, rounded-r4 ...) */
+  --radius-r0: 0px;
+  --radius-r4: 4px;
+  --radius-r8: 8px;
+  --radius-r15: 15px;
 
   /* starwind and site animations */
   --animate-accordion-down: accordion-down 0.2s ease-out;
@@ -122,6 +157,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-text: var(--accent-text);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-success: var(--success);
