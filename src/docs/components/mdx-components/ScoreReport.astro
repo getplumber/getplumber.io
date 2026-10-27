@@ -1,0 +1,189 @@
+---
+/**
+ * Score report card (Figma Docs_Getting-Started, node 2556:5672): the block that ends a
+ * `plumber analyze` run. A header with the command and a status badge, then the grade
+ * gauge, the 30-cell points bar, the status row, the worst case and the best fix.
+ * Use in MDX:
+ * <ScoreReport score={34} grade="D" status="failed" gate={100} worstCase="..."
+ *   fix={{ text: "...", detail: "action ...", delta: "+15 pts", result: "49 / 100 (D)" }} />
+ */
+type Grade = "A" | "B" | "C" | "D" | "E";
+
+interface Props {
+  score: number;
+  grade: Grade;
+  max?: number;
+  status?: "failed" | "passed";
+  /** points the CI gate requires, shown as "(gate blocks at N pts)" */
+  gate?: number;
+  command?: string;
+  worstCase?: string;
+  fix?: { text: string; detail?: string; delta?: string; result?: string };
+  class?: string;
+}
+
+const {
+  score,
+  grade,
+  max = 100,
+  gate,
+  status = gate !== undefined && score < gate ? "failed" : "passed",
+  command = "$ plumber analyze: score",
+  worstCase,
+  fix,
+  class: className,
+} = Astro.props;
+
+// Grade thresholds from the Plumber Score page: A >= 90, B 71-89, C 51-70, D 31-50, E <= 30
+const gradeFor = (points: number): Grade =>
+  points >= 90 ? "A" : points >= 71 ? "B" : points >= 51 ? "C" : points >= 31 ? "D" : "E";
+const gradeVar = (g: Grade) => `var(--color-grade-${g.toLowerCase()})`;
+
+// 30 cells: the lit ones take the current grade colour, the rest show the grade band
+// they belong to, dimmed
+const CELLS = 30;
+const lit = Math.round((score / max) * CELLS);
+const cells = Array.from({ length: CELLS }, (_, i) => ({
+  lit: i < lit,
+  grade: i < lit ? grade : gradeFor(((i + 1) / CELLS) * max),
+}));
+
+// gauge: 159px ring, 11px stroke, arc from the top clockwise
+const radius = 74;
+const circumference = 2 * Math.PI * radius;
+const arc = (score / max) * circumference;
+const failed = status === "failed";
+---
+
+<div
+  class:list={[
+    "score-report not-content stroke-tint rounded-r15 my-6 flex flex-col overflow-hidden border",
+    className,
+  ]}
+  style={`--grade: ${gradeVar(grade)}`}
+  data-status={status}
+>
+  <div class="stroke-tint bg-tint-5 flex items-center justify-between gap-4 border-b p-6">
+    <span class="text-muted-foreground text-sm leading-[1.4]">{command}</span>
+    <span
+      class:list={[
+        "font-pixel rounded-[6px] border px-2 py-1 text-lg leading-[0.8] tracking-[0.02em] uppercase",
+        failed
+          ? "border-danger-25 bg-danger-10 text-danger-500/75"
+          : "border-accent-20 bg-primary-500/10 text-accent-text",
+      ]}
+    >
+      {status}
+    </span>
+  </div>
+
+  <div class="bg-tint-5 flex flex-col gap-6 px-6 pt-6 pb-8 sm:px-8">
+    <div class="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
+      <div
+        class="relative flex size-[159px] shrink-0 items-center justify-center"
+        role="img"
+        aria-label={`Grade ${grade}, ${score} out of ${max}`}
+      >
+        <svg viewBox="0 0 159 159" class="size-full" aria-hidden="true">
+          <circle cx="79.5" cy="79.5" r={radius} fill="none" stroke="var(--color-tint-25)" stroke-width="11" />
+          <circle
+            cx="79.5"
+            cy="79.5"
+            r={radius}
+            fill="none"
+            stroke="var(--grade)"
+            stroke-width="11"
+            stroke-dasharray={`${arc} ${circumference}`}
+            transform="rotate(-90 79.5 79.5)"
+          />
+        </svg>
+        <span
+          class="score-report__grade font-pixel absolute leading-none"
+          style="color: var(--grade)"
+          aria-hidden="true"
+        >
+          {grade}
+        </span>
+      </div>
+
+      <div class="flex w-full min-w-0 flex-1 flex-col">
+        <div class="flex flex-col gap-4 p-4">
+          <div class="flex items-center justify-between gap-4 px-2">
+            <span class="font-pixel text-foreground flex items-center gap-2 text-[22px] leading-none">
+              <span class="size-2 shrink-0" style="background: var(--grade)" aria-hidden="true"></span>
+              <span>{grade}</span>
+              <span>{score}</span>
+            </span>
+            <span class="font-pixel score-report__dim flex items-center gap-2 text-[22px] leading-none">
+              <span>MAX</span>
+              <span>{max}</span>
+            </span>
+          </div>
+          <div
+            class="flex gap-[3px] rounded-[6px] border px-1.5 py-[3px]"
+            style="border-color: color-mix(in srgb, var(--grade) 50%, transparent)"
+            aria-hidden="true"
+          >
+            {cells.map((cell) => (
+              <span
+                class:list={["score-cell h-[18px] min-w-0 flex-1", cell.lit && "score-cell--lit"]}
+                style={`--cell: ${gradeVar(cell.grade)}`}
+              ></span>
+            ))}
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-2">
+            <span class="flex items-center gap-2">
+              <span class="eyebrow text-foreground">Status:</span>
+              <span class:list={["eyebrow", failed ? "text-danger-500" : "text-accent-text"]}>
+                {status}
+              </span>
+            </span>
+            {gate !== undefined && (
+              <span class="eyebrow score-report__dim">(gate blocks at {gate} pts)</span>
+            )}
+          </div>
+        </div>
+        {worstCase && (
+          <p class="text-muted-foreground py-4 pr-4 pl-6 text-sm leading-[1.4]">
+            <span class="score-report__dim font-medium">Worst case:</span> {worstCase}
+          </p>
+        )}
+      </div>
+    </div>
+
+    {fix && (
+      <p class="stroke-tint bg-tint-10 text-muted-foreground rounded-[10px] border py-4 pr-4 pl-6 text-sm leading-[1.4]">
+        <span class="text-accent-text font-medium">Best fix:</span>{" "}
+        <span class="text-foreground">{fix.text}</span>
+        {fix.detail && <> ({fix.detail})</>}
+        {fix.delta && (
+          <>
+            , <span class="text-foreground">{fix.delta}</span>
+          </>
+        )}
+        {fix.result && <>, {fix.result}</>}
+      </p>
+    )}
+  </div>
+</div>
+
+<style>
+  /* Figma "Light grey" #c6c6c6 on dark; a darker tone carries the same role on light */
+  .score-report__dim {
+    color: var(--color-base-700);
+  }
+  :global(.dark) .score-report__dim {
+    color: var(--color-base-200);
+  }
+  .score-cell {
+    background: color-mix(in srgb, var(--cell) 25%, transparent);
+  }
+  .score-cell--lit {
+    background: var(--cell);
+  }
+  /* the pixel glyph fills about half of the ring's inner diameter, like the Figma mark */
+  .score-report__grade {
+    font-size: 8rem;
+    transform: translateY(0.04em);
+  }
+</style>

@@ -1,8 +1,8 @@
 ---
+import PageHeader from "@components/PageHeader/PageHeader.astro";
 import { getAllPosts } from "@js/blogUtils";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
-// import BlogIndexLayout from "@layouts/BlogIndexLayout1.astro";
 import BlogIndexLayout from "@layouts/BlogIndexLayout2.astro";
 
 const currLocale = getLocaleFromUrl(Astro.url);
@@ -21,22 +21,23 @@ const filterCategories = [
   title="Plumber Blog - CI/CD Security & Pipeline Governance"
   description="Learn DevOps best practices for CI/CD security, pipeline governance, drift detection, and automated, secure deployments."
 >
-  <div class="site-container mt-24 md:mt-36">
-    <div class="flex">
-      <p class="colored-title">Our blog</p>
+  <div class="site-container mt-24 mb-24 md:mt-36">
+    <PageHeader
+      eyebrow="Blog"
+      title="Plumber blog"
+      lead="Learn about CI/CD security, DevOps best practices, and governance guides to secure your pipelines."
+    />
+    <BlogIndexLayout posts={posts} filterCategories={filterCategories} class="mt-14" />
+    <div class="mt-16 flex">
+      <a
+        href="/blog/archive"
+        class="text-accent-text inline-flex items-center gap-2 text-base no-underline hover:underline"
+      >
+        R2Devops release archive
+        <span class="subtitle-pixel" aria-hidden="true">
+          &gt;
+        </span>
+      </a>
     </div>
-    <div class="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <h1 class="h2">Learn about CI/CD security, DevOps best practices, and governance guides to secure your pipelines.</h1>
-    </div>
-    <BlogIndexLayout posts={posts} filterCategories={filterCategories} class="mt-10" />
   </div>
-  <div class="mt-6 site-container">
-
-    <a
-    href="/blog/archive"
-    class=" text-base-content/60 hover:text-base-content text-right text-sm underline"
-    >
-    View blog archive
-  </a>
-</div>
 </BaseLayout>

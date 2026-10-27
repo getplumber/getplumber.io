@@ -1,0 +1,27 @@
+---
+/**
+ * Numbers strip (Figma docs "Numbers", node 2556:5398): cells with a 28px value and a
+ * pixel-font label, separated by tint strokes. Use in MDX:
+ * <Stats items={[{ value: "2 min", label: "from install to score" }]} />
+ */
+interface Props {
+  items: { value: string; label: string }[];
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+---
+
+<div
+  class:list={[
+    "not-content stroke-tint my-14 grid border-y sm:grid-cols-2 md:grid-cols-3",
+    className,
+  ]}
+>
+  {items.map((item) => (
+    <div class="stroke-tint flex flex-col gap-2 border-b px-6 py-8 sm:border-r sm:last:border-r-0 md:border-b-0">
+      <p class="text-foreground text-[28px] leading-[1.1]">{item.value}</p>
+      <p class="eyebrow text-muted-foreground">{item.label}</p>
+    </div>
+  ))}
+</div>

@@ -1,0 +1,131 @@
+---
+/**
+ * Docs page shell (Figma Docs_Getting-Started, node 2556:5303): a sidebar column with the
+ * search field and the section menu, a content column capped at 786px, and the
+ * "on this page" rail. Below md the sidebar lives in a sticky "Menu" disclosure, below lg
+ * the rail becomes an "On this page" disclosure. Used by DocsLayout and DocsLayoutStandalone.
+ */
+import type { MarkdownHeading } from "astro";
+
+import SidebarNav from "@/docs/components/nav/SidebarNav.astro";
+import DocsSearch from "@/docs/components/search/Search.astro";
+import TableOfContents from "@/docs/components/table-of-contents/TableOfContents.astro";
+import TocLink from "@/docs/components/table-of-contents/TocLink.astro";
+
+interface Props {
+  sectionId: string;
+  headings: MarkdownHeading[];
+  minHeadingLevel?: number;
+  /** index the content column with pagefind */
+  pagefind?: boolean;
+}
+
+const { sectionId, headings, minHeadingLevel = 2, pagefind = false } = Astro.props;
+const hasToc = headings.length > 0;
+---
+
+<div class="docs-site-container docs-shell min-h-[calc(100vh-var(--nav-height))] md:grid md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[300px_minmax(0,1fr)_200px]">
+  {/* Desktop sidebar: search field, then the section menu */}
+  <aside class="docs-shell__sidebar stroke-tint hidden border-r md:block">
+    <div class="sticky top-(--nav-height)">
+      <div class="docs-scroll max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-(--main-content-pt) pr-10 pb-10">
+        <DocsSearch class="mb-11" />
+        <SidebarNav sectionId={sectionId} />
+      </div>
+    </div>
+  </aside>
+
+  <main class="w-full min-w-0">
+    {/* Mobile controls: sidebar menu (below md) and on-this-page list (below lg) */}
+    <div
+      class:list={[
+        "sticky top-[calc(var(--nav-height)-1px)] z-40 -mx-4 mb-4",
+        hasToc ? "lg:hidden" : "md:hidden",
+      ]}
+    >
+      <mobile-docs-controls class="bg-background/90 stroke-tint relative flex border-b backdrop-blur">
+        <details class="mobile-nav-dropdown md:hidden">
+          <summary class="subtitle-pixel text-muted-foreground cursor-pointer list-none px-4 py-4">
+            Menu
+          </summary>
+          <nav class="bg-background stroke-tint absolute top-full right-0 left-0 z-10 max-h-[70vh] overflow-y-auto border-b px-4 pt-4 pb-6">
+            <DocsSearch class="mb-6" />
+            <SidebarNav sectionId={sectionId} />
+          </nav>
+        </details>
+        {hasToc && <div class="bg-tint-25 my-auto h-5 w-px md:hidden" aria-hidden="true" />}
+        {hasToc && (
+          <details class="mobile-nav-dropdown">
+            <summary class="subtitle-pixel text-muted-foreground cursor-pointer list-none px-4 py-4">
+              On this page
+            </summary>
+            <nav class="bg-background stroke-tint absolute top-full right-0 left-0 z-10 flex flex-col border-b px-4 pt-2 pb-4">
+              {headings.map((heading) => (
+                <TocLink heading={heading} minHeadingLevel={minHeadingLevel} />
+              ))}
+            </nav>
+          </details>
+        )}
+      </mobile-docs-controls>
+    </div>
+
+    <div
+      id="main-content"
+      class="docs-content mr-auto max-w-[786px] scroll-mt-[calc(var(--nav-height)+1rem)] pb-16 md:ml-8 lg:ml-[60px] lg:pt-(--main-content-pt)"
+      data-pagefind-body={pagefind ? true : undefined}
+    >
+      <slot />
+    </div>
+  </main>
+
+  {/* Desktop on-this-page rail */}
+  <aside class="hidden lg:block">
+    <div class="sticky top-(--nav-height)">
+      <div class="docs-scroll max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-(--main-content-pt) pb-10 pl-[51px]">
+        {hasToc && <TableOfContents headings={headings} minHeadingLevel={minHeadingLevel} />}
+      </div>
+    </div>
+  </aside>
+</div>
+
+<style>
+  .mobile-nav-dropdown summary::-webkit-details-marker {
+    display: none;
+  }
+  .mobile-nav-dropdown summary::after {
+    content: "+";
+    margin-left: 0.5rem;
+  }
+  .mobile-nav-dropdown[open] > summary::after {
+    content: "\2212";
+  }
+  .docs-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-tint-25) transparent;
+  }
+</style>
+
+<script>
+  class MobileDocsControls extends HTMLElement {
+    constructor() {
+      super();
+      // Direct children only: the sidebar itself holds disclosure sections, and
+      // toggling one of those must not close the dropdown containing it
+      const allDetails = this.querySelectorAll<HTMLDetailsElement>(":scope > details");
+      allDetails.forEach((detail) => {
+        detail.addEventListener("toggle", () => {
+          if (detail.open) {
+            allDetails.forEach((other) => {
+              if (other !== detail && other.open) {
+                other.open = false;
+              }
+            });
+          }
+        });
+      });
+    }
+  }
+  if (!customElements.get("mobile-docs-controls")) {
+    customElements.define("mobile-docs-controls", MobileDocsControls);
+  }
+</script>

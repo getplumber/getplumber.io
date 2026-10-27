@@ -1,49 +1,61 @@
 ---
+/**
+ * Docs page footer row (Figma node 2556:6048): "Last updated" on the left when the page
+ * declares a date, the previous page link under it, and the "next page" block on the right.
+ */
 import { docsRoute } from "@/docs/js/docsUtils";
-import { getLocaleFromUrl } from "@/docs/js/localeUtils";
-import { getLocalizedRoute } from "@/docs/js/translationUtils";
 
-const currLocale = getLocaleFromUrl(Astro.url);
-
-import ChevronLeft from "@tabler/icons/outline/chevron-left.svg";
-import ChevronRight from "@tabler/icons/outline/chevron-right.svg";
-
-interface Props {
-  prev: {
-    slug: string;
-    title: string;
-  } | null;
-  next: {
-    slug: string;
-    title: string;
-  } | null;
+interface PageRef {
+  slug: string;
+  title: string;
 }
 
-const { prev, next } = Astro.props;
+interface Props {
+  prev: PageRef | null;
+  next: PageRef | null;
+  lastUpdated?: Date;
+}
+
+const { prev, next, lastUpdated } = Astro.props;
+
+const formatted = lastUpdated
+  ? lastUpdated.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+  : null;
 ---
 
-<nav class="mt-8 flex items-center justify-between pt-8">
-  {
-    prev && (
-      <a
-        href={`/${docsRoute}/${prev.slug}`}
-        class="group text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm font-medium transition-colors"
-      >
-        <ChevronLeft class="size-4 transition-transform group-hover:-translate-x-1" />
-        {prev.title}
+<nav
+  class="stroke-tint mt-16 flex flex-wrap items-start justify-between gap-8 border-t pt-10"
+  aria-label="Page navigation"
+>
+  <div class="flex flex-col gap-6">
+    {formatted && (
+      <p class="body-sm text-muted-foreground flex items-center gap-2.5">
+        <span>Last updated</span>
+        <span class="bg-base-400 size-0.5" aria-hidden="true" />
+        <time datetime={lastUpdated?.toISOString()}>{formatted}</time>
+      </p>
+    )}
+    {prev && (
+      <a href={`/${docsRoute}/${prev.slug}`} class="group flex flex-col gap-3">
+        <span class="subtitle-pixel text-muted-foreground">previous page</span>
+        <span class="body-sm text-foreground group-hover:text-accent-text inline-flex items-center gap-2 transition-colors">
+          <span class="subtitle-pixel" aria-hidden="true">
+            &lt;
+          </span>
+          {prev.title}
+        </span>
       </a>
-    )
-  }
-  {!prev && <div />}
-  {
-    next && (
-      <a
-        href={`/${docsRoute}/${next.slug}`}
-        class="group text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm font-medium transition-colors"
-      >
+    )}
+  </div>
+  {next && (
+    <a href={`/${docsRoute}/${next.slug}`} class="group ml-auto flex flex-col gap-3">
+      <span class="subtitle-pixel text-muted-foreground">next page</span>
+      <span class="body-sm text-foreground group-hover:text-accent-text inline-flex items-center gap-2 transition-colors">
         {next.title}
-        <ChevronRight class="size-4 transition-transform group-hover:translate-x-1" />
-      </a>
-    )
-  }
+        <span class="subtitle-pixel" aria-hidden="true">
+          &gt;
+        </span>
+      </span>
+    </a>
+  )}
 </nav>

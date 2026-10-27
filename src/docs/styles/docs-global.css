@@ -1,129 +1,16 @@
 /**
  * * Docs global styles
- * 
- * Make sure this is imported in your base global.css file like so:
- * @import "@/docs/styles/docs-global.css";
  *
- * This infers color tokens from the base tailwind-theme.css file, which allows
- * you to match color theming from the base site
+ * Imported by src/styles/global.css. The docs inherit the site tokens (palette, radius,
+ * fonts) from global.css; only the docs-specific layout variables and classes live here.
  */
 
 @layer base {
   #documentation-layout {
-    /* starwind component variables (will override a base global.css file styles) */
-    --background: var(--color-base-50);
-    --foreground: var(--color-base-900);
-    --card: var(--color-base-50);
-    --card-foreground: var(--color-base-950);
-    --popover: var(--color-base-50);
-    --popover-foreground: var(--color-base-950);
-    --primary: var(--color-primary-400);
-    --primary-dark: var(--color-primary-500);
-    --primary-foreground: var(--color-base-950);
-    --secondary: var(--foreground);
-    --secondary-foreground: var(--background);
-    --muted: var(--color-base-100);
-    --muted-foreground: var(--color-base-600);
-    --accent: var(--color-base-200);
-    --accent-foreground: var(--color-base-900);
-    --info: var(--color-sky-300);
-    --info-foreground: var(--color-sky-950);
-    --success: var(--color-green-300);
-    --success-foreground: var(--color-green-950);
-    --warning: var(--color-amber-300);
-    --warning-foreground: var(--color-amber-950);
-    --error: var(--color-red-700);
-    --error-foreground: var(--color-base-50);
-    --border: var(--color-base-200);
-    --input: var(--color-base-200);
-    --outline: var(--primary);
-
-    --radius: 0.5rem;
-
-    /* Link color for docs markdown content (signature blue) */
-    --docs-link: #0969da;
-    --docs-link-hover: #0550ae;
-
-    /* Various docs variables */
-    --nav-height: 3.5rem;
-    --main-content-pt: 2rem;
-    --expressive-code-bg: var(--color-base-800);
-    --expressive-code-bg-darker: var(--color-base-900);
-
-    /* Shiki syntax highlighting variables for light theme - GitHub Light (Enhanced darkness for better contrast) */
-    --astro-code-color-text: #0d1117;
-    --astro-code-color-background: #1f2428;
-    --astro-code-background: var(
-      --astro-code-color-background
-    ); /* Alias for backward compatibility */
-    --astro-code-token-constant: #0349a1;
-    --astro-code-token-string: #082555;
-    --astro-code-token-comment: #4a545e;
-    --astro-code-token-keyword: #b81c26;
-    --astro-code-token-parameter: #7d2e00;
-    --astro-code-token-function: #5329a3;
-    --astro-code-token-string-expression: #082555;
-    --astro-code-token-punctuation: #0d1117;
-    --astro-code-token-link: #0860ca;
-
-    /* default font */
-    font-family: "Inter Variable", var(--font-sans);
-  }
-
-  #documentation-layout.dark,
-  #documentation-layout .dark {
-    /* starwind component variables (will override a base global.css file styles) */
-    --background: var(--color-base-950);
-    --foreground: var(--color-base-50);
-    --card: var(--color-base-950);
-    --card-foreground: var(--color-base-50);
-    --popover: var(--color-base-950);
-    --popover-foreground: var(--color-base-50);
-    --primary: var(--color-primary-500);
-    --primary-dark: var(--color-primary-600);
-    --primary-foreground: var(--color-base-950);
-    --secondary: var(--foreground);
-    --secondary-foreground: var(--background);
-    --muted: var(--color-base-900);
-    --muted-foreground: var(--color-base-400);
-    --accent: var(--color-base-900);
-    --accent-foreground: var(--color-base-100);
-    --info: var(--color-sky-300);
-    --info-foreground: var(--color-sky-950);
-    --success: var(--color-green-300);
-    --success-foreground: var(--color-green-950);
-    --warning: var(--color-amber-300);
-    --warning-foreground: var(--color-amber-950);
-    --error: var(--color-red-800);
-    --error-foreground: var(--color-base-50);
-    --border: var(--color-base-800);
-    --input: var(--color-base-800);
-    --outline: var(--primary);
-
-    --expressive-code-bg: var(--color-base-900);
-    --expressive-code-bg-darker: var(--color-base-950);
-
-    /* Shiki syntax highlighting variables for dark theme - GitHub Dark (Enhanced brightness for better contrast) */
-    --astro-code-color-text: #f0f6fc;
-    --astro-code-color-background: #0d1117;
-    --astro-code-background: var(
-      --astro-code-color-background
-    ); /* Alias for backward compatibility */
-    --astro-code-token-constant: #91d7ff;
-    --astro-code-token-string: #c9e7ff;
-    --astro-code-token-comment: #a0aab5;
-    --astro-code-token-keyword: #ff9b92;
-    --astro-code-token-parameter: #ffbe7d;
-    --astro-code-token-function: #e5c7ff;
-    --astro-code-token-string-expression: #c9e7ff;
-    --astro-code-token-punctuation: #e3e9ef;
-    --astro-code-token-link: #79c0ff;
-
-    /* Link color for docs markdown content (signature blue) */
-    --docs-link: #58a6ff;
-    --docs-link-hover: #79c0ff;
-
-    @apply scheme-dark;
+    /* site navbar: 76px plus its bottom stroke */
+    --nav-height: 77px;
+    /* distance between the navbar and the sidebar, content and rail (Figma: 56px) */
+    --main-content-pt: 3.5rem;
   }
 
   /* starwind preflight merged with site theme */
@@ -145,21 +32,31 @@
 }
 
 @layer components {
+  /* Figma docs headings: Inter 400, uppercase page title */
   .docs-h1 {
-    @apply text-3xl font-semibold md:text-4xl;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(2.125rem, 1.4rem + 2.6vw, 3.375rem);
+    line-height: 1.12;
+    text-transform: uppercase;
   }
 
   .docs-h2 {
-    @apply text-2xl font-semibold md:text-3xl;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.375rem);
+    line-height: 1.1;
   }
 
   .docs-h3 {
-    @apply text-xl font-semibold md:text-2xl;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(1.5rem, 1.3rem + 0.7vw, 2rem);
+    line-height: 1.1;
   }
 
   /* styles for top navbar elements like links, theme toggle, language switcher, etc. */
   .docs-nav__link--base {
-    /* @apply text-muted-foreground hover:text-foreground transition-colors; */
     @apply text-foreground hover:text-muted-foreground transition-colors;
   }
 
@@ -189,9 +86,9 @@
     @apply focus-visible:outline-outline focus-visible:rounded-xs focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:transition-none;
   }
 
-  /* Used for some headings */
+  /* kept for callers; the Figma headings are plain foreground text */
   .docs-text-gradient {
-    @apply from-foreground to-foreground/90 dark:to-foreground/60 bg-gradient-to-r bg-clip-text text-transparent;
+    @apply text-foreground;
   }
 
   .rotate-180 {

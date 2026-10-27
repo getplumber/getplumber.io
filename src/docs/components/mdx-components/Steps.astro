@@ -38,7 +38,8 @@ const { class: className } = Astro.props;
 
   /* Connecting line */
   .docs-steps > ol > li:not(:last-child)::after {
-    @apply bg-border absolute w-px;
+    @apply absolute w-px;
+    background-color: var(--color-tint-25);
     content: "";
     left: calc(var(--step-size) / 2);
     top: calc(var(--step-size) - var(--step-offset) + var(--step-line-gap));
@@ -47,7 +48,12 @@ const { class: className } = Astro.props;
 
   /* Step numbers */
   .docs-steps > ol > li::before {
-    @apply bg-muted border-border absolute left-0 flex items-center justify-center rounded-full border font-mono font-medium;
+    @apply rounded-r4 absolute left-0 flex items-center justify-center border;
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    color: var(--accent-text);
+    border-color: var(--color-tint-25);
+    background-color: var(--color-tint-5);
     content: counter(step);
     counter-increment: step;
     width: var(--step-size);
@@ -57,7 +63,7 @@ const { class: className } = Astro.props;
 
   /* Style headings within steps */
   .docs-steps > ol > li :is(h3, h4) {
-    @apply font-heading mt-0 mb-2 text-base font-semibold md:text-lg;
+    @apply font-heading mt-0 mb-2 text-lg font-normal;
     /* Reset default heading margins since we're in a list item */
     margin-top: 0;
     /* Ensure headings don't break the step layout */

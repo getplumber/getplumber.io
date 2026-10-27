@@ -140,6 +140,16 @@
   }
 }
 
+/* Plumber Score grades (Figma score card, node 2556:5672): A to E. "static" so the
+   variables are always emitted; the ScoreReport component reads them through var(). */
+@theme static {
+  --color-grade-a: #35dc6d;
+  --color-grade-b: #84d307;
+  --color-grade-c: #f2de27;
+  --color-grade-d: #ff9000;
+  --color-grade-e: #fb3033;
+}
+
 /* "inline" option is necessary here https://github.com/tailwindlabs/tailwindcss/discussions/15122#discussioncomment-11356322 */
 @theme inline {
   /* starwind utilities setup */

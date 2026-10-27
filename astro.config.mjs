@@ -73,6 +73,7 @@ export default defineConfig({
         "@/docs/components/mdx-components/Badge.astro",
         "@/docs/components/mdx-components/Button.astro",
         "@/docs/components/mdx-components/Steps.astro",
+        "@/docs/components/mdx-components/ScoreReport.astro",
         "@/docs/components/mdx-components/Tabs.astro",
         "@/docs/components/mdx-components/TabsContent.astro",
         "@/docs/components/mdx-components/TabsList.astro",
@@ -80,16 +81,14 @@ export default defineConfig({
         "@/docs/components/mdx-components/IssuesList.astro",
         "@/docs/components/mdx-components/NewControlsTable.astro",
         "@/docs/components/mdx-components/ProviderTabs.astro",
+        "@/docs/components/mdx-components/Stats.astro",
+        "@/docs/components/mdx-components/Card.astro",
+        "@/docs/components/mdx-components/CardGrid.astro",
       ],
     }),
-    expressiveCode({
-      // Mono design: single high-contrast theme for doc code blocks so they look
-      // the same on all OS (avoids contrast issues on macOS with default dark theme).
-      themes: ["github-dark-high-contrast"],
-      useDarkModeMediaQuery: false,
-      // Ensure syntax token contrast (URLs, strings, paths) meets accessibility.
-      minSyntaxHighlightingColorContrast: 5.5,
-    }),
+    // Expressive Code options live in ec.config.mjs: the <Code> component on the issue
+    // pages loads the config itself, and ours holds functions
+    expressiveCode(),
     mdx(),
     react(),
     icon(),

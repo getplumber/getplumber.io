@@ -1,19 +1,23 @@
 /**
- * * general styling for any markdown rendered content in the docs
- * 
- * Apply styling with the "docs-markdown-content" class
- * Cancel out the styling with the "not-content" class
+ * * General styling for markdown rendered in the docs (Figma Docs_Getting-Started).
+ *
+ * Apply styling with the "docs-markdown-content" class.
+ * Cancel out the styling with the "not-content" class.
  */
 @import "tailwindcss/theme";
 @import "@/styles/tailwind-theme.css";
 
 @layer base {
-  /* text coloring for most items */
+  .docs-markdown-content {
+    counter-reset: docs-section;
+  }
+
+  /* body text is the muted grey; headings, strong and code stay in the foreground */
   .docs-markdown-content
     :not(pre *, .docs-aside *, details *, blockquote *, span, a, h1, h2, h3, h4, h5, h6):not(
       :where(.not-content, .not-content *)
     ) {
-    @apply text-foreground/80;
+    @apply text-muted-foreground;
   }
 
   /* allow words to wrap (usually for long code elements or links) */
@@ -21,9 +25,8 @@
     @apply break-words;
   }
 
-  /* paragraph text size */
   .docs-markdown-content p:not(:where(.not-content, .not-content *)) {
-    @apply text-sm md:text-base;
+    @apply text-base leading-[1.5];
   }
 
   .docs-markdown-content
@@ -32,132 +35,169 @@
     @apply mt-4;
   }
 
-  /* Headings after non-headings have more spacing. */
-  /* script is here as there may be a <script> tag between consecutive headings if using copy link buttons */
+  /* Headings after non-headings open a new block (Figma: 88px between sections). */
   .docs-markdown-content
     :not(h1, h2, h3, h4, h5, h6, script)
-    + :is(h1, h2, h3, h4, h5, h6):not(:where(.not-content, .not-content *)) {
+    + :is(h2):not(:where(.not-content, .not-content *)) {
+    @apply mt-20;
+  }
+  .docs-markdown-content
+    :not(h1, h2, h3, h4, h5, h6, script)
+    + :is(h3, h4, h5, h6):not(:where(.not-content, .not-content *)) {
     @apply mt-10;
   }
 
   .docs-markdown-content :is(h1, h2, h3, h4, h5, h6):not(:where(.not-content, .not-content *)) {
-    @apply text-foreground/90 mt-2 text-base leading-normal;
+    @apply font-heading text-foreground mt-2 font-normal;
   }
 
   .docs-markdown-content h1:not(:where(.not-content, .not-content *)) {
-    @apply font-heading text-3xl font-semibold md:text-4xl;
+    @apply text-[2rem] leading-[1.12];
+  }
+  /* top-level sections are numbered "01, 02" in the pixel font, like the Figma page */
+  .docs-markdown-content > h2:not(:where(.not-content, .not-content *)) {
+    counter-increment: docs-section;
+    flex-wrap: wrap;
+  }
+  /* the heading is a flex row (anchor link), so the number takes a full row above it */
+  .docs-markdown-content > h2:not(:where(.not-content, .not-content *))::before {
+    content: counter(docs-section, decimal-leading-zero);
+    display: block;
+    flex: 0 0 100%;
+    margin-bottom: 1.5rem;
+    font-family: var(--font-pixel);
+    font-size: 1.375rem;
+    line-height: 0.8;
+    letter-spacing: 0.02em;
+    color: var(--accent-text);
   }
   .docs-markdown-content h2:not(:where(.not-content, .not-content *)) {
-    @apply font-heading text-2xl font-semibold md:text-3xl;
+    @apply text-[2rem] leading-[1.2];
   }
   .docs-markdown-content h3:not(:where(.not-content, .not-content *)) {
-    @apply font-heading text-xl font-semibold md:text-2xl;
+    @apply text-2xl leading-[1.2];
   }
   .docs-markdown-content h4:not(:where(.not-content, .not-content *)) {
-    @apply font-heading text-lg font-semibold md:text-xl;
+    @apply text-xl leading-[1.3];
   }
-  .docs-markdown-content h5:not(:where(.not-content, .not-content *)) {
-    @apply text-foreground/85 font-medium md:text-lg;
-  }
+  .docs-markdown-content h5:not(:where(.not-content, .not-content *)),
   .docs-markdown-content h6:not(:where(.not-content, .not-content *)) {
-    @apply text-foreground/85 font-medium md:text-lg;
+    @apply text-lg font-medium;
+  }
+  /* a heading directly followed by a paragraph keeps the Figma 24px gap */
+  .docs-markdown-content :is(h2, h3) + p:not(:where(.not-content, .not-content *)) {
+    @apply mt-6;
   }
 
-  /* anchor tags — signature blue, no underline */
+  /* links: accent colour, underline on hover */
   .docs-markdown-content a:not(:where(.not-content, .not-content *)) {
-    color: var(--docs-link);
-    @apply font-medium no-underline transition-colors;
-  }
-  .docs-markdown-content a:not(:where(.not-content, .not-content *)):hover {
-    color: var(--docs-link-hover);
+    color: var(--accent-text);
+    @apply no-underline transition-colors hover:underline;
   }
 
-  /* code */
+  /* inline code chip (Figma .gitlab-ci.yml chip) */
   .docs-markdown-content code:not(:where(.not-content, .not-content *)) {
-    @apply bg-border border-border rounded-sm border-2 border-solid px-[.1rem] text-sm;
+    @apply rounded-r4 text-foreground border px-1.5 py-0.5 font-mono text-[0.875em];
+    border-color: var(--color-tint-25);
+    background-color: var(--color-tint-10);
   }
   .docs-markdown-content :is(h1, h2, h3, h4, h5, h6) code {
     @apply text-inherit;
   }
 
-  /* code block styling */
-  .docs-markdown-content pre:not(:where(.not-content, .not-content *)) {
-    @apply border-border my-4 rounded-lg border px-4 py-3;
-    background-color: var(--astro-code-color-background) !important;
-    color: var(--astro-code-color-text);
+  /* plain code blocks (Expressive Code renders its own frames) */
+  .docs-markdown-content pre:not(:where(.not-content, .not-content *, .expressive-code *)) {
+    @apply rounded-r15 my-6 border p-6 font-mono text-sm leading-[2];
+    border-color: var(--color-tint-25);
+    background-color: var(--color-tint-5) !important;
+    color: var(--foreground);
     tab-size: 2;
   }
-
-  /* reset styling for code blocks */
-  .docs-markdown-content pre code:not(:where(.not-content, .not-content *)) {
+  .docs-markdown-content pre code:not(:where(.not-content, .not-content *, .expressive-code *)) {
     all: unset;
     @apply font-mono;
     background-color: transparent !important;
   }
+  .docs-markdown-content .expressive-code {
+    @apply my-6;
+  }
 
   /* blockquotes */
   .docs-markdown-content blockquote:not(:where(.not-content, .not-content *)) {
-    @apply border-primary border-l-4 pl-4 italic;
+    @apply border-l pl-4;
+    border-color: var(--color-base-400);
   }
 
   /* images, videos, etc */
   .docs-markdown-content
     :is(img, picture, video, canvas, svg, iframe):not(:where(.not-content, .not-content *)) {
-    @apply my-4 block h-auto w-full rounded-lg;
+    @apply rounded-r15 my-6 block h-auto w-full;
   }
 
-  /* italics */
   .docs-markdown-content em:not(:where(.not-content, .not-content *)) {
     @apply text-foreground italic;
   }
-
-  /* bold */
   .docs-markdown-content strong:not(:where(.not-content, .not-content *)) {
-    @apply text-foreground font-semibold;
+    @apply text-foreground font-medium;
   }
 
-  /* lists */
+  /* lists: square markers */
   .docs-markdown-content li + li:not(:where(.steps *, .not-content, .not-content *)),
   .docs-markdown-content dt + dt:not(:where(.not-content, .not-content *)),
   .docs-markdown-content dt + dd:not(:where(.not-content, .not-content *)),
   .docs-markdown-content dd + dd:not(:where(.not-content, .not-content *)) {
     @apply mt-2;
   }
-
-  .docs-markdown-content li:not(:where(.not-content, .not-content *)) {
-    @apply pl-2;
-    overflow-wrap: anywhere;
-  }
-
   .docs-markdown-content :is(ul, ol):not(:where(.not-content, .not-content *)) {
     @apply my-4 mb-6 list-outside;
   }
-
-  .docs-markdown-content :is(ul):not(:where(.not-content, .not-content *)) {
-    @apply ml-6 list-disc;
+  .docs-markdown-content ul:not(:where(.docs-steps *, .not-content, .not-content *)) {
+    @apply ml-0 list-none pl-5;
   }
-
-  .docs-markdown-content :is(ol):not(:where(.steps *, .not-content, .not-content *)) {
+  .docs-markdown-content
+    ul:not(:where(.docs-steps *, .not-content, .not-content *))
+    > li:not(:where(.not-content, .not-content *)) {
+    @apply relative pl-0;
+    overflow-wrap: anywhere;
+  }
+  .docs-markdown-content
+    ul:not(:where(.docs-steps *, .not-content, .not-content *))
+    > li:not(:where(.not-content, .not-content *))::before {
+    content: "";
+    position: absolute;
+    left: -1.25rem;
+    top: 0.6em;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-base-400);
+  }
+  .docs-markdown-content ol:not(:where(.docs-steps *, .not-content, .not-content *)) {
     @apply ml-6 list-decimal;
   }
-
+  .docs-markdown-content ol:not(:where(.docs-steps *, .not-content, .not-content *)) > li::marker {
+    font-family: var(--font-pixel);
+    color: var(--muted-foreground);
+  }
+  .docs-markdown-content li:not(:where(.not-content, .not-content *)) {
+    overflow-wrap: anywhere;
+  }
   .docs-markdown-content dt:not(:where(.not-content, .not-content *)) {
-    @apply font-bold;
+    @apply text-foreground font-medium;
   }
   .docs-markdown-content dd:not(:where(.not-content, .not-content *)) {
     @apply ps-4;
   }
 
-  /* Table styling */
+  /* tables */
   .docs-markdown-content table:not(:where(.not-content *)) {
-    @apply mb-4;
+    @apply mb-6;
   }
   .docs-markdown-content :where(table):not(:where(.not-content *)) {
     @apply min-w-full table-auto border-spacing-0 text-sm;
   }
   .docs-markdown-content :is(th, td):not(:where(.not-content, .not-content *)) {
-    @apply border-border table-cell border-b px-4 py-2;
-    /* Align text to the top of the row in multiline tables. */
+    @apply table-cell border-b px-4 py-3;
+    border-color: var(--color-tint-25);
     vertical-align: baseline;
   }
   .docs-markdown-content
@@ -170,77 +210,56 @@
   }
   .docs-markdown-content th:not(:where(.not-content, .not-content *)) {
     @apply text-foreground font-medium;
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 400;
   }
-  /* Align headings to the start of the line unless set by the `align` attribute. */
   .docs-markdown-content th:not([align]):not(:where(.not-content, .not-content *)) {
     text-align: start;
   }
-
-  /* <table>s, and <hr>s inside docs-asides */
   .docs-markdown-content .docs-aside :is(th, td, hr):not(:where(.not-content, .not-content *)) {
-    @apply border-border;
+    border-color: var(--color-tint-25);
   }
 
   .docs-markdown-content hr:not(:where(.not-content, .not-content *)) {
-    @apply border-b-border my-8 border-0 border-b-1;
+    @apply my-10 border-0 border-b;
+    border-color: var(--color-tint-25);
   }
 
   /* <details> and <summary> styles */
   .docs-markdown-content details:not(:where(.not-content, .not-content *)) {
-    --details-border-color: var(--border);
-    --details-border-color--hover: var(--primary);
-
-    border-inline-start: 2px solid var(--details-border-color);
+    border-inline-start: 2px solid var(--color-tint-25);
     padding-inline-start: 1rem;
   }
   .docs-markdown-content details:not([open]):hover:not(:where(.not-content, .not-content *)),
   .docs-markdown-content details:has(> summary:hover):not(:where(.not-content, .not-content *)) {
-    /* border-color: var(--details-border-color--hover); */
-    @apply opacity-90;
+    border-color: var(--color-accent-20);
   }
   .docs-markdown-content summary:not(:where(.not-content, .not-content *)) {
-    @apply text-foreground block cursor-pointer font-bold;
-    /* Expand the outline so that the marker cannot distort it. */
+    @apply text-foreground block cursor-pointer font-medium;
     margin-inline-start: -0.5rem;
     padding-inline-start: 0.5rem;
   }
   .docs-markdown-content details[open] > summary:not(:where(.not-content, .not-content *)) {
     margin-bottom: 1rem;
   }
-
-  /* <summary> marker styles */
   .docs-markdown-content summary:not(:where(.not-content, .not-content *))::marker,
   .docs-markdown-content summary:not(:where(.not-content, .not-content *))::-webkit-details-marker {
     display: none;
   }
   .docs-markdown-content summary:not(:where(.not-content, .not-content *))::before {
-    --details-marker-size: 1.25rem;
-
-    background-color: currentColor;
-    content: "";
+    content: "+";
     display: inline-block;
-    height: var(--details-marker-size);
-    width: var(--details-marker-size);
-    margin-inline: calc((var(--details-marker-size) / 4) * -1) 0.25rem;
-    vertical-align: middle;
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.8 11.3 10.6 7a1 1 0 1 0-1.4 1.5l3.5 3.5-3.5 3.5a1 1 0 0 0 0 1.4 1 1 0 0 0 .7.3 1 1 0 0 0 .7-.3l4.2-4.2a1 1 0 0 0 0-1.4Z'/%3E%3C/svg%3E%0A");
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.8 11.3 10.6 7a1 1 0 1 0-1.4 1.5l3.5 3.5-3.5 3.5a1 1 0 0 0 0 1.4 1 1 0 0 0 .7.3 1 1 0 0 0 .7-.3l4.2-4.2a1 1 0 0 0 0-1.4Z'/%3E%3C/svg%3E%0A");
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .docs-markdown-content summary:not(:where(.not-content, .not-content *))::before {
-      transition: transform 0.2s ease-in-out;
-    }
+    width: 1rem;
+    margin-right: 0.5rem;
+    font-family: var(--font-pixel);
+    color: var(--accent-text);
   }
   .docs-markdown-content details[open] > summary:not(:where(.not-content, .not-content *))::before {
-    transform: rotateZ(90deg);
+    content: "\2212";
   }
-  [dir="rtl"] .docs-markdown-content summary:not(:where(.not-content, .not-content *))::before,
-  .docs-markdown-content [dir="rtl"] summary:not(:where(.not-content, .not-content *))::before {
-    transform: rotateZ(180deg);
-  }
-  /* <summary> with only a paragraph automatically added when using MDX */
   .docs-markdown-content summary:not(:where(.not-content, .not-content *)) p:only-child {
     display: inline;
   }

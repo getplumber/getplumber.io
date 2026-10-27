@@ -80,6 +80,10 @@ const docsCollection = defineCollection({
       // Optional meta-title override for search engines; the visible H1 stays `title`
       seoTitle: z.string().optional(),
       description: z.string().optional(),
+      // shown under the H1 (Figma lead paragraph); omitted pages render nothing there
+      lead: z.string().optional(),
+      // shown in the page footer as "Last updated" when present
+      lastUpdated: z.coerce.date().optional(),
       sidebar: z
         .object({
           label: z.string().optional(),

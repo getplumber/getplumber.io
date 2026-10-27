@@ -9,8 +9,7 @@ import {
 // Generic version footer for CLI release notes. The Plumber CLI version is
 // resolved to the latest release in the browser (see plumberCliVersion.ts), so
 // this component takes no version prop and never goes stale.
-const linkClass =
-  "font-medium text-primary-600 underline decoration-primary-500/40 underline-offset-2 transition hover:decoration-primary-500 dark:text-primary-400";
+const linkClass = "text-accent-text no-underline hover:underline";
 ---
 
 <Admonition variant="info">
@@ -26,8 +25,9 @@ const linkClass =
       >
         <span data-plumber-cli-version class="font-mono">
           <span
-            class="inline-block h-3 w-12 animate-pulse rounded bg-base-400/40 align-middle dark:bg-base-500/40"
-            aria-hidden="true"></span>
+            class="bg-tint-25 inline-block h-3 w-12 animate-pulse rounded align-middle"
+            aria-hidden="true"
+          ></span>
         </span>
       </a>
     </li>

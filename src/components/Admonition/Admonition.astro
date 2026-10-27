@@ -1,13 +1,17 @@
 ---
+/**
+ * Blog note banner, same design as the docs Aside: 8px radius, tint fill, 22px icon and a
+ * medium title. tip and info are teal, caution amber, danger red.
+ */
 import { Icon } from "astro-icon/components";
 
 interface Props {
   variant: "tip" | "caution" | "danger" | "info";
+  title?: string;
 }
 
-const { variant } = Astro.props as Props;
+const { variant, title } = Astro.props as Props;
 
-// create a switch statement that switches on "variant" and returns the appropriate icon
 const icon = (() => {
   switch (variant) {
     case "tip":
@@ -24,52 +28,46 @@ const icon = (() => {
 
 <div
   class:list={[
-    "admonition dark:text-foreground my-3 rounded-md border-l-4 px-4 py-3",
-
+    "admonition text-foreground rounded-r8 my-6 border px-6 py-4",
     {
-      "border-success text-success-foreground bg-success/10 admonition-success": variant === "tip",
-    },
-    {
-      "border-warning text-foreground bg-warning/10 admonition-warning": variant === "caution",
-    },
-    {
-      "border-error text-foreground bg-error/10 admonition-error": variant === "danger",
-    },
-    {
-      "border-info text-info-foreground bg-info/10 admonition-info": variant === "info",
+      "border-accent-20 bg-primary-500/5 admonition-success": variant === "tip",
+      "border-warning/40 bg-warning/5 admonition-warning": variant === "caution",
+      "border-danger-25 bg-danger-5 admonition-error": variant === "danger",
+      "border-accent-20 bg-primary-500/5 admonition-info": variant === "info",
     },
   ]}
 >
-  <div class="not-content flex items-center gap-2 pb-2">
-    <Icon name={icon} class="h-7 w-7" />
-    <p class="admonition-variant text-sm font-semibold">{variant.toUpperCase()}</p>
+  <div class="not-content flex items-center gap-3 pb-2">
+    <Icon
+      name={icon}
+      class:list={[
+        "size-[22px] shrink-0",
+        {
+          "text-primary-500": variant === "tip" || variant === "info",
+          "text-warning": variant === "caution",
+          "text-danger-500": variant === "danger",
+        },
+      ]}
+    />
+    <p class="subtitle text-foreground">
+      {title || variant.charAt(0).toUpperCase() + variant.slice(1)}
+    </p>
   </div>
   <slot />
 </div>
 
 <style is:global>
-  @import "tailwindcss/theme" theme(reference);
-  @import "@/styles/tailwind-theme.css" theme(reference);
-
   .admonition > :first-child {
-    @apply mt-0;
+    margin-top: 0;
   }
   .admonition > :nth-child(2) {
-    @apply mt-0;
+    margin-top: 0;
   }
   .admonition > :last-child {
-    @apply mb-0;
+    margin-bottom: 0;
   }
-  .admonition-success code {
-    @apply bg-success/20 border-none px-0.5;
-  }
-  .admonition-info code {
-    @apply bg-info/20 border-none px-0.5;
-  }
-  .admonition-warning code {
-    @apply bg-warning/20 border-none px-0.5;
-  }
-  .admonition-error code {
-    @apply bg-error/20 border-none px-0.5;
+  .admonition code {
+    background-color: var(--color-tint-10);
+    border-color: var(--color-tint-25);
   }
 </style>

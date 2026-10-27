@@ -321,6 +321,9 @@ function isSinglePageSection(id: string): boolean {
 // heading (e.g. Platform > Installation / Usage); consecutive single-page
 // sections share one list (e.g. Getting Started, Plumber Score) so they sit as
 // close as the pages of a section; others render standalone
+/** Label above the consecutive single-page sections (Getting Started, Plumber Score). */
+const SINGLES_GROUP_LABEL = "Start";
+
 type SidebarRenderEntry = { group?: string; singles?: boolean; ids: string[] };
 const renderEntries: SidebarRenderEntry[] = [];
 for (const id of sections) {
@@ -337,207 +340,205 @@ for (const id of sections) {
 }
 ---
 
-<nav class="space-y-8">
+<nav class="docs-sidebar flex flex-col gap-8">
   <slot name="before-links" />
 
-  {/* Documentation Tabs Selector */}
-  {
-    sidebarTabs && sidebarTabs.length > 1 && (
-      <div class="mb-6">
-        <nav aria-label="Documentation Sections" class="bg-muted/30 mr-4 rounded-md border p-2">
-          <ul class="space-y-1">
-            {sidebarTabs.map((section) => {
-              // Get the current URL path and determine if this section is active
-              const isActive = section.id === sectionId;
-
-              return (
-                <li>
-                  <a
-                    href={firstPagesMap.get(section.id)}
-                    class:list={[
-                      "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-muted text-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    ]}
-                    aria-current={isActive ? "page" : undefined}
-                  >
-                    {section.icon && (
-                      <Icon name={section.icon} class="size-4 shrink-0" aria-hidden="true" />
-                    )}
-                    <span class="flex-1">{section.title}</span>
-                    {section.description && <span class="sr-only">: {section.description}</span>}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      </div>
-    )
-  }
+  {/* Documentation Tabs Selector (only when more than one tab exists) */}
+  {sidebarTabs && sidebarTabs.length > 1 && (
+    <nav aria-label="Documentation Sections" class="card-tint rounded-r8 p-2">
+      <ul class="flex flex-col gap-1">
+        {sidebarTabs.map((section) => {
+          const isActive = section.id === sectionId;
+          return (
+            <li>
+              <a
+                href={firstPagesMap.get(section.id)}
+                class:list={[
+                  "rounded-r8 flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors",
+                  isActive
+                    ? "bg-tint-25 text-foreground"
+                    : "text-muted-foreground hover:bg-tint-25 hover:text-foreground",
+                ]}
+                aria-current={isActive ? "page" : undefined}
+              >
+                {section.icon && (
+                  <Icon name={section.icon} class="size-4 shrink-0" aria-hidden="true" />
+                )}
+                <span class="flex-1">{section.title}</span>
+                {section.description && <span class="sr-only">: {section.description}</span>}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  )}
 
   {/* Section Content */}
-  <div id={`${sectionId}-content`} role="tabpanel">
-    {
-      renderEntries.map((entry) => {
-        if (entry.group) {
-          return (
-            <div class="mb-8">
-              <h2 class="mb-2 text-lg font-semibold md:text-base">{entry.group}</h2>
-              <div class="border-border ml-0.5 space-y-5 border-l pl-3">
-                {entry.ids.map((section) => {
-                  // Pages marked grouped:false lift out of the section's sub-list
-                  // and render as direct links at the group level, placed before
-                  // or after the sub-list according to their sidebar order
-                  const all = docsBySection[section];
-                  const inner = all.filter((d) => d.grouped !== false);
-                  const minInner = Math.min(...inner.map((d) => d.order ?? Infinity));
-                  const pre = all.filter(
-                    (d) => d.grouped === false && (d.order ?? Infinity) < minInner,
-                  );
-                  const post = all.filter(
-                    (d) => d.grouped === false && (d.order ?? Infinity) >= minInner,
-                  );
-                  const renderLifted = (docs: typeof all) => (
-                    <ul class="space-y-2">
-                      {docs.map((doc) => (
-                        <SidebarLink
-                          link={doc.link}
-                          text={doc.text}
-                          badge={doc.badge}
-                          icon={doc.icon}
-                          highlightDescendants={doc.contentId === "use-plumber/issues"}
-                        />
-                      ))}
-                    </ul>
-                  );
-                  return (
-                    <div class="space-y-5">
-                      {pre.length > 0 && renderLifted(pre)}
-                      {inner.length > 0 && (
-                        <div>
-                          <h3 class="text-foreground mb-2 text-base font-medium md:text-sm">
-                            {getSectionTitle(section, sectionId, currLocale)}
-                          </h3>
-                          <ul class="border-border ml-0.5 space-y-2 border-l pl-3">
-                            {inner.map((doc) => (
-                              <SidebarLink
-                                link={doc.link}
-                                text={doc.text}
-                                indent={doc.indent}
-                                badge={doc.badge}
-                                icon={doc.icon}
-                                highlightDescendants={doc.contentId === "use-plumber/issues"}
-                              />
-                            ))}
-                            {(getSectionById(section, sectionId, currLocale)?.navLinks ?? []).map(
-                              (item) => (
-                                <SidebarLink
-                                  link={getLocalizedRoute(
-                                    currLocale,
-                                    resolveSharedDocsHref(item.href, sectionId),
-                                  )}
-                                  text={item.text}
-                                  indent={item.indent}
-                                />
-                              ),
-                            )}
-                          </ul>
-                        </div>
-                      )}
-                      {post.length > 0 && renderLifted(post)}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        }
-
-        if (entry.singles) {
-          return (
-            <div class="mb-8">
-              <ul class="space-y-2">
-                {entry.ids.map((section) => {
-                  const doc = docsBySection[section][0];
-                  return (
-                    <SidebarLink
-                      link={doc.link}
-                      text={getSectionTitle(section, sectionId, currLocale)}
-                      badge={doc.badge}
-                      icon={doc.icon}
-                    />
-                  );
-                })}
-              </ul>
-            </div>
-          );
-        }
-
-        const section = entry.ids[0];
-        const sectionConfig = getSectionById(section, sectionId, currLocale);
-        const sectionNavLinks = sectionConfig?.navLinks ?? [];
-        const sectionTitle = getSectionTitle(section, sectionId, currLocale);
-        const sectionLinks = (
-          <ul class="border-border ml-0.5 space-y-2 border-l pl-3">
-            {docsBySection[section].map((doc) => (
-              <SidebarLink
-                link={doc.link}
-                text={doc.text}
-                indent={doc.indent}
-                badge={doc.badge}
-                icon={doc.icon}
-                highlightDescendants={doc.contentId === "use-plumber/issues"}
-              />
-            ))}
-            {sectionNavLinks.map((item) => {
-              const link = getLocalizedRoute(
-                currLocale,
-                resolveSharedDocsHref(item.href, sectionId),
-              );
-              const issuesContentId = `${hrefToContentId(item.href)?.replace(/\/index$/, "")}`;
-              const isIssuesNavLink = issuesContentId?.endsWith("/issues");
-
-              return (
-                <SidebarLink
-                  link={link}
-                  text={item.text}
-                  indent={item.indent}
-                  highlightDescendants={isIssuesNavLink}
-                />
-              );
-            })}
-          </ul>
-        );
-        // A folded section: same heading, wrapped in a native disclosure so it
-        // works without JavaScript, and open on the pages it holds
-        if (sectionConfig?.collapsed) {
-          const isOpen = holdsCurrentPage(docsBySection[section]);
-          return (
-            <details class="sidebar-disclosure mb-8" data-sidebar-section={section} open={isOpen}>
-              <summary
-                class="docs-primary-focus mb-2 flex cursor-pointer list-none items-center gap-1 text-lg font-semibold md:text-base"
-              >
-                <span class="sidebar-disclosure__marker inline-flex shrink-0" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="currentColor" class="size-4">
-                    <path d="M14.8 11.3 10.6 7a1 1 0 1 0-1.4 1.5l3.5 3.5-3.5 3.5a1 1 0 0 0 0 1.4 1 1 0 0 0 .7.3 1 1 0 0 0 .7-.3l4.2-4.2a1 1 0 0 0 0-1.4Z" />
-                  </svg>
-                </span>
-                <span>{sectionTitle}</span>
-              </summary>
-              {sectionLinks}
-            </details>
-          );
-        }
+  <div id={`${sectionId}-content`} role="tabpanel" class="flex flex-col gap-8">
+    {renderEntries.map((entry) => {
+      if (entry.group) {
         return (
-        <div class="mb-8">
-          <h2 class="mb-2 text-lg font-semibold md:text-base">{sectionTitle}</h2>
+          <div class="flex flex-col gap-4">
+            <p class="eyebrow text-muted-foreground">{entry.group}</p>
+            <div class="flex flex-col gap-1">
+              {entry.ids.map((section) => {
+                // Pages marked grouped:false lift out of the section's sub-list
+                // and render as direct links at the group level, placed before
+                // or after the sub-list according to their sidebar order
+                const all = docsBySection[section];
+                const inner = all.filter((d) => d.grouped !== false);
+                const minInner = Math.min(...inner.map((d) => d.order ?? Infinity));
+                const pre = all.filter(
+                  (d) => d.grouped === false && (d.order ?? Infinity) < minInner,
+                );
+                const post = all.filter(
+                  (d) => d.grouped === false && (d.order ?? Infinity) >= minInner,
+                );
+                const renderLifted = (docs: typeof all) => (
+                  <ul class="flex flex-col gap-1">
+                    {docs.map((doc) => (
+                      <SidebarLink
+                        link={doc.link}
+                        text={doc.text}
+                        badge={doc.badge}
+                        icon={doc.icon}
+                        highlightDescendants={doc.contentId === "use-plumber/issues"}
+                      />
+                    ))}
+                  </ul>
+                );
+                // Sub-sections of a group fold like the Figma "Installation" and
+                // "Usage" rows: a menu row with a chevron, open on its own pages
+                return (
+                  <>
+                    {pre.length > 0 && renderLifted(pre)}
+                    {inner.length > 0 && (
+                      <details
+                        class="sidebar-disclosure"
+                        data-sidebar-section={section}
+                        open={holdsCurrentPage(inner)}
+                      >
+                        <summary class="sidebar-disclosure__summary docs-primary-focus">
+                          <span class="sidebar-disclosure__marker" aria-hidden="true" />
+                          <span class="min-w-0 flex-1">
+                            {getSectionTitle(section, sectionId, currLocale)}
+                          </span>
+                          <span class="sidebar-disclosure__chevron" aria-hidden="true" />
+                        </summary>
+                        <ul class="flex flex-col gap-1 pt-1">
+                          {inner.map((doc) => (
+                            <SidebarLink
+                              link={doc.link}
+                              text={doc.text}
+                              indent
+                              badge={doc.badge}
+                              icon={doc.icon}
+                              highlightDescendants={doc.contentId === "use-plumber/issues"}
+                            />
+                          ))}
+                          {(getSectionById(section, sectionId, currLocale)?.navLinks ?? []).map(
+                            (item) => (
+                              <SidebarLink
+                                link={getLocalizedRoute(
+                                  currLocale,
+                                  resolveSharedDocsHref(item.href, sectionId),
+                                )}
+                                text={item.text}
+                                indent
+                              />
+                            ),
+                          )}
+                        </ul>
+                      </details>
+                    )}
+                    {post.length > 0 && renderLifted(post)}
+                  </>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      if (entry.singles) {
+        return (
+          <div class="flex flex-col gap-4">
+            <p class="eyebrow text-muted-foreground">{SINGLES_GROUP_LABEL}</p>
+            <ul class="flex flex-col gap-1">
+              {entry.ids.map((section) => {
+                const doc = docsBySection[section][0];
+                return (
+                  <SidebarLink
+                    link={doc.link}
+                    text={getSectionTitle(section, sectionId, currLocale)}
+                    badge={doc.badge}
+                    icon={doc.icon}
+                  />
+                );
+              })}
+            </ul>
+          </div>
+        );
+      }
+
+      const section = entry.ids[0];
+      const sectionConfig = getSectionById(section, sectionId, currLocale);
+      const sectionNavLinks = sectionConfig?.navLinks ?? [];
+      const sectionTitle = getSectionTitle(section, sectionId, currLocale);
+      const sectionLinks = (
+        <ul class="flex flex-col gap-1">
+          {docsBySection[section].map((doc) => (
+            <SidebarLink
+              link={doc.link}
+              text={doc.text}
+              indent={doc.indent}
+              badge={doc.badge}
+              icon={doc.icon}
+              highlightDescendants={doc.contentId === "use-plumber/issues"}
+            />
+          ))}
+          {sectionNavLinks.map((item) => {
+            const link = getLocalizedRoute(currLocale, resolveSharedDocsHref(item.href, sectionId));
+            const issuesContentId = `${hrefToContentId(item.href)?.replace(/\/index$/, "")}`;
+            const isIssuesNavLink = issuesContentId?.endsWith("/issues");
+
+            return (
+              <SidebarLink
+                link={link}
+                text={item.text}
+                indent={item.indent}
+                highlightDescendants={isIssuesNavLink}
+              />
+            );
+          })}
+        </ul>
+      );
+      // A folded section: the pixel label becomes the disclosure summary, open on
+      // the pages it holds, and works without JavaScript
+      if (sectionConfig?.collapsed) {
+        const isOpen = holdsCurrentPage(docsBySection[section]);
+        return (
+          <details
+            class="sidebar-disclosure flex flex-col gap-4"
+            data-sidebar-section={section}
+            open={isOpen}
+          >
+            <summary class="docs-primary-focus flex cursor-pointer list-none items-center justify-between gap-3">
+              <span class="eyebrow text-muted-foreground">{sectionTitle}</span>
+              <span class="sidebar-disclosure__chevron" aria-hidden="true" />
+            </summary>
+            {sectionLinks}
+          </details>
+        );
+      }
+      return (
+        <div class="flex flex-col gap-4">
+          <p class="eyebrow text-muted-foreground">{sectionTitle}</p>
           {sectionLinks}
         </div>
-        );
-      })
-    }
+      );
+    })}
   </div>
 
   <slot name="after-links" />
@@ -547,11 +548,47 @@ for (const id of sections) {
   .sidebar-disclosure > summary::-webkit-details-marker {
     display: none;
   }
-  .sidebar-disclosure[open] > summary .sidebar-disclosure__marker {
-    transform: rotate(90deg);
+  /* a folding row looks like a menu row (Figma Component 135) */
+  .sidebar-disclosure__summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    list-style: none;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  .sidebar-disclosure__summary:hover {
+    background-color: var(--color-tint-25);
+    color: var(--foreground);
+  }
+  .sidebar-disclosure__marker {
+    width: 6px;
+    height: 6px;
+    flex: none;
+    background-color: transparent;
+  }
+  /* pixel-style chevron: a rotated square corner */
+  .sidebar-disclosure__chevron {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    margin-right: 4px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+  }
+  .sidebar-disclosure[open] > summary .sidebar-disclosure__chevron {
+    transform: translateY(2px) rotate(-135deg);
   }
   @media (prefers-reduced-motion: no-preference) {
-    .sidebar-disclosure > summary .sidebar-disclosure__marker {
+    .sidebar-disclosure__chevron {
       transition: transform 0.2s ease-in-out;
     }
   }

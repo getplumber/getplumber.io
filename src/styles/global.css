@@ -18,6 +18,7 @@
 /* other imports into specific layers */
 @import "./mos.css" layer(utilities);
 @import "./markdown-content.css" layer(components);
+@import "./code-frames.css";
 @import "./buttons.css" layer(components);
 
 /* layer definitions */

@@ -10,8 +10,6 @@ import { PLUMBER_GITHUB_REPO_URL } from "@js/plumberGithubRepo";
 import { getTranslatedData } from "@js/translationUtils";
 import { Icon } from "astro-icon/components";
 
-import DocsSearch from "@/docs/components/search/Search.astro";
-
 const currLocale = getLocaleFromUrl(Astro.url);
 const navData = getTranslatedData("navData", currLocale);
 // items flagged "hidden" stay in the data until their page exists
@@ -48,7 +46,6 @@ const isDocs = Astro.url.pathname.startsWith("/docs");
       <!-- desktop actions -->
       <div class="ml-auto hidden items-center gap-3 lg:flex">
         <ThemeToggle />
-        {isDocs && <DocsSearch />}
         <a
           href={PLUMBER_GITHUB_REPO_URL}
           target="_blank"
