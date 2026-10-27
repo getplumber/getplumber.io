@@ -484,6 +484,8 @@ Flags that read or publish a verdict have nothing to act on and are ignored, wit
 
 `--pbom` writes Plumber's native, pipeline-specific inventory; `--pbom-cyclonedx` writes the same inventory as a [CycloneDX 1.5](https://cyclonedx.org/docs/1.5/json/) SBOM, compatible with tools like Grype, Trivy, and Dependency-Track. With the [GitLab CI component](/docs/cli/gitlab#run-with-the-gitlab-ci-component), the CycloneDX file is automatically uploaded as a [GitLab CycloneDX report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx).
 
+On GitHub, the image inventory lists each job's `container:` image and the images of its `uses: docker://…` steps. A `docker://` step that a composite action pulls in is listed with the job too, flagged `nested`, with the chain of actions in `via` (`plumber:nested` and `plumber:via` in CycloneDX).
+
 <Aside variant="info">
   CI/CD components and templates do not have CVEs in public vulnerability databases. The PBOM is primarily an **inventory tool**: it tells you *what's in your pipeline*, not whether those items have known vulnerabilities. For image vulnerability scanning, use `trivy image` or `grype` directly on the images.
 </Aside>
@@ -558,7 +560,7 @@ Each entry describes one finding. Beyond the keys below, a rule adds its own str
 
 To track a control across runs (history, remediation state, trend dashboards), key on the pair `controlName` + `status`: `controlName` is the check's stable identity and `status` its verdict for that run. To track one individual finding within a control, use its `fingerprint`.
 
-On GitHub, a finding points at the line that triggered it: the `run:` line, the container `image:`, the `env:` entry that sets a variable, or a job key such as `permissions:`, `uses:`, `secrets: inherit` or `continue-on-error`. Rules that judge a whole job or a whole script still point at the job header, as GitLab findings do for now. The same line is used by `url`, the CSV `line` column, SARIF and every other output. It is not part of the fingerprint, so a finding that moves to a more precise line keeps its fingerprint and its dismissals.
+On GitHub, a finding points at the line that triggered it: the `run:` line, the container `image:`, the `env:` entry that sets a variable, or a job key such as `permissions:`, `uses:`, `secrets: inherit` or `continue-on-error`. Rules that judge a whole job or a whole script point at the job header, and so do GitLab findings. `url`, the CSV `line` column, SARIF and the other outputs all use that line. Like every line number, it is left out of the [fingerprint](#finding-fingerprint), so dismissals don't depend on it.
 
 **`partialControls` entry**
 
