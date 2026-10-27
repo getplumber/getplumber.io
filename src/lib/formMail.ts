@@ -104,8 +104,12 @@ export async function sendMail(subject: string, text: string, replyTo?: string):
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from, to, subject, text, reply_to: replyTo }),
     });
-    return res.ok ? json({ ok: true }) : json({ error: "upstream" }, 502);
-  } catch {
+    if (res.ok) return json({ ok: true });
+    // the reason lands in the function logs (Vercel), never in the response
+    console.error("[formMail] Resend refused the email:", res.status, await res.text());
+    return json({ error: "upstream" }, 502);
+  } catch (error) {
+    console.error("[formMail] Resend unreachable:", error);
     return json({ error: "upstream" }, 502);
   }
 }
