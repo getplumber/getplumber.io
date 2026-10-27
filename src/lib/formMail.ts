@@ -3,9 +3,9 @@
  * JSON parsing with a size cap, field validation, a best-effort per-IP rate limit,
  * and delivery through the Resend HTTP API.
  *
- * Environment (see .env.example): RESEND_API_KEY, RESEND_FROM, CONTACT_TO_EMAIL.
- * Without RESEND_API_KEY and RESEND_FROM the routes answer 503 so forms can fall back
- * to a mailto link in preview and local development.
+ * Environment (see .env.example): RESEND_API_KEY, RESEND_FROM, CONTACT_TO_EMAIL, read from
+ * the function's environment at request time. Without RESEND_API_KEY and RESEND_FROM the
+ * routes answer 503 so forms can fall back to a mailto link in preview and local development.
  */
 
 export type Fields = Record<string, string>;
@@ -91,11 +91,21 @@ export function clientKey(request: Request): string {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anon";
 }
 
+/**
+ * Reads a setting when the request runs. `import.meta.env` is replaced at build time, so a
+ * prebuilt deploy (vercel build in CI) would freeze whatever the build machine had; the
+ * function's own environment holds the project's current values.
+ */
+function setting(name: string): string | undefined {
+  const runtime = typeof process !== "undefined" ? process.env[name] : undefined;
+  return runtime || (import.meta.env[name] as string | undefined) || undefined;
+}
+
 /** Sends a plain-text email through Resend. */
 export async function sendMail(subject: string, text: string, replyTo?: string): Promise<Response> {
-  const key = import.meta.env.RESEND_API_KEY;
-  const from = import.meta.env.RESEND_FROM;
-  const to = import.meta.env.CONTACT_TO_EMAIL || "hello@getplumber.io";
+  const key = setting("RESEND_API_KEY");
+  const from = setting("RESEND_FROM");
+  const to = setting("CONTACT_TO_EMAIL") || "hello@getplumber.io";
   if (!key || !from) return json({ error: "unconfigured" }, 503);
 
   try {
