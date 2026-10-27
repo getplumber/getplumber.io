@@ -683,7 +683,6 @@ lint:
       title: "Forbidden container image tag",
       category: "CI/CD Container Images",
       severity: "medium",
-      productScope: "cli",
       controlName: "Container images must not use forbidden reference",
       controlConfigKey: "containerImageMustNotUseForbiddenTags",
       description:
@@ -816,7 +815,6 @@ jobs:
       title: "Workflow exposes all its secrets at once",
       category: "CI/CD Secrets",
       severity: "critical",
-      productScope: "cli",
       controlName: "Workflows must not expose all secrets at once",
       controlConfigKey: "workflowMustNotExportEntireSecretsContext",
       description:
@@ -1218,7 +1216,6 @@ variables:
       title: "Branch protection missing",
       category: "Access and Authorization",
       severity: "critical",
-      productScope: "cli",
       controlName: "Branch must be protected",
       controlConfigKey: "branchMustBeProtected",
       description:
@@ -1318,7 +1315,6 @@ variables:
       title: "Workflow has no explicit name",
       category: "Pipeline Composition",
       severity: "low",
-      productScope: "cli",
       controlName: "Workflows must have an explicit name",
       controlConfigKey: "workflowsMustHaveExplicitName",
       description:
@@ -1358,7 +1354,6 @@ jobs:
       title: "Workflow file is not valid",
       category: "Pipeline Composition",
       severity: "low",
-      productScope: "cli",
       controlName: "Workflow files must be valid",
       controlConfigKey: "workflowsMustBeValid",
       description:
@@ -1646,7 +1641,6 @@ deploy:
       title: "Branch protection configuration not compliant",
       category: "Access and Authorization",
       severity: "high",
-      productScope: "cli",
       controlName: "Branch must be protected",
       controlConfigKey: "branchMustBeProtected",
       description:
@@ -2606,7 +2600,6 @@ jobs:
       title: "Third-party action is not pinned by commit SHA",
       category: "Third-party actions",
       severity: "high",
-      productScope: "cli",
       controlName: "Third-party actions must be pinned by commit SHA",
       controlConfigKey: "actionsMustBePinnedByCommitSha",
       description:
@@ -2649,7 +2642,6 @@ jobs:
       title: "Action is hosted in an archived repository",
       category: "Third-party actions",
       severity: "high",
-      productScope: "cli",
       controlName: "Actions must not reference archived repositories",
       controlConfigKey: "actionsMustNotBeArchived",
       description:
@@ -2690,7 +2682,6 @@ jobs:
       title: "Pinned SHA does not exist in upstream repository",
       category: "Third-party actions",
       severity: "critical",
-      productScope: "cli",
       controlName: "Pinned Upstream Actions must exist",
       controlConfigKey: "actionRefsMustExistUpstream",
       description:
@@ -2729,7 +2720,6 @@ jobs:
       title: "Action version comment does not match the resolved SHA",
       category: "Third-party actions",
       severity: "medium",
-      productScope: "cli",
       controlName: "Action version comment must match SHA",
       controlConfigKey: "actionPinCommentsMustMatchSha",
       description:
@@ -2769,7 +2759,6 @@ jobs:
       title: "Pinned action is stale relative to the latest release",
       category: "Third-party actions",
       severity: "low",
-      productScope: "cli",
       controlName: "Pinned actions must not be stale",
       controlConfigKey: "actionPinsMustNotBeStale",
       description:
@@ -2882,7 +2871,6 @@ include:
       title: "Action version carries a published security advisory",
       category: "Third-party actions",
       severity: "critical",
-      productScope: "cli",
       controlName: "Actions must not carry known CVEs",
       controlConfigKey: "actionsMustNotCarryKnownCVEs",
       description:
@@ -2924,7 +2912,6 @@ jobs:
       title: "Action duplicates a runner built-in",
       category: "Third-party actions",
       severity: "low",
-      productScope: "cli",
       controlName: "Avoid actions that duplicate runner built-ins",
       controlConfigKey: "actionsMustNotDuplicateRunnerBuiltins",
       description:
@@ -2970,7 +2957,6 @@ jobs:
       title: "Action comes from an unauthorized source",
       category: "Third-party actions",
       severity: "high",
-      productScope: "cli",
       controlName: "Actions must come from authorized sources",
       controlConfigKey: "githubActionMustComeFromAuthorizedSources",
       description:
@@ -3028,7 +3014,6 @@ jobs:
       title: "Action fetches and runs remote code from a mutable ref",
       category: "Third-party actions",
       severity: "high",
-      productScope: "cli",
       controlName: "Actions must not execute mutable remote code",
       controlConfigKey: "actionsMustNotExecuteMutableRemoteCode",
       description:
@@ -3078,7 +3063,6 @@ jobs:
       title: "Action obfuscates a remote code fetch/exec",
       category: "Third-party actions",
       severity: "critical",
-      productScope: "cli",
       controlName: "Actions must not execute mutable remote code",
       controlConfigKey: "actionsMustNotExecuteMutableRemoteCode",
       description:
@@ -3124,7 +3108,6 @@ runs:
       title: "Action source could not be verified",
       category: "Third-party actions",
       severity: "low",
-      productScope: "cli",
       controlName: "Actions must not execute mutable remote code",
       controlConfigKey: "actionsMustNotExecuteMutableRemoteCode",
       description:
@@ -3165,7 +3148,6 @@ jobs:
       title: "Container registry credentials are hardcoded",
       category: "Third-party actions",
       severity: "critical",
-      productScope: "cli",
       controlName: "Container registry credentials must not be hardcoded",
       controlConfigKey: "containerCredentialsMustComeFromSecrets",
       description:
@@ -3211,7 +3193,6 @@ jobs:
       title: "Untrusted trigger granted cache write",
       category: "Third-party actions",
       severity: "high",
-      productScope: "cli",
       controlName: "Untrusted triggers must not write the cache",
       controlConfigKey: "untrustedTriggersMustNotWriteCache",
       description:
@@ -3287,7 +3268,6 @@ jobs:
       title: "Dockerfile FROM reference is not pinned by digest",
       category: "Third-party actions",
       severity: "medium",
-      productScope: "cli",
       controlName: "Dockerfile FROM must be pinned by digest",
       controlConfigKey: "dockerfilesMustPinBaseImageByDigest",
       description:
@@ -3323,7 +3303,6 @@ RUN npm ci`,
       title: "Workflow inlines user input into a shell script",
       category: "CI/CD Variables",
       severity: "critical",
-      productScope: "cli",
       controlName: "Workflow must not inline user input into shell scripts",
       controlConfigKey: "workflowMustNotInjectUserInputInScripts",
       description:
@@ -3367,7 +3346,6 @@ jobs:
       title: "Workflow re-enables deprecated workflow commands",
       category: "CI/CD Variables",
       severity: "high",
-      productScope: "cli",
       controlName: "Workflow must not re-enable deprecated commands",
       controlConfigKey: "workflowMustNotReEnableInsecureCommands",
       description:
@@ -3407,7 +3385,6 @@ jobs:
       title: "Workflow writes untrusted content to $GITHUB_ENV",
       category: "CI/CD Variables",
       severity: "high",
-      productScope: "cli",
       controlName: "Workflow must not write untrusted content to $GITHUB_ENV",
       controlConfigKey: "workflowMustNotWriteUntrustedContentToGitHubEnv",
       description:
@@ -3453,7 +3430,6 @@ jobs:
       title: "Workflow gates on a spoofable actor check",
       category: "CI/CD Variables",
       severity: "high",
-      productScope: "cli",
       controlName: "Workflow must not gate on spoofable actor checks",
       controlConfigKey: "workflowMustNotTrustSpoofableActorChecks",
       description:
@@ -3494,7 +3470,6 @@ jobs:
       title: "Workflow `if:` condition is logically unsound",
       category: "CI/CD Variables",
       severity: "medium",
-      productScope: "cli",
       controlName: "Workflow `if:` conditions must be logically sound",
       controlConfigKey: "workflowConditionsMustBeSound",
       description:
@@ -3533,7 +3508,6 @@ jobs:
       title: "Workflow misuses the contains() built-in",
       category: "CI/CD Variables",
       severity: "medium",
-      productScope: "cli",
       controlName: "Workflow `contains()` calls must be well-typed",
       controlConfigKey: "workflowContainsCallsMustBeSound",
       description:
@@ -3572,7 +3546,6 @@ jobs:
       title: "Workflow dumps the github context",
       category: "CI/CD Variables",
       severity: "high",
-      productScope: "cli",
       controlName: "Workflow must not dump the github context",
       controlConfigKey: "workflowMustNotExportEntireGitHubContext",
       description:
@@ -3615,7 +3588,6 @@ jobs:
       title: "Workflow installs a package without pinning",
       category: "CI/CD Variables",
       severity: "medium",
-      productScope: "cli",
       controlName: "Workflow must pin package installs",
       controlConfigKey: "workflowMustPinPackageInstalls",
       description:
@@ -3656,7 +3628,6 @@ jobs:
       title: "Workflow expands `vars.*` template into shell",
       category: "CI/CD Variables",
       severity: "low",
-      productScope: "cli",
       controlName: "Workflow must not expand `vars.*` into shell",
       controlConfigKey: "workflowMustNotInjectVarsInScripts",
       description:
@@ -3703,7 +3674,6 @@ jobs:
       title: "Release workflow produces unsigned artefacts",
       category: "Third-party actions",
       severity: "medium",
-      productScope: "cli",
       controlName: "Release artefacts must be signed",
       controlConfigKey: "releaseWorkflowsMustSignArtefacts",
       description:
@@ -3759,7 +3729,6 @@ jobs:
       title: "Reusable workflow called with `secrets: inherit`",
       category: "CI/CD Secrets",
       severity: "high",
-      productScope: "cli",
       controlName: "Reusable workflow must not use `secrets: inherit`",
       controlConfigKey: "reusableWorkflowsMustNotInheritSecrets",
       description:
@@ -3795,7 +3764,6 @@ jobs:
       title: "Secret dereferenced via fromJSON bypasses redaction",
       category: "CI/CD Secrets",
       severity: "high",
-      productScope: "cli",
       controlName: "Secret must not be dereferenced via fromJSON",
       controlConfigKey: "workflowMustNotUnredactSecretsViaFromJSON",
       description:
@@ -3835,7 +3803,6 @@ jobs:
       title: "Workflow does not declare permissions",
       category: "Workflow triggers and permissions",
       severity: "medium",
-      productScope: "cli",
       controlName: "Workflow permissions must be declared",
       controlConfigKey: "workflowsMustDeclarePermissions",
       description:
@@ -3881,7 +3848,6 @@ jobs:
       title: "Secret used without an environment gate",
       category: "CI/CD Secrets",
       severity: "medium",
-      productScope: "cli",
       controlName: "Secret use must be gated by an environment",
       controlConfigKey: "deployJobsMustUseEnvironmentGate",
       description:
@@ -3924,7 +3890,6 @@ jobs:
       title: "GitHub App token issued with revocation disabled",
       category: "CI/CD Secrets",
       severity: "high",
-      productScope: "cli",
       controlName: "GitHub App token must allow revocation",
       controlConfigKey: "githubAppTokensMustBeRevokedOnExit",
       description:
@@ -3971,7 +3936,6 @@ jobs:
       title: "Checkout persists credentials in .git/config",
       category: "CI/CD Secrets",
       severity: "low",
-      productScope: "cli",
       controlName: "Checkout must not persist credentials",
       controlConfigKey: "checkoutMustNotPersistCredentials",
       description:
@@ -4019,7 +3983,6 @@ jobs:
       title: "Persisted checkout credentials packed into an uploaded artifact",
       category: "CI/CD Secrets",
       severity: "high",
-      productScope: "cli",
       controlName: "Checkout must not persist credentials",
       controlConfigKey: "checkoutMustNotPersistCredentials",
       description:
@@ -4070,7 +4033,6 @@ jobs:
       title: "Secret read via dynamic index",
       category: "CI/CD Secrets",
       severity: "low",
-      productScope: "cli",
       controlName: "Secret must not be read via dynamic index",
       controlConfigKey: "workflowMustNotIndexSecretsDynamically",
       description:
@@ -4123,7 +4085,6 @@ jobs:
       title: "Dangerous trigger runs fork-controlled code with base-repo secrets",
       category: "Workflow triggers and permissions",
       severity: "critical",
-      productScope: "cli",
       controlName: "Workflow must not use dangerous triggers",
       controlConfigKey: "workflowMustNotUseDangerousTriggers",
       description:
@@ -4178,7 +4139,6 @@ jobs:
       title: "pull_request_target workflow checks out the PR head",
       category: "Workflow triggers and permissions",
       severity: "critical",
-      productScope: "cli",
       controlName: "pull_request_target must not check out the PR head",
       controlConfigKey: "pullRequestTargetMustNotCheckoutHead",
       description:
@@ -4227,7 +4187,6 @@ jobs:
       title: "Required action or reusable workflow is missing",
       category: "Pipeline Composition",
       severity: "high",
-      productScope: "cli",
       controlName: "Workflows must include required actions",
       controlConfigKey: "workflowMustIncludeRequiredActions",
       description:
@@ -4279,7 +4238,6 @@ jobs:
       title: "Job runs with overly broad (write-all) permissions",
       category: "Workflow triggers and permissions",
       severity: "high",
-      productScope: "cli",
       controlName: "Job must not run with write-all permissions",
       controlConfigKey: "workflowMustNotGrantPermissionsWriteAll",
       description:
@@ -4323,7 +4281,6 @@ jobs:
       title: "Workflow has no concurrency block",
       category: "Pipeline Composition",
       severity: "medium",
-      productScope: "cli",
       controlName: "Workflow must declare a concurrency block",
       controlConfigKey: "workflowsMustDeclareConcurrency",
       description:
@@ -4368,7 +4325,6 @@ jobs:
       title: "Workflow uses a known misfeature pattern",
       category: "Pipeline Composition",
       severity: "medium",
-      productScope: "cli",
       controlName: "Workflow must not use known misfeature patterns",
       controlConfigKey: "workflowMustNotUseKnownMisfeatures",
       description:
@@ -4421,7 +4377,6 @@ jobs:
       title: "Workflow contains obfuscated content",
       category: "Pipeline Composition",
       severity: "high",
-      productScope: "cli",
       controlName: "Workflow must not contain obfuscated content",
       controlConfigKey: "workflowMustNotContainObfuscation",
       description:
@@ -4465,7 +4420,6 @@ jobs:
       title: "Publish workflow uses a static token instead of OIDC trusted publishing",
       category: "Pipeline Composition",
       severity: "high",
-      productScope: "cli",
       controlName: "Publish workflows should use OIDC trusted publishing",
       controlConfigKey: "publishWorkflowsMustUseOidcTrustedPublishing",
       description:
@@ -4510,7 +4464,6 @@ jobs:
       title: "dependabot.yml re-enables insecure external execution",
       category: "Repository hygiene",
       severity: "critical",
-      productScope: "cli",
       controlName: "dependabot.yml must not re-enable insecure external execution",
       controlConfigKey: "dependabotMustNotAllowInsecureExternalCodeExecution",
       description:
@@ -4551,7 +4504,6 @@ updates:
       title: "dependabot.yml update ecosystem has no cooldown",
       category: "Repository hygiene",
       severity: "low",
-      productScope: "cli",
       controlName: "dependabot.yml update ecosystems should have a cooldown",
       controlConfigKey: "dependabotEcosystemsMustHaveCooldown",
       description:
@@ -4593,7 +4545,6 @@ updates:
       title: "Repository has workflows but no dependency update tool",
       category: "Repository hygiene",
       severity: "medium",
-      productScope: "cli",
       controlName: "Repository should have a dependency update tool",
       controlConfigKey: "repositoriesMustConfigureDependencyUpdates",
       description:
@@ -4636,7 +4587,6 @@ updates:
       title: "Repository has workflows but no SAST scanner",
       category: "Repository hygiene",
       severity: "low",
-      productScope: "cli",
       controlName: "Repository should run a SAST scanner",
       controlConfigKey: "repositoriesMustRunSAST",
       description:
@@ -4687,7 +4637,6 @@ jobs:
       title: "Repository has no SECURITY.md",
       category: "Repository hygiene",
       severity: "low",
-      productScope: "cli",
       controlName: "Repository should have a SECURITY.md policy",
       controlConfigKey: "repositoriesMustPublishSecurityPolicy",
       description:
