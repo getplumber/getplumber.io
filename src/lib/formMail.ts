@@ -23,10 +23,18 @@ const LIMIT = 5;
 const MAX_BODY_BYTES = 8192;
 
 const hits = new Map<string, number[]>();
+const PRUNE_ABOVE = 500;
 
 /** True when the key made more than LIMIT requests inside the sliding window. */
 export function rateLimited(key: string): boolean {
   const now = Date.now();
+  if (hits.size > PRUNE_ABOVE) {
+    // drop the clients whose last request left the window, so the map cannot grow for
+    // the life of the instance
+    for (const [other, times] of hits) {
+      if (now - (times[times.length - 1] ?? 0) >= WINDOW_MS) hits.delete(other);
+    }
+  }
   const recent = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
   recent.push(now);
   hits.set(key, recent);

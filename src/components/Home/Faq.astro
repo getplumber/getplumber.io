@@ -2,7 +2,8 @@
 /**
  * "Questions" (Figma HOME_Last, node 2513:1845, 1440 x 898).
  * Accordion on the Starwind primitive: items separated by tint strokes, the open item
- * gets the stronger tint and a "-" glyph, closed items a "+". The first item starts open.
+ * gets a "-" glyph, closed items a "+". Every item starts closed. Below lg the rows have no
+ * side padding, like the coverage overview row.
  * Also emits the FAQPage JSON-LD for search engines.
  */
 import Accordion from "@components/starwind/accordion/Accordion.astro";
@@ -32,16 +33,16 @@ const faqJsonLd = JSON.stringify({
 ---
 
 <section id="faq" class="bg-background">
-  <div class="home-container flex flex-col gap-16 py-16 lg:py-[88px]">
+  <div class="home-container flex flex-col gap-16 py-20 lg:py-[104px]" data-reveal>
     <SectionHeading eyebrow={faqSection.eyebrow} headline={faqSection.headline} class="gap-5" />
 
-    <Accordion type="single" defaultValue="faq-0" class="faq stroke-tint border-b">
+    <Accordion type="single" class="faq stroke-tint border-b">
       {faqData.map((item, i) => (
         <AccordionItem
           value={`faq-${i}`}
           class="faq__item stroke-tint rounded-none border-0 border-t"
         >
-          <AccordionTrigger class="faq__trigger body-lg rounded-none p-8 font-normal [&>svg]:hidden">
+          <AccordionTrigger class="faq__trigger body-lg rounded-none px-0 py-8 font-normal lg:px-8 [&>svg]:hidden">
             <span class="faq__question">{item.question}</span>
             <span class="faq__glyph text-[28px] leading-none font-light" aria-hidden="true" />
           </AccordionTrigger>
@@ -54,9 +55,6 @@ const faqJsonLd = JSON.stringify({
 
 <script type="application/ld+json" set:html={faqJsonLd} is:inline />
 <style>
-  :global(.faq__item[data-state="open"]) {
-    background-color: var(--color-tint-10);
-  }
   :global(.faq__trigger) {
     color: var(--muted-foreground);
   }
@@ -87,5 +85,12 @@ const faqJsonLd = JSON.stringify({
     color: var(--accent-text);
     text-decoration: underline;
     text-underline-offset: 2px;
+  }
+  /* below lg the rows sit flush with the container, like the coverage overview row */
+  @media (max-width: 1023px) {
+    :global(.faq__content > div) {
+      padding-left: 0;
+      padding-right: 0;
+    }
   }
 </style>

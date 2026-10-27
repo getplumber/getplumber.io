@@ -2,22 +2,23 @@
 /**
  * "Don't take our word for it. Check the grade." (Figma HOME_Last, node 2513:1791, 1440 x 925).
  * Heading with two CTAs, a four-cell numbers strip, and a testimonial carousel: the rail
- * scrolls horizontally with snap points, bleeds to the right edge of the viewport like the
- * Figma frame, hides the native scrollbar, and is driven by previous/next buttons.
+ * scrolls horizontally with snap points inside the container width, fading out at its
+ * right edge, hides the native scrollbar, and
+ * is driven by previous/next buttons (Figma pixel chevrons) at the two ends of the container. The numbers strip
+ * uses 32px figures and 14px labels (26px figures and 12px between the lines below lg);
+ * the CTAs are full width on phones.
  */
 import Button from "@components/Button/Button.astro";
 import TestimonialCard from "@components/Testimonials/TestimonialCard.astro";
 import { proof } from "@config/en/homeData.json";
 import { testimonialData } from "@config/en/testimonialData.json";
+import { Icon } from "astro-icon/components";
 
 import SectionHeading from "./SectionHeading.astro";
-
-// the Figma rail shows the third card emphasised
-const activeIndex = 2;
 ---
 
 <section id="proof" class="bg-background overflow-x-clip">
-  <div class="home-container flex flex-col gap-16 py-16 lg:gap-[88px] lg:py-[88px]">
+  <div class="home-container flex flex-col gap-16 py-20 lg:gap-[88px] lg:py-[104px]" data-reveal>
     <div class="flex flex-col gap-16">
       <SectionHeading
         eyebrow={proof.eyebrow}
@@ -30,6 +31,7 @@ const activeIndex = 2;
         <Button
           variant={proof.ctas[0].variant}
           marker="leading"
+          class="w-full sm:w-auto"
           href={proof.ctas[0].link}
           target={proof.ctas[0].newTab ? "_blank" : undefined}
           rel={proof.ctas[0].newTab ? "noopener noreferrer" : undefined}
@@ -39,6 +41,7 @@ const activeIndex = 2;
         <Button
           variant={proof.ctas[1].variant}
           marker="trailing"
+          class="w-full sm:w-auto"
           href={proof.ctas[1].link}
           target={proof.ctas[1].newTab ? "_blank" : undefined}
           rel={proof.ctas[1].newTab ? "noopener noreferrer" : undefined}
@@ -50,9 +53,9 @@ const activeIndex = 2;
 
     <dl class="stroke-tint grid border-y sm:grid-cols-2 lg:grid-cols-4">
       {proof.stats.map((stat) => (
-        <div class="stroke-tint flex flex-col gap-2 border-b px-6 py-8 sm:border-r sm:last:border-r-0 lg:border-b-0">
-          <dd class="h3 text-foreground order-1">{stat.value}</dd>
-          <dt class="body-xs text-muted-foreground order-2">{stat.label}</dt>
+        <div class="stroke-tint flex flex-col gap-3 border-b px-6 py-8 sm:border-r sm:last:border-r-0 lg:gap-2 lg:border-b-0">
+          <dd class="h3 text-foreground order-1 text-[26px] lg:text-[2rem]">{stat.value}</dd>
+          <dt class="body-sm text-muted-foreground order-2">{stat.label}</dt>
         </div>
       ))}
     </dl>
@@ -63,22 +66,20 @@ const activeIndex = 2;
         aria-label="Customer testimonials"
         tabindex="0"
       >
-        {testimonialData.map((item, i) => (
+        {testimonialData.map((item) => (
           <li class="w-[min(100%,424px)] shrink-0 snap-start">
-            <TestimonialCard {...item} active={i === activeIndex} />
+            <TestimonialCard {...item} />
           </li>
         ))}
       </ul>
-      <div class="flex gap-3" aria-label="Carousel controls">
+      <div class="flex justify-between" aria-label="Carousel controls">
         <button
           type="button"
           class="carousel__btn button button--secondary"
           data-carousel-prev
           aria-label="Previous testimonials"
         >
-          <span class="subtitle-pixel" aria-hidden="true">
-            &lt;
-          </span>
+          <Icon name="home/pixel-chevron" class="h-[18px] w-[10px] rotate-180" aria-hidden="true" />
         </button>
         <button
           type="button"
@@ -86,9 +87,7 @@ const activeIndex = 2;
           data-carousel-next
           aria-label="Next testimonials"
         >
-          <span class="subtitle-pixel" aria-hidden="true">
-            &gt;
-          </span>
+          <Icon name="home/pixel-chevron" class="h-[18px] w-[10px]" aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -96,13 +95,16 @@ const activeIndex = 2;
 </section>
 
 <style>
-  /* bleed the rail to the right edge of the viewport, like the Figma frame */
+  /* the rail keeps the container width like every other section: cards fade out over the
+     last 48px before its right edge (review of 2026-10-27), and that much padding keeps the
+     last card clear of the fade when scrolled to the end */
   .carousel__rail {
-    margin-right: calc(50% - 50vw);
-    padding-right: calc(50vw - 50%);
+    padding-right: 48px;
     scroll-padding-left: 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent 100%);
   }
   .carousel__rail::-webkit-scrollbar {
     display: none;
@@ -124,7 +126,13 @@ const activeIndex = 2;
 </style>
 
 <script>
+  let controller: AbortController | undefined;
+
   function initCarousels() {
+    // window listeners of the previous page (view transitions) end here
+    controller?.abort();
+    controller = new AbortController();
+    const { signal } = controller;
     document.querySelectorAll<HTMLElement>("[data-carousel]").forEach((carousel) => {
       if (carousel.dataset.ready === "true") return;
       carousel.dataset.ready = "true";
@@ -147,7 +155,7 @@ const activeIndex = 2;
       prev.addEventListener("click", () => rail.scrollBy({ left: -step(), behavior: "smooth" }));
       next.addEventListener("click", () => rail.scrollBy({ left: step(), behavior: "smooth" }));
       rail.addEventListener("scroll", update, { passive: true });
-      window.addEventListener("resize", update, { passive: true });
+      window.addEventListener("resize", update, { passive: true, signal });
       update();
     });
   }

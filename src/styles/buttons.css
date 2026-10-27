@@ -1,14 +1,16 @@
 /* Buttons from the Figma components: primary (accent blue fill), secondary (transparent with
    stroke, marker before the label), secondary-trailing (marker after the label), ghost (text only).
-   The square marker is drawn with pseudo-elements so callers only pass the label. */
+   The square marker is drawn with pseudo-elements so callers only pass the label.
+   Hover swaps the fill: filled buttons go transparent with a foreground stroke, transparent
+   ones take the accent fill. */
 .button {
   @apply rounded-r0 inline-flex items-center justify-center gap-3.5 px-6 py-4 text-base leading-none font-normal whitespace-nowrap;
   @apply focus-visible:ring-primary-500 focus-visible:ring-offset-background focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2;
   @apply disabled:pointer-events-none disabled:opacity-60;
   transition:
-    background-color 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease;
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
 }
 
 .button::before,
@@ -22,8 +24,12 @@
 }
 
 .button--primary {
-  @apply bg-primary-500 text-base-950;
-  @apply hover:bg-primary-600;
+  @apply bg-primary-500 text-base-950 border-primary-500 border;
+}
+.button--primary:hover {
+  background-color: transparent;
+  border-color: var(--foreground);
+  color: var(--foreground);
 }
 
 .button--secondary,
@@ -32,13 +38,31 @@
 }
 .button--secondary:hover,
 .button--secondary-trailing:hover {
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+  color: var(--color-base-950);
+}
+
+/* the one button that keeps a stroke-only hover: "Get your Plumber Score" on the home page */
+.button--hover-stroke:hover {
+  background-color: transparent;
   border-color: var(--foreground);
+  color: var(--foreground);
 }
 
 /* marker position, chosen per instance (Figma has both orders for every colour) */
 .button--marker-leading::before,
 .button--marker-trailing::after {
   display: inline-block;
+}
+/* phones (Figma 360): every marker sits after the label */
+@media (max-width: 639px) {
+  .button--marker-leading::before {
+    display: none;
+  }
+  .button--marker-leading::after {
+    display: inline-block;
+  }
 }
 
 .button--ghost {

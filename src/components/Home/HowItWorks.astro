@@ -1,8 +1,11 @@
 ---
 /**
  * "Plumber finds the leak and brings the fix" (Figma HOME_Last, node 2513:1707, 1440 x 659).
- * Four steps on dotted tracks; the first step is highlighted, the others are muted.
- * Ends with the review note banner.
+ * Four steps on dashed tracks. Review of 2026-10-27: the first step shows with the section,
+ * the next three fade in one after the other from the left, a second apart so each can be
+ * read, each dot slides along its track to the step's share of it, and each step takes the first
+ * step's colours (accent dot, foreground title) right after its own fade ends: a CSS delay
+ * equal to the card's reveal delay plus the fade, no script. Ends with the review note.
  */
 import { howItWorks } from "@config/en/homeData.json";
 
@@ -11,20 +14,29 @@ import SectionHeading from "./SectionHeading.astro";
 ---
 
 <section id="how-it-works" class="bg-background">
-  <div class="home-container flex flex-col gap-16 py-16 lg:gap-[88px] lg:py-[88px]">
-    <SectionHeading
-      eyebrow={howItWorks.eyebrow}
-      headline={howItWorks.headline}
-      headlineStrong={howItWorks.headlineStrong}
-      text={howItWorks.text}
-      class="[&>h2]:max-w-[720px] [&>p:last-child]:max-w-none"
-    />
+  <div class="home-container flex flex-col gap-16 py-20 lg:gap-[88px] lg:py-[104px]">
+    <div data-reveal>
+      <SectionHeading
+        eyebrow={howItWorks.eyebrow}
+        headline={howItWorks.headline}
+        headlineStrong={howItWorks.headlineStrong}
+        text={howItWorks.text}
+        class="[&>h2]:max-w-[720px] [&>p:last-child]:max-w-none"
+      />
+    </div>
 
     <div class="flex flex-col gap-16">
-      <ol class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+      <ol
+        class="steps grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4"
+        data-reveal-stagger
+        style="--reveal-step: 1250ms;"
+      >
         {howItWorks.steps.map((step, i) => (
-          <li class:list={["step flex flex-col gap-4", i === 0 ? "step--active" : "step--muted"]}>
-            <span class="step__track relative block h-px w-full" aria-hidden="true">
+          <li
+            class:list={["step flex flex-col gap-4", i === 0 ? "step--active" : "step--muted"]}
+            style={`--dot-frac: ${(i + 1) / howItWorks.steps.length};`}
+          >
+            <span class="step__track relative block w-full" aria-hidden="true">
               <span class="step__dot" />
             </span>
             <span class="eyebrow step__number">{step.number}</span>
@@ -34,26 +46,37 @@ import SectionHeading from "./SectionHeading.astro";
         ))}
       </ol>
 
-      <NoteBanner text={howItWorks.note} />
+      <div data-reveal>
+        <NoteBanner text={howItWorks.note} />
+      </div>
     </div>
   </div>
 </section>
 
 <style>
+  /* the same 2px dashed stroke as the coverage stats */
   .step__track {
-    background-image: repeating-linear-gradient(
-      to right,
-      var(--color-tint-25) 0 2px,
-      transparent 2px 5px
-    );
+    height: 0;
+    border-top: 2px dashed var(--color-dash);
   }
+  /* the dot starts at the beginning of the track and slides to the step's share of it
+     (25, 50, 75, 100 percent) as the card fades in */
   .step__dot {
     position: absolute;
-    top: -3.5px;
+    top: -5px;
     left: 0;
     width: 8px;
     height: 8px;
     background-color: var(--color-base-600);
+    transition: background-color 500ms ease;
+  }
+  :root:not(.reveal-ready) .step__dot {
+    left: calc((100% - 8px) * var(--dot-frac, 0));
+  }
+  .step__number,
+  .step__title,
+  .step__text {
+    transition: color 500ms ease;
   }
   .step--active .step__dot {
     background-color: var(--color-primary-500);
@@ -81,5 +104,47 @@ import SectionHeading from "./SectionHeading.astro";
   }
   :root.dark .step--muted .step__text {
     color: var(--color-base-600);
+  }
+
+  /* once the list is revealed, each dot slides out with its card's fade and a muted step
+     turns active when its own 850ms fade ends */
+  .step {
+    --step-start: calc(var(--reveal-base, 0ms) + var(--reveal-step, 280ms) * var(--i, 0));
+    --step-done: calc(var(--step-start) + 850ms);
+  }
+  .steps.is-visible .step__dot {
+    left: calc((100% - 8px) * var(--dot-frac, 0));
+    transition:
+      left 1100ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--step-start),
+      background-color 500ms ease var(--step-done);
+  }
+  .steps.is-visible .step--muted .step__dot {
+    background-color: var(--color-primary-500);
+  }
+  .steps.is-visible .step--muted .step__number {
+    color: var(--accent-text);
+    transition-delay: var(--step-done);
+  }
+  .steps.is-visible .step--muted .step__title {
+    color: var(--foreground);
+    transition-delay: var(--step-done);
+  }
+  .steps.is-visible .step--muted .step__text {
+    color: var(--color-base-600);
+    transition-delay: var(--step-done);
+  }
+  :root.dark .steps.is-visible .step--muted .step__text {
+    color: var(--color-base-300);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .step__dot {
+      left: calc((100% - 8px) * var(--dot-frac, 0));
+    }
+    .step__dot,
+    .step__number,
+    .step__title,
+    .step__text {
+      transition: none;
+    }
   }
 </style>

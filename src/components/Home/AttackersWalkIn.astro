@@ -1,8 +1,12 @@
 ---
 /**
- * "Attackers walk right in" (Figma HOME_Last, node 2513:1438, 1440 x 1096).
- * Centred heading, two sourced stats, a status banner, and an annotated workflow file
- * with three numbered callouts. The code block is plain HTML so it stays selectable.
+ * "Attackers walk right in" (Figma HOME_Last, node 2513:1438, 1440 x 1096), in two sections
+ * since the review of 2026-10-27: the centred heading, two sourced stats (fading in left
+ * to right) and the status banner; then, as a section of its own 88px under the banner,
+ * the annotated workflow file with three numbered callouts. The first finding is active at
+ * rest; a click on a callout or its line (or Enter on a focused callout, the callouts are
+ * tabs) makes that finding active, and hovering either half shows it meanwhile. The badge sits on the first line of the title (21px line box).
+ * The code block is plain HTML so it stays selectable.
  */
 import { attackers } from "@config/en/homeData.json";
 
@@ -13,22 +17,24 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
 ---
 
 <section id="attackers" class="bg-background">
-  <div class="home-container flex flex-col gap-16 py-16 lg:gap-[88px] lg:py-[88px]">
-    <SectionHeading
-      eyebrow={attackers.eyebrow}
-      headline={attackers.headline}
-      headlineStrong={attackers.headlineStrong}
-      text={attackers.text}
-      align="center"
-      class="mx-auto max-w-[1015px] [&>p:last-child]:max-w-none"
-    />
+  <div class="home-container flex flex-col gap-16 pt-20 pb-16 lg:gap-[88px] lg:pt-[104px] lg:pb-[88px]">
+    <div data-reveal>
+      <SectionHeading
+        eyebrow={attackers.eyebrow}
+        headline={attackers.headline}
+        headlineStrong={attackers.headlineStrong}
+        text={attackers.text}
+        align="center"
+        class="mx-auto max-w-[1015px] [&>p:last-child]:max-w-none"
+      />
+    </div>
 
     <div class="flex flex-col gap-16 lg:gap-[88px]">
-      <ul class="grid gap-8 md:grid-cols-2">
+      <ul class="grid gap-8 md:grid-cols-2" data-reveal-stagger style="--reveal-step: 350ms;">
         {attackers.stats.map((stat) => (
           <li class="stat flex flex-wrap items-start gap-6 py-6 pl-6">
-            <span class="h2 text-foreground">{stat.value}</span>
-            <span class="flex flex-col gap-2">
+            <span class="stat__value h2 text-foreground">{stat.value}</span>
+            <span class="stat__text flex flex-col gap-2">
               <span class="body text-foreground">{stat.label}</span>
               {stat.source && <span class="eyebrow text-base-500">{stat.source}</span>}
             </span>
@@ -36,10 +42,16 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
         ))}
       </ul>
 
-      <NoteBanner size="lg" text={attackers.banner.text} strong={attackers.banner.strong} />
+      <div data-reveal>
+        <NoteBanner size="lg" text={attackers.banner.text} strong={attackers.banner.strong} />
+      </div>
     </div>
+  </div>
+</section>
 
-    <div class="grid gap-8 lg:grid-cols-[minmax(0,919fr)_371fr]">
+<section id="workflow" class="bg-background" aria-label="Annotated workflow file">
+  <div class="home-container pb-20 lg:pb-[104px]" data-reveal>
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,919fr)_371fr]" data-workflow>
       <figure class="card-tint rounded-r15 overflow-hidden">
         <figcaption class="stroke-tint flex flex-wrap items-center justify-between gap-3 border-b px-6 py-4">
           <span class="body-xs text-base-600 dark:text-base-300">{attackers.file}</span>
@@ -52,10 +64,10 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
           {attackers.yaml.map((line) => (
             <li
               class:list={[
-                "yaml-line flex items-center gap-0 pr-6 whitespace-pre",
+                "yaml-line flex cursor-pointer items-center gap-0 pr-6 whitespace-pre",
                 line.flag && "yaml-line--flagged",
-                line.flag === 1 && "yaml-line--strong",
               ]}
+              data-flag={line.flag || undefined}
             >
               <span class="text-base-500 w-12 shrink-0 pr-[18px] text-right select-none">
                 {line.n}
@@ -76,21 +88,26 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
         </ol>
       </figure>
 
-      <ul class="flex flex-col justify-between gap-6">
+      <ul
+        class="callouts grid gap-6 md:grid-cols-3 lg:flex lg:flex-col lg:justify-between"
+        role="tablist"
+        aria-label="Findings"
+      >
         {attackers.callouts.map((callout, i) => (
           <li
-            class:list={[
-              "callout flex flex-col gap-4 pt-4 pb-8 pl-4",
-              i === 0 ? "callout--active" : "callout--muted",
-            ]}
+            class="callout primary-focus flex cursor-pointer flex-col gap-4 pt-4 pb-8 pl-4"
+            data-flag={flaggedLines[i]?.flag ?? i + 1}
+            role="tab"
+            tabindex="0"
+            aria-selected={i === 0 ? "true" : "false"}
           >
-            <span class="flex items-center gap-2">
+            <span class="flex items-start gap-3">
               <span class="issue-badge">{flaggedLines[i]?.flag ?? i + 1}</span>
-              <span class="subtitle text-foreground max-w-[234px] leading-[1.2]">
+              <span class="subtitle text-foreground max-w-[234px] leading-[21px]">
                 {callout.title}
               </span>
             </span>
-            <span class="body-sm text-base-600 dark:text-base-300 max-w-[259px] pl-[29px]">
+            <span class="body-sm text-base-600 dark:text-base-300 max-w-[259px] pl-[33px]">
               {callout.text}
             </span>
           </li>
@@ -104,15 +121,36 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
   .stat {
     border-left: 2px dashed var(--color-dash);
   }
+  /* phones (Figma 360): text 22px past the stroke, 32px figure, 15px label, 19px pixel
+     source, 8px then 12px apart */
+  @media (max-width: 767px) {
+    .stat {
+      row-gap: 8px;
+      padding-left: 22px;
+    }
+    .stat__value {
+      font-size: 2rem;
+    }
+    .stat__text {
+      gap: 12px;
+    }
+    .stat__text > .body {
+      font-size: 0.9375rem;
+    }
+    .stat__text > .eyebrow {
+      font-size: 1.1875rem;
+    }
+  }
 
   .yaml-line {
     line-height: 26px;
+    transition: background-color 250ms ease;
   }
   .yaml-line--flagged {
     background-color: rgba(251, 48, 51, 0.09);
     box-shadow: inset 2px 0 0 0 var(--color-danger-400);
   }
-  .yaml-line--strong {
+  .yaml-line--flagged.is-active {
     background-color: rgba(251, 48, 51, 0.2);
   }
 
@@ -130,13 +168,77 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
     font-size: 22px;
     line-height: 0.8;
     padding-top: 2px;
+    flex: none;
   }
 
-  .callout--active {
-    background-color: var(--color-danger-5);
-    border-left: 2px dashed var(--color-danger-500);
-  }
-  .callout--muted {
+  /* callouts rest muted; the active finding (first at rest, hovered or clicked) takes the
+     red tint */
+  .callout {
     border-left: 2px dashed var(--color-tint-25);
+    transition:
+      background-color 250ms ease,
+      border-color 250ms ease;
+  }
+  .callout.is-active {
+    background-color: var(--color-danger-5);
+    border-color: var(--color-danger-500);
+  }
+  /* phones (Figma 360): the cards touch so one stroke runs through them, 20px above and
+     below, text 22px past the stroke, 12px between rows, square badges */
+  @media (max-width: 767px) {
+    .callouts {
+      gap: 0;
+    }
+    .callout {
+      padding: 20px 0 20px 22px;
+      gap: 12px;
+    }
+    .issue-badge {
+      border-radius: 0;
+    }
   }
 </style>
+
+<script>
+  /**
+   * The first finding is active at rest. Clicking a flagged line or a callout makes that
+   * finding the active one; hovering either half shows a finding while the pointer is on
+   * it, then the active one comes back.
+   */
+  function initWorkflow() {
+    document.querySelectorAll<HTMLElement>("[data-workflow]").forEach((root) => {
+      if (root.dataset.ready === "true") return;
+      root.dataset.ready = "true";
+      const lines = Array.from(root.querySelectorAll<HTMLElement>(".yaml-line[data-flag]"));
+      const callouts = Array.from(root.querySelectorAll<HTMLElement>(".callout[data-flag]"));
+      const show = (flag: string | undefined) => {
+        [...lines, ...callouts].forEach((el) => {
+          el.classList.toggle("is-active", flag !== undefined && el.dataset.flag === flag);
+        });
+      };
+      let active = callouts[0]?.dataset.flag;
+      const select = (flag: string | undefined) => {
+        active = flag;
+        callouts.forEach((c) => c.setAttribute("aria-selected", String(c.dataset.flag === flag)));
+        show(active);
+      };
+      show(active);
+      [...lines, ...callouts].forEach((el) => {
+        el.addEventListener("click", () => select(el.dataset.flag));
+        el.addEventListener("mouseenter", () => show(el.dataset.flag));
+        el.addEventListener("mouseleave", () => show(active));
+      });
+      // keyboard: Enter or Space on a focused callout selects its finding
+      callouts.forEach((callout) => {
+        callout.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          select(callout.dataset.flag);
+        });
+      });
+    });
+  }
+
+  initWorkflow();
+  document.addEventListener("astro:after-swap", initWorkflow);
+</script>

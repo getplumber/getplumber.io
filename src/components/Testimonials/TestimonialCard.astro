@@ -2,32 +2,42 @@
 /**
  * Testimonial card from the Figma home page (424 x 300, tinted, 15px radius):
  * quote prefixed with ">>" at the top, author row pinned to the bottom.
- * "active" renders the emphasised variant (stronger tint, foreground text).
+ * Review of 2026-10-27: the quote is clamped to five lines and the card expands on click;
+ * a visually hidden button inside carries the keyboard and screen-reader affordance. Only
+ * the hovered card shows the quote in the foreground colour (the card in view on tablets
+ * and phones).
  */
 import { type TestimonialItem } from "@config/types/configDataTypes";
 import { Image } from "astro:assets";
 
 interface Props extends TestimonialItem {
-  active?: boolean;
   class?: string;
 }
 
-const { avatar, name, title, testimonial, active = false, class: className } = Astro.props;
+const { avatar, name, title, testimonial, class: className } = Astro.props;
 ---
 
 <figure
   class:list={[
-    "stroke-tint rounded-r15 flex h-full min-h-[300px] flex-col justify-between gap-8 border p-8",
-    active ? "bg-tint-10" : "bg-tint-5 hover:bg-tint-10",
+    "testimonial stroke-tint rounded-r15 bg-tint-5 hover:bg-tint-10 relative flex h-full min-h-[300px] cursor-pointer flex-col justify-between gap-8 border p-8 transition-colors duration-400",
     className,
   ]}
+  data-testimonial
+  data-hover-reveal
 >
-  <blockquote class:list={["body-lg", active ? "text-foreground" : "text-muted-foreground"]}>
+  <blockquote class="testimonial__quote body-lg text-muted-foreground">
     <span class="text-muted-foreground" aria-hidden="true">
       &gt;&gt;&nbsp;{" "}
     </span>
     {testimonial}
   </blockquote>
+  <button
+    type="button"
+    class="testimonial__toggle sr-only focus:not-sr-only focus:absolute focus:top-3 focus:right-3 focus:rounded-r4 focus:border focus:px-2 focus:py-1 focus:text-xs"
+    aria-expanded="false"
+  >
+    Show the full quote from {name}
+  </button>
   <figcaption class="flex items-start gap-4">
     <Image
       src={avatar}
@@ -37,8 +47,55 @@ const { avatar, name, title, testimonial, active = false, class: className } = A
       class="size-10 shrink-0 rounded-full object-cover"
     />
     <span class="flex flex-col gap-2">
-      <span class="body-sm text-base-700 dark:text-base-200 font-medium">{name}</span>
+      <span class="body-sm text-base-700 dark:text-base-200">{name}</span>
       <span class="body-xs text-muted-foreground">{title}</span>
     </span>
   </figcaption>
 </figure>
+
+<style>
+  .testimonial__quote {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    overflow: hidden;
+    transition: color 400ms ease;
+  }
+  .testimonial.is-open .testimonial__quote {
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: none;
+  }
+  .testimonial:hover .testimonial__quote,
+  .testimonial:focus-visible .testimonial__quote {
+    color: var(--foreground);
+  }
+  /* tablets and phones: the card shows its hover state while it is in view */
+  @media (hover: none), (max-width: 1023px) {
+    .testimonial.is-in-view {
+      background-color: var(--color-tint-10);
+    }
+    .testimonial.is-in-view .testimonial__quote {
+      color: var(--foreground);
+    }
+  }
+</style>
+
+<script>
+  function initTestimonials() {
+    document.querySelectorAll<HTMLElement>("[data-testimonial]").forEach((card) => {
+      if (card.dataset.ready === "true") return;
+      card.dataset.ready = "true";
+      const button = card.querySelector<HTMLButtonElement>(".testimonial__toggle");
+      // the button's own click (keyboard too) bubbles up here, so one handler covers both
+      card.addEventListener("click", () => {
+        const open = card.classList.toggle("is-open");
+        button?.setAttribute("aria-expanded", String(open));
+      });
+    });
+  }
+
+  initTestimonials();
+  document.addEventListener("astro:after-swap", initTestimonials);
+</script>

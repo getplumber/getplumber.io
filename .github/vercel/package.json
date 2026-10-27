@@ -3,10 +3,11 @@
   "private": true,
   "description": "Isolated, hash-locked Vercel CLI for the deploy workflows. Kept out of the site's root dependency tree so its builder packages (python/rust/gatsby builders a static Astro deploy never runs) don't weigh on the site's own dependency management. Overrides pin the vulnerable transitives to patched versions (mirrors the root package.json overrides pattern) so the OpenSSF Scorecard / OSV Vulnerabilities check stays clean.",
   "devDependencies": {
-    "vercel": "54.20.1"
+    "vercel": "65.4.0"
   },
   "overrides": {
     "@tootallnate/once": "^2.0.0",
+    "zod": "^4.6.6",
     "ajv": "^8.20.0",
     "basic-ftp": "^6.2.1",
     "fast-uri": "^3.1.5",

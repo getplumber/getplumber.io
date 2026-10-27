@@ -2,7 +2,7 @@
 /**
  * "Find the leak before an attacker does" (Figma HOME_Last, node 2513:1886, 1440 x 410).
  * Copy on the left, a four-field form on the right. The form posts to /api/demo through
- * src/js/forms.ts and always shows an email fallback underneath.
+ * src/js/forms.ts.
  */
 import { bookDemo } from "@config/en/homeData.json";
 
@@ -12,7 +12,10 @@ const { fields } = bookDemo;
 ---
 
 <section id="book-a-demo" class="bg-background scroll-mt-[76px]">
-  <div class="home-container grid gap-16 py-16 lg:grid-cols-[minmax(0,534fr)_minmax(0,138fr)_minmax(0,648fr)] lg:py-[88px]">
+  <div
+    class="home-container grid gap-16 py-20 lg:grid-cols-[minmax(0,534fr)_minmax(0,138fr)_minmax(0,648fr)] lg:py-[104px]"
+    data-reveal
+  >
     <SectionHeading
       eyebrow={bookDemo.eyebrow}
       headline={bookDemo.headline}
@@ -96,15 +99,6 @@ const { fields } = bookDemo;
           {bookDemo.submit}
         </button>
         <p data-form-status class="body-sm text-muted-foreground min-h-5" aria-live="polite"></p>
-        <p class="body-xs text-muted-foreground">
-          Prefer email?{" "}
-          <a
-            href={`mailto:${bookDemo.fallbackEmail}`}
-            class="hover:text-foreground underline underline-offset-2"
-          >
-            {bookDemo.fallbackEmail}
-          </a>
-        </p>
       </div>
     </form>
   </div>

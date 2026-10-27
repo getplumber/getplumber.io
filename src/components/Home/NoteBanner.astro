@@ -1,7 +1,8 @@
 ---
 /**
  * Full-width note banner from the Figma home page (shield icon, teal tint, 8px radius).
- * "strong" renders in the alert red, as in "Your pipeline is green. It's also leaking."
+ * "strong" renders in the alert red, as in "Your pipeline is green. It's also leaking.",
+ * and moves to a new line as one piece when it does not fit after the text.
  */
 import { Icon } from "astro-icon/components";
 
@@ -22,12 +23,12 @@ const { text, strong, size = "md", class: className } = Astro.props;
   ]}
 >
   <Icon name="home/shield-check" class="text-primary-500 size-[22px] shrink-0" aria-hidden="true" />
-  <span class={size === "lg" ? "body-lg" : "body font-medium"}>
+  <span class={size === "lg" ? "body-lg" : "body"}>
     <span class="text-foreground">{text}</span>
     {strong && (
       <>
         {" "}
-        <span class="text-danger-500">{strong}</span>
+        <span class="text-danger-500 inline-block">{strong}</span>
       </>
     )}
   </span>

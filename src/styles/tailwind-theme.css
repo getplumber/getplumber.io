@@ -53,6 +53,8 @@
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
+  /* navbar: the link row needs 1090px with its CTAs, the hamburger shows below */
+  --breakpoint-nav: 1090px;
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
 
@@ -86,8 +88,8 @@
   --radius-r15: 15px;
 
   /* starwind and site animations */
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-accordion-down: accordion-down 0.25s ease-out;
+  --animate-accordion-up: accordion-up 0.25s ease-out;
   --animate-marquee: marquee 40s linear infinite;
   --animate-marquee2: marquee2 50s linear infinite;
   --animate-backdrop-fade-in: backdropFadeIn ease-in-out 0.3s forwards;

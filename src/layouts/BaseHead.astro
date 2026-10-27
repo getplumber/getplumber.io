@@ -53,31 +53,10 @@ import interVariable from "@fontsource-variable/inter/files/inter-latin-wght-nor
 <!-- Theme change setup. Run early to eliminate Flash of inAccurate coloR Theme (FART) -->
 <script is:inline>
   function initTheme() {
-    const colorTheme = localStorage.getItem("colorTheme");
-    if (!colorTheme) {
-      // if no color theme yet, start in dark mode because dark mode is best mode
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("colorTheme", "dark");
-
-      // if no color theme yet, use the users preferences (uncomment the below code, and comment out the above code to use this instead)
-      // if (
-      //   window.matchMedia &&
-      //   window.matchMedia("(prefers-color-scheme: dark)").matches
-      // ) {
-      //   document.documentElement.classList.add("dark");
-      //   localStorage.setItem("colorTheme", "dark");
-      // } else {
-      //   document.documentElement.classList.remove("dark");
-      //   localStorage.setItem("colorTheme", "light");
-      // }
-    } else {
-      // If there is, assign the theme based on the value in local storage
-      if (colorTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else if (colorTheme === "light") {
-        document.documentElement.classList.remove("dark");
-      }
-    }
+    // Dark only for now (review of 2026-10-27): the toggle is hidden and the light
+    // palette stays in the CSS for when it comes back.
+    document.documentElement.classList.add("dark");
+    localStorage.setItem("colorTheme", "dark");
   }
 
   // runs on initial page load

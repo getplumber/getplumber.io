@@ -16,7 +16,7 @@ const { eyebrow, title, lead, class: className } = Astro.props;
 <header class:list={["flex max-w-[786px] flex-col gap-6", className]}>
   {eyebrow && (
     <p class="eyebrow flex items-center gap-2">
-      <span class="bg-primary-500 block size-1.5" aria-hidden="true" />
+      <span class="eyebrow-dot" aria-hidden="true" />
       {eyebrow}
     </p>
   )}

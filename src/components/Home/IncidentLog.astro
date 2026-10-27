@@ -1,9 +1,12 @@
 ---
 /**
  * "Attackers moved to the pipeline" (Figma HOME_Last, node 2513:1630, 1440 x 952).
- * Left-aligned heading and an "Incident log" table in a tinted card. The first row is
- * highlighted. Below the md breakpoint the table stacks into cards with the column
- * names injected from data-label attributes.
+ * Left-aligned heading and an "Incident log" table in a tinted card. A row takes the
+ * accent tint while hovered; its source, a link to the article, stays grey and only
+ * underlines in the accent colour while hovered itself (review of 2026-10-27). Below the md breakpoint the table stacks into the Figma
+ * 360 cards (24px by 32px padding, 20px gaps, 19px pixel date, 32px figure, 15px text and
+ * 14px source); on tablets and phones one row at a time is lit, the one nearest the middle
+ * of the screen, and the previous one returns to its muted state.
  */
 import { incidents } from "@config/en/homeData.json";
 
@@ -13,7 +16,7 @@ const { columns } = incidents;
 ---
 
 <section id="incidents" class="bg-background">
-  <div class="home-container flex flex-col gap-16 py-16 lg:gap-[88px] lg:py-[88px]">
+  <div class="home-container flex flex-col gap-16 py-20 lg:gap-[88px] lg:py-[104px]" data-reveal>
     <SectionHeading
       eyebrow={incidents.eyebrow}
       headline={incidents.headline}
@@ -24,8 +27,8 @@ const { columns } = incidents;
     />
 
     <div class="card-tint rounded-r15 overflow-hidden pt-8">
-      <p class="subtitle-pixel text-base-700 dark:text-base-200 px-6 pb-8">{incidents.logTitle}</p>
-      <table class="incident-table w-full border-collapse">
+      <p class="eyebrow text-base-700 dark:text-base-200 px-6 pb-8">{incidents.logTitle}</p>
+      <table class="incident-table w-full border-collapse" data-incident-focus>
         <thead>
           <tr class="bg-background stroke-tint border-y">
             <th scope="col" class="incident-table__date">
@@ -46,8 +49,7 @@ const { columns } = incidents;
           {incidents.rows.map((row) => (
             <tr
               class:list={[
-                "stroke-tint border-b last:border-b-0",
-                row.highlight ? "incident-row--highlight" : "text-muted-foreground",
+                "incident-row stroke-tint text-muted-foreground border-b last:border-b-0",
               ]}
             >
               <td class="incident-table__date subtitle-pixel" data-label={columns.date}>
@@ -59,16 +61,13 @@ const { columns } = incidents;
               <td class="incident-table__text body" data-label={columns.text}>
                 {row.text}
               </td>
-              <td
-                class="incident-table__source body-sm font-medium md:text-right"
-                data-label={columns.source}
-              >
+              <td class="incident-table__source body-sm md:text-right" data-label={columns.source}>
                 {row.sourceLink ? (
                   <a
                     href={row.sourceLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="hover:text-foreground underline underline-offset-2"
+                    class="incident-table__link text-muted-foreground underline-offset-2 transition-colors"
                   >
                     {row.source}
                   </a>
@@ -124,20 +123,28 @@ const { columns } = incidents;
     text-align: right;
   }
 
-  .incident-row--highlight {
+  .incident-row {
+    transition:
+      background-color 250ms ease,
+      color 250ms ease;
+  }
+  .incident-row:hover {
     background-color: color-mix(in srgb, var(--color-primary-500) 5%, transparent);
     color: var(--foreground);
   }
-  .incident-row--highlight .incident-table__date,
-  .incident-row--highlight .incident-table__source {
+  .incident-row:hover .incident-table__date {
     color: var(--color-base-200);
   }
-  :root:not(.dark) .incident-row--highlight .incident-table__date,
-  :root:not(.dark) .incident-row--highlight .incident-table__source {
+  :root:not(.dark) .incident-row:hover .incident-table__date {
     color: var(--color-base-700);
   }
+  .incident-table__link:hover,
+  .incident-table__link:focus-visible {
+    color: var(--accent-text);
+    text-decoration: underline;
+  }
 
-  /* stacked cards below the md breakpoint */
+  /* stacked cards below the md breakpoint (Figma 360) */
   @media (max-width: 767px) {
     .incident-table thead {
       position: absolute;
@@ -148,29 +155,103 @@ const { columns } = incidents;
     }
     .incident-table,
     .incident-table tbody,
-    .incident-table tr,
     .incident-table td {
       display: block;
       width: auto;
     }
     .incident-table tr {
-      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 24px 32px;
     }
-    .incident-table td {
-      padding: 4px 0;
+    .incident-table td,
+    .incident-table td:first-child,
+    .incident-table td:last-child {
+      padding: 0;
     }
-    .incident-table td::before {
-      content: attr(data-label);
-      display: block;
-      font-family: var(--font-pixel);
-      font-size: 1rem;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
+    .incident-table__date {
+      width: auto;
+      font-size: 1.1875rem;
+      line-height: 1;
+    }
+    .incident-table__figure {
+      width: auto;
+      font-size: 2rem;
+      line-height: 1.1;
+      color: var(--foreground);
+    }
+    .incident-table__text {
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+    .incident-table__source {
+      width: auto;
+      font-size: 0.875rem;
+      font-weight: 400;
+      text-align: left;
+    }
+    .incident-row.is-lit .incident-table__source {
       color: var(--muted-foreground);
-      margin-bottom: 4px;
     }
-    .incident-table td.incident-table__date::before {
-      display: none;
+  }
+
+  /* tablets and phones: the row nearest the middle of the screen is lit (foreground text,
+     accent date), set by the script below; the others keep their muted state, no tint */
+  @media (hover: none), (max-width: 1023px) {
+    .incident-row.is-lit {
+      color: var(--foreground);
+    }
+    .incident-row.is-lit .incident-table__date {
+      color: var(--accent-text);
     }
   }
 </style>
+
+<script>
+  /**
+   * Tablets and phones: as the page scrolls, the incident row nearest the middle of the
+   * screen carries is-lit and the others drop it. Desktop keeps the hover highlight.
+   */
+  let controller: AbortController | undefined;
+
+  function initIncidentFocus() {
+    // listeners of the previous page (view transitions) end here
+    controller?.abort();
+    controller = undefined;
+    if (!window.matchMedia("(hover: none), (max-width: 1023px)").matches) return;
+    const table = document.querySelector<HTMLElement>("[data-incident-focus]");
+    if (!table) return;
+    controller = new AbortController();
+    const { signal } = controller;
+    const rows = Array.from(table.querySelectorAll<HTMLElement>(".incident-row"));
+    let scheduled = false;
+    const update = () => {
+      scheduled = false;
+      const middle = window.innerHeight / 2;
+      let nearest: HTMLElement | null = null;
+      let distance = Infinity;
+      rows.forEach((row) => {
+        const box = row.getBoundingClientRect();
+        if (box.bottom < 0 || box.top > window.innerHeight) return;
+        const gap = Math.abs((box.top + box.bottom) / 2 - middle);
+        if (gap < distance) {
+          distance = gap;
+          nearest = row;
+        }
+      });
+      rows.forEach((row) => row.classList.toggle("is-lit", row === nearest));
+    };
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", schedule, { passive: true, signal });
+    window.addEventListener("resize", schedule, { passive: true, signal });
+    update();
+  }
+
+  initIncidentFocus();
+  document.addEventListener("astro:after-swap", initIncidentFocus);
+</script>

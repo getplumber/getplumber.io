@@ -4,143 +4,129 @@
  * Tabler copy icon). Unlayered so these win over the plugin's own (unlayered) styles;
  * the repeated .frame class outranks the plugin's `.frame.has-title:not(.is-terminal)`
  * selectors. The colours and metrics of the frame itself come from the styleOverrides
- * in astro.config.mjs.
+ * in ec.config.mjs. One nested block: the content scopes are listed once, at the top.
  */
 :is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code {
   margin-block: 1.5rem;
-}
 
-/* header: 24px of padding around a 22px row, Inter 14px (Figma node 2556:5673) */
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .frame.frame.frame:is(.has-title, .is-terminal) .header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 71px;
-  padding: 1.5rem;
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.4;
-  letter-spacing: 0;
-  color: var(--muted-foreground);
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .frame.is-terminal .header::before {
-  display: none;
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .frame.frame.frame .header .title {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  background: none;
-  border: 0;
-  font: inherit;
-  color: inherit;
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell)
-  .expressive-code
-  .frame.frame.frame:not(.is-terminal)
-  .title::after {
-  display: none;
-}
-/* terminal frames carry no title: a pixel ">_" mark then the "Terminal" label */
-:is(.markdown-content, .docs-markdown-content, .docs-shell)
-  .expressive-code
-  .frame.is-terminal
-  .header
-  .title:empty::before {
-  content: ">_";
-  font-family: var(--font-pixel);
-  font-size: 1.125rem;
-  line-height: 0.8;
-  letter-spacing: 0.02em;
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell)
-  .expressive-code
-  .frame.is-terminal
-  .header
-  .title:empty::after {
-  content: "Terminal";
-}
+  /* header: 24px of padding around a 22px row, Inter 14px (Figma node 2556:5673) */
+  .frame.frame.frame:is(.has-title, .is-terminal) .header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 71px;
+    padding: 1.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: 0;
+    color: var(--muted-foreground);
+  }
+  .frame.is-terminal .header::before {
+    display: none;
+  }
+  .frame.frame.frame .header .title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    font: inherit;
+    color: inherit;
+  }
+  .frame.frame.frame:not(.is-terminal) .title::after {
+    display: none;
+  }
+  /* terminal frames carry no title: a pixel ">_" mark then the "Terminal" label */
+  .frame.is-terminal .header .title:empty::before {
+    content: ">_";
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+    line-height: 0.8;
+    letter-spacing: 0.02em;
+  }
+  .frame.is-terminal .header .title:empty::after {
+    content: "Terminal";
+  }
 
-/* copy control: a 22px chip with the Tabler copy icon and a pixel "COPY" label, centred
-   in the header and always visible there; headerless frames show it on hover (Figma node
-   2556:5430) */
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .copy {
-  top: 1rem;
-  inset-inline-end: 1rem;
-  opacity: 0;
-  transition: opacity 150ms ease;
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .frame:is(.has-title, .is-terminal) .copy,
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .frame:hover .copy,
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .frame:focus-within .copy {
-  opacity: 1;
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell)
-  .expressive-code
-  .frame.frame.frame:is(.has-title, .is-terminal)
+  /* copy control: a 22px chip with the Tabler copy icon and a pixel "COPY" label, centred
+     in the header and always visible there; headerless frames show it on hover (Figma node
+     2556:5430) */
   .copy {
-  top: 1.5rem;
-  inset-inline-end: 1.5rem;
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .copy button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: auto;
-  height: 22px;
-  margin: 0;
-  padding: 0 0.5rem;
-  border: 1px solid var(--color-tint-25);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--muted-foreground);
-  opacity: 1;
-  transition:
-    color 150ms ease,
-    border-color 150ms ease;
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .copy button div {
-  display: none;
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .copy button::before {
-  content: "";
-  position: static;
-  inset: auto;
-  display: block;
-  width: 10px;
-  height: 10px;
-  border: 0;
-  opacity: 1;
-  background-color: currentColor;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666'/%3E%3Cpath d='M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1'/%3E%3C/svg%3E")
-    center / contain no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666'/%3E%3Cpath d='M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1'/%3E%3C/svg%3E")
-    center / contain no-repeat;
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .copy button::after {
-  content: "Copy";
-  position: static;
-  inset: auto;
-  display: block;
-  width: auto;
-  height: auto;
-  margin: 0;
-  -webkit-mask: none;
-  mask: none;
-  background: none;
-  font-family: var(--font-pixel);
-  font-size: 1.125rem;
-  line-height: 0.8;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: inherit;
-}
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .copy button:hover,
-:is(.markdown-content, .docs-markdown-content, .docs-shell) .expressive-code .copy button:focus-visible {
-  color: var(--foreground);
-  opacity: 1;
+    top: 1rem;
+    inset-inline-end: 1rem;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+  .frame:is(.has-title, .is-terminal) .copy,
+  .frame:hover .copy,
+  .frame:focus-within .copy {
+    opacity: 1;
+  }
+  .frame.frame.frame:is(.has-title, .is-terminal) .copy {
+    top: 1.5rem;
+    inset-inline-end: 1.5rem;
+  }
+  .copy button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: auto;
+    height: 22px;
+    margin: 0;
+    padding: 0 0.5rem;
+    border: 1px solid var(--color-tint-25);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted-foreground);
+    opacity: 1;
+    transition:
+      color 150ms ease,
+      border-color 150ms ease;
+  }
+  .copy button div {
+    display: none;
+  }
+  .copy button::before {
+    content: "";
+    position: static;
+    inset: auto;
+    display: block;
+    width: 10px;
+    height: 10px;
+    border: 0;
+    opacity: 1;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666'/%3E%3Cpath d='M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666'/%3E%3Cpath d='M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+  .copy button::after {
+    content: "Copy";
+    position: static;
+    inset: auto;
+    display: block;
+    width: auto;
+    height: auto;
+    margin: 0;
+    -webkit-mask: none;
+    mask: none;
+    background: none;
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+    line-height: 0.8;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: inherit;
+  }
+  .copy button:hover,
+  .copy button:focus-visible {
+    color: var(--foreground);
+    opacity: 1;
+  }
 }

@@ -42,6 +42,8 @@ const { prev, next } = await getAdjacentPages(doc.id, currLocale, sectionId);
 // The page eyebrow is the title of the sidebar section the page belongs to
 const docSection = doc.id.split("/")[0];
 const eyebrow = getSectionTitle(docSection, sectionId, currLocale);
+// Only the getting-started page numbers its sections "01, 02" (docs-markdown-content.css)
+const numbered = docSection === "getting-started";
 
 // Per-page structured data: TechArticle headline matches the visible H1
 // (`title`, not the suffixed meta title), plus a validated breadcrumb trail.
@@ -69,7 +71,7 @@ const structuredData = { headline: title, breadcrumbs };
     <header class="mb-14 flex flex-col gap-6">
       {eyebrow && (
         <p class="eyebrow flex items-center gap-2">
-          <span class="bg-primary-500 size-1.5 shrink-0" aria-hidden="true" />
+          <span class="eyebrow-dot" aria-hidden="true" />
           {eyebrow}
         </p>
       )}
@@ -77,7 +79,7 @@ const structuredData = { headline: title, breadcrumbs };
       {lead && <p class="body-lg text-muted-foreground">{lead}</p>}
     </header>
 
-    <div class="docs-markdown-content">
+    <div class="docs-markdown-content" data-numbered={numbered || undefined}>
       <slot />
     </div>
 

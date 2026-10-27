@@ -1,4 +1,16 @@
 ---
+/**
+ * Site footer (Figma symbol 2513:2041, 1440 x 639, measured in the file on 2026-10-27):
+ * 112px above the column titles, content-width link columns 64px apart on the left (a
+ * two-column grid below lg, so the columns line up), the
+ * newsletter block isolated on the right (422px): title, 16px, a 74px field (32px above
+ * and below the 14px text, stroke at the bottom), 32px, the 28px social icons. Link
+ * columns: Regular 16px title, 32px to the links, links on a 34px pitch (14px text), which
+ * puts the social icons on the last link line; the copyright row 100px under the columns
+ * and the oversized wordmark 100px under that. The newsletter submits with the Figma pixel
+ * chevron at the right of the field (review of 2026-10-27). Links and copy are 14px, titles 16px,
+ * the legal row a darker grey, and the social icons sit on the last link line.
+ */
 import FooterLink from "@components/Footer/FooterLink.astro";
 import { footerColumns, footerSocials } from "@config/en/homeData.json";
 import { Icon } from "astro-icon/components";
@@ -8,54 +20,76 @@ const isDocs = Astro.url.pathname.startsWith("/docs");
 ---
 
 <footer class="bg-background stroke-tint border-t">
-  <div class:list={[isDocs ? "docs-site-container" : "home-container", "pt-16 pb-8"]}>
-    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,1.6fr)]">
-      {footerColumns.map((column) => (
-        <div class="flex flex-col gap-3">
-          <h3 class="subtitle text-foreground">{column.title}</h3>
-          {column.links.map((item) => (
-            <FooterLink href={item.link} newTab={item.newTab}>
-              {item.text}
-            </FooterLink>
-          ))}
-        </div>
-      ))}
+  <div class:list={[isDocs ? "docs-site-container" : "home-container", "pt-20 lg:pt-[112px]"]}>
+    <div class="flex flex-col gap-12 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
+      <nav
+        class="grid grid-cols-2 gap-x-8 gap-y-10 lg:flex lg:flex-wrap lg:gap-x-16"
+        aria-label="Footer"
+      >
+        {footerColumns.map((column) => (
+          <div class="flex flex-col">
+            <h3 class="subtitle text-foreground mb-7 font-normal">{column.title}</h3>
+            <ul class="flex flex-col gap-[14px]">
+              {column.links.map((item) => (
+                <li class="flex">
+                  <FooterLink href={item.link} newTab={item.newTab}>
+                    {item.text}
+                  </FooterLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
 
-      <div class="flex flex-col gap-4 sm:col-span-2 lg:col-span-1">
-        <h3 class="subtitle text-foreground">Newsletter</h3>
-        <form
-          data-form="newsletter"
-          action="/api/newsletter"
-          method="post"
-          class="flex flex-col gap-3"
-          novalidate
-        >
-          <label class="sr-only" for="newsletter-email">
-            Your email
-          </label>
-          <input
-            id="newsletter-email"
-            name="email"
-            type="email"
-            autocomplete="email"
-            required
-            placeholder="Your email"
-            class="form__input"
-          />
-          <input
-            type="text"
-            name="website"
-            tabindex="-1"
-            autocomplete="off"
-            class="hidden"
-            aria-hidden="true"
-          />
-          <button type="submit" class="button button--secondary-trailing self-start">
-            Subscribe
-          </button>
-          <p data-form-status class="body-sm text-muted-foreground min-h-5" aria-live="polite"></p>
-        </form>
-        <ul class="flex items-center gap-5" aria-label="Social links">
+      <div class="flex w-full flex-col gap-8 lg:w-[422px] lg:shrink-0 lg:self-stretch lg:justify-between">
+        <div class="flex flex-col">
+          <h3 class="subtitle text-foreground mb-4 font-normal">Newsletter</h3>
+          <form
+            data-form="newsletter"
+            action="/api/newsletter"
+            method="post"
+            class="relative"
+            novalidate
+          >
+            <label class="sr-only" for="newsletter-email">
+              Your email
+            </label>
+            <div class="relative">
+              <input
+                id="newsletter-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                placeholder="Your email"
+                class="form__input body-sm py-7 pr-10 leading-none"
+              />
+              <button
+                type="submit"
+                class="newsletter__submit text-muted-foreground hover:text-foreground primary-focus absolute top-1/2 right-0 flex h-8 w-8 -translate-y-1/2 items-center justify-center transition-colors duration-200"
+                aria-label="Subscribe"
+              >
+                <Icon name="home/pixel-chevron" class="h-[14px] w-[8px]" aria-hidden="true" />
+              </button>
+            </div>
+            <input
+              type="text"
+              name="website"
+              tabindex="-1"
+              autocomplete="off"
+              class="hidden"
+              aria-hidden="true"
+            />
+            <p
+              data-form-status
+              class="body-sm text-muted-foreground absolute top-full left-0 mt-1.5"
+              aria-live="polite"
+            ></p>
+          </form>
+        </div>
+
+        <ul class="flex items-center gap-3" aria-label="Social links">
           {footerSocials.map((social) => (
             <li>
               <a
@@ -63,7 +97,7 @@ const isDocs = Astro.url.pathname.startsWith("/docs");
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={social.text}
-                class="text-muted-foreground hover:text-foreground primary-focus flex h-8 w-8 items-center justify-center transition"
+                class="text-muted-foreground hover:text-foreground primary-focus flex h-7 w-7 items-center justify-center transition duration-200"
               >
                 <Icon name={social.icon} class="size-5" aria-hidden="true" />
               </a>
@@ -73,18 +107,18 @@ const isDocs = Astro.url.pathname.startsWith("/docs");
       </div>
     </div>
 
-    <p class="body-sm text-muted-foreground mt-12 flex flex-wrap gap-x-3 gap-y-1">
+    <p class="body-sm text-base-600 mt-16 flex flex-wrap gap-x-3 gap-y-1 lg:mt-[100px]">
       <span>&copy;PLUMBER {year}</span>
       <span aria-hidden="true">&middot;</span>
       <span>All rights reserved</span>
       <span aria-hidden="true">&middot;</span>
-      <a href="/privacy-policy" class="hover:text-foreground transition">
+      <a href="/privacy-policy" class="hover:text-foreground transition duration-200">
         Cookies
       </a>
     </p>
 
     <p
-      class="font-heading text-foreground mt-10 overflow-hidden text-right text-[clamp(3.5rem,12.2vw,11rem)] leading-none tracking-[-0.02em]"
+      class="font-heading text-foreground mt-16 overflow-hidden text-right text-[clamp(3.5rem,12.2vw,11rem)] leading-none tracking-[-0.02em] lg:mt-[100px]"
       aria-hidden="true"
     >
       PLUMBER

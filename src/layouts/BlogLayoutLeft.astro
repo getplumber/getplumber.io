@@ -53,31 +53,32 @@ const relatedPosts = allPosts
   postFrontmatter={post.data}
 >
   <article class="site-container mt-24 mb-24 md:mt-36" data-pagefind-ignore>
-    <!-- header: eyebrow (first category), pixel dates, uppercase title, lead, authors -->
-    <header class="flex max-w-[786px] flex-col gap-6">
-      <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-        <p class="eyebrow flex items-center gap-2">
-          <span class="bg-primary-500 block size-1.5" aria-hidden="true"></span>
-          {eyebrow}
-        </p>
-        <time class="subtitle-pixel text-muted-foreground" datetime={pubDate.toISOString()}>
-          {formatDate(pubDate, currLocale)}
-        </time>
-        {updatedDate && (
-          <time class="subtitle-pixel text-muted-foreground" datetime={updatedDate.toISOString()}>
-            Updated {formatDate(updatedDate, currLocale)}
-          </time>
-        )}
-      </div>
-      <!-- Title rendered here (not in post markdown) so every post has exactly one H1 -->
-      <h1 class="h1 text-foreground uppercase">{title}</h1>
-      <p class="body-lg text-muted-foreground">{description}</p>
-      {authorNames && <p class="text-muted-foreground text-sm">By {authorNames}</p>}
-    </header>
-
-    <div class="mt-14 grid gap-12 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-[60px]">
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-[60px]">
       <!-- main content -->
       <div class="min-w-0 max-w-[786px]">
+        <!-- header: eyebrow (first category), pixel dates, uppercase title, lead, authors -->
+        <header class="flex max-w-[786px] flex-col gap-6">
+          <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <p class="eyebrow flex items-center gap-2">
+              <span class="eyebrow-dot" aria-hidden="true"></span>
+              {eyebrow}
+            </p>
+            <time class="subtitle-pixel text-muted-foreground" datetime={pubDate.toISOString()}>
+              {formatDate(pubDate, currLocale)}
+            </time>
+            {updatedDate && (
+              <time class="subtitle-pixel text-muted-foreground" datetime={updatedDate.toISOString()}>
+                Updated {formatDate(updatedDate, currLocale)}
+              </time>
+            )}
+          </div>
+          <!-- Title rendered here (not in post markdown) so every post has exactly one H1 -->
+          <h1 class="h1 text-foreground uppercase">{title}</h1>
+          <p class="body-lg text-muted-foreground">{description}</p>
+          {authorNames && <p class="text-muted-foreground text-sm">By {authorNames}</p>}
+        </header>
+
+        <div class="mt-14">
         <!-- hero at top of page on mobile/tablet -->
         {heroImage && (
           <div class="card-tint rounded-r15 mb-10 overflow-hidden lg:hidden">
@@ -116,6 +117,7 @@ const relatedPosts = allPosts
             All posts
           </Button>
         </div>
+        </div>
       </div>
 
       <!-- hero + on this page on desktop -->
@@ -134,7 +136,7 @@ const relatedPosts = allPosts
             />
           </div>
         )}
-        <div class="lg:sticky lg:top-28">
+        <div class="lg:sticky lg:top-[calc(76px+2rem)]">
           <TableOfContents headings={headings} headingIcons={post.data.tocHeadingIcons} />
         </div>
       </aside>

@@ -1,9 +1,9 @@
 ---
 /**
- * Decorative pixel "rain" from the Figma hero: static vertical columns of 5px squares with a
- * 5px gap, fading out at about 72 percent of their height. One lit accent pixel steps down
- * each column (the 10 keyframes of the Figma component). Hidden from assistive tech; the
- * drop stops under prefers-reduced-motion.
+ * Decorative pixel "rain" from the Figma hero: vertical columns of 5px squares with a 5px
+ * gap, drifting down slowly and fading out at about 72 percent of their height. One lit accent pixel steps down
+ * each column (the 10 keyframes of the Figma component); callers can slow it down with
+ * --drop-duration. Hidden from assistive tech; the drop stops under prefers-reduced-motion.
  */
 interface Props {
   /** horizontal positions, as CSS lengths or percentages of the wrapper width */
@@ -49,6 +49,16 @@ const {
     );
     -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 72.6%);
     mask-image: linear-gradient(to bottom, #000 0%, transparent 72.6%);
+    animation: pixel-rain-drift var(--rain-duration, 2s) linear infinite;
+  }
+  /* one dot pitch per cycle, so the drift loops seamlessly */
+  @keyframes pixel-rain-drift {
+    from {
+      background-position-y: 0;
+    }
+    to {
+      background-position-y: 10px;
+    }
   }
 
   /* the lit pixel: 5px square on the dot grid, stepping 10px at a time down the column */
@@ -59,7 +69,7 @@ const {
     width: 5px;
     height: 5px;
     background-color: var(--color-primary-500);
-    animation: pixel-drop 3.6s steps(36, end) infinite;
+    animation: pixel-drop var(--drop-duration, 4.5s) steps(36, end) infinite;
     animation-delay: var(--drop-delay, 0s);
   }
 
@@ -72,7 +82,17 @@ const {
     }
   }
 
+  /* phones show three columns (Figma 360): the one on the stem of the E is dropped */
+  @media (max-width: 639px) {
+    .pixel-rain[data-col="2"] {
+      display: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .pixel-rain {
+      animation: none;
+    }
     .pixel-rain__drop {
       animation: none;
       opacity: 0;

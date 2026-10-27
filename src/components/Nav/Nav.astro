@@ -3,7 +3,6 @@ import Button from "@components/Button/Button.astro";
 import MobileNav from "@components/Nav/MobileNav/MobileNav.astro";
 import NavLink from "@components/Nav/NavLink.astro";
 import SiteLogo from "@components/SiteLogo/SiteLogo.astro";
-import ThemeToggle from "@components/ThemeToggle/ThemeToggle.astro";
 import { navCtas } from "@config/en/navData.json";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { PLUMBER_GITHUB_REPO_URL } from "@js/plumberGithubRepo";
@@ -30,22 +29,22 @@ const isDocs = Astro.url.pathname.startsWith("/docs");
       isDocs ? "docs-site-container border-foreground/10 border-r border-l" : "home-container",
     ]}
   >
-    <header class="flex h-[76px] items-center gap-6">
+    <header class="flex h-[76px] items-center gap-12">
       <!-- home button / logo -->
       <div class="flex flex-none items-center">
         <SiteLogo />
       </div>
 
       <!-- desktop nav links -->
-      <nav class="hidden flex-1 lg:block" aria-label="Main">
-        <ul class="flex items-center gap-1">
+      <nav class="nav:block hidden flex-1" aria-label="Main">
+        <ul class="flex items-center gap-8 text-sm [&>li]:w-auto">
           {navItems.map((navItem) => "link" in navItem && <NavLink {navItem} />)}
         </ul>
       </nav>
 
       <!-- desktop actions -->
-      <div class="ml-auto hidden items-center gap-3 lg:flex">
-        <ThemeToggle />
+      <div class="nav:flex ml-auto hidden items-center gap-3">
+        {/* theme toggle hidden while the site is dark only (review of 2026-10-27) */}
         <a
           href={PLUMBER_GITHUB_REPO_URL}
           target="_blank"
@@ -69,7 +68,7 @@ const isDocs = Astro.url.pathname.startsWith("/docs");
       </div>
 
       <!-- mobile nav menu, only load on small screens where it is visible -->
-      <div class="ml-auto flex items-center lg:hidden">
+      <div class="nav:hidden ml-auto flex items-center">
         <MobileNav />
       </div>
     </header>
