@@ -1,0 +1,91 @@
+---
+/**
+ * "Questions" (Figma HOME_Last, node 2513:1845, 1440 x 898).
+ * Accordion on the Starwind primitive: items separated by tint strokes, the open item
+ * gets the stronger tint and a "-" glyph, closed items a "+". The first item starts open.
+ * Also emits the FAQPage JSON-LD for search engines.
+ */
+import Accordion from "@components/starwind/accordion/Accordion.astro";
+import AccordionContent from "@components/starwind/accordion/AccordionContent.astro";
+import AccordionItem from "@components/starwind/accordion/AccordionItem.astro";
+import AccordionTrigger from "@components/starwind/accordion/AccordionTrigger.astro";
+import { faqData } from "@config/en/faqData.json";
+import { faqSection } from "@config/en/homeData.json";
+
+import SectionHeading from "./SectionHeading.astro";
+
+const stripHtml = (html: string) =>
+  html
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const faqJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqData.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: stripHtml(item.answer) },
+  })),
+}).replace(/</g, "\\u003c");
+---
+
+<section id="faq" class="bg-background">
+  <div class="home-container flex flex-col gap-16 py-16 lg:py-[88px]">
+    <SectionHeading eyebrow={faqSection.eyebrow} headline={faqSection.headline} class="gap-5" />
+
+    <Accordion type="single" defaultValue="faq-0" class="faq stroke-tint border-b">
+      {faqData.map((item, i) => (
+        <AccordionItem
+          value={`faq-${i}`}
+          class="faq__item stroke-tint rounded-none border-0 border-t"
+        >
+          <AccordionTrigger class="faq__trigger body-lg rounded-none p-8 font-normal [&>svg]:hidden">
+            <span class="faq__question">{item.question}</span>
+            <span class="faq__glyph text-[28px] leading-none font-light" aria-hidden="true" />
+          </AccordionTrigger>
+          <AccordionContent details={item.answer} class="faq__content" />
+        </AccordionItem>
+      ))}
+    </Accordion>
+  </div>
+</section>
+
+<script type="application/ld+json" set:html={faqJsonLd} is:inline />
+<style>
+  :global(.faq__item[data-state="open"]) {
+    background-color: var(--color-tint-10);
+  }
+  :global(.faq__trigger) {
+    color: var(--muted-foreground);
+  }
+  :global(.faq__trigger:hover),
+  :global(.faq__trigger[data-state="open"]) {
+    color: var(--foreground);
+  }
+  :global(.faq__trigger[data-state="open"] .faq__question) {
+    font-weight: 500;
+  }
+  :global(.faq__glyph::before) {
+    content: "+";
+  }
+  :global(.faq__trigger[data-state="open"] .faq__glyph::before) {
+    content: "\2212";
+  }
+  :global(.faq__content > div) {
+    padding: 0 32px 32px;
+    max-width: 1207px;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--color-base-600);
+  }
+  :global(.dark .faq__content > div) {
+    color: var(--color-base-200);
+  }
+  :global(.faq__content a) {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+</style>

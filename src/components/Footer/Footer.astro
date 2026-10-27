@@ -1,68 +1,93 @@
 ---
-import Button from "@components/Button/Button.astro";
 import FooterLink from "@components/Footer/FooterLink.astro";
-import SiteLogo from "@components/SiteLogo/SiteLogo.astro";
-import { getLocaleFromUrl } from "@js/localeUtils";
-import { getTranslatedData } from "@js/translationUtils";
-import { Image } from "astro:assets";
+import { footerColumns, footerSocials } from "@config/en/homeData.json";
+import { Icon } from "astro-icon/components";
 
-const currLocale = getLocaleFromUrl(Astro.url);
-const siteData = getTranslatedData("siteData", currLocale);
-
-const today = new Date();
+const year = new Date().getFullYear();
+const isDocs = Astro.url.pathname.startsWith("/docs");
 ---
 
-<div
-  class:list={[
-    "border-t-base-300 dark:border-t-base-600/60 border-t",
-    // Add background on docs pages to prevent content showing through
-    !Astro.url.pathname.startsWith("/docs") && Astro.url.pathname !== "/" && "mt-20",
-  ]}
->
-  <footer
-    class:list={[
-      "m-auto w-full pb-6",
-      // Add background on docs pages to prevent content showing through
-      Astro.url.pathname.startsWith("/docs") ? "docs-site-container" : "site-container",
-    ]}
-  >
-    <div class="flex w-full flex-col justify-between gap-4 sm:flex-row sm:gap-10">
-      <div class="mt-6 flex flex-col items-start gap-2">
-        <SiteLogo />
-      </div>
-      <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
-        <!-- Navigation -->
-        <div class="flex flex-col">
-          <h3 class="mt-6 mb-2 text-lg font-semibold">Navigation</h3>
-          <FooterLink href={"/#pricing"}>Pricing</FooterLink>
-          <FooterLink href={"/docs/getting-started"}>Docs</FooterLink>
-          <FooterLink href={"/blog"}>Blog</FooterLink>
-          <FooterLink href={"/contact"}>Contact</FooterLink>
+<footer class="bg-background stroke-tint border-t">
+  <div class:list={[isDocs ? "docs-site-container" : "home-container", "pt-16 pb-8"]}>
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,1.6fr)]">
+      {footerColumns.map((column) => (
+        <div class="flex flex-col gap-3">
+          <h3 class="subtitle text-foreground">{column.title}</h3>
+          {column.links.map((item) => (
+            <FooterLink href={item.link} newTab={item.newTab}>
+              {item.text}
+            </FooterLink>
+          ))}
         </div>
+      ))}
 
-        <!-- Legal -->
-        <div class="flex flex-col">
-          <h3 class="mt-6 mb-2 text-lg font-semibold">Legal</h3>
-          <FooterLink href="/privacy-policy"> Privacy policy </FooterLink>
-          <FooterLink href="/terms-of-use"> Terms of use </FooterLink>
-        </div>
-
-        <!-- In the Know -->
-        <div class="flex flex-col">
-          <h3 class="mt-6 mb-2 text-lg font-semibold">Socials</h3>
-          <FooterLink href="https://x.com/getplumber_io" newTab={true}> X </FooterLink>
-          <FooterLink href="https://www.linkedin.com/company/getplumber" newTab={true}>
-            LinkedIn
-          </FooterLink>
-          <FooterLink href="https://github.com/getplumber" newTab={true}> GitHub </FooterLink>
-          <FooterLink href="/discord" newTab={true}> Discord </FooterLink>
-        </div>
+      <div class="flex flex-col gap-4 sm:col-span-2 lg:col-span-1">
+        <h3 class="subtitle text-foreground">Newsletter</h3>
+        <form
+          data-form="newsletter"
+          action="/api/newsletter"
+          method="post"
+          class="flex flex-col gap-3"
+          novalidate
+        >
+          <label class="sr-only" for="newsletter-email">
+            Your email
+          </label>
+          <input
+            id="newsletter-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            placeholder="Your email"
+            class="form__input"
+          />
+          <input
+            type="text"
+            name="website"
+            tabindex="-1"
+            autocomplete="off"
+            class="hidden"
+            aria-hidden="true"
+          />
+          <button type="submit" class="button button--secondary-trailing self-start">
+            Subscribe
+          </button>
+          <p data-form-status class="body-sm text-muted-foreground min-h-5" aria-live="polite"></p>
+        </form>
+        <ul class="flex items-center gap-5" aria-label="Social links">
+          {footerSocials.map((social) => (
+            <li>
+              <a
+                href={social.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.text}
+                class="text-muted-foreground hover:text-foreground primary-focus flex h-8 w-8 items-center justify-center transition"
+              >
+                <Icon name={social.icon} class="size-5" aria-hidden="true" />
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
-    <hr class="border-base-300 dark:border-base-600/60 my-6" />
-    <div class="text-base-600 dark:text-base-100/60 text-sm">
-      &copy; {today.getFullYear()}
-      {" "}{siteData.name}. All rights reserved.
-    </div>
-  </footer>
-</div>
+
+    <p class="body-sm text-muted-foreground mt-12 flex flex-wrap gap-x-3 gap-y-1">
+      <span>&copy;PLUMBER {year}</span>
+      <span aria-hidden="true">&middot;</span>
+      <span>All rights reserved</span>
+      <span aria-hidden="true">&middot;</span>
+      <a href="/privacy-policy" class="hover:text-foreground transition">
+        Cookies
+      </a>
+    </p>
+
+    <p
+      class="font-heading text-foreground mt-10 overflow-hidden text-right text-[clamp(3.5rem,12.2vw,11rem)] leading-none tracking-[-0.02em]"
+      aria-hidden="true"
+    >
+      PLUMBER
+    </p>
+  </div>
+</footer>

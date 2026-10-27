@@ -5,6 +5,7 @@ import MobileNavDropdown from "@components/Nav/MobileNav/MobileNavDropdown.astro
 import NavLink from "@components/Nav/NavLink.astro";
 import SiteLogo from "@components/SiteLogo/SiteLogo.astro";
 import ThemeToggle from "@components/ThemeToggle/ThemeToggle.astro";
+import { navCtas } from "@config/en/navData.json";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { generateDocsMenuItems } from "@js/navUtils";
 import { getTranslatedData } from "@js/translationUtils";
@@ -16,7 +17,8 @@ import { locales } from "@config/siteSettings.json";
 
 // Generate docs menu items dynamically and add to navData if not already present
 const docsMenuItem = await generateDocsMenuItems();
-const finalNavData = [...navData]; // Create a copy to avoid mutating the original
+// copy the data (never mutate the original) and drop items whose page does not exist yet
+const finalNavData = navData.filter((item) => !("hidden" in item && item.hidden));
 
 // Check if Docs menu or Resources (containing docs) already exists
 const docsMenuExists =
@@ -128,16 +130,17 @@ if (!docsMenuExists) {
           <ThemeToggle />
           {locales.length > 1 && <LanguageSelect />}
         </div>
-        <!-- <Button
-          variant="outline"
-          href={"/login"}
-          class="mx-2 whitespace-nowrap"
-        >
-          Sign in
-        </Button>
-        <Button class="mx-2" variant="primary" href={"/signup"}
-          >Sign up</Button
-        > -->
+        {navCtas.map((cta) => (
+          <Button
+            variant={cta.variant}
+            href={cta.link}
+            class="mx-2 w-auto"
+            target={cta.newTab ? "_blank" : undefined}
+            rel={cta.newTab ? "noopener noreferrer" : undefined}
+          >
+            {cta.text}
+          </Button>
+        ))}
       </div>
     </div>
   </dialog>

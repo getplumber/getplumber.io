@@ -1,0 +1,77 @@
+---
+/**
+ * Value proposition (Figma HOME_Last, node 2513:1417, 1440 x 603).
+ * Two-column intro (38px statement, CTA block) and a collapsible "Coverage and grading
+ * overview" row with three stats separated by dashed strokes.
+ */
+import Button from "@components/Button/Button.astro";
+import { valueProp } from "@config/en/homeData.json";
+---
+
+<section id="value" class="bg-background">
+  <div class="home-container pt-16 pb-16 lg:pt-[62px]">
+    <div class="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
+      <p class="h2 max-w-[866px]">
+        <span class="text-foreground">{valueProp.headline}</span>{" "}
+        <span class="text-muted-foreground">{valueProp.headlineMuted}</span>
+      </p>
+      <div class="flex flex-none flex-col gap-6">
+        <Button variant={valueProp.cta.variant} href={valueProp.cta.link} class="self-start">
+          {valueProp.cta.text}
+        </Button>
+        <p class="body-sm text-muted-foreground flex items-center justify-between gap-6 font-medium">
+          <span>{valueProp.altLabel}</span>
+          <a
+            href={valueProp.altLink.link}
+            class="text-accent-text primary-focus inline-flex items-center gap-2.5 hover:underline"
+          >
+            {valueProp.altLink.text}
+            <span class="subtitle-pixel text-accent-text" aria-hidden="true">
+              &gt;
+            </span>
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <details class="coverage stroke-tint mt-14 border-t lg:mt-[112px]" open>
+      <summary class="primary-focus text-muted-foreground flex cursor-pointer list-none items-center justify-between gap-6 p-6">
+        <span class="body-lg">{valueProp.overviewTitle}</span>
+        <span class="coverage__toggle text-[28px] leading-none" aria-hidden="true"></span>
+      </summary>
+      <ul class="coverage__stats mt-9 grid gap-y-8 md:grid-cols-3 md:gap-y-0">
+        {valueProp.stats.map((stat, i) => (
+          <li class="coverage__stat relative flex flex-col gap-2 py-8 pl-8">
+            <span
+              class="bg-primary-500 absolute -left-[5px] size-2"
+              style={`top: ${i * 58}px;`}
+              aria-hidden="true"
+            />
+            <span class="h3 text-foreground">{stat.value}</span>
+            <span class="eyebrow text-muted-foreground">{stat.label}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
+  </div>
+</section>
+
+<style>
+  .coverage summary::-webkit-details-marker {
+    display: none;
+  }
+  .coverage__toggle::after {
+    content: "+";
+  }
+  .coverage[open] .coverage__toggle::after {
+    content: "\2212";
+  }
+  .coverage__stat {
+    border-left: 2px dashed var(--color-dash);
+  }
+  @media (min-width: 768px) {
+    .coverage__stat:last-child {
+      border-right: 2px dashed var(--color-dash);
+    }
+  }
+</style>

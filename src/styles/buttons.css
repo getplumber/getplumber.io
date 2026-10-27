@@ -1,31 +1,56 @@
-/* buttons, 4 variants: "primary", "secondary", "outline", "ghost" */
+/* Buttons from the Figma components: primary (accent blue fill), secondary (transparent with
+   stroke, marker before the label), secondary-trailing (marker after the label), ghost (text only).
+   The square marker is drawn with pseudo-elements so callers only pass the label. */
 .button {
-  @apply flex items-center justify-center rounded-md px-4 py-1 font-semibold;
-  /* @apply active:opacity-90; */
-  @apply focus:ring-offset-base-200 dark:focus:ring-offset-base-800 focus:outline-hidden;
-  @apply disabled:pointer-events-none;
+  @apply rounded-r0 inline-flex items-center justify-center gap-3.5 px-6 py-4 text-base leading-none font-normal whitespace-nowrap;
+  @apply focus-visible:ring-primary-500 focus-visible:ring-offset-background focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2;
+  @apply disabled:pointer-events-none disabled:opacity-60;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.button::before,
+.button::after {
+  content: "";
+  display: none;
+  width: 6px;
+  height: 6px;
+  flex: none;
+  background-color: currentColor;
 }
 
 .button--primary {
-  @apply from-primary-400 via-primary-500 to-primary-600 bg-gradient-to-b text-white transition-colors;
-  @apply hover:to-primary-700;
-  @apply focus-visible:ring-primary-500 focus-visible:ring-2 focus-visible:ring-offset-2;
+  @apply bg-primary-500 text-base-950;
+  @apply hover:bg-primary-600;
 }
 
-.button--secondary {
-  @apply border-primary-500 bg-base-200/70 dark:border-primary-600 dark:bg-base-800/70 border transition-colors;
-  @apply hover:border-primary-400 dark:hover:border-primary-700;
-  @apply focus-visible:ring-primary-500 focus-visible:ring-2 focus-visible:ring-offset-2;
+.button--secondary,
+.button--secondary-trailing {
+  @apply text-foreground border-base-400 border bg-transparent;
+}
+.button--secondary:hover,
+.button--secondary-trailing:hover {
+  border-color: var(--foreground);
 }
 
-.button--outline {
-  @apply border-primary-500 dark:border-primary-600 border bg-transparent transition-colors;
-  @apply hover:border-primary-400 hover:bg-base-100/50 dark:hover:border-primary-700 dark:hover:bg-base-900/50;
-  @apply focus-visible:ring-primary-500 focus-visible:ring-2 focus-visible:ring-offset-2;
+/* marker position, chosen per instance (Figma has both orders for every colour) */
+.button--marker-leading::before,
+.button--marker-trailing::after {
+  display: inline-block;
 }
 
 .button--ghost {
-  @apply no-underline transition-colors;
-  @apply hover:text-base-600 dark:hover:text-base-300;
-  @apply focus-visible:ring-primary-500 focus-visible:ring-2;
+  @apply text-foreground bg-transparent px-0 underline-offset-4 hover:underline;
+}
+
+/* smaller size for the navbar CTAs */
+.button--navbar {
+  @apply px-5 py-3 text-sm;
+}
+.button--navbar::before,
+.button--navbar::after {
+  width: 5px;
+  height: 5px;
 }

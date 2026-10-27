@@ -1,0 +1,142 @@
+---
+/**
+ * "Attackers walk right in" (Figma HOME_Last, node 2513:1438, 1440 x 1096).
+ * Centred heading, two sourced stats, a status banner, and an annotated workflow file
+ * with three numbered callouts. The code block is plain HTML so it stays selectable.
+ */
+import { attackers } from "@config/en/homeData.json";
+
+import NoteBanner from "./NoteBanner.astro";
+import SectionHeading from "./SectionHeading.astro";
+
+const flaggedLines = attackers.yaml.filter((line) => line.flag);
+---
+
+<section id="attackers" class="bg-background">
+  <div class="home-container flex flex-col gap-16 py-16 lg:gap-[88px] lg:py-[88px]">
+    <SectionHeading
+      eyebrow={attackers.eyebrow}
+      headline={attackers.headline}
+      headlineStrong={attackers.headlineStrong}
+      text={attackers.text}
+      align="center"
+      class="mx-auto max-w-[1015px] [&>p:last-child]:max-w-none"
+    />
+
+    <div class="flex flex-col gap-16 lg:gap-[88px]">
+      <ul class="grid gap-8 md:grid-cols-2">
+        {attackers.stats.map((stat) => (
+          <li class="stat flex flex-wrap items-start gap-6 py-6 pl-6">
+            <span class="h2 text-foreground">{stat.value}</span>
+            <span class="flex flex-col gap-2">
+              <span class="body text-foreground">{stat.label}</span>
+              {stat.source && <span class="eyebrow text-base-500">{stat.source}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <NoteBanner size="lg" text={attackers.banner.text} strong={attackers.banner.strong} />
+    </div>
+
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,919fr)_371fr]">
+      <figure class="card-tint rounded-r15 overflow-hidden">
+        <figcaption class="stroke-tint flex flex-wrap items-center justify-between gap-3 border-b px-6 py-4">
+          <span class="body-xs text-base-600 dark:text-base-300">{attackers.file}</span>
+          <span class="border-danger-25 bg-danger-10 rounded-r4 subtitle-pixel text-danger-500/75 inline-flex items-center gap-2 border px-2 py-1.5">
+            <span aria-hidden="true">x</span>
+            {attackers.issuesBadge}
+          </span>
+        </figcaption>
+        <ol class="code overflow-x-auto py-[18px]" aria-label={attackers.file}>
+          {attackers.yaml.map((line) => (
+            <li
+              class:list={[
+                "yaml-line flex items-center gap-0 pr-6 whitespace-pre",
+                line.flag && "yaml-line--flagged",
+                line.flag === 1 && "yaml-line--strong",
+              ]}
+            >
+              <span class="text-base-500 w-12 shrink-0 pr-[18px] text-right select-none">
+                {line.n}
+              </span>
+              <span class="text-muted-foreground">{line.key}</span>
+              {line.value && (
+                <span class={line.flag ? "text-danger-300" : "text-foreground/90"}>
+                  {line.value}
+                </span>
+              )}
+              {line.flag && (
+                <span class="ml-auto pl-6">
+                  <span class="issue-badge">{line.flag}</span>
+                </span>
+              )}
+            </li>
+          ))}
+        </ol>
+      </figure>
+
+      <ul class="flex flex-col justify-between gap-6">
+        {attackers.callouts.map((callout, i) => (
+          <li
+            class:list={[
+              "callout flex flex-col gap-4 pt-4 pb-8 pl-4",
+              i === 0 ? "callout--active" : "callout--muted",
+            ]}
+          >
+            <span class="flex items-center gap-2">
+              <span class="issue-badge">{flaggedLines[i]?.flag ?? i + 1}</span>
+              <span class="subtitle text-foreground max-w-[234px] leading-[1.2]">
+                {callout.title}
+              </span>
+            </span>
+            <span class="body-sm text-base-600 dark:text-base-300 max-w-[259px] pl-[29px]">
+              {callout.text}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .stat {
+    border-left: 2px dashed var(--color-dash);
+  }
+
+  .yaml-line {
+    line-height: 26px;
+  }
+  .yaml-line--flagged {
+    background-color: rgba(251, 48, 51, 0.09);
+    box-shadow: inset 2px 0 0 0 var(--color-danger-400);
+  }
+  .yaml-line--strong {
+    background-color: rgba(251, 48, 51, 0.2);
+  }
+
+  .issue-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 21px;
+    height: 21px;
+    border-radius: 11px;
+    border: 1px solid var(--color-danger-25);
+    background-color: var(--color-danger-25);
+    color: var(--color-danger-500);
+    font-family: var(--font-pixel);
+    font-size: 22px;
+    line-height: 0.8;
+    padding-top: 2px;
+  }
+
+  .callout--active {
+    background-color: var(--color-danger-5);
+    border-left: 2px dashed var(--color-danger-500);
+  }
+  .callout--muted {
+    border-left: 2px dashed var(--color-tint-25);
+  }
+</style>

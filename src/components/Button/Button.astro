@@ -1,19 +1,28 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { Icon } from "astro-icon/components";
 
 /**
- *  * Notes:
- *  if this is to be a link (<a>), pass an "href" prop
- *  if this is to be a button (<button>), pass a "type" prop
- *  you can pass the arrow prop with "left" or "right" to add an arrow to any button variant
+ * Figma button component.
+ * Pass "href" to render a link (<a>), or "type" to render a <button>.
+ * Variants: primary (accent fill, marker after), secondary (stroke, marker before),
+ * secondary-trailing (stroke, marker after), ghost (text only).
+ * Size "navbar" is the compact variant used in the site header.
  */
 interface Props extends HTMLAttributes<"button">, Omit<HTMLAttributes<"a">, "type"> {
-  variant?: "primary" | "secondary" | "outline" | "ghost";
-  arrow?: "left" | "right" | "none";
+  variant?: "primary" | "secondary" | "secondary-trailing" | "ghost";
+  size?: "default" | "navbar";
+  /** square marker before or after the label; defaults to after for primary, before for secondary */
+  marker?: "leading" | "trailing" | "none";
 }
 
-const { variant = "primary", arrow = "none", class: className, href, ...rest } = Astro.props;
+const {
+  variant = "primary",
+  size = "default",
+  marker,
+  class: className,
+  href,
+  ...rest
+} = Astro.props;
 
 // Normalize internal links to remove trailing slash (except root)
 let normalizedHref = href;
@@ -25,47 +34,27 @@ if (href && typeof href === "string") {
   }
 }
 
-let Component = "button";
-if (href) {
-  Component = "a";
-}
+const defaultMarker: Record<string, "leading" | "trailing" | "none"> = {
+  primary: "trailing",
+  secondary: "leading",
+  "secondary-trailing": "trailing",
+  ghost: "none",
+};
+const markerPosition = marker ?? defaultMarker[variant];
+
+const Component = href ? "a" : "button";
 ---
 
 <Component
   class:list={[
     className,
-    `button group`,
-    {
-      "button--primary": variant === "primary",
-    },
-    {
-      "button--secondary": variant === "secondary",
-    },
-    {
-      "button--outline": variant === "outline",
-    },
-    {
-      "button--ghost": variant === "ghost",
-    },
+    "button group",
+    "button--" + variant,
+    { "button--navbar": size === "navbar" },
+    markerPosition !== "none" && "button--marker-" + markerPosition,
   ]}
-  {...href ? { href: normalizedHref } : {}}
+  {...(href ? { href: normalizedHref } : {})}
   {...rest}
 >
-  {
-    arrow === "left" && (
-      <Icon
-        name="tabler/arrow-narrow-left"
-        class="text-primary-600 dark:text-primary-300 mr-1 h-[1.4em] w-[1.4em] transition-transform group-hover:-translate-x-1"
-      />
-    )
-  }
   <slot />
-  {
-    arrow === "right" && (
-      <Icon
-        name="tabler/arrow-narrow-right"
-        class="text-primary-600 dark:text-primary-300 ml-1 h-[1.4em] w-[1.4em] transition-transform group-hover:translate-x-1"
-      />
-    )
-  }
 </Component>

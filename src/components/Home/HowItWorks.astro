@@ -1,0 +1,85 @@
+---
+/**
+ * "Plumber finds the leak and brings the fix" (Figma HOME_Last, node 2513:1707, 1440 x 659).
+ * Four steps on dotted tracks; the first step is highlighted, the others are muted.
+ * Ends with the review note banner.
+ */
+import { howItWorks } from "@config/en/homeData.json";
+
+import NoteBanner from "./NoteBanner.astro";
+import SectionHeading from "./SectionHeading.astro";
+---
+
+<section id="how-it-works" class="bg-background">
+  <div class="home-container flex flex-col gap-16 py-16 lg:gap-[88px] lg:py-[88px]">
+    <SectionHeading
+      eyebrow={howItWorks.eyebrow}
+      headline={howItWorks.headline}
+      headlineStrong={howItWorks.headlineStrong}
+      text={howItWorks.text}
+      class="[&>h2]:max-w-[720px] [&>p:last-child]:max-w-none"
+    />
+
+    <div class="flex flex-col gap-16">
+      <ol class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        {howItWorks.steps.map((step, i) => (
+          <li class:list={["step flex flex-col gap-4", i === 0 ? "step--active" : "step--muted"]}>
+            <span class="step__track relative block h-px w-full" aria-hidden="true">
+              <span class="step__dot" />
+            </span>
+            <span class="eyebrow step__number">{step.number}</span>
+            <span class="h3 step__title">{step.title}</span>
+            <span class="body step__text">{step.text}</span>
+          </li>
+        ))}
+      </ol>
+
+      <NoteBanner text={howItWorks.note} />
+    </div>
+  </div>
+</section>
+
+<style>
+  .step__track {
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-tint-25) 0 2px,
+      transparent 2px 5px
+    );
+  }
+  .step__dot {
+    position: absolute;
+    top: -3.5px;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-base-600);
+  }
+  .step--active .step__dot {
+    background-color: var(--color-primary-500);
+  }
+  .step--active .step__number {
+    color: var(--accent-text);
+  }
+  .step--muted .step__number {
+    color: var(--color-base-600);
+  }
+  .step--active .step__title {
+    color: var(--foreground);
+  }
+  .step--muted .step__title {
+    color: var(--muted-foreground);
+  }
+  .step--active .step__text {
+    color: var(--color-base-600);
+  }
+  :root.dark .step--active .step__text {
+    color: var(--color-base-300);
+  }
+  .step--muted .step__text {
+    color: var(--color-base-500);
+  }
+  :root.dark .step--muted .step__text {
+    color: var(--color-base-600);
+  }
+</style>

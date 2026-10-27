@@ -1,0 +1,34 @@
+---
+/**
+ * Full-width note banner from the Figma home page (shield icon, teal tint, 8px radius).
+ * "strong" renders in the alert red, as in "Your pipeline is green. It's also leaking."
+ */
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  text: string;
+  strong?: string;
+  size?: "md" | "lg";
+  class?: string;
+}
+
+const { text, strong, size = "md", class: className } = Astro.props;
+---
+
+<p
+  class:list={[
+    "border-accent-20 bg-primary-500/5 rounded-r8 flex flex-wrap items-center justify-center gap-4 border px-8 py-4 text-center",
+    className,
+  ]}
+>
+  <Icon name="home/shield-check" class="text-primary-500 size-[22px] shrink-0" aria-hidden="true" />
+  <span class={size === "lg" ? "body-lg" : "body font-medium"}>
+    <span class="text-foreground">{text}</span>
+    {strong && (
+      <>
+        {" "}
+        <span class="text-danger-500">{strong}</span>
+      </>
+    )}
+  </span>
+</p>

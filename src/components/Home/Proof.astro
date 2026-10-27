@@ -1,0 +1,157 @@
+---
+/**
+ * "Don't take our word for it. Check the grade." (Figma HOME_Last, node 2513:1791, 1440 x 925).
+ * Heading with two CTAs, a four-cell numbers strip, and a testimonial carousel: the rail
+ * scrolls horizontally with snap points, bleeds to the right edge of the viewport like the
+ * Figma frame, hides the native scrollbar, and is driven by previous/next buttons.
+ */
+import Button from "@components/Button/Button.astro";
+import TestimonialCard from "@components/Testimonials/TestimonialCard.astro";
+import { proof } from "@config/en/homeData.json";
+import { testimonialData } from "@config/en/testimonialData.json";
+
+import SectionHeading from "./SectionHeading.astro";
+
+// the Figma rail shows the third card emphasised
+const activeIndex = 2;
+---
+
+<section id="proof" class="bg-background overflow-x-clip">
+  <div class="home-container flex flex-col gap-16 py-16 lg:gap-[88px] lg:py-[88px]">
+    <div class="flex flex-col gap-16">
+      <SectionHeading
+        eyebrow={proof.eyebrow}
+        headline={proof.headline}
+        headlineStrong={proof.headlineStrong}
+        text={proof.text}
+        class="[&>h2]:max-w-[1008px] [&>p:last-child]:max-w-none"
+      />
+      <div class="flex flex-wrap gap-4">
+        <Button
+          variant={proof.ctas[0].variant}
+          marker="leading"
+          href={proof.ctas[0].link}
+          target={proof.ctas[0].newTab ? "_blank" : undefined}
+          rel={proof.ctas[0].newTab ? "noopener noreferrer" : undefined}
+        >
+          {proof.ctas[0].text}
+        </Button>
+        <Button
+          variant={proof.ctas[1].variant}
+          marker="trailing"
+          href={proof.ctas[1].link}
+          target={proof.ctas[1].newTab ? "_blank" : undefined}
+          rel={proof.ctas[1].newTab ? "noopener noreferrer" : undefined}
+        >
+          {proof.ctas[1].text}
+        </Button>
+      </div>
+    </div>
+
+    <dl class="stroke-tint grid border-y sm:grid-cols-2 lg:grid-cols-4">
+      {proof.stats.map((stat) => (
+        <div class="stroke-tint flex flex-col gap-2 border-b px-6 py-8 sm:border-r sm:last:border-r-0 lg:border-b-0">
+          <dd class="h3 text-foreground order-1">{stat.value}</dd>
+          <dt class="body-xs text-muted-foreground order-2">{stat.label}</dt>
+        </div>
+      ))}
+    </dl>
+
+    <div class="carousel flex flex-col gap-6" data-carousel>
+      <ul
+        class="carousel__rail flex snap-x snap-mandatory gap-6 overflow-x-auto"
+        aria-label="Customer testimonials"
+        tabindex="0"
+      >
+        {testimonialData.map((item, i) => (
+          <li class="w-[min(100%,424px)] shrink-0 snap-start">
+            <TestimonialCard {...item} active={i === activeIndex} />
+          </li>
+        ))}
+      </ul>
+      <div class="flex gap-3" aria-label="Carousel controls">
+        <button
+          type="button"
+          class="carousel__btn button button--secondary"
+          data-carousel-prev
+          aria-label="Previous testimonials"
+        >
+          <span class="subtitle-pixel" aria-hidden="true">
+            &lt;
+          </span>
+        </button>
+        <button
+          type="button"
+          class="carousel__btn button button--secondary"
+          data-carousel-next
+          aria-label="Next testimonials"
+        >
+          <span class="subtitle-pixel" aria-hidden="true">
+            &gt;
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* bleed the rail to the right edge of the viewport, like the Figma frame */
+  .carousel__rail {
+    margin-right: calc(50% - 50vw);
+    padding-right: calc(50vw - 50%);
+    scroll-padding-left: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .carousel__rail::-webkit-scrollbar {
+    display: none;
+  }
+  .carousel__btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    gap: 0;
+  }
+  .carousel__btn::before,
+  .carousel__btn::after {
+    display: none;
+  }
+  .carousel__btn[aria-disabled="true"] {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  function initCarousels() {
+    document.querySelectorAll<HTMLElement>("[data-carousel]").forEach((carousel) => {
+      if (carousel.dataset.ready === "true") return;
+      carousel.dataset.ready = "true";
+      const rail = carousel.querySelector<HTMLElement>(".carousel__rail");
+      const prev = carousel.querySelector<HTMLButtonElement>("[data-carousel-prev]");
+      const next = carousel.querySelector<HTMLButtonElement>("[data-carousel-next]");
+      if (!rail || !prev || !next) return;
+
+      const step = () => {
+        const card = rail.querySelector<HTMLElement>("li");
+        const gap = parseFloat(getComputedStyle(rail).columnGap || "24") || 24;
+        return (card?.offsetWidth ?? 424) + gap;
+      };
+      const update = () => {
+        const max = rail.scrollWidth - rail.clientWidth - 1;
+        prev.setAttribute("aria-disabled", String(rail.scrollLeft <= 0));
+        next.setAttribute("aria-disabled", String(rail.scrollLeft >= max));
+      };
+
+      prev.addEventListener("click", () => rail.scrollBy({ left: -step(), behavior: "smooth" }));
+      next.addEventListener("click", () => rail.scrollBy({ left: step(), behavior: "smooth" }));
+      rail.addEventListener("scroll", update, { passive: true });
+      window.addEventListener("resize", update, { passive: true });
+      update();
+    });
+  }
+
+  initCarousels();
+  document.addEventListener("astro:after-swap", initCarousels);
+</script>

@@ -1,0 +1,47 @@
+---
+/**
+ * Section heading in the Figma pattern: pixel-font eyebrow, an uppercase H1-sized title whose
+ * first line is muted and second line is in the foreground colour, and an optional lead text.
+ */
+interface Props {
+  eyebrow?: string;
+  headline: string;
+  headlineStrong?: string;
+  /** render the first line in the foreground colour and the second muted (Figma "Attackers moved") */
+  invert?: boolean;
+  text?: string;
+  as?: "h1" | "h2";
+  align?: "left" | "center";
+  class?: string;
+}
+
+const {
+  eyebrow,
+  headline,
+  headlineStrong,
+  invert = false,
+  text,
+  as: Tag = "h2",
+  align = "left",
+  class: className,
+} = Astro.props;
+
+const firstClass = invert || !headlineStrong ? "text-foreground" : "text-muted-foreground";
+const secondClass = invert ? "text-muted-foreground" : "text-foreground";
+---
+
+<div
+  class:list={["flex flex-col gap-6", align === "center" && "items-center text-center", className]}
+>
+  {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+  <Tag class="h1 uppercase">
+    <span class={firstClass}>{headline}</span>
+    {headlineStrong && (
+      <>
+        <br />
+        <span class={secondClass}>{headlineStrong}</span>
+      </>
+    )}
+  </Tag>
+  {text && <p class="body-lg text-muted-foreground max-w-[62ch]">{text}</p>}
+</div>

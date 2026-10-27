@@ -1,0 +1,127 @@
+---
+/**
+ * "Find the leak before an attacker does" (Figma HOME_Last, node 2513:1886, 1440 x 410).
+ * Copy on the left, a four-field form on the right. The form posts to /api/demo through
+ * src/js/forms.ts and always shows an email fallback underneath.
+ */
+import { bookDemo } from "@config/en/homeData.json";
+
+import SectionHeading from "./SectionHeading.astro";
+
+const { fields } = bookDemo;
+---
+
+<section id="book-a-demo" class="bg-background scroll-mt-[76px]">
+  <div class="home-container grid gap-16 py-16 lg:grid-cols-[minmax(0,534fr)_minmax(0,138fr)_minmax(0,648fr)] lg:py-[88px]">
+    <SectionHeading
+      eyebrow={bookDemo.eyebrow}
+      headline={bookDemo.headline}
+      headlineStrong={bookDemo.headlineStrong}
+      text={bookDemo.text}
+      class="[&>p:last-child]:max-w-none"
+    />
+
+    <form
+      data-form="demo"
+      action="/api/demo"
+      method="post"
+      class="flex flex-col gap-12 lg:col-start-3"
+      novalidate
+    >
+      <div class="flex flex-col">
+        <label class="sr-only" for="demo-name">
+          {fields.name}
+        </label>
+        <input
+          id="demo-name"
+          name="name"
+          type="text"
+          autocomplete="name"
+          required
+          minlength="2"
+          maxlength="100"
+          placeholder={fields.name}
+          class="form__input form__input--row"
+        />
+        <label class="sr-only" for="demo-email">
+          {fields.email}
+        </label>
+        <input
+          id="demo-email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          required
+          maxlength="200"
+          placeholder={fields.email}
+          class="form__input form__input--row"
+        />
+        <label class="sr-only" for="demo-company">
+          {fields.company}
+        </label>
+        <input
+          id="demo-company"
+          name="company"
+          type="text"
+          autocomplete="organization"
+          required
+          maxlength="100"
+          placeholder={fields.company}
+          class="form__input form__input--row"
+        />
+        <label class="sr-only" for="demo-pipelines">
+          {fields.pipelines}
+        </label>
+        <input
+          id="demo-pipelines"
+          name="pipelines"
+          type="text"
+          inputmode="numeric"
+          maxlength="50"
+          placeholder={fields.pipelines}
+          class="form__input form__input--row"
+        />
+        <input
+          type="text"
+          name="website"
+          tabindex="-1"
+          autocomplete="off"
+          class="hidden"
+          aria-hidden="true"
+        />
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <button type="submit" class="button button--primary button--marker-trailing w-full">
+          {bookDemo.submit}
+        </button>
+        <p data-form-status class="body-sm text-muted-foreground min-h-5" aria-live="polite"></p>
+        <p class="body-xs text-muted-foreground">
+          Prefer email?{" "}
+          <a
+            href={`mailto:${bookDemo.fallbackEmail}`}
+            class="hover:text-foreground underline underline-offset-2"
+          >
+            {bookDemo.fallbackEmail}
+          </a>
+        </p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<style>
+  /* Figma field rows: 14px medium label text, 32px vertical padding, 25 percent stroke */
+  .form__input--row {
+    padding-block: 28px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .form__input--row::placeholder {
+    color: var(--color-base-600);
+    font-weight: 500;
+  }
+  .form__input--row[aria-invalid="true"] {
+    border-color: var(--color-danger-500);
+  }
+</style>

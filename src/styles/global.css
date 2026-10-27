@@ -25,34 +25,35 @@
 
 @layer base {
   :root {
-    /* starwind component variables */
-    --background: var(--color-base-100);
-    --foreground: var(--color-base-900);
-    --card: var(--color-base-50);
+    /* starwind component variables, light mode (derived from the dark Figma palette) */
+    --background: var(--color-base-50);
+    --foreground: var(--color-base-950);
+    --card: var(--color-tint-5);
     --card-foreground: var(--color-base-950);
     --popover: var(--color-base-50);
     --popover-foreground: var(--color-base-950);
-    --primary: var(--color-primary-700);
+    --primary: var(--color-primary-800);
     --primary-foreground: var(--color-base-50);
-    --secondary: var(--color-fuchsia-700);
+    --secondary: var(--color-base-600);
     --secondary-foreground: var(--color-base-50);
-    --muted: var(--color-base-100);
+    --muted: var(--color-tint-5);
     --muted-foreground: var(--color-base-600);
-    --accent: var(--color-base-200);
-    --accent-foreground: var(--color-base-900);
+    --accent: var(--color-tint-10);
+    --accent-foreground: var(--color-base-950);
+    --accent-text: var(--color-primary-800);
     --info: var(--color-sky-300);
     --info-foreground: var(--color-sky-950);
-    --success: var(--color-green-300);
-    --success-foreground: var(--color-green-950);
+    --success: var(--color-primary-200);
+    --success-foreground: var(--color-primary-950);
     --warning: var(--color-amber-300);
     --warning-foreground: var(--color-amber-950);
-    --error: var(--color-red-700);
+    --error: var(--color-danger-500);
     --error-foreground: var(--color-base-50);
-    --border: var(--color-base-300);
-    --input: var(--color-base-100);
+    --border: var(--color-tint-25);
+    --input: var(--color-base-50);
     --outline: var(--color-base-950);
 
-    --radius: 0.5rem;
+    --radius: 0.25rem;
 
     /* Shiki syntax highlighting - GitHub Light theme for light mode (Enhanced darkness for better contrast) */
     --astro-code-color-text: #0d1117;
@@ -87,31 +88,32 @@
   }
 
   .dark {
-    /* starwind dark theme config */
-    --background: var(--color-base-900);
-    --foreground: var(--color-base-100);
-    --card: oklch(1% 0 0);
-    --card-foreground: var(--color-base-100);
-    --popover: oklch(1% 0 0);
-    --popover-foreground: var(--color-base-100);
+    /* starwind dark theme config: the Figma palette as designed */
+    --background: var(--color-base-950);
+    --foreground: var(--color-base-50);
+    --card: var(--color-tint-5);
+    --card-foreground: var(--color-base-50);
+    --popover: var(--color-base-900);
+    --popover-foreground: var(--color-base-50);
     --primary: var(--color-primary-500);
-    --primary-foreground: oklch(1% 0 0);
-    --secondary: var(--color-fuchsia-300);
-    --secondary-foreground: oklch(1% 0 0);
-    --muted: var(--color-base-900);
+    --primary-foreground: var(--color-base-950);
+    --secondary: var(--color-base-200);
+    --secondary-foreground: var(--color-base-950);
+    --muted: var(--color-tint-5);
     --muted-foreground: var(--color-base-400);
-    --accent: var(--color-base-900);
-    --accent-foreground: var(--color-base-100);
+    --accent: var(--color-tint-10);
+    --accent-foreground: var(--color-base-50);
+    --accent-text: var(--color-primary-500);
     --info: var(--color-sky-300);
     --info-foreground: var(--color-sky-950);
-    --success: var(--color-green-300);
-    --success-foreground: var(--color-green-950);
+    --success: var(--color-primary-200);
+    --success-foreground: var(--color-primary-950);
     --warning: var(--color-amber-300);
     --warning-foreground: var(--color-amber-950);
-    --error: var(--color-red-800);
-    --error-foreground: oklch(99% 0 0);
-    --border: var(--color-base-800);
-    --input: var(--color-base-800);
+    --error: var(--color-danger-500);
+    --error-foreground: var(--color-base-50);
+    --border: var(--color-tint-25);
+    --input: var(--color-base-950);
     --outline: var(--color-base-50);
 
     /* Shiki syntax highlighting - GitHub Dark theme for dark mode (Enhanced brightness for better contrast) */
@@ -151,53 +153,121 @@
 }
 
 @layer components {
+  /* Figma type scale. Headings are Inter 400; sizes shrink on phones with clamp(). */
   .h1 {
-    @apply text-3xl font-medium md:text-4xl;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(2.125rem, 1.4rem + 2.6vw, 3.375rem); /* 34px to 54px */
+    line-height: 1.2;
+    letter-spacing: 0;
   }
 
   .h2 {
-    @apply text-3xl font-medium;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.375rem); /* 28px to 38px */
+    line-height: 1.1;
   }
 
   .h3 {
-    @apply text-xl font-medium;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(1.5rem, 1.3rem + 0.7vw, 2rem); /* 24px to 32px */
+    line-height: 1.1;
   }
 
-  /* Mono uppercase section eyebrow (e.g. "THE LOOP", "OPEN SOURCE · CI/CD SECURITY").
-     Plain CSS (not @apply) so theme color vars resolve cleanly inside the layer. */
-  .section-eyebrow {
+  .body-xl {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+  .body-lg {
+    font-size: 1.125rem;
+    line-height: 1.5;
+  }
+  .body {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  .body-sm {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  .body-xs {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+  .subtitle {
+    font-size: 1rem;
+    line-height: 1;
+    font-weight: 500;
+  }
+
+  /* Pixel-font eyebrow above section headings (Figma "Eyebrow-Haxr22"). */
+  .eyebrow {
+    font-family: var(--font-pixel);
+    font-size: 1.375rem;
+    line-height: 0.8;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+  }
+
+  /* Pixel-font small label (Figma "Sous-titre-Haxr18"). */
+  .subtitle-pixel {
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+    line-height: 0.6;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  /* Code line (Figma "Codeligne-13"). */
+  .code {
     font-family: var(--font-mono);
     font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-primary-700);
+    line-height: 1.8;
   }
-  .dark .section-eyebrow {
-    color: var(--color-primary-300);
+
+  /* Legacy eyebrow used by blog and docs callers; now pixel font, accent color. */
+  .section-eyebrow {
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--accent-text);
   }
 
   .description {
-    @apply text-base-700 dark:text-base-300 md:text-lg;
+    @apply text-muted-foreground md:text-lg;
   }
 
   /* styles navbar links - no transition so no color animation on hover/focus */
   .nav__link--base {
-    @apply text-base-900 hover:text-base-600 dark:text-base-200/90 dark:hover:text-base-50 leading-tight;
+    @apply text-foreground/90 hover:text-foreground leading-tight;
   }
 
   .site-container {
     @apply mx-auto max-w-[1100px] px-4 2xl:max-w-[1400px];
   }
 
-  /* Alternating section backgrounds (landing page).
-     Wrap the page's sections in .sections-alternate and mark each participating
-     block (a <section>, or a wrapper grouping sections into one visual unit)
-     with .section-alt: every odd block gets the darker band, counted in document
-     order, so the page starts dark (hero) and alternates from there. Reorder the
-     sections and the alternation follows — no per-section background classes to
-     keep in sync. Non-participating elements (dividers, scripts) don't break the
-     count. In dark mode the band darkens toward the hero animation's #070809. */
+  /* Home page, navbar and footer share the blog page width (site-container). */
+  .home-container {
+    @apply mx-auto w-full max-w-[1100px] px-4 2xl:max-w-[1400px];
+  }
+
+  /* Figma card: darker grey at 5 percent over the page, 25 percent stroke, 10 percent on hover. */
+  .card-tint {
+    background-color: var(--color-tint-5);
+    border: 1px solid var(--color-tint-25);
+  }
+  .card-tint-hover:hover {
+    background-color: var(--color-tint-10);
+  }
+  .stroke-tint {
+    border-color: var(--color-tint-25);
+  }
+
+  /* Alternating section backgrounds (legacy landing page, removed with the old sections). */
   .sections-alternate > :nth-child(odd of .section-alt) {
     background-color: rgb(0 0 0 / 0.06);
   }
@@ -207,12 +277,14 @@
 
   /* used for newsletter, and contact form inputs */
   .form__input {
-    @apply border-base-300 bg-base-100 hover:border-primary-500 dark:border-base-600/60 dark:bg-base-800 w-full rounded-md border px-3 transition;
-    @apply focus:border-primary-500 focus-visible:ring-primary-500/50 focus-visible:ring-2;
+    @apply text-foreground w-full border-0 border-b bg-transparent px-0 py-3 transition;
+    @apply focus:border-primary-500 focus-visible:ring-0;
     @apply outline-none;
+    border-color: var(--color-tint-25);
+    border-radius: 0;
 
     &::placeholder {
-      @apply text-base-400;
+      @apply text-muted-foreground;
     }
   }
 }
@@ -239,8 +311,8 @@
   }
 
   /* weird tailwind v4 fixes necessary for some components. These may not be necessary once it is out of beta */
-  /* currently in v4 beta you cannot apply non-standard tailwind classes to elements within css layers. 
-  So we can't use "main-text-gradient" here, and the classes are instead copied */
+  /* currently in v4 beta you cannot apply non-standard tailwind classes to elements within css layers.
+  So we cannot use "main-text-gradient" here, and the classes are instead copied */
   .colored-title {
     @apply from-primary-800 to-primary-600 dark:from-primary-400 dark:to-primary-200 bg-gradient-to-r bg-clip-text text-lg text-transparent;
   }

@@ -1,32 +1,44 @@
 ---
+/**
+ * Testimonial card from the Figma home page (424 x 300, tinted, 15px radius):
+ * quote prefixed with ">>" at the top, author row pinned to the bottom.
+ * "active" renders the emphasised variant (stronger tint, foreground text).
+ */
 import { type TestimonialItem } from "@config/types/configDataTypes";
 import { Image } from "astro:assets";
 
 interface Props extends TestimonialItem {
-  rest?: any; // catch-all for any additional parameters, such as "aria-label"
+  active?: boolean;
+  class?: string;
 }
 
-const { avatar, name, title, testimonial, ...rest } = Astro.props as Props;
+const { avatar, name, title, testimonial, active = false, class: className } = Astro.props;
 ---
 
-<div
-  class="border-base-300 bg-base-200/50 dark:border-base-600/60 dark:bg-base-800/50 rounded-2xl border p-4"
-  {...rest}
+<figure
+  class:list={[
+    "stroke-tint rounded-r15 flex h-full min-h-[300px] flex-col justify-between gap-8 border p-8",
+    active ? "bg-tint-10" : "bg-tint-5 hover:bg-tint-10",
+    className,
+  ]}
 >
-  <div class="mx-auto w-full">
-    <div class="mr-auto flex items-center gap-6">
-      <div class="h-12 w-12 shrink-0 overflow-hidden rounded-full">
-        <Image src={avatar} alt={name} width={100} class="h-full object-cover" />
-      </div>
-      <div>
-        <h3 class="text-lg font-medium">{name}</h3>
-        <p class="text-sm opacity-90 dark:opacity-80">
-          {title}
-        </p>
-      </div>
-    </div>
-    <p class="mt-4 text-sm lg:text-base">
-      {testimonial}
-    </p>
-  </div>
-</div>
+  <blockquote class:list={["body-lg", active ? "text-foreground" : "text-muted-foreground"]}>
+    <span class="text-muted-foreground" aria-hidden="true">
+      &gt;&gt;&nbsp;{" "}
+    </span>
+    {testimonial}
+  </blockquote>
+  <figcaption class="flex items-start gap-4">
+    <Image
+      src={avatar}
+      alt=""
+      width={80}
+      height={80}
+      class="size-10 shrink-0 rounded-full object-cover"
+    />
+    <span class="flex flex-col gap-2">
+      <span class="body-sm text-base-700 dark:text-base-200 font-medium">{name}</span>
+      <span class="body-xs text-muted-foreground">{title}</span>
+    </span>
+  </figcaption>
+</figure>

@@ -36,9 +36,7 @@ const authorsData = await getEntries(authors);
           <h1 class="h1 mt-4">{title}</h1>
 
           <!-- description -->
-          <p class="mt-3 text-sm opacity-70 md:text-base/5">
-            {description}
-          </p>
+          <p class="mt-3 text-sm opacity-70 md:text-base/5">{description}</p>
         </div>
       </div>
 
@@ -59,37 +57,35 @@ const authorsData = await getEntries(authors);
       <div class="mt-4 flex w-full flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap gap-4">
           <!-- author info -->
-          {
-            authorsData.map((authorData) => (
-              <div class="mb-auto flex">
-                <figure>
-                  <Image
-                    src={authorData.data.avatar}
-                    alt={`${authorData.data.name} avatar`}
-                    width={100}
-                    quality="high"
-                    class="h-7 w-7 rounded-full object-cover"
-                  />
-                </figure>
-                <div class="my-auto ml-2">
-                  <a
-                    class="opacity-80 transition hover:opacity-100"
-                    href={authorData.data.authorLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {authorData.data.name}
-                  </a>
-                </div>
+          {authorsData.map((authorData) => (
+            <div class="mb-auto flex">
+              <figure>
+                <Image
+                  src={authorData.data.avatar}
+                  alt={`${authorData.data.name} avatar`}
+                  width={100}
+                  quality="high"
+                  class="h-7 w-7 rounded-full object-cover"
+                />
+              </figure>
+              <div class="my-auto ml-2">
+                <a
+                  class="opacity-80 transition hover:opacity-100"
+                  href={authorData.data.authorLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {authorData.data.name}
+                </a>
               </div>
-            ))
-          }
+            </div>
+          ))}
         </div>
 
         <!-- pubDate -->
-        <time class="opacity-80" datetime={pubDate.toISOString()}
-          >{formatDate(pubDate, currLocale)}</time
-        >
+        <time class="opacity-80" datetime={pubDate.toISOString()}>
+          {formatDate(pubDate, currLocale)}
+        </time>
       </div>
     </div>
 
@@ -97,22 +93,20 @@ const authorsData = await getEntries(authors);
     <div class="mt-14 w-full">
       <div class="mx-auto max-w-2xl">
         <div class="text-base-content text-base">
-          {
-            updatedDate && (
-              <div class="mb-6 italic">
-                <time datetime={updatedDate.toISOString()}>
-                  Updated: {formatDate(updatedDate, currLocale)}
-                </time>
-              </div>
-            )
-          }
+          {updatedDate && (
+            <div class="mb-6 italic">
+              <time datetime={updatedDate.toISOString()}>
+                Updated: {formatDate(updatedDate, currLocale)}
+              </time>
+            </div>
+          )}
           <section id="blog-post-content" class="markdown-content mx-auto md:text-lg">
             <slot />
           </section>
 
           <!-- button to go back to all posts -->
           <div class="mt-16 flex justify-center">
-            <Button variant="outline" href={"/blog"} arrow="left" class="py-2">
+            <Button variant="secondary" href={"/blog"} class="py-2">
               Back to all posts
             </Button>
           </div>
