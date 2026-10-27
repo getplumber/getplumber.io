@@ -2,7 +2,8 @@
 /**
  * Home hero (Figma HOME_Last, node 2513:1347, 1440 x 700).
  * Letter-spaced "PLUMBER" wordmark, pixel rain columns under it, eyebrow and lead copy,
- * a straight bar with a static 12px marker at its start, and the two calls to action.
+ * a straight bar (4px, 6px on desktop) with a static 12px marker at its start, and the two
+ * calls to action.
  *
  * Review of 2026-10-27: the copy block is dim at rest and lights up while hovered; the
  * grey columns always drift and each column runs its lit pixel (at half speed, starting
@@ -58,7 +59,7 @@ const letters = "PLUMBER".split("");
           </p>
         </div>
 
-        <div class="hero-bar relative mt-8 h-0.5 w-full max-w-[576px]" aria-hidden="true">
+        <div class="hero-bar relative mt-8 h-1 w-full max-w-[576px] lg:h-1.5" aria-hidden="true">
           <span class="hero-bar__marker"></span>
         </div>
 
@@ -151,18 +152,23 @@ const letters = "PLUMBER".split("");
     color: var(--color-base-600);
   }
 
-  /* straight 2px line fading out towards its end, as in Figma */
+  /* straight line fading out towards its end, as in Figma: 4px, 6px from lg */
   .hero-bar {
     background-image: linear-gradient(to right, var(--color-tint-25) 60%, transparent);
   }
 
   .hero-bar__marker {
     position: absolute;
-    top: -5px;
+    top: -4px;
     left: -6px;
     width: 12px;
     height: 12px;
     background-color: var(--color-base-600);
+  }
+  @media (min-width: 1024px) {
+    .hero-bar__marker {
+      top: -3px;
+    }
   }
   /* Figma 360: teal marker flush with the bar's start (the button markers move after the
      labels through buttons.css) */
