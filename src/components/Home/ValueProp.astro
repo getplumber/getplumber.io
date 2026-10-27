@@ -3,48 +3,77 @@
  * Value proposition (Figma HOME_Last, node 2513:1417, 1440 x 603).
  * Two-column intro (38px statement, CTA block) and a collapsible "Coverage and grading
  * overview" row with three stats separated by dashed strokes.
+ *
+ * Review of 2026-10-27: the stats fade in one after the other and each accent dot slides
+ * down the dashed stroke from the top to its place; the "Plumber Scan" link underlines
+ * from the left on hover (its chevron is the Figma pixel icon); the last stat has no closing stroke. The overview row keeps its
+ * stroke above the title while open and under it while closed, lights up on hover and
+ * dissolves its stats in when opened. Sections sit 208px apart (104px of padding each),
+ * 160px on phones. Phones (Figma 360): 140% line height on the statement, 112px to the
+ * 247px button, the "run it yourself" line as wide as the button, 112px to the overview;
+ * below lg the overview row has no side padding.
  */
 import Button from "@components/Button/Button.astro";
 import { valueProp } from "@config/en/homeData.json";
+import { Icon } from "astro-icon/components";
 ---
 
 <section id="value" class="bg-background">
-  <div class="home-container pt-16 pb-16 lg:pt-[62px]">
-    <div class="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
-      <p class="h2 max-w-[866px]">
+  <div class="home-container pt-[112px] pb-20 lg:pt-[160px] lg:pb-[104px]">
+    <div
+      class="flex flex-col gap-[112px] lg:flex-row lg:items-end lg:justify-between lg:gap-10"
+      data-reveal
+    >
+      <p class="h2 max-w-[866px] leading-[1.4] lg:leading-[1.1]">
         <span class="text-foreground">{valueProp.headline}</span>{" "}
         <span class="text-muted-foreground">{valueProp.headlineMuted}</span>
       </p>
       <div class="flex flex-none flex-col gap-6">
-        <Button variant={valueProp.cta.variant} href={valueProp.cta.link} class="self-start">
+        <Button
+          variant={valueProp.cta.variant}
+          href={valueProp.cta.link}
+          class="button--hover-stroke w-[247px] self-start lg:w-auto"
+        >
           {valueProp.cta.text}
         </Button>
-        <p class="body-sm text-muted-foreground flex items-center justify-between gap-6 font-medium">
+        <p class="body-sm text-muted-foreground flex w-[247px] items-center justify-between gap-2 lg:w-auto lg:gap-6">
           <span>{valueProp.altLabel}</span>
           <a
             href={valueProp.altLink.link}
-            class="text-accent-text primary-focus inline-flex items-center gap-2.5 hover:underline"
+            class="scan-link text-accent-text primary-focus inline-flex items-center gap-2.5"
+            data-hover-reveal
           >
-            {valueProp.altLink.text}
-            <span class="subtitle-pixel text-accent-text" aria-hidden="true">
-              &gt;
-            </span>
+            <span class="scan-link__label">{valueProp.altLink.text}</span>
+            <Icon
+              name="home/pixel-chevron"
+              class="scan-link__chevron text-accent-text h-[11px] w-[6px]"
+              aria-hidden="true"
+            />
           </a>
         </p>
       </div>
     </div>
 
-    <details class="coverage stroke-tint mt-14 border-t lg:mt-[112px]" open>
-      <summary class="primary-focus text-muted-foreground flex cursor-pointer list-none items-center justify-between gap-6 p-6">
+    <details class="coverage mt-[112px]" open>
+      <summary
+        class="primary-focus text-muted-foreground hover:text-foreground flex cursor-pointer list-none items-center justify-between gap-6 px-0 py-6 transition-colors duration-300 lg:px-6"
+        data-hover-reveal
+      >
         <span class="body-lg">{valueProp.overviewTitle}</span>
         <span class="coverage__toggle text-[28px] leading-none" aria-hidden="true"></span>
       </summary>
-      <ul class="coverage__stats mt-9 grid gap-y-8 md:grid-cols-3 md:gap-y-0">
+      <ul
+        class="coverage__stats mt-9 grid gap-y-8 md:grid-cols-3 md:gap-y-0"
+        data-reveal-stagger
+        style="--reveal-step: 1100ms;"
+      >
         {valueProp.stats.map((stat, i) => (
-          <li class="coverage__stat relative flex flex-col gap-2 py-8 pl-8">
+          <li
+            class="coverage__stat relative flex flex-col gap-2 py-8 pl-8"
+            style={`--dot-top-md: ${i * 58}px; --dot-frac: ${i / 2};`}
+          >
             <span
-              class="bg-primary-500 absolute -left-[5px] size-2"
-              style={`top: ${i * 58}px;`}
+              class="coverage__dot bg-primary-500 absolute -left-[5px] size-2"
               aria-hidden="true"
             />
             <span class="h3 text-foreground">{stat.value}</span>
@@ -60,6 +89,23 @@ import { valueProp } from "@config/en/homeData.json";
   .coverage summary::-webkit-details-marker {
     display: none;
   }
+  .coverage[open] {
+    border-top: 1px solid var(--color-tint-25);
+  }
+  .coverage:not([open]) {
+    border-bottom: 1px solid var(--color-tint-25);
+  }
+  .coverage[open] .coverage__stats {
+    animation: coverage-dissolve 750ms ease;
+  }
+  @keyframes coverage-dissolve {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
   .coverage__toggle::after {
     content: "+";
   }
@@ -69,9 +115,98 @@ import { valueProp } from "@config/en/homeData.json";
   .coverage__stat {
     border-left: 2px dashed var(--color-dash);
   }
+
+  /* the dot starts at the top of the stroke and slides to its place once the stat is in
+     view: level with the figure on phones, one row down per column from md (Figma 1440) */
+  .coverage__dot {
+    --dot-top: calc(var(--dot-frac, 0) * (100% - 8px));
+    top: 0;
+  }
+  .coverage__stats.is-visible .coverage__dot {
+    top: var(--dot-top);
+    transition: top 1100ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    transition-delay: calc(
+      var(--reveal-base, 0ms) + var(--reveal-step, 280ms) * var(--i, 0) + 200ms
+    );
+  }
+  :root:not(.reveal-ready) .coverage__dot {
+    top: var(--dot-top);
+  }
   @media (min-width: 768px) {
-    .coverage__stat:last-child {
-      border-right: 2px dashed var(--color-dash);
+    .coverage__dot {
+      --dot-top: var(--dot-top-md);
+    }
+  }
+  /* stacked stats on phones (Figma 360): one dashed stroke for the whole list, each stat
+     40px above and below its text, 32px between the stats, 26px figure, 19px pixel label, 12px between them, text 22px past the stroke */
+  @media (max-width: 767px) {
+    .coverage__stats {
+      border-left: 2px dashed var(--color-dash);
+      row-gap: 32px;
+    }
+    .coverage__stat {
+      border-left: 0;
+      padding: 40px 0 40px 22px;
+      gap: 12px;
+    }
+    .coverage__stat > .h3 {
+      font-size: 1.625rem;
+    }
+    .coverage__stat > .eyebrow {
+      font-size: 1.1875rem;
+    }
+    /* each dot sits on its figure's line (26px at a 1.1 line height, 40px down) */
+    .coverage__dot {
+      --dot-top: calc(40px + (1.625rem * 1.1 - 8px) / 2);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .coverage__dot {
+      top: var(--dot-top);
+      transition: none;
+    }
+    .coverage[open] .coverage__stats {
+      animation: none;
+    }
+  }
+
+  /* "Plumber Scan": the underline grows from the left and the chevron nudges right */
+  .scan-link__label {
+    position: relative;
+  }
+  .scan-link__label::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -2px;
+    height: 1px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 320ms ease;
+  }
+  .scan-link:hover .scan-link__label::after,
+  .scan-link:focus-visible .scan-link__label::after {
+    transform: scaleX(1);
+  }
+  .scan-link__chevron {
+    transition: transform 320ms ease;
+  }
+  .scan-link:hover .scan-link__chevron,
+  .scan-link:focus-visible .scan-link__chevron {
+    transform: translateX(4px);
+  }
+
+  /* tablets and phones: the hover states play while the element is in view */
+  @media (hover: none), (max-width: 1023px) {
+    .coverage summary.is-in-view {
+      color: var(--foreground);
+    }
+    .scan-link.is-in-view .scan-link__label::after {
+      transform: scaleX(1);
+    }
+    .scan-link.is-in-view .scan-link__chevron {
+      transform: translateX(4px);
     }
   }
 </style>

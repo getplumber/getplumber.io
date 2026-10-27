@@ -31,9 +31,14 @@ const secondClass = invert ? "text-muted-foreground" : "text-foreground";
 ---
 
 <div
-  class:list={["flex flex-col gap-6", align === "center" && "items-center text-center", className]}
+  class:list={["flex flex-col gap-6", align === "center" && "lg:items-center lg:text-center", className]}
 >
-  {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+  {eyebrow && (
+    <p class="eyebrow flex items-center gap-2">
+      <span class="eyebrow-dot" aria-hidden="true" />
+      {eyebrow}
+    </p>
+  )}
   <Tag class="h1 uppercase">
     <span class={firstClass}>{headline}</span>
     {headlineStrong && (

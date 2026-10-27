@@ -49,10 +49,10 @@ const isActive = actualLink.startsWith("/docs")
 <li class="w-full">
   <a
     class:list={[
-      `nav__link--base primary-focus relative flex shrink-0 items-center gap-1.5 px-3 py-2 whitespace-nowrap ${className}`,
+      `nav-link primary-focus text-muted-foreground hover:text-foreground focus-visible:text-foreground relative flex shrink-0 items-center gap-1.5 py-2 leading-tight whitespace-nowrap transition-colors duration-300 ${className}`,
       {
-        // styling for current active page link
-        "text-accent-text": isActive,
+        // the current page keeps the hover look: foreground text and the accent underline
+        "nav-link--active text-foreground": isActive,
       },
     ]}
     href={actualLink}
@@ -60,8 +60,29 @@ const isActive = actualLink.startsWith("/docs")
     rel={newTab ? "noopener noreferrer" : ""}
     aria-label={text}
   >
-    {icon && !noIcon && <Icon name={icon} aria-hidden="true" class="hidden size-4 lg:block" />}
+    {icon && !noIcon && <Icon name={icon} aria-hidden="true" class="nav:block hidden size-4" />}
 
     {text}
   </a>
 </li>
+
+<style>
+  /* Figma Component_Menu hover: foreground text with a 2px accent underline that grows from
+     the left; the current page shows the underline at rest */
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 2px;
+    background-color: var(--color-primary-500);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 300ms ease;
+  }
+  .nav-link:hover::after,
+  .nav-link:focus-visible::after,
+  .nav-link--active::after {
+    transform: scaleX(1);
+  }
+</style>

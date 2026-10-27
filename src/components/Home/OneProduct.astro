@@ -3,7 +3,9 @@
  * "One product. Two ways to use it." (Figma HOME_Last, node 2513:1766, 1440 x 677).
  * Centred heading and two columns on dashed strokes that fade out at both ends.
  * The developer column CTAs are muted in the design; the organisation column has the
- * primary CTA.
+ * primary CTA. Numbers are the 22px pixel eyebrow and the CTAs sit 64px under the copy.
+ * On tablets and phones a column shows its hover state while it is in view; the CTAs are
+ * full width on phones.
  */
 import Button from "@components/Button/Button.astro";
 import { oneProduct } from "@config/en/homeData.json";
@@ -12,7 +14,7 @@ import SectionHeading from "./SectionHeading.astro";
 ---
 
 <section id="product" class="bg-background scroll-mt-[76px]">
-  <div class="home-container flex flex-col gap-16 py-16 lg:gap-[88px] lg:py-[88px]">
+  <div class="home-container flex flex-col gap-16 py-20 lg:gap-[88px] lg:py-[104px]" data-reveal>
     <SectionHeading
       eyebrow={oneProduct.eyebrow}
       headline={oneProduct.headline}
@@ -24,21 +26,21 @@ import SectionHeading from "./SectionHeading.astro";
 
     <div class="grid gap-16 lg:grid-cols-2 lg:gap-8">
       {oneProduct.columns.map((column, i) => (
-        <div class="path group flex flex-col gap-16 pl-6 lg:pl-10">
-          <span class="eyebrow text-base-600 group-hover:text-foreground text-[26px] normal-case transition-colors duration-300">
+        <div class="path group flex flex-col gap-16 pl-6 lg:pl-10" data-hover-reveal>
+          <span class="path__number eyebrow text-base-600 group-hover:text-foreground normal-case transition-colors duration-400">
             {column.number}
           </span>
           <div class="flex flex-1 flex-col gap-4">
-            <h3 class="h2 text-muted-foreground group-hover:text-foreground transition-colors duration-300">
+            <h3 class="path__title h2 text-muted-foreground group-hover:text-foreground transition-colors duration-400">
               {column.title}
             </h3>
-            <div class="flex flex-1 flex-col justify-between gap-8">
+            <div class="flex flex-1 flex-col justify-between gap-16">
               <div class="flex flex-col gap-8">
-                <p class="text-base-500 dark:text-base-600 group-hover:text-muted-foreground max-w-[608px] text-base leading-[1.4] transition-colors duration-300">
+                <p class="path__text text-base-500 dark:text-base-600 group-hover:text-muted-foreground max-w-[608px] text-base leading-[1.4] transition-colors duration-400">
                   {column.text}
                 </p>
                 {column.quote && (
-                  <blockquote class="text-muted-foreground border-base-400 max-w-[608px] border-l pl-4 text-base leading-[1.4]">
+                  <blockquote class="path__quote text-muted-foreground group-hover:text-foreground border-base-400 group-hover:border-primary-500 max-w-[608px] border-l pl-4 text-base leading-[1.4] transition-colors duration-400">
                     {column.quote}
                   </blockquote>
                 )}
@@ -52,8 +54,8 @@ import SectionHeading from "./SectionHeading.astro";
                     rel={cta.newTab ? "noopener noreferrer" : undefined}
                     class={
                       i === 0
-                        ? "text-muted-foreground group-hover:text-foreground"
-                        : "transition-colors duration-300"
+                        ? "path__cta w-full sm:w-auto"
+                        : "w-full transition-colors duration-400 sm:w-auto"
                     }
                   >
                     {cta.text}
@@ -78,10 +80,39 @@ import SectionHeading from "./SectionHeading.astro";
   .path {
     position: relative;
     --path-dash: var(--color-tint-25);
-    transition: --path-dash 300ms ease;
+    transition: --path-dash 400ms ease;
   }
   .path:hover {
     --path-dash: var(--color-accent-20);
+  }
+  /* developer CTAs rest muted, take the foreground with the column, and keep the black
+     label on the accent fill while hovered themselves */
+  .path :global(.path__cta) {
+    color: var(--muted-foreground);
+  }
+  .path:hover :global(.path__cta) {
+    color: var(--foreground);
+  }
+  .path :global(.path__cta:hover) {
+    color: var(--color-base-950);
+  }
+  /* tablets and phones: the column takes its hover state while it is in view */
+  @media (hover: none), (max-width: 1023px) {
+    .path.is-in-view {
+      --path-dash: var(--color-accent-20);
+    }
+    .path.is-in-view .path__number,
+    .path.is-in-view .path__title,
+    .path.is-in-view .path__quote,
+    .path.is-in-view :global(.path__cta) {
+      color: var(--foreground);
+    }
+    .path.is-in-view .path__text {
+      color: var(--muted-foreground);
+    }
+    .path.is-in-view .path__quote {
+      border-color: var(--color-primary-500);
+    }
   }
   .path::before {
     content: "";

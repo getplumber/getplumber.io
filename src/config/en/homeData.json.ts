@@ -128,31 +128,36 @@ export const incidents = {
       figure: "52%",
       text: "of 104,500 public projects had at least one CI/CD attack pattern.",
       source: "Plumber Radar Scan",
-      highlight: true,
+      sourceLink: "/radar",
     },
     {
       date: "Nov 2026",
       figure: "25,000+",
       text: "public GitHub repos filled with stolen credentials within hours, as the Shai-Hulud 2.0 worm hit Zapier, PostHog and Postman.",
       source: "Wiz Research",
+      sourceLink: "https://www.wiz.io/blog/shai-hulud-2-0-ongoing-supply-chain-attack",
     },
     {
       date: "Nov 2026",
       figure: "59%",
       text: "of the machines it compromised were CI/CD runners, not laptops.",
       source: "GitGuardian, State of Secrets Sprawl 2026",
+      sourceLink: "https://www.gitguardian.com/state-of-secrets-sprawl-report-2026",
     },
     {
       date: "Mar 2025",
       figure: "23,000+",
       text: "repositories ran a hijacked GitHub Action that dumped their CI secrets into public build logs. One unpinned line of YAML was enough.",
       source: "tj-actions/changed-files, GHSA-mrrh-fwg8-r2c3",
+      sourceLink: "https://github.com/advisories/GHSA-mrrh-fwg8-r2c3",
     },
     {
       date: "Dec 2024",
       figure: "260,000",
       text: "daily downloads of Ultralytics, a top AI library, when attackers slipped a crypto miner into its release through a branch name its GitHub Actions workflow never checked.",
       source: "BleepingComputer and Wiz",
+      sourceLink:
+        "https://www.bleepingcomputer.com/news/security/ultralytics-ai-model-hijacked-to-infect-thousands-with-cryptominer/",
     },
   ] as Incident[],
 };
@@ -218,7 +223,7 @@ export const oneProduct = {
       title: "For Organizations",
       text: "Continuous CI/CD security posture across every repo and every team. One dashboard, audit-ready reporting, and an AI agent that fixes what it finds.",
       quote:
-        "Continuous CI/CD security posture across every repo and every team. One dashboard, audit-ready reporting, and an AI agent that fixes what it finds.",
+        "Securing one pipeline by hand takes about an hour a month. For 500 pipelines, that's $600k per year.",
       ctas: [{ text: "Book a demo", link: "/#book-a-demo", variant: "primary" }],
     },
   ] as ProductColumn[],
@@ -236,12 +241,13 @@ export const proof = {
     { text: "View on GitHub", link: PLUMBER_GITHUB_REPO_URL, variant: "primary", newTab: true },
     { text: "Join the Discord", link: "/discord", variant: "secondary", newTab: true },
   ] as Cta[],
-  // "[N]" is a placeholder in the Figma file; replace with the real figure or drop the entry
+  // figures are static for now; docs/superpowers/plans/2026-10-27-home-numbers-sources.md
+  // lists the source each one will be queried from
   stats: [
     { value: "100+", label: "open-source projects graded A or B" },
     { value: "25,000+", label: "open-source downloads" },
     { value: "16,644", label: "public projects graded" },
-    { value: "[N]", label: "leaks found" },
+    { value: "250k+", label: "leaks found" },
   ] as Stat[],
 };
 
@@ -292,7 +298,6 @@ export const footerColumns: FooterColumn[] = [
     title: "Resources",
     links: [
       { text: "Release notes", link: `${PLUMBER_GITHUB_REPO_URL}/releases`, newTab: true },
-      { text: "Insights", link: "/blog" },
       { text: "Blog", link: "/blog" },
     ],
   },

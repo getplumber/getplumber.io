@@ -37,6 +37,8 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
+          # astro 7.4 needs >=22.23.4; the runner cache lags, so fetch the latest 22.x
+          check-latest: true
           cache: "npm"
 
       - name: Install dependencies

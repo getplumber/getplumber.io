@@ -54,13 +54,14 @@
   .docs-markdown-content h1:not(:where(.not-content, .not-content *)) {
     @apply text-[2rem] leading-[1.12];
   }
-  /* top-level sections are numbered "01, 02" in the pixel font, like the Figma page */
-  .docs-markdown-content > h2:not(:where(.not-content, .not-content *)) {
+  /* top-level sections are numbered "01, 02" in the pixel font, like the Figma page, on
+     the getting-started page only (the layout sets data-numbered there) */
+  .docs-markdown-content[data-numbered] > h2:not(:where(.not-content, .not-content *)) {
     counter-increment: docs-section;
     flex-wrap: wrap;
   }
   /* the heading is a flex row (anchor link), so the number takes a full row above it */
-  .docs-markdown-content > h2:not(:where(.not-content, .not-content *))::before {
+  .docs-markdown-content[data-numbered] > h2:not(:where(.not-content, .not-content *))::before {
     content: counter(docs-section, decimal-leading-zero);
     display: block;
     flex: 0 0 100%;

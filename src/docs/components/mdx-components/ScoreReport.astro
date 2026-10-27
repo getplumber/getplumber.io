@@ -34,9 +34,12 @@ const {
   class: className,
 } = Astro.props;
 
-// Grade thresholds from the Plumber Score page: A >= 90, B 71-89, C 51-70, D 31-50, E <= 30
-const gradeFor = (points: number): Grade =>
-  points >= 90 ? "A" : points >= 71 ? "B" : points >= 51 ? "C" : points >= 31 ? "D" : "E";
+// Grade thresholds from the Plumber Score page, as a share of max: A >= 90%, B 71-89%,
+// C 51-70%, D 31-50%, E <= 30%
+const gradeFor = (points: number): Grade => {
+  const pct = (points / max) * 100;
+  return pct >= 90 ? "A" : pct >= 71 ? "B" : pct >= 51 ? "C" : pct >= 31 ? "D" : "E";
+};
 const gradeVar = (g: Grade) => `var(--color-grade-${g.toLowerCase()})`;
 
 // 30 cells: the lit ones take the current grade colour, the rest show the grade band
@@ -85,7 +88,14 @@ const failed = status === "failed";
         aria-label={`Grade ${grade}, ${score} out of ${max}`}
       >
         <svg viewBox="0 0 159 159" class="size-full" aria-hidden="true">
-          <circle cx="79.5" cy="79.5" r={radius} fill="none" stroke="var(--color-tint-25)" stroke-width="11" />
+          <circle
+            cx="79.5"
+            cy="79.5"
+            r={radius}
+            fill="none"
+            stroke="var(--color-tint-25)"
+            stroke-width="11"
+          />
           <circle
             cx="79.5"
             cy="79.5"
@@ -110,7 +120,11 @@ const failed = status === "failed";
         <div class="flex flex-col gap-4 p-4">
           <div class="flex items-center justify-between gap-4 px-2">
             <span class="font-pixel text-foreground flex items-center gap-2 text-[22px] leading-none">
-              <span class="size-2 shrink-0" style="background: var(--grade)" aria-hidden="true"></span>
+              <span
+                class="size-2 shrink-0"
+                style="background: var(--grade)"
+                aria-hidden="true"
+              ></span>
               <span>{grade}</span>
               <span>{score}</span>
             </span>

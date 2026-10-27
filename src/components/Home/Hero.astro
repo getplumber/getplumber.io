@@ -2,7 +2,16 @@
 /**
  * Home hero (Figma HOME_Last, node 2513:1347, 1440 x 700).
  * Letter-spaced "PLUMBER" wordmark, pixel rain columns under it, eyebrow and lead copy,
- * a dotted bar with a static 12px marker at its start, and the two calls to action.
+ * a straight bar with a static 12px marker at its start, and the two calls to action.
+ *
+ * Review of 2026-10-27: the copy block is dim at rest and lights up while hovered; the
+ * grey columns always drift and each column runs its lit pixel (at half speed, starting
+ * at once) only while that column is hovered; on tablets and phones the copy lights up and
+ * the pixels run while the hero is in view (data-hover-reveal). Phones follow the
+ * Figma 360 frame: three columns, the copy 228px
+ * under the wordmark and 22px past the first column (Figma puts every stroke 22px from its
+ * text on phones), a teal marker at the start of the bar, full-width
+ * buttons with the marker after the label.
  *
  * The rain columns are placed by a small script on the ink edges of the letters:
  * first column on the left edge of the P, last column on the right edge of the R,
@@ -17,12 +26,16 @@ import PixelAnimation from "./PixelAnimation.astro";
 const letters = "PLUMBER".split("");
 ---
 
-<section id="hero" class="bg-background relative overflow-hidden pt-[76px]">
+<section
+  id="hero"
+  class="hero bg-background relative overflow-hidden pt-[76px]"
+  data-hover-reveal="0.2"
+>
   <div class="home-container">
     <div class="hero-inner relative">
       <!-- wordmark: live text so it scales and stays selectable for search engines -->
       <p
-        class="hero-wordmark font-heading text-foreground/95 flex justify-between pt-[75px] leading-[1.04] tracking-[-0.04em]"
+        class="hero-wordmark font-heading text-foreground/95 flex justify-between pt-[38px] leading-[1.04] tracking-[-0.04em] sm:pt-[75px]"
         aria-hidden="true"
       >
         {letters.map((letter) => (
@@ -37,15 +50,15 @@ const letters = "PLUMBER".split("");
       <PixelAnimation class="hero-rain" />
 
       <div class="hero-content relative">
-        <div class="mt-16 flex max-w-[485px] flex-col gap-4 pl-0 lg:mt-[153px] lg:pl-[38px]">
-          <p class="eyebrow">{hero.eyebrow}</p>
+        <div class="hero-copy mt-[228px] flex max-w-[485px] flex-col gap-4 pl-[27px] sm:mt-[140px] lg:mt-[153px] lg:pl-[38px]">
+          <p class="eyebrow hero-copy__eyebrow">{hero.eyebrow}</p>
           <p class="body-xl">
-            <span class="text-base-700 dark:text-base-200">{hero.headline}</span>{" "}
-            <span class="text-base-500 dark:text-base-600">{hero.headlineMuted}</span>
+            <span class="hero-copy__lead">{hero.headline}</span>{" "}
+            <span class="hero-copy__muted">{hero.headlineMuted}</span>
           </p>
         </div>
 
-        <div class="hero-bar relative mt-8 h-px w-full max-w-[576px]" aria-hidden="true">
+        <div class="hero-bar relative mt-8 h-0.5 w-full max-w-[576px]" aria-hidden="true">
           <span class="hero-bar__marker"></span>
         </div>
 
@@ -55,11 +68,11 @@ const letters = "PLUMBER".split("");
             href={hero.ctas[0].link}
             target={hero.ctas[0].newTab ? "_blank" : undefined}
             rel={hero.ctas[0].newTab ? "noopener noreferrer" : undefined}
-            class="self-start"
+            class="w-full sm:w-auto sm:self-start"
           >
             {hero.ctas[0].text}
           </Button>
-          <Button variant="primary" href={hero.ctas[1].link} class="self-start sm:self-auto">
+          <Button variant="primary" href={hero.ctas[1].link} class="w-full sm:w-auto sm:self-auto">
             {hero.ctas[1].text}
           </Button>
         </div>
@@ -79,11 +92,33 @@ const letters = "PLUMBER".split("");
     font-size: clamp(2.5rem, 14.4cqw, 11.875rem);
   }
 
-  /* rain columns start at the baseline of the letters (Inter ascender 0.969em, leading 1.04) */
+  /* rain columns start at the baseline of the letters (Inter ascender 0.969em, leading 1.04);
+     the grey dots always drift, and a column drops its lit pixel (at half the component's
+     default speed, with no start delay) only while the pointer is over it: the column
+     widens its hit area to 25px */
   :global(.hero-rain) {
     top: calc(75px + clamp(2.5rem, 14.4cqw, 11.875rem) * 0.884);
     left: 0;
     right: 0;
+    --drop-duration: 9s;
+  }
+  .hero :global(.pixel-rain) {
+    pointer-events: auto;
+  }
+  .hero :global(.pixel-rain::before) {
+    content: "";
+    position: absolute;
+    inset: 0 -10px;
+  }
+  .hero :global(.pixel-rain__drop) {
+    opacity: 0;
+    animation-delay: 0s;
+    animation-play-state: paused;
+    transition: opacity 650ms ease;
+  }
+  .hero :global(.pixel-rain:hover .pixel-rain__drop) {
+    opacity: 1;
+    animation-play-state: running;
   }
 
   .hero-content {
@@ -91,21 +126,84 @@ const letters = "PLUMBER".split("");
     margin-right: var(--hero-right);
   }
 
+  /* eyebrow and lead copy: darker at rest, the Figma colours while the block is hovered */
+  .hero-copy__eyebrow,
+  .hero-copy__lead,
+  .hero-copy__muted {
+    transition: color 650ms ease;
+  }
+  .hero-copy__eyebrow {
+    color: var(--color-primary-700);
+  }
+  .hero-copy__lead {
+    color: var(--color-base-500);
+  }
+  .hero-copy__muted {
+    color: var(--color-base-700);
+  }
+  .hero-copy:hover .hero-copy__eyebrow {
+    color: var(--accent-text);
+  }
+  .hero-copy:hover .hero-copy__lead {
+    color: var(--color-base-200);
+  }
+  .hero-copy:hover .hero-copy__muted {
+    color: var(--color-base-600);
+  }
+
+  /* straight 2px line fading out towards its end, as in Figma */
   .hero-bar {
-    background-image: repeating-linear-gradient(
-      to right,
-      var(--color-tint-25) 0 2px,
-      transparent 2px 5px
-    );
+    background-image: linear-gradient(to right, var(--color-tint-25) 60%, transparent);
   }
 
   .hero-bar__marker {
     position: absolute;
-    top: -6px;
+    top: -5px;
     left: -6px;
     width: 12px;
     height: 12px;
     background-color: var(--color-base-600);
+  }
+  /* Figma 360: teal marker flush with the bar's start (the button markers move after the
+     labels through buttons.css) */
+  @media (max-width: 639px) {
+    /* half the gap under the navbar on phones; the rain follows the wordmark */
+    :global(.hero-rain) {
+      top: calc(38px + clamp(2.5rem, 14.4cqw, 11.875rem) * 0.884);
+    }
+    .hero-bar__marker {
+      left: 0;
+      background-color: var(--color-primary-500);
+    }
+  }
+
+  /* tablets and phones: the hover states play while the hero is in view */
+  @media (hover: none), (max-width: 1023px) {
+    /* slower rain on tablets and phones: drift and lit pixel at two thirds of the speed */
+    :global(.hero-rain) {
+      --rain-duration: 3s;
+      --drop-duration: 13.5s;
+    }
+    .hero.is-in-view .hero-copy__eyebrow {
+      color: var(--accent-text);
+    }
+    .hero.is-in-view .hero-copy__lead {
+      color: var(--color-base-200);
+    }
+    .hero.is-in-view .hero-copy__muted {
+      color: var(--color-base-600);
+    }
+    .hero.is-in-view :global(.pixel-rain__drop) {
+      opacity: 1;
+      animation-play-state: running;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-copy__eyebrow,
+    .hero-copy__lead,
+    .hero-copy__muted {
+      transition: none;
+    }
   }
 </style>
 

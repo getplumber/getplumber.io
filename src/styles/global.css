@@ -148,6 +148,11 @@
     /* prevent layout shift */
     scrollbar-gutter: stable;
   }
+  /* the open mobile menu locks body scrolling; the reserved gutter would stay as a strip at
+     the right of the menu, so it is dropped while the menu is open */
+  html:has(> body[data-mobile-nav-open]) {
+    scrollbar-gutter: auto;
+  }
   button {
     @apply cursor-pointer;
   }
@@ -247,13 +252,15 @@
     @apply text-foreground/90 hover:text-foreground leading-tight;
   }
 
+  /* One body width for home, blog and docs: the Figma 1440 frames use a 1320px container
+     (60px margins) and the 1920 view keeps 136px margins, so 1648px from 2xl. */
   .site-container {
-    @apply mx-auto max-w-[1100px] px-4 2xl:max-w-[1400px];
+    @apply mx-auto max-w-[1320px] px-4 2xl:max-w-[1648px];
   }
 
   /* Home page, navbar and footer share the blog page width (site-container). */
   .home-container {
-    @apply mx-auto w-full max-w-[1100px] px-4 2xl:max-w-[1400px];
+    @apply mx-auto w-full max-w-[1320px] px-4 2xl:max-w-[1648px];
   }
 
   /* Figma card: darker grey at 5 percent over the page, 25 percent stroke, 10 percent on hover. */
@@ -316,5 +323,62 @@
   So we cannot use "main-text-gradient" here, and the classes are instead copied */
   .colored-title {
     @apply from-primary-800 to-primary-600 dark:from-primary-400 dark:to-primary-200 bg-gradient-to-r bg-clip-text text-lg text-transparent;
+  }
+}
+
+/* Home motion (review of 2026-10-27): section reveals (opacity only, in place) and the
+   blinking eyebrow dot.
+   Reveal styles only apply once the observer script has tagged <html class="reveal-ready">,
+   so nothing stays hidden without JavaScript. */
+@layer components {
+  /* 6px accent square before pixel eyebrows, blinking in steps like a cursor */
+  .eyebrow-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    flex: none;
+    background-color: var(--color-primary-500);
+    animation: eyebrow-dot-blink 2s steps(1, end) infinite;
+  }
+  @keyframes eyebrow-dot-blink {
+    0%,
+    62% {
+      opacity: 1;
+    }
+    63%,
+    100% {
+      opacity: 0.25;
+    }
+  }
+
+  /* the transition exists only on the visible state: hiding at load is instant and never
+     fires transition events that scripts could mistake for a finished reveal */
+  .reveal-ready [data-reveal] {
+    opacity: 0;
+  }
+  .reveal-ready [data-reveal].is-visible {
+    opacity: 1;
+    transition: opacity 1100ms ease;
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  /* children of a stagger group fade in one after the other, left to right */
+  .reveal-ready [data-reveal-stagger] > * {
+    opacity: 0;
+  }
+  .reveal-ready [data-reveal-stagger].is-visible > * {
+    opacity: 1;
+    transition: opacity 850ms ease;
+    transition-delay: calc(var(--reveal-base, 0ms) + var(--reveal-step, 280ms) * var(--i, 0));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eyebrow-dot {
+      animation: none;
+    }
+    .reveal-ready [data-reveal],
+    .reveal-ready [data-reveal-stagger] > * {
+      opacity: 1;
+      transition: none;
+    }
   }
 }
