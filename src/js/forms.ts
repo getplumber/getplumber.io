@@ -9,6 +9,7 @@ const MESSAGES: Record<string, string> = {
   invalid: "Please check the highlighted fields.",
   rate_limited: "Too many requests. Please try again in a few minutes.",
   unconfigured: "This form is not active yet. Email us at hello@getplumber.io.",
+  upstream: "We could not send your message. Email us at hello@getplumber.io.",
   error: "Something went wrong. Email us at hello@getplumber.io.",
 };
 
