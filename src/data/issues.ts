@@ -712,7 +712,7 @@ jobs:
       goodExampleCaption: "Specific minor + patch version pinned for reproducibility.",
       tips: [
         "Forbidden tags default to `latest`, `dev`, `staging`, `main`, `master`. The list is part of the control's configuration.",
-        "An image written with neither tag nor digest (`container: node`, `uses: docker://alpine`) is the `latest` Docker pulls, so it raises this issue when `latest` is forbidden.",
+        "Docker pulls `latest` for an image written with neither tag nor digest (`container: node`, `uses: docker://alpine`), so Plumber reads it as `latest` and raises this issue when `latest` is forbidden.",
         "Pair with ISSUE-103 to require digest pinning on top of immutable tags.",
         "To accept one image on a forbidden tag, for example an internal tool only published as `latest`, list it in `exemptImages` instead of turning the control off. It is then skipped by ISSUE-102 and ISSUE-103 while it uses one of the forbidden tags; its other tags are still checked. See [Exempting an image](/docs/cli/controls-configuration#exempting-an-image).",
       ],
@@ -2640,7 +2640,7 @@ jobs:
       tips: [
         "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions.",
         "Local actions (`uses: ./.github/actions/foo`) are exempt from this rule because the local reference itself lives in the same repo, but a third-party action it pulls in through that local composite is judged like any other nested reference.",
-        "`uses: docker://…` steps run an image, not an action: ISSUE-101, ISSUE-102 and ISSUE-103 judge them, and they are not counted in `actionRefsTotal` / `actionRefsUnpinned`.",
+        "This control skips `uses: docker://…` steps and leaves them out of `actionRefsTotal` / `actionRefsUnpinned`. ISSUE-101, ISSUE-102 and ISSUE-103 judge their images.",
         "Pair with ISSUE-702, ISSUE-707 and ISSUE-709 for a complete supply-chain ruleset (archived repos, impostor SHAs, stale pins).",
         "This control also judges references pulled in by a composite action or a called workflow, at the same severity, with the chain in the message and a link to the container. See [Nested references](/docs/cli/github#nested-references).",
       ],
