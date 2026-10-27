@@ -30,7 +30,6 @@ import {
   SHOW_ROADMAP,
 } from "@/data/issues";
 import ProviderBadge from "@/docs/components/mdx-components/ProviderBadge.astro";
-import Aside from "@/docs/components/mdx-components/Aside.astro";
 import { isCliDocsPath } from "@/docs/js/docsUtils";
 
 interface Props {
@@ -189,15 +188,6 @@ const defaultProvider: PanelId = "gitlab";
         data-provider-panel={p.id}
         class:list={["provider-panel not-prose mt-6", p.id === defaultProvider ? "" : "hidden"]}
       >
-        {p.id === "github" && (
-          <Aside variant="info" title="Open Source CLI only">
-            <p>
-              GitHub Actions issues are reported by the Open Source CLI only. Plumber Platform
-              does not scan GitHub Actions workflows yet.
-            </p>
-          </Aside>
-        )}
-
         {!hasContent && (
           <p class="text-sm text-muted-foreground">
             {p.id === "all" ? "No issues yet." : `No ${p.label} issues yet.`}
