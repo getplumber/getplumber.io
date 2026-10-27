@@ -22,32 +22,21 @@ interface Props {
 const { class: classList, ...rest } = Astro.props as Props;
 ---
 
-<Dialog>
+<Dialog class={classList}>
   <DialogTrigger
-    class="docs-nav__link--base docs-primary-focus flex h-8 items-center justify-center rounded-md"
+    class="docs-search docs-primary-focus rounded-r8 flex h-11 w-full items-center gap-2.5 border px-4 text-left text-sm"
+    {...rest}
   >
-    <SearchIcon class="size-5 md:hidden" aria-label="search bar" />
-    <div
-      class="bg-muted text-muted-foreground hover:text-foreground mx-1 hidden h-8 gap-2 rounded-full border px-3 text-xs transition-colors md:flex"
-    >
-      <div class="flex items-center gap-2">
-        <SearchIcon class="size-3.5" aria-label="search bar" />
-        <span class="inline pb-px">Search </span>
-      </div>
-      <kbd class="flex items-center gap-0.5">
-        <CommandIcon class="-mr-0.5 mb-0.5 size-3.5 max-h-full" aria-label="command key" />
-        K
-      </kbd>
-    </div>
+    <SearchIcon class="text-base-600 size-3.5 shrink-0" aria-hidden="true" />
+    <span class="text-base-600 flex-1">Search docs</span>
+    <kbd class="subtitle-pixel text-base-600 hidden md:inline" aria-hidden="true">
+      <CommandIcon class="-mb-px inline size-3" aria-hidden="true" />K
+    </kbd>
   </DialogTrigger>
   <div class="relative">
-    <DialogContent
-      class="min-h-[100vh] overflow-hidden sm:max-h-[calc(100vh-(var(--nav-height)*2))] sm:min-h-[16rem]"
-    >
+    <DialogContent class="min-h-[100vh] overflow-hidden sm:max-h-[calc(100vh-(var(--nav-height)*2))] sm:min-h-[16rem]">
       <div class="dialog-frame relative flex grow flex-col overflow-y-auto p-6">
-        <DialogClose
-          class="text-foreground absolute z-10 h-[calc(64px*var(--pagefind-ui-scale))] items-center self-end border-0 bg-transparent px-2 sm:hidden"
-        >
+        <DialogClose class="text-foreground absolute z-10 h-[calc(64px*var(--pagefind-ui-scale))] items-center self-end border-0 bg-transparent px-2 sm:hidden">
           Cancel
         </DialogClose>
         <div class="search-container">
@@ -57,6 +46,16 @@ const { class: classList, ...rest } = Astro.props as Props;
     </DialogContent>
   </div>
 </Dialog>
+
+<style>
+  .docs-search {
+    background-color: var(--color-tint-5);
+    border-color: rgba(92, 98, 98, 0.15);
+  }
+  .docs-search:hover {
+    border-color: var(--color-tint-25);
+  }
+</style>
 
 <script>
   const initPagefind = () => {

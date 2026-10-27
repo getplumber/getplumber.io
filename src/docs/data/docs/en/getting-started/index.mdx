@@ -2,17 +2,22 @@
 title: Get your first Plumber Score
 seoTitle: Get Started with Plumber - Scan your CI/CD in 2 minutes
 description: "Install the open-source Plumber CLI and get a security score for your GitHub Actions or GitLab CI/CD pipelines in under two minutes."
+lead: "Plumber scans your CI/CD pipelines for security problems and grades them from A to E. Two steps to your first score."
+lastUpdated: 2026-10-27
 sidebar:
   order: 1
   label: Getting Started
 ---
 
-Plumber scans your CI/CD pipelines for security problems and grades them from
-<span class="text-primary-400 dark:text-primary-300 font-bold">A</span> to
-<span class="font-bold text-red-400 dark:text-red-300">E</span>. Two steps to your
-first score:
+<Stats
+  items={[
+    { value: "2 min", label: "from install to score" },
+    { value: "A-E", label: "one grade per pipeline" },
+    { value: "GitHub + GitLab", label: "same checks, same score" },
+  ]}
+/>
 
-## 1. Install
+## Install
 
 On macOS and Linux, with [Homebrew](https://brew.sh):
 
@@ -21,16 +26,21 @@ brew tap getplumber/plumber
 brew install plumber
 ```
 
-No Homebrew? [All install methods →](/docs/cli/installation)
+No Homebrew? [All install methods](/docs/cli/installation)
 
-## 2. Get your first score
+## Get your first score
 
 Authenticate with your provider:
 
-- **GitHub** ([details](/docs/cli/github#authentication)):
-  - already logged in with the `gh` CLI? Nothing to do, Plumber finds it automatically
-  - otherwise set `GH_TOKEN`
-- **GitLab**: set `GITLAB_TOKEN` ([details](/docs/cli/gitlab#authentication))
+<CardGrid>
+  <Card title="GitHub" icon="tabler/brand-github" badge="GH_TOKEN" links={[{ text: "Details", href: "/docs/cli/github#authentication" }]}>
+    - Already logged in with the `gh` CLI? Nothing to do, Plumber finds it automatically.
+    - Otherwise set `GH_TOKEN`.
+  </Card>
+  <Card title="GitLab" icon="tabler/brand-gitlab" badge="GITLAB_TOKEN" links={[{ text: "Details", href: "/docs/cli/gitlab#authentication" }]}>
+    - Set `GITLAB_TOKEN`.
+  </Card>
+</CardGrid>
 
 Then run from any repo that has GitHub Actions workflows or a `.gitlab-ci.yml`:
 
@@ -43,62 +53,44 @@ The report ends on your score. Above it, Plumber lists the **attack paths** it
 found (who can get into one of your jobs, and what they reach there) and the
 individual findings, each with one fix:
 
-```text
-────────────────────
-Score
-────────────────────
+<ScoreReport
+  score={34}
+  grade="D"
+  status="failed"
+  gate={100}
+  worstCase="as anyone with write access to `main`, an attacker can execute code to write to security events and request an OIDC token (attack path 1: main)"
+  fix={{
+    text: "move to a version without the advisory",
+    detail: "action tj-actions/changed-files@2d756ea4c53f",
+    delta: "+15 pts",
+    result: "49 / 100 (D)",
+  }}
+/>
 
- ██████╗   Plumber Score  34 / 100  █████████░░░░░░░░░░░░░░░░░░░
- ██╔══██╗  Status: FAILED (gate blocks at 100 pts)
- ██║  ██║
- ██║  ██║  Worst case: as anyone with write access to `main`, an attacker can execute code to write
- ██████╔╝  to security events and request an OIDC token (attack path 1: main)
- ╚═════╝   Best fix: move to a version without the advisory (action
-           tj-actions/changed-files@2d756ea4c53f), +15 pts, 49 / 100 (D)
-```
+<Aside variant="tip" title="Next step">
+  Run `plumber explain -a 1` to see every finding behind attack path 1.
+</Aside>
 
-Run `plumber explain -a 1` to see every finding behind attack path 1.
+## Go further
 
-## 3. Go further
+<CardGrid>
+  <Card title="Gate your CI" links={[{ text: "GitHub Actions", href: "/docs/cli/github" }, { text: "GitLab CI", href: "/docs/cli/gitlab" }]}>
+    Add Plumber to GitHub Actions or the GitLab CI component and block pipelines below your minimum score.
+  </Card>
+  <Card title="Understand your score" links={[{ text: "Plumber Score", href: "/docs/plumber-score" }]}>
+    How attack paths, the A to E grade and the points work.
+  </Card>
+  <Card title="Tune the controls" links={[{ text: "Configuration", href: "/docs/cli/configuration" }, { text: "Issues catalog", href: "/docs/cli/issues" }]}>
+    One `.plumber.yaml` that extends the baseline with just what you change. See every control in the catalog.
+  </Card>
+  <Card title="Monitor at scale" links={[{ text: "Platform installation", href: "/docs/installation" }]}>
+    The self-hosted Plumber Platform: dashboards, issue lifecycle, team roles, always-on auditing.
+  </Card>
+</CardGrid>
 
-<div class="not-content grid gap-6 min-[1230px]:grid-cols-2 my-8">
-  <div class="group relative rounded-2xl border bg-card text-card-foreground shadow-sm transition-colors hover:border-primary/50">
-    <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight text-card-foreground">Gate your CI</div>
-      <div class="text-muted-foreground text-sm">Add Plumber to GitHub Actions or the GitLab CI component and block pipelines below your minimum score.</div>
-      <div class="pt-2 text-primary text-base font-medium flex gap-4">
-        <a href="/docs/cli/github" class="hover:underline after:absolute after:inset-0 whitespace-nowrap">GitHub Actions →</a>
-        <a href="/docs/cli/gitlab" class="hover:underline relative whitespace-nowrap">GitLab CI →</a>
-      </div>
-    </div>
-  </div>
-  <a href="/docs/plumber-score" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50">
-    <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight text-card-foreground">Understand your score</div>
-      <div class="text-muted-foreground text-sm">How attack paths, the A to E grade and the points work.</div>
-      <div class="pt-2 text-primary text-base font-medium group-hover:underline">Plumber Score →</div>
-    </div>
-  </a>
-  <div class="group relative rounded-2xl border bg-card text-card-foreground shadow-sm transition-colors hover:border-primary/50">
-    <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight text-card-foreground">Tune the controls</div>
-      <div class="text-muted-foreground text-sm">One .plumber.yaml that extends the baseline with just what you change. See every control in the catalog.</div>
-      <div class="pt-2 text-primary text-base font-medium flex gap-4">
-        <a href="/docs/cli/configuration" class="hover:underline after:absolute after:inset-0 whitespace-nowrap">Configuration →</a>
-        <a href="/docs/cli/issues" class="hover:underline relative whitespace-nowrap">Issues catalog →</a>
-      </div>
-    </div>
-  </div>
-  <a href="/docs/installation" class="group block rounded-2xl border bg-card text-card-foreground shadow-sm no-underline transition-colors hover:border-primary/50">
-    <div class="flex flex-col space-y-2 p-6">
-      <div class="text-xl font-semibold tracking-tight text-card-foreground">Monitor at scale</div>
-      <div class="text-muted-foreground text-sm">The self-hosted Plumber Platform: dashboards, issue lifecycle, team roles, always-on auditing.</div>
-      <div class="pt-2 text-primary text-base font-medium group-hover:underline">Platform installation →</div>
-    </div>
-  </a>
-</div>
+## Community & support
 
-## 4. Community & support
-
-- Join our [Discord community](/discord)
-- Open a ticket: [help@getplumber.io](mailto:help@getplumber.io)
+<CardGrid joined>
+  <Card variant="link" icon="tabler/brand-discord" eyebrow="Join our Discord" title="Community" href="/discord" />
+  <Card variant="link" icon="tabler/mail" eyebrow="Open a ticket" title="help@getplumber.io" href="mailto:help@getplumber.io" />
+</CardGrid>

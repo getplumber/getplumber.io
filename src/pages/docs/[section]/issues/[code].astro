@@ -195,7 +195,7 @@ function inlineCodeToHtml(text: string): string {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
-  const linkClass = "text-emerald-600 dark:text-emerald-400 underline underline-offset-2";
+  const linkClass = "text-primary-600 dark:text-primary-400 underline underline-offset-2";
   const renderProse = (s: string) =>
     escape(s)
       .replace(/\[([^\]]+)\]\(([^()\s]+)\)/g, (match, label, href) => {
@@ -334,7 +334,7 @@ const structuredData = {
           <header class="mb-10">
             <div class="flex flex-wrap items-center gap-3 mb-3">
               <span
-                class="inline-flex items-center rounded-md bg-emerald-100 dark:bg-emerald-900/40 px-3 py-1 text-sm font-mono font-bold text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-700/50"
+                class="inline-flex items-center rounded-md bg-primary-100 dark:bg-primary-900/40 px-3 py-1 text-sm font-mono font-bold text-primary-700 dark:text-primary-400 ring-1 ring-primary-300 dark:ring-primary-700/50"
                 title="Unique identifier for this issue"
               >
                 {code}
@@ -379,7 +379,7 @@ const structuredData = {
                 (controlConfigHref(c.controlConfigKey) ? (
                   <a
                     href={controlConfigHref(c.controlConfigKey)}
-                    class="font-mono text-xs font-semibold rounded bg-muted px-1.5 py-0.5 text-foreground ring-1 ring-border hover:ring-emerald-500/50"
+                    class="font-mono text-xs font-semibold rounded bg-muted px-1.5 py-0.5 text-foreground ring-1 ring-border hover:ring-primary-500/50"
                     title="The control's id, as the Platform's Policies page shows it; opens its configuration reference"
                   >
                     {controlIdFor(c.controlConfigKey)}
@@ -450,7 +450,7 @@ const structuredData = {
               <ol class="mb-6 list-none space-y-4 pl-0">
                 {c.remediationSteps.map((step, i) => (
                   <li class="flex items-start gap-3">
-                    <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-xs font-semibold text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-700/50">
+                    <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/40 text-xs font-semibold text-primary-700 dark:text-primary-400 ring-1 ring-primary-300 dark:ring-primary-700/50">
                       {i + 1}
                     </span>
                     <div class="flex-1 min-w-0">
@@ -487,7 +487,7 @@ const structuredData = {
               <div class="mb-6">
                 <div class="inline-block">
                   <span
-                    class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-800/50"
+                    class="shrink-0 mr-1 inline-block items-center rounded px-2 py-0.5 text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 ring-1 ring-primary-300 dark:ring-primary-800/50"
                   >✓ After</span>
                   <span class="text-sm text-muted-foreground">{c.goodExampleCaption}</span>
                 </div>
@@ -508,7 +508,7 @@ const structuredData = {
               <ul class="space-y-2 list-none pl-0">
                 {c.tips.map((tip) => (
                   <li class="flex items-start gap-2 text-foreground/80">
-                    <span class="mt-[10px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
+                    <span class="mt-[10px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary-500" />
                     <span class="flex-1 min-w-0" set:html={inlineCodeToHtml(tip)} />
                   </li>
                 ))}
@@ -582,9 +582,9 @@ const structuredData = {
                   return (
                     <a
                       href={`${docsBase}/issues/${rc}?p=${relProvider}`}
-                      class="inline-flex items-center gap-2 rounded-lg bg-muted px-3 text-sm ring-1 ring-border hover:ring-emerald-500/50 hover:bg-muted/80 transition-all h-10"
+                      class="inline-flex items-center gap-2 rounded-lg bg-muted px-3 text-sm ring-1 ring-border hover:ring-primary-500/50 hover:bg-muted/80 transition-all h-10"
                     >
-                      <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">{rc}</span>
+                      <span class="font-mono font-bold text-primary-600 dark:text-primary-400">{rc}</span>
                       <span class="text-muted-foreground">
                         {issueDisplayTitle(related, relProvider) ?? relContent.title}
                       </span>

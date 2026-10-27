@@ -6,20 +6,43 @@ interface Props {
 }
 
 const { heading, class: className, minHeadingLevel = 2 } = Astro.props;
+const depth = Math.max(0, heading.depth - minHeadingLevel);
 ---
 
 <a
   href={`#${heading.slug}`}
-  class:list={[
-    "docs-nav__link--sidebar docs-primary-focus block",
-    {
-      "pl-4": heading.depth === minHeadingLevel + 1,
-      "pl-6": heading.depth === minHeadingLevel + 2,
-      "pl-8": heading.depth === minHeadingLevel + 3,
-      "pl-10": heading.depth >= minHeadingLevel + 4,
-    },
-    className,
-  ]}
+  class:list={["toc-row docs-primary-focus", className]}
+  style={depth > 0 ? `padding-left: ${depth * 1}rem;` : undefined}
 >
-  {heading.text}
+  <span class="toc-row__marker" aria-hidden="true"></span>
+  <span>{heading.text}</span>
 </a>
+
+<style>
+  .toc-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+    transition: color 150ms ease;
+  }
+  .toc-row:hover {
+    color: var(--foreground);
+  }
+  .toc-row__marker {
+    width: 6px;
+    height: 6px;
+    flex: none;
+    margin-top: 0.45rem;
+    background-color: var(--color-tint-25);
+  }
+  :global(.toc-row.docs-nav__link--sidebar-current) {
+    color: var(--foreground);
+  }
+  :global(.toc-row.docs-nav__link--sidebar-current .toc-row__marker) {
+    background-color: var(--color-primary-500);
+  }
+</style>

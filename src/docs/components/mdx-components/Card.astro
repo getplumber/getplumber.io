@@ -1,0 +1,144 @@
+---
+/**
+ * Docs card (Figma nodes 2556:5516 and 2556:5770): a bordered 15px-radius card with a
+ * tinted header row (title, optional icon and code badge), a body slot, and optional
+ * chevron links at the bottom. The "link" variant (Figma 2556:5901) is one clickable row
+ * with an icon, a pixel eyebrow, a title and a chevron.
+ */
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  title: string;
+  /** astro-icon name shown before the title, e.g. "tabler/brand-github" */
+  icon?: string;
+  /** monospace chip shown at the right of the header, e.g. an env var name */
+  badge?: string;
+  /** chevron links rendered under the body */
+  links?: { text: string; href: string }[];
+  /** "link": the whole card is one anchor with eyebrow + title */
+  variant?: "default" | "link";
+  eyebrow?: string;
+  href?: string;
+  class?: string;
+}
+
+const {
+  title,
+  icon,
+  badge,
+  links = [],
+  variant = "default",
+  eyebrow,
+  href,
+  class: className,
+} = Astro.props;
+---
+
+{variant === "link" ? (
+  <a
+    href={href}
+    class:list={[
+      "docs-card docs-card--link not-content stroke-tint hover:bg-tint-10 flex items-center gap-6 border p-6 no-underline transition-colors",
+      className,
+    ]}
+  >
+    {icon && <Icon name={icon} class="text-primary-500 size-6 shrink-0" aria-hidden="true" />}
+    <span class="flex min-w-0 flex-1 flex-col gap-1">
+      {eyebrow && <span class="subtitle-pixel text-muted-foreground">{eyebrow}</span>}
+      <span class="text-foreground text-lg leading-[1.4]">{title}</span>
+    </span>
+    <span class="subtitle-pixel text-muted-foreground" aria-hidden="true">
+      &gt;
+    </span>
+  </a>
+) : (
+  <div
+    class:list={[
+      "docs-card not-content stroke-tint rounded-r15 flex flex-col overflow-hidden border",
+      className,
+    ]}
+  >
+    <div class="stroke-tint bg-tint-5 flex items-center justify-between gap-4 border-b p-6">
+      <span class="text-foreground flex items-center gap-3 text-base leading-none">
+        {icon && <Icon name={icon} class="size-4 shrink-0" aria-hidden="true" />}
+        {title}
+      </span>
+      {badge && (
+        <code class="docs-card__badge rounded-r4 text-muted-foreground border px-2 py-1 font-mono text-sm">
+          {badge}
+        </code>
+      )}
+    </div>
+    <div class="docs-card__body text-muted-foreground flex flex-1 flex-col gap-6 p-6 text-base leading-[1.5]">
+      <div class="docs-card__content">
+        <slot />
+      </div>
+      {links.length > 0 && (
+        <div class="mt-auto flex flex-wrap gap-6">
+          {links.map((link) => (
+            <a
+              href={link.href}
+              class="text-accent-text inline-flex items-center gap-2 no-underline hover:underline"
+            >
+              {link.text}
+              <span class="subtitle-pixel" aria-hidden="true">
+                &gt;
+              </span>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+<style is:global>
+  .docs-card__badge {
+    border-color: var(--color-tint-25);
+    background-color: var(--color-tint-10);
+  }
+  .docs-card__content > :first-child {
+    margin-top: 0;
+  }
+  .docs-card__content > :last-child {
+    margin-bottom: 0;
+  }
+  /* square bullets inside cards, like the Figma GitHub card */
+  .docs-card__content ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .docs-card__content ul > li {
+    position: relative;
+    padding-left: 1.25rem;
+    color: var(--foreground);
+  }
+  .docs-card__content ul > li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-primary-500);
+  }
+  .docs-card__content code {
+    color: var(--foreground);
+  }
+  /* link cards sit edge to edge inside a CardGrid */
+  .docs-card--link:first-child {
+    border-radius: 15px 0 0 15px;
+  }
+  .docs-card--link:last-child {
+    border-radius: 0 15px 15px 0;
+  }
+  @media (max-width: 767px) {
+    .docs-card--link {
+      border-radius: 15px !important;
+    }
+  }
+</style>

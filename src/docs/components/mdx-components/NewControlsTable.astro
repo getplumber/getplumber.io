@@ -69,7 +69,7 @@ function renderInline(text: string): string {
   return bolded
     .replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-emerald-600 dark:text-emerald-400 underline underline-offset-2">$1</a>',
+      '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 underline underline-offset-2">$1</a>',
     )
     .replace(
       /`([^`]+)`/g,

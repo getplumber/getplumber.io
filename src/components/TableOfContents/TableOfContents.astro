@@ -1,4 +1,8 @@
 ---
+/**
+ * "On this page" rail for blog posts, same look as the docs rail: pixel label and one row
+ * per heading with a 6px square that turns teal for the heading in view.
+ */
 import { resolveBlogTocIcon } from "@/js/blogTocIcons";
 
 interface Props {
@@ -12,42 +16,34 @@ const { headings, levels = 2, headingIcons } = Astro.props as Props;
 
 // filter out all tags above depth level specified
 const filteredHeadings = headings.filter((heading) => heading.depth <= levels + 1);
-
-// console.log(JSON.stringify(headings, null, 4));
 ---
 
-<div
-  class="border-base-300 dark:border-base-600/60 mt-1 rounded-md border p-3 text-sm leading-tight xl:p-4"
->
-  <ul class="flex flex-col gap-2">
-    {
-      filteredHeadings.map((heading) => {
+{filteredHeadings.length > 0 && (
+  <div class="flex flex-col gap-6">
+    <p class="eyebrow text-muted-foreground">On this page</p>
+    <nav class="flex flex-col" aria-label="On this page">
+      {filteredHeadings.map((heading) => {
         const iconName = headingIcons?.[heading.slug] ?? headingIcons?.[heading.text];
         const TocIcon = resolveBlogTocIcon(iconName);
+        const depth = Math.max(0, heading.depth - 2);
 
         return (
-          <li
-            class:list={{
-              "pl-3": heading.depth === 3,
-              "pl-6": heading.depth === 4,
-            }}
+          <a
+            href={`#${heading.slug}`}
+            class="toc-link toc-row"
+            style={depth > 0 ? `padding-left: ${depth}rem;` : undefined}
           >
-            <a
-              href={`#${heading.slug}`}
-              class:list={[
-                "toc-link hover:text-primary-600 dark:hover:text-primary-400 inline-flex items-center gap-1.5 transition",
-                "data-[active=true]:text-primary-600 data-[active=true]:dark:text-primary-400",
-              ]}
-            >
-              {TocIcon && <TocIcon class="h-4 w-4 shrink-0" aria-hidden="true" />}
+            <span class="toc-row__marker" aria-hidden="true" />
+            <span class="flex items-center gap-1.5">
+              {TocIcon && <TocIcon class="size-4 shrink-0" aria-hidden="true" />}
               {heading.text}
-            </a>
-          </li>
+            </span>
+          </a>
         );
-      })
-    }
-  </ul>
-</div>
+      })}
+    </nav>
+  </div>
+)}
 
 <!-- uses intersection observer to highlight which heading is in view -->
 <script>
@@ -92,8 +88,6 @@ const filteredHeadings = headings.filter((heading) => heading.depth <= levels + 
       return;
     }
     allHeaderTags.forEach((tag) => {
-      // add scroll margin top to account for navbar
-      tag.classList.add("scroll-mt-20");
       observeHeaderTags.observe(tag);
     });
   }
@@ -106,7 +100,32 @@ const filteredHeadings = headings.filter((heading) => heading.depth <= levels + 
 </script>
 
 <style>
-  .scroll-mt-20 {
-    scroll-margin-top: calc(var(--spacing) * 20);
+  .toc-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+  .toc-row:hover {
+    color: var(--foreground);
+  }
+  .toc-row__marker {
+    width: 6px;
+    height: 6px;
+    flex: none;
+    margin-top: 0.45rem;
+    background-color: var(--color-tint-25);
+    transition: background-color 150ms ease;
+  }
+  .toc-row[data-active="true"] {
+    color: var(--foreground);
+  }
+  .toc-row[data-active="true"] .toc-row__marker {
+    background-color: var(--color-primary-500);
   }
 </style>

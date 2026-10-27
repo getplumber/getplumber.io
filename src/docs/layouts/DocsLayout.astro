@@ -1,17 +1,13 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { Icon } from "astro-icon/components";
 
-// Commented out - we might use this example later
-import DocsPagination from "@/docs/components/nav/DocsPagination.astro";
-import SidebarNav from "@/docs/components/nav/SidebarNav.astro";
-import TableOfContents from "@/docs/components/table-of-contents/TableOfContents.astro";
-import TocLink from "@/docs/components/table-of-contents/TocLink.astro";
+import DocsPageFooter from "@/docs/components/nav/DocsPagination.astro";
 import { siteSettings } from "@/docs/config/siteSettings.json";
-import { getAdjacentPages, getDocsBreadcrumbs } from "@/docs/js/docsUtils";
+import { getAdjacentPages, getDocsBreadcrumbs, getSectionTitle } from "@/docs/js/docsUtils";
 import { getLocaleFromUrl } from "@/docs/js/localeUtils";
 
 import BaseLayoutDocs from "./BaseLayoutDocs.astro";
+import DocsShell from "./DocsShell.astro";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 
@@ -22,7 +18,15 @@ interface Props {
 }
 
 const { doc, headings = [], sectionId = "main" } = Astro.props;
-const { title, seoTitle, description = "", sidebar, tableOfContents, pagefind = true } = doc.data;
+const {
+  title,
+  seoTitle,
+  description = "",
+  lead,
+  lastUpdated,
+  tableOfContents,
+  pagefind = true,
+} = doc.data;
 
 const minHeadingLevel = tableOfContents?.minHeadingLevel ?? 2;
 const maxHeadingLevel = tableOfContents?.maxHeadingLevel ?? 3;
@@ -34,6 +38,10 @@ const filteredHeadings = headings.filter(
 
 // Get adjacent pages - only from the current section
 const { prev, next } = await getAdjacentPages(doc.id, currLocale, sectionId);
+
+// The page eyebrow is the title of the sidebar section the page belongs to
+const docSection = doc.id.split("/")[0];
+const eyebrow = getSectionTitle(docSection, sectionId, currLocale);
 
 // Per-page structured data: TechArticle headline matches the visible H1
 // (`title`, not the suffixed meta title), plus a validated breadcrumb trail.
@@ -52,160 +60,29 @@ const structuredData = { headline: title, breadcrumbs };
   sectionId={sectionId}
   structuredData={structuredData}
 >
-  <div
-    class="docs-site-container min-h-[calc(100vh-var(--nav-height))] flex-1 border-x md:grid md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[240px_minmax(0,1fr)_240px] lg:gap-10 2xl:grid-cols-[240px_minmax(0,1fr)_280px]"
+  <DocsShell
+    sectionId={sectionId}
+    headings={filteredHeadings}
+    minHeadingLevel={minHeadingLevel}
+    pagefind={pagefind}
   >
-    {/* Desktop Sidebar */}
-    <aside class="hidden w-full shrink-0 border-r md:block">
-      <div class="sticky top-(--nav-height)">
-        <div
-          class="max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-(--main-content-pt) pb-4"
-        >
-          <SidebarNav sectionId={sectionId} />
-        </div>
-      </div>
-    </aside>
+    <header class="mb-14 flex flex-col gap-6">
+      {eyebrow && (
+        <p class="eyebrow flex items-center gap-2">
+          <span class="bg-primary-500 size-1.5 shrink-0" aria-hidden="true" />
+          {eyebrow}
+        </p>
+      )}
+      <h1 class="h1 text-foreground uppercase">{title}</h1>
+      {lead && <p class="body-lg text-muted-foreground">{lead}</p>}
+    </header>
 
-    {/* Main Content */}
-    <main class="w-full min-w-0">
-      {/* Mobile navigation controls: sidebar menu (<md) + TOC (<lg) */}
-      <div
-        class:list={[
-          "sticky top-[calc(var(--nav-height)-1px)] z-40 -mx-4 mb-4 md:-ml-0",
-          filteredHeadings.length > 0 ? "lg:hidden" : "md:hidden",
-        ]}
-      >
-        <mobile-docs-controls class="bg-background/90 relative flex border-b backdrop-blur">
-          <details class="mobile-nav-dropdown md:hidden">
-            <summary class="cursor-pointer list-none px-4 py-2 font-medium">Menu</summary>
-            <nav class="bg-background absolute top-full right-0 left-0 z-10 max-h-[70vh] overflow-y-auto border-b px-2 pt-2 pb-4">
-              <SidebarNav sectionId={sectionId} />
-            </nav>
-          </details>
-          {
-            filteredHeadings.length > 0 && (
-              <div class="bg-border my-auto h-5 w-px md:hidden" aria-hidden="true" />
-            )
-          }
-          {
-            filteredHeadings.length > 0 && (
-              <details class="mobile-nav-dropdown">
-                <summary class="cursor-pointer list-none px-4 py-2 font-medium">
-                  On this page
-                </summary>
-                <nav class="bg-background absolute top-full right-0 left-0 z-10 space-y-1 border-b px-4 pt-2 pb-4">
-                  {filteredHeadings.map((heading) => (
-                    <TocLink heading={heading} minHeadingLevel={minHeadingLevel} />
-                  ))}
-                </nav>
-              </details>
-            )
-          }
-        </mobile-docs-controls>
-      </div>
-
-      {/* Content */}
-      <div
-        id="main-content"
-        class="mr-auto w-full max-w-2xl scroll-mt-[calc(var(--nav-height)+1rem)] overflow-x-hidden pb-(--main-content-pt) md:pl-6 lg:mt-(--main-content-pt) lg:px-1 xl:mx-auto"
-        data-pagefind-body={pagefind ? true : undefined}
-      >
-        <div class="flex">
-          <h1 class="docs-h1 mb-8 flex items-center gap-3 pb-1">
-            {
-              sidebar?.icon && (
-                <Icon
-                  name={sidebar.icon}
-                  class="text-foreground size-[0.9em] shrink-0"
-                  aria-hidden="true"
-                />
-              )
-            }
-            <span class="docs-text-gradient">{title}</span>
-          </h1>
-        </div>
-        <div class="docs-markdown-content">
-          <slot />
-        </div>
-
-        {/* Previous/Next Navigation */}
-        {siteSettings.pagination !== false && <DocsPagination prev={prev} next={next} />}
-      </div>
-    </main>
-
-    {/* Desktop Table of Contents */}
-    <aside class="hidden text-sm lg:block">
-      <div class="sticky top-(--nav-height)">
-        <div
-          class="max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-(--main-content-pt) pb-4"
-        >
-          {
-            filteredHeadings.length > 0 && (
-              <TableOfContents headings={filteredHeadings} minHeadingLevel={minHeadingLevel} />
-            )
-          }
-
-                    {/* Commented out - we might use this example later */}
-        </div>
-      </div>
-    </aside>
-  </div>
-
-  <div class="pointer-events-none fixed inset-0 z-50 hidden dark:block">
-    <div class="docs-site-container relative flex h-14">
-      <div
-        class="from-primary/50 dark:from-foreground/20 pointer-events-none absolute -top-[500px] -left-[100px] z-50 h-[1000px] w-[200px] -rotate-45 bg-gradient-to-b to-transparent blur-2xl"
-      >
-      </div>
+    <div class="docs-markdown-content">
+      <slot />
     </div>
-  </div>
+
+    {siteSettings.pagination !== false && (
+      <DocsPageFooter prev={prev} next={next} lastUpdated={lastUpdated} />
+    )}
+  </DocsShell>
 </BaseLayoutDocs>
-
-<style>
-  .mobile-nav-dropdown summary::before {
-    --details-marker-size: 1.25rem;
-
-    background-color: currentColor;
-    content: "";
-    display: inline-block;
-    height: var(--details-marker-size);
-    width: var(--details-marker-size);
-    margin-inline: calc((var(--details-marker-size) / 4) * -1) 0.25rem;
-    vertical-align: middle;
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.8 11.3 10.6 7a1 1 0 1 0-1.4 1.5l3.5 3.5-3.5 3.5a1 1 0 0 0 0 1.4 1 1 0 0 0 .7.3 1 1 0 0 0 .7-.3l4.2-4.2a1 1 0 0 0 0-1.4Z'/%3E%3C/svg%3E%0A");
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.8 11.3 10.6 7a1 1 0 1 0-1.4 1.5l3.5 3.5-3.5 3.5a1 1 0 0 0 0 1.4 1 1 0 0 0 .7.3 1 1 0 0 0 .7-.3l4.2-4.2a1 1 0 0 0 0-1.4Z'/%3E%3C/svg%3E%0A");
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .mobile-nav-dropdown summary::before {
-      transition: transform 0.2s ease-in-out;
-    }
-  }
-  .mobile-nav-dropdown[open] > summary::before {
-    transform: rotateZ(90deg);
-  }
-</style>
-
-<script>
-  class MobileDocsControls extends HTMLElement {
-    constructor() {
-      super();
-      // Direct children only: the sidebar itself holds disclosure sections, and
-      // toggling one of those must not close the dropdown containing it
-      const allDetails = this.querySelectorAll<HTMLDetailsElement>(":scope > details");
-      allDetails.forEach((detail) => {
-        detail.addEventListener("toggle", () => {
-          if (detail.open) {
-            allDetails.forEach((other) => {
-              if (other !== detail && other.open) {
-                other.open = false;
-              }
-            });
-          }
-        });
-      });
-    }
-  }
-  customElements.define("mobile-docs-controls", MobileDocsControls);
-</script>

@@ -2,8 +2,7 @@
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { formatDate } from "@js/textUtils";
 import { Image } from "astro:assets";
-import { type CollectionEntry, getEntries, getEntry } from "astro:content";
-import { Icon } from "astro-icon/components";
+import { type CollectionEntry } from "astro:content";
 
 interface Props {
   post: CollectionEntry<"blog">;
@@ -13,66 +12,46 @@ interface Props {
 }
 
 const { post, showDescription = false, class: className, ...rest } = Astro.props as Props;
-const { title, description, pubDate, heroImage, authors } = post.data;
+const { title, description, pubDate, heroImage, categories } = post.data;
+const category = categories?.find((c): c is string => typeof c === "string");
 
 const currLocale = getLocaleFromUrl(Astro.url);
-const authorsData = await getEntries(authors);
 ---
 
-<article class:list={["", className]} {...rest} data-pagefind-ignore>
-  <div
-    class="border-base-300 dark:border-base-600/60 relative aspect-video shrink-0 justify-center overflow-hidden rounded-md border sm:justify-normal"
-  >
-    <a href={`/blog/${post.id}`} class="block size-full">
-      <Image
-        src={heroImage}
-        alt={`${title} blog post`}
-        width={640}
-        height={360}
-        densities={[1, 2]}
-        quality={90}
-        class="size-full object-cover transition-all duration-500 hover:scale-[1.02]"
-      />
-    </a>
-  </div>
-  <div class="mt-2">
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <!-- author -->
-      <!-- {
-        authorsData.length > 0 && (
-          <div class="flex items-center">
-            <div class="border-base-300 dark:border-base-600/60 mr-2 aspect-square size-7 overflow-hidden rounded-full border">
-              <Image
-                src={authorsData[0].data.avatar}
-                alt={`Avatar of ${authorsData[0].data.name}`}
-                width={32}
-                class="h-full w-full object-cover"
-              />
-            </div>
-            <span class="text-sm">{authorsData[0].data.name}</span>
-          </div>
-        )
-      } -->
-
-      <!-- published date -->
-      <p class="text-sm whitespace-nowrap opacity-70">
+<article
+  class:list={[
+    "card-tint card-tint-hover rounded-r15 group flex flex-col overflow-hidden transition-colors",
+    className,
+  ]}
+  {...rest}
+  data-pagefind-ignore
+>
+  <a href={`/blog/${post.id}`} class="stroke-tint block aspect-video overflow-hidden border-b">
+    <Image
+      src={heroImage}
+      alt={`${title} blog post`}
+      width={640}
+      height={360}
+      densities={[1, 2]}
+      quality={90}
+      class="size-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+    />
+  </a>
+  <div class="flex flex-1 flex-col gap-4 p-6">
+    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <time class="subtitle-pixel text-muted-foreground" datetime={pubDate.toISOString()}>
         {formatDate(pubDate, currLocale)}
-      </p>
+      </time>
+      {category && <span class="subtitle-pixel text-accent-text">{category}</span>}
     </div>
-    <!-- title -->
-    <a href={`/blog/${post.id}`} class="hover:text-primary-700 dark:hover:text-primary-400">
-      <h2 class="mt-1 line-clamp-2 text-lg font-medium transition-colors md:text-xl">
-        {title}
-      </h2>
+    <a
+      href={`/blog/${post.id}`}
+      class="text-foreground hover:text-primary-500 no-underline transition-colors"
+    >
+      <h2 class="line-clamp-3 text-xl leading-[1.3]">{title}</h2>
     </a>
-
-    <!-- description -->
-    {
-      showDescription && (
-        <p class="description mt-2 line-clamp-3 hidden text-sm md:block lg:text-base">
-          {description}
-        </p>
-      )
-    }
+    {showDescription && (
+      <p class="text-muted-foreground line-clamp-3 text-base leading-[1.5]">{description}</p>
+    )}
   </div>
 </article>

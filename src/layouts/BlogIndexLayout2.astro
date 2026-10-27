@@ -19,30 +19,30 @@ const normalizedFilters = filterCategories.map((c) =>
 const hasFilters = normalizedFilters.length > 0;
 ---
 
-{hasFilters && (
-  <nav class="mt-8 mb-10 flex flex-wrap gap-2" id="blog-category-filters" aria-label="Filter blog posts by category">
-    <a
-      href="/blog"
-      data-category="all"
-      class="blog-filter-btn rounded-full border px-4 py-1.5 text-sm font-medium transition-colors"
+<div class:list={[className]}>
+  {hasFilters && (
+    <nav
+      class="mb-10 flex flex-wrap gap-3"
+      id="blog-category-filters"
+      aria-label="Filter blog posts by category"
     >
-      All
-    </a>
-    {normalizedFilters.map((cat) => (
-      <a
-        href={`/blog?category=${encodeURIComponent(cat.id)}`}
-        data-category={cat.id}
-        class="blog-filter-btn rounded-full border px-4 py-1.5 text-sm font-medium transition-colors"
-      >
-        {cat.label}
+      <a href="/blog" data-category="all" class="blog-filter-btn">
+        All
       </a>
-    ))}
-  </nav>
-)}
+      {normalizedFilters.map((cat) => (
+        <a
+          href={`/blog?category=${encodeURIComponent(cat.id)}`}
+          data-category={cat.id}
+          class="blog-filter-btn"
+        >
+          {cat.label}
+        </a>
+      ))}
+    </nav>
+  )}
 
-<div class:list={["grid gap-4 gap-y-12 md:grid-cols-2 lg:grid-cols-3", className]} id="blog-posts-grid">
-  {
-    posts.map((post, index) => {
+  <div class="grid gap-6 gap-y-8 md:grid-cols-2 lg:grid-cols-3" id="blog-posts-grid">
+    {posts.map((post, index) => {
       const cats = (post.data.categories ?? []).filter((c): c is string => typeof c === "string");
       const isFirst = index === 0;
       return (
@@ -54,44 +54,53 @@ const hasFilters = normalizedFilters.length > 0;
           <div class:list={["blog-card-large", { hidden: !isFirst }]}>
             <PostCardLarge post={post} showDescription={true} />
           </div>
-          <div class:list={["blog-card-small", { hidden: isFirst }]}>
-            <PostCard post={post} showDescription={false} />
+          <div class:list={["blog-card-small h-full", { hidden: isFirst }]}>
+            <PostCard post={post} showDescription={false} class="h-full" />
           </div>
         </div>
       );
-    })
-  }
+    })}
+  </div>
 </div>
 
 <style is:global>
+  /* Figma secondary button, square: stroke, tint fill, 6px marker that turns teal when active */
   .blog-filter-btn {
-    color: var(--color-base-600);
-    border-color: var(--color-base-300);
-    background: transparent;
-    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 1rem;
+    border: 1px solid var(--color-tint-25);
+    border-radius: var(--radius-r4);
+    background-color: var(--color-tint-5);
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    line-height: 1;
     text-decoration: none;
+    cursor: pointer;
+    transition:
+      color 150ms ease,
+      border-color 150ms ease,
+      background-color 150ms ease;
+  }
+  .blog-filter-btn::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    flex: none;
+    background-color: var(--color-tint-25);
+    transition: background-color 150ms ease;
   }
   .blog-filter-btn:hover {
-    color: var(--color-base-800);
-    border-color: var(--color-base-400);
+    color: var(--foreground);
+    background-color: var(--color-tint-10);
   }
   .blog-filter-btn.active {
-    background: var(--color-primary-600);
-    color: white;
-    border-color: var(--color-primary-600);
+    color: var(--foreground);
+    border-color: var(--color-primary-500);
   }
-  .dark .blog-filter-btn {
-    color: var(--color-base-400);
-    border-color: var(--color-base-600);
-  }
-  .dark .blog-filter-btn:hover {
-    color: var(--color-base-200);
-    border-color: var(--color-base-400);
-  }
-  .dark .blog-filter-btn.active {
-    background: var(--color-primary-400);
-    color: var(--color-base-950);
-    border-color: var(--color-primary-400);
+  .blog-filter-btn.active::before {
+    background-color: var(--color-primary-500);
   }
   .blog-post-item.hidden-by-filter {
     display: none;
@@ -100,14 +109,14 @@ const hasFilters = normalizedFilters.length > 0;
 
 <script>
   function initBlogFilters() {
-    const filterNav = document.getElementById('blog-category-filters');
-    const posts = document.querySelectorAll<HTMLElement>('.blog-post-item');
+    const filterNav = document.getElementById("blog-category-filters");
+    const posts = document.querySelectorAll<HTMLElement>(".blog-post-item");
     if (!filterNav || !posts.length) return;
 
-    const buttons = filterNav.querySelectorAll<HTMLAnchorElement>('.blog-filter-btn');
+    const buttons = filterNav.querySelectorAll<HTMLAnchorElement>(".blog-filter-btn");
 
     function normalizeCategoryParam(raw: string | null): string | null {
-      if (raw === 'Releases') return 'releases-platform';
+      if (raw === "Releases") return "releases-platform";
       return raw;
     }
 
@@ -116,70 +125,68 @@ const hasFilters = normalizedFilters.length > 0;
       postCategories: string[],
       blogSlug: string,
     ): boolean {
-      if (activeCategory === 'all') return true;
-      if (
-        activeCategory === 'releases-platform' &&
-        blogSlug.includes('release-cli')
-      ) {
+      if (activeCategory === "all") return true;
+      if (activeCategory === "releases-platform" && blogSlug.includes("release-cli")) {
         return false;
       }
       return postCategories.includes(activeCategory);
     }
 
     function applyFilter(category: string | null) {
-      const activeCategory = category || 'all';
+      const activeCategory = category || "all";
 
       buttons.forEach((btn) => {
         const isActive = btn.dataset.category === activeCategory;
-        btn.classList.toggle('active', isActive);
-        btn.setAttribute('aria-pressed', String(isActive));
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", String(isActive));
       });
 
       posts.forEach((post) => {
-        const postCategories: string[] = JSON.parse(post.dataset.categories || '[]');
-        const blogSlug = post.dataset.blogSlug ?? '';
+        const postCategories: string[] = JSON.parse(post.dataset.categories || "[]");
+        const blogSlug = post.dataset.blogSlug ?? "";
         const matches = postMatchesFilter(activeCategory, postCategories, blogSlug);
-        post.classList.toggle('hidden-by-filter', !matches);
+        post.classList.toggle("hidden-by-filter", !matches);
       });
 
       let firstVisible = true;
       posts.forEach((post) => {
-        if (post.classList.contains('hidden-by-filter')) return;
+        if (post.classList.contains("hidden-by-filter")) return;
 
-        const large = post.querySelector<HTMLElement>('.blog-card-large');
-        const small = post.querySelector<HTMLElement>('.blog-card-small');
+        const large = post.querySelector<HTMLElement>(".blog-card-large");
+        const small = post.querySelector<HTMLElement>(".blog-card-small");
 
         if (firstVisible) {
-          post.classList.add('md:col-span-2', 'lg:col-span-3');
-          if (large) large.classList.remove('hidden');
-          if (small) small.classList.add('hidden');
+          post.classList.add("md:col-span-2", "lg:col-span-3");
+          if (large) large.classList.remove("hidden");
+          if (small) small.classList.add("hidden");
           firstVisible = false;
         } else {
-          post.classList.remove('md:col-span-2', 'lg:col-span-3');
-          if (large) large.classList.add('hidden');
-          if (small) small.classList.remove('hidden');
+          post.classList.remove("md:col-span-2", "lg:col-span-3");
+          if (large) large.classList.add("hidden");
+          if (small) small.classList.remove("hidden");
         }
       });
     }
 
     function getCategoryFromUrl() {
       const params = new URLSearchParams(window.location.search);
-      return normalizeCategoryParam(params.get('category'));
+      return normalizeCategoryParam(params.get("category"));
     }
 
     buttons.forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener("click", (e) => {
         e.preventDefault();
         const category = btn.dataset.category!;
-        const url = category === 'all'
-          ? window.location.pathname
-          : `${window.location.pathname}?category=${encodeURIComponent(category)}`;
-        window.history.pushState({}, '', url);
-        applyFilter(category === 'all' ? null : category);
+        const url =
+          category === "all"
+            ? window.location.pathname
+            : `${window.location.pathname}?category=${encodeURIComponent(category)}`;
+        window.history.pushState({}, "", url);
+        applyFilter(category === "all" ? null : category);
       });
     });
 
-    window.addEventListener('popstate', () => {
+    window.addEventListener("popstate", () => {
       applyFilter(getCategoryFromUrl());
     });
 
@@ -187,5 +194,5 @@ const hasFilters = normalizedFilters.length > 0;
   }
 
   initBlogFilters();
-  document.addEventListener('astro:after-swap', initBlogFilters);
+  document.addEventListener("astro:after-swap", initBlogFilters);
 </script>

@@ -4,7 +4,7 @@ import PostCard from "@components/PostCard/PostCard.astro";
 import TableOfContents from "@components/TableOfContents/TableOfContents.astro";
 import { getAllPosts } from "@js/blogUtils";
 import { getLocaleFromUrl } from "@js/localeUtils";
-import { formatDate, humanize, slugify } from "@js/textUtils";
+import { formatDate } from "@js/textUtils";
 import { Image } from "astro:assets";
 import { type CollectionEntry, getEntries } from "astro:content";
 
@@ -21,10 +21,12 @@ const { title, description, authors, pubDate, updatedDate, heroImage } = post.da
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const authorsData = await getEntries(authors);
+const authorNames = authorsData.map((author) => author.data.name).join(", ");
 
 // Related posts: most shared categories first, newest first as tiebreaker
 // (internal circulation between posts helps both readers and SEO)
 const postCategories = post.data.categories?.filter(Boolean) ?? [];
+const eyebrow = postCategories[0] ?? "Blog";
 const allPosts = await getAllPosts(currLocale, true);
 const relatedPosts = allPosts
   .filter((other) => other.id !== post.id)
@@ -50,81 +52,92 @@ const relatedPosts = allPosts
   authorsData={authorsData}
   postFrontmatter={post.data}
 >
-  <article class="site-container mt-16 md:mt-28" data-pagefind-ignore>
-    <div class="mx-auto mt-10 grid w-full max-w-2xl gap-10 lg:max-w-none lg:grid-cols-3">
-      <!-- table of contents + hero on desktop -->
-      <aside class="min-w-0 lg:order-2" data-pagefind-ignore>
-        <!-- hero at top of sidebar on desktop (not sticky, scrolls with page) -->
+  <article class="site-container mt-24 mb-24 md:mt-36" data-pagefind-ignore>
+    <!-- header: eyebrow (first category), pixel dates, uppercase title, lead, authors -->
+    <header class="flex max-w-[786px] flex-col gap-6">
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <p class="eyebrow flex items-center gap-2">
+          <span class="bg-primary-500 block size-1.5" aria-hidden="true"></span>
+          {eyebrow}
+        </p>
+        <time class="subtitle-pixel text-muted-foreground" datetime={pubDate.toISOString()}>
+          {formatDate(pubDate, currLocale)}
+        </time>
+        {updatedDate && (
+          <time class="subtitle-pixel text-muted-foreground" datetime={updatedDate.toISOString()}>
+            Updated {formatDate(updatedDate, currLocale)}
+          </time>
+        )}
+      </div>
+      <!-- Title rendered here (not in post markdown) so every post has exactly one H1 -->
+      <h1 class="h1 text-foreground uppercase">{title}</h1>
+      <p class="body-lg text-muted-foreground">{description}</p>
+      {authorNames && <p class="text-muted-foreground text-sm">By {authorNames}</p>}
+    </header>
+
+    <div class="mt-14 grid gap-12 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-[60px]">
+      <!-- main content -->
+      <div class="min-w-0 max-w-[786px]">
+        <!-- hero at top of page on mobile/tablet -->
         {heroImage && (
-          <div class="hidden lg:block lg:mb-6">
+          <div class="card-tint rounded-r15 mb-10 overflow-hidden lg:hidden">
+            <Image
+              src={heroImage}
+              alt={`Cover for ${title}`}
+              width={800}
+              densities={[1, 2]}
+              quality={90}
+              class="w-full object-cover"
+              loading="eager"
+              format="webp"
+            />
+          </div>
+        )}
+        <section id="blog-post-content" class="markdown-content">
+          <slot />
+        </section>
+
+        <!-- related posts -->
+        {relatedPosts.length > 0 && (
+          <div class="stroke-tint mt-20 border-t pt-14">
+            <p class="eyebrow text-muted-foreground">Keep reading</p>
+            <h2 class="h2 text-foreground mt-6">Related posts</h2>
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedPosts.map((relatedPost) => (
+                <PostCard post={relatedPost} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- button to go back to all posts -->
+        <div class="mt-14 flex">
+          <Button variant="secondary" href="/blog">
+            All posts
+          </Button>
+        </div>
+      </div>
+
+      <!-- hero + on this page on desktop -->
+      <aside class="min-w-0" data-pagefind-ignore>
+        {heroImage && (
+          <div class="card-tint rounded-r15 mb-10 hidden overflow-hidden lg:block">
             <Image
               src={heroImage}
               alt={`Cover for ${title}`}
               width={400}
               densities={[1, 2]}
               quality={90}
-              class="border-base-300 dark:border-base-600/60 w-full rounded-lg border object-cover"
+              class="w-full object-cover"
               loading="eager"
               format="webp"
             />
           </div>
         )}
-        <div class="lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)]">
+        <div class="lg:sticky lg:top-28">
           <TableOfContents headings={headings} headingIcons={post.data.tocHeadingIcons} />
         </div>
       </aside>
-
-      <!-- main content -->
-      <div class="min-w-0 lg:col-span-2">
-        <div class="text-base-content text-base">
-          <!-- hero at top of page on mobile/tablet -->
-          {heroImage && (
-            <div class="mb-10 lg:hidden">
-              <Image
-                src={heroImage}
-                alt={`Cover for ${title}`}
-                width={800}
-                densities={[1, 2]}
-                quality={90}
-                class="border-base-300 dark:border-base-600/60 w-full rounded-lg border object-cover"
-                loading="eager"
-                format="webp"
-              />
-            </div>
-          )}
-          {updatedDate && (
-            <div class="mb-6 italic">
-              <time datetime={updatedDate.toISOString()}>
-                Updated: {formatDate(updatedDate, currLocale)}
-              </time>
-            </div>
-          )}
-          <!-- Title rendered here (not in post markdown) so every post has exactly one H1 -->
-          <h1 class="text-foreground mb-4 text-3xl font-semibold md:text-4xl">{title}</h1>
-          <section id="blog-post-content" class="markdown-content mx-auto max-w-2xl lg:max-w-none">
-            <slot />
-          </section>
-
-          <!-- related posts -->
-          {relatedPosts.length > 0 && (
-            <div class="mt-16">
-              <h2 class="text-2xl font-semibold md:text-3xl">Related posts</h2>
-              <div class="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                {relatedPosts.map((relatedPost) => (
-                  <PostCard post={relatedPost} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          <!-- button to go back to all posts -->
-          <div class="mt-16 flex">
-            <Button variant="secondary" href={"/blog"} class="py-2">
-              Back to all posts
-            </Button>
-          </div>
-        </div>
-      </div>
     </div>
   </article>
 </BaseLayout>

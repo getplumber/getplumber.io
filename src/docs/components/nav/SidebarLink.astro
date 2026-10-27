@@ -1,16 +1,16 @@
 ---
+/**
+ * Sidebar menu row (Figma Component_Menu-Smaller): 42px row with a 6px square marker
+ * that lights up teal on the current page, a tint background on hover and current.
+ * Indented rows (Figma Component 134) hang from a tint stroke instead.
+ */
 import type { ComponentProps } from "astro/types";
 import { Icon } from "astro-icon/components";
 
 import Badge from "@/docs/components/mdx-components/Badge.astro";
-import { getLocaleFromUrl } from "@/docs/js/localeUtils";
-import { getLocalizedRoute } from "@/docs/js/translationUtils";
 
 /**
  * Compares two paths ensuring they both have trailing slashes for consistency
- * @param path1 First path to compare
- * @param path2 Second path to compare
- * @returns boolean indicating if the paths are equal
  */
 const comparePathsWithTrailingSlash = (path1: string, path2: string): boolean => {
   const ensureTrailingSlash = (path: string): string => (path.endsWith("/") ? path : `${path}/`);
@@ -29,20 +29,10 @@ interface Props {
   highlightDescendants?: boolean;
 }
 
-const {
-  link,
-  text,
-  indent = false,
-  badge,
-  icon,
-  highlightDescendants = false,
-} = Astro.props;
-
-// get the current page locale to use in links to other pages
-const currLocale = getLocaleFromUrl(Astro.url);
+const { link, text, indent = false, badge, icon, highlightDescendants = false } = Astro.props;
 
 // internal link - normalize to remove trailing slash (except root)
-let actualLink = link === "/" ? "/" : link.replace(/\/$/, "");
+const actualLink = link === "/" ? "/" : link.replace(/\/$/, "");
 
 const pathname = Astro.url.pathname;
 const linkWithSlash = actualLink.endsWith("/") ? actualLink : `${actualLink}/`;
@@ -55,30 +45,65 @@ const currentPath =
     : comparePathsWithTrailingSlash(pathname, actualLink);
 ---
 
-<li
-  class:list={[
-    indent && "border-border ml-0.5 border-l pl-3",
-  ]}
->
+<li class:list={[indent && "sidebar-link--indent"]}>
   <a
     href={actualLink}
-    class:list={[
-      "docs-nav__link--sidebar docs-primary-focus block text-base md:text-sm",
-      {
-        // Current page: accent colour on a soft pill. Section headings are bold
-        // foreground text, so weight alone would not tell the two apart.
-        // The pill bleeds LEFT only (-ml-2): a right bleed pushed the block
-        // past the sidebar's scroll container, whose overflow-y-auto makes
-        // overflow-x auto too, so every page showed a horizontal scrollbar.
-        "-ml-2 -my-0.5 rounded-md bg-primary/10 px-2 py-0.5 font-medium text-primary hover:text-primary":
-          currentPath,
-      },
-    ]}
+    class:list={["sidebar-link docs-primary-focus", { "sidebar-link--current": currentPath }]}
+    aria-current={currentPath ? "page" : undefined}
   >
-    <div class="flex items-center gap-2">
-      {icon && <Icon name={icon} class="size-4 shrink-0" aria-hidden="true" />}
-      <span>{text}</span>
-      {badge && <Badge text={badge.text} variant={badge.variant} />}
-    </div>
+    <span class="sidebar-link__marker" aria-hidden="true"></span>
+    {icon && <Icon name={icon} class="size-4 shrink-0" aria-hidden="true" />}
+    <span class="min-w-0 flex-1">{text}</span>
+    {badge && <Badge text={badge.text} variant={badge.variant} />}
   </a>
 </li>
+
+<style>
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  .sidebar-link:hover,
+  .sidebar-link--current {
+    background-color: var(--color-tint-25);
+    color: var(--foreground);
+  }
+  .sidebar-link__marker {
+    width: 6px;
+    height: 6px;
+    flex: none;
+    background-color: transparent;
+  }
+  .sidebar-link--current .sidebar-link__marker {
+    background-color: var(--color-primary-500);
+  }
+
+  /* nested rows hang from a tint stroke (Figma Component 134) */
+  .sidebar-link--indent {
+    padding-left: 2.25rem;
+  }
+  .sidebar-link--indent .sidebar-link {
+    border-left: 1px solid var(--color-tint-25);
+    border-radius: 0;
+    padding: 0.5rem 1rem;
+  }
+  .sidebar-link--indent .sidebar-link__marker {
+    display: none;
+  }
+  .sidebar-link--indent .sidebar-link:hover,
+  .sidebar-link--indent .sidebar-link--current {
+    background-color: transparent;
+  }
+  .sidebar-link--indent .sidebar-link--current {
+    border-left-color: var(--color-primary-500);
+  }
+</style>

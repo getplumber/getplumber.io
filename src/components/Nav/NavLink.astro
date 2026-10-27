@@ -39,12 +39,11 @@ if (!link.includes(domain) && !link.startsWith("/") && !link.startsWith("#")) {
 }
 
 // determine if this nav item should be highlighted as active
-const isActive =
-  actualLink === "/docs"
-    ? Astro.url.pathname.startsWith("/docs")
-    : actualLink === "/blog"
-      ? Astro.url.pathname.startsWith("/blog")
-      : comparePathsWithTrailingSlash(Astro.url.pathname, actualLink);
+const isActive = actualLink.startsWith("/docs")
+  ? Astro.url.pathname.startsWith("/docs")
+  : actualLink === "/blog"
+    ? Astro.url.pathname.startsWith("/blog")
+    : comparePathsWithTrailingSlash(Astro.url.pathname, actualLink);
 ---
 
 <li class="w-full">
