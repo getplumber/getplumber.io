@@ -28,7 +28,7 @@ const hasToc = headings.length > 0;
   {/* Desktop sidebar: search field, then the section menu */}
   <aside class="docs-shell__sidebar stroke-tint hidden border-r md:block">
     <div class="sticky top-(--nav-height)">
-      <div class="docs-scroll max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-(--main-content-pt) pr-10 pb-10">
+      <div class="docs-scroll max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-8 pr-10 pb-10">
         <DocsSearch class="mb-11" />
         <SidebarNav sectionId={sectionId} />
       </div>
@@ -39,7 +39,7 @@ const hasToc = headings.length > 0;
     {/* Mobile controls: sidebar menu (below md) and on-this-page list (below lg) */}
     <div
       class:list={[
-        "sticky top-[calc(var(--nav-height)-1px)] z-40 -mx-4 mb-4",
+        "sticky top-[calc(var(--nav-height)-1px)] z-40 -mx-4 mb-4 md:-mx-8",
         hasToc ? "lg:hidden" : "md:hidden",
       ]}
     >

@@ -252,15 +252,23 @@
     @apply text-foreground/90 hover:text-foreground leading-tight;
   }
 
-  /* One body width for home, blog and docs: the Figma 1440 frames use a 1320px container
-     (60px margins) and the 1920 view keeps 136px margins, so 1648px from 2xl. */
+  /* One body width for home, blog and docs: 1320px of content behind 60px margins from lg
+     (Figma 1440), 1648px behind 136px margins from 1920 (Figma 1920); 16px margins on
+     phones and 32px on tablets. */
   .site-container {
-    @apply mx-auto max-w-[1320px] px-4 2xl:max-w-[1648px];
+    @apply mx-auto max-w-[1440px] px-4 md:px-8 lg:px-[60px] 2xl:max-w-[1920px];
   }
 
   /* Home page, navbar and footer share the blog page width (site-container). */
   .home-container {
-    @apply mx-auto w-full max-w-[1320px] px-4 2xl:max-w-[1648px];
+    @apply mx-auto w-full max-w-[1440px] px-4 md:px-8 lg:px-[60px] 2xl:max-w-[1920px];
+  }
+  /* plain media query: a sorted @apply would put the 1920 padding before the lg one */
+  @media (min-width: 1920px) {
+    .site-container,
+    .home-container {
+      padding-inline: 136px;
+    }
   }
 
   /* Figma card: darker grey at 5 percent over the page, 25 percent stroke, 10 percent on hover. */

@@ -8,5 +8,8 @@ export const PLUMBER_GITHUB_RELEASES_LATEST_URL = `${PLUMBER_GITHUB_REPO_URL}/re
 /** GitHub Marketplace listing for the Plumber Action. */
 export const PLUMBER_GITHUB_ACTION_URL = "https://github.com/marketplace/actions/plumber-score";
 
+/** GitHub App page of the Plumber agent (the "Install GitHub agent" buttons). */
+export const PLUMBER_GITHUB_APP_URL = "https://github.com/apps/plumber-agent";
+
 /** GitLab CI/CD component catalog entry. */
 export const PLUMBER_GITLAB_CATALOG_URL = "https://gitlab.com/explore/catalog/getplumber/plumber";
