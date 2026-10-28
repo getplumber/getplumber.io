@@ -173,11 +173,18 @@ const letters = "PLUMBER".split("");
     width: 12px;
     height: 12px;
     background-color: var(--color-base-600);
+    transition: background-color 650ms ease;
   }
   @media (min-width: 1024px) {
     .hero-bar__marker {
       top: -3px;
     }
+  }
+  /* the marker sits on the first rain column: it lights up with the copy block and with
+     that column */
+  .hero-copy:hover ~ .hero-bar .hero-bar__marker,
+  .hero-inner:has(:global(.pixel-rain[data-col="0"]):hover) .hero-bar__marker {
+    background-color: var(--color-primary-500);
   }
   /* Figma 360: teal marker flush with the bar's start (the button markers move after the
      labels through buttons.css) */
@@ -212,11 +219,15 @@ const letters = "PLUMBER".split("");
       opacity: 1;
       animation-play-state: running;
     }
+    .hero.is-in-view .hero-bar__marker {
+      background-color: var(--color-primary-500);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .hero-copy__eyebrow,
     .hero-copy__lead,
-    .hero-copy__muted {
+    .hero-copy__muted,
+    .hero-bar__marker {
       transition: none;
     }
   }
