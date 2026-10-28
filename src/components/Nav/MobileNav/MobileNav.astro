@@ -89,7 +89,7 @@ if (!docsMenuExists) {
 
       <!-- nav items -->
       <nav>
-        <ul class="mt-4 flex flex-col gap-2 text-xl">
+        <ul class="mobile-nav__links mt-4 flex flex-col gap-2 text-xl">
           {
             // if dropdown exists, setup the dropdown, otherwise it is just a link
             finalNavData.map((navItem) =>
@@ -198,3 +198,10 @@ if (!docsMenuExists) {
 
   customElements.define("mobile-nav-menu", MobileNavigationMenu);
 </script>
+
+<style>
+  /* menu links only turn white on hover or tap: no accent underline in the drawer */
+  .mobile-nav__links :global(.nav-link::after) {
+    content: none;
+  }
+</style>

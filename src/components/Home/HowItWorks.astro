@@ -11,6 +11,12 @@ import { howItWorks } from "@config/en/homeData.json";
 
 import NoteBanner from "./NoteBanner.astro";
 import SectionHeading from "./SectionHeading.astro";
+
+/** stagger between the step cards, and the length of each card's fade (global.css) */
+const STEP_DELAY_MS = 1250;
+const STEP_FADE_MS = 850;
+/** the note fades in once the last card's fade has ended */
+const noteDelayMs = STEP_DELAY_MS * (howItWorks.steps.length - 1) + STEP_FADE_MS;
 ---
 
 <section id="how-it-works" class="bg-background">
@@ -29,7 +35,7 @@ import SectionHeading from "./SectionHeading.astro";
       <ol
         class="steps grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4"
         data-reveal-stagger
-        style="--reveal-step: 1250ms;"
+        style={`--reveal-step: ${STEP_DELAY_MS}ms;`}
       >
         {howItWorks.steps.map((step, i) => (
           <li
@@ -46,7 +52,7 @@ import SectionHeading from "./SectionHeading.astro";
         ))}
       </ol>
 
-      <div data-reveal>
+      <div data-reveal style={`--reveal-delay: ${noteDelayMs}ms;`}>
         <NoteBanner text={howItWorks.note} />
       </div>
     </div>
