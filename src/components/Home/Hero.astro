@@ -96,7 +96,7 @@ const letters = "PLUMBER".split("");
   /* rain columns start at the baseline of the letters (Inter ascender 0.969em, leading 1.04);
      the grey dots always drift, and a column drops its lit pixel (at half the component's
      default speed, with no start delay) only while the pointer is over it: the column
-     widens its hit area to 25px */
+     widens its hit area to 85px, 40px each side of the line */
   :global(.hero-rain) {
     top: calc(75px + clamp(2.5rem, 14.4cqw, 11.875rem) * 0.884);
     left: 0;
@@ -109,47 +109,56 @@ const letters = "PLUMBER".split("");
   .hero :global(.pixel-rain::before) {
     content: "";
     position: absolute;
-    inset: 0 -10px;
+    inset: 0 -40px;
   }
   .hero :global(.pixel-rain__drop) {
     opacity: 0;
     animation-delay: 0s;
     animation-play-state: paused;
-    transition: opacity 650ms ease;
+    transition: opacity 200ms ease;
   }
-  .hero :global(.pixel-rain:hover .pixel-rain__drop) {
+  .hero :global(.pixel-rain:hover .pixel-rain__drop),
+  .hero-inner:has(.hero-copy:hover) :global(.pixel-rain[data-col="0"] .pixel-rain__drop) {
     opacity: 1;
     animation-play-state: running;
   }
 
+  /* the content block paints above the rain: only the copy and the buttons take the
+     pointer, so the columns stay hoverable beside and between them */
   .hero-content {
     margin-left: var(--hero-left);
     margin-right: var(--hero-right);
+    pointer-events: none;
+  }
+  .hero-copy,
+  .hero-content :global(a),
+  .hero-content :global(button) {
+    pointer-events: auto;
   }
 
-  /* eyebrow and lead copy: darker at rest, the Figma colours while the block is hovered */
+  /* eyebrow and lead copy: the Figma colours at rest, brighter while the block is hovered */
   .hero-copy__eyebrow,
   .hero-copy__lead,
   .hero-copy__muted {
     transition: color 650ms ease;
   }
   .hero-copy__eyebrow {
-    color: var(--color-primary-700);
-  }
-  .hero-copy__lead {
-    color: var(--color-base-500);
-  }
-  .hero-copy__muted {
-    color: var(--color-base-700);
-  }
-  .hero-copy:hover .hero-copy__eyebrow {
     color: var(--accent-text);
   }
-  .hero-copy:hover .hero-copy__lead {
+  .hero-copy__lead {
     color: var(--color-base-200);
   }
-  .hero-copy:hover .hero-copy__muted {
+  .hero-copy__muted {
     color: var(--color-base-600);
+  }
+  .hero-copy:hover .hero-copy__eyebrow {
+    color: var(--color-primary-300);
+  }
+  .hero-copy:hover .hero-copy__lead {
+    color: var(--color-base-50);
+  }
+  .hero-copy:hover .hero-copy__muted {
+    color: var(--color-base-400);
   }
 
   /* straight line fading out towards its end, as in Figma: 4px, 6px from lg */
@@ -191,13 +200,13 @@ const letters = "PLUMBER".split("");
       --drop-duration: 13.5s;
     }
     .hero.is-in-view .hero-copy__eyebrow {
-      color: var(--accent-text);
+      color: var(--color-primary-300);
     }
     .hero.is-in-view .hero-copy__lead {
-      color: var(--color-base-200);
+      color: var(--color-base-50);
     }
     .hero.is-in-view .hero-copy__muted {
-      color: var(--color-base-600);
+      color: var(--color-base-400);
     }
     .hero.is-in-view :global(.pixel-rain__drop) {
       opacity: 1;

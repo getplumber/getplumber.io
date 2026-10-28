@@ -9,7 +9,8 @@
   #documentation-layout {
     /* site navbar: 76px plus its bottom stroke */
     --nav-height: 77px;
-    /* distance between the navbar and the sidebar, content and rail (Figma: 56px) */
+    /* distance between the navbar and the content and rail (Figma: 56px); the sidebar
+       starts 32px under the navbar */
     --main-content-pt: 3.5rem;
   }
 
@@ -77,7 +78,13 @@
 
   /* same body width as the home and blog pages (site-container in global.css) */
   .docs-site-container {
-    @apply mx-auto max-w-[1320px] px-4 2xl:max-w-[1648px];
+    @apply mx-auto max-w-[1440px] px-4 md:px-8 lg:px-[60px] 2xl:max-w-[1920px];
+  }
+  /* plain media query: a sorted @apply would put the 1920 padding before the lg one */
+  @media (min-width: 1920px) {
+    .docs-site-container {
+      padding-inline: 136px;
+    }
   }
 }
 

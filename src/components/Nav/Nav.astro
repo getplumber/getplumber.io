@@ -24,11 +24,7 @@ const isDocs = Astro.url.pathname.startsWith("/docs");
     isDocs ? "bg-background/80 border-foreground/10 backdrop-blur" : "navbar--initial",
   ]}
 >
-  <div
-    class:list={[
-      isDocs ? "docs-site-container border-foreground/10 border-r border-l" : "home-container",
-    ]}
-  >
+  <div class:list={[isDocs ? "docs-site-container" : "home-container"]}>
     <header class="flex h-[76px] items-center gap-12">
       <!-- home button / logo -->
       <div class="flex flex-none items-center">

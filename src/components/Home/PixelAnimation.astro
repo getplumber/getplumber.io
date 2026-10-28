@@ -4,6 +4,10 @@
  * gap, drifting down slowly and fading out at about 72 percent of their height. One lit accent pixel steps down
  * each column (the 10 keyframes of the Figma component); callers can slow it down with
  * --drop-duration. Hidden from assistive tech; the drop stops under prefers-reduced-motion.
+ *
+ * Each column is a plain 5px box (.pixel-rain) holding the masked visual (.pixel-rain__dots):
+ * a mask clips hit testing to the masked box in Chrome, and the hero widens the column's
+ * hit area past its 5px with a pseudo-element, which has to sit outside the mask.
  */
 interface Props {
   /** horizontal positions, as CSS lengths or percentages of the wrapper width */
@@ -30,7 +34,7 @@ const {
 >
   {columns.map((left, i) => (
     <span class="pixel-rain" style={`left: ${left}; --drop-delay: ${i * 0.9}s;`} data-col={i}>
-      {!isStatic && <i class="pixel-rain__drop" />}
+      <span class="pixel-rain__dots">{!isStatic && <i class="pixel-rain__drop" />}</span>
     </span>
   ))}
 </div>
@@ -42,6 +46,10 @@ const {
     width: 5px;
     height: 100%;
     margin-left: -2px;
+  }
+  .pixel-rain__dots {
+    position: absolute;
+    inset: 0;
     background-image: repeating-linear-gradient(
       to bottom,
       var(--color-tint-25) 0 5px,
@@ -90,7 +98,7 @@ const {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .pixel-rain {
+    .pixel-rain__dots {
       animation: none;
     }
     .pixel-rain__drop {

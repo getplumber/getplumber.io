@@ -5,7 +5,7 @@
  * Items with "hidden: true" stay in the data but are not rendered (their page does not exist yet).
  */
 
-import { PLUMBER_GITHUB_ACTION_URL } from "@js/plumberGithubRepo";
+import { PLUMBER_GITHUB_APP_URL } from "@js/plumberGithubRepo";
 
 // types
 import { type navCta, type navItem } from "../types/configDataTypes";
@@ -41,7 +41,7 @@ const navConfig: navItem[] = [
 export const navCtas: navCta[] = [
   {
     text: "Install GitHub agent",
-    link: PLUMBER_GITHUB_ACTION_URL,
+    link: PLUMBER_GITHUB_APP_URL,
     variant: "secondary",
     newTab: true,
   },

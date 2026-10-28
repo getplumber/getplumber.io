@@ -7,7 +7,7 @@
  * colour on its own line (the Figma pattern), unless the section says otherwise.
  */
 
-import { PLUMBER_GITHUB_ACTION_URL, PLUMBER_GITHUB_REPO_URL } from "@js/plumberGithubRepo";
+import { PLUMBER_GITHUB_APP_URL, PLUMBER_GITHUB_REPO_URL } from "@js/plumberGithubRepo";
 
 import {
   type Callout,
@@ -211,7 +211,7 @@ export const oneProduct = {
       ctas: [
         {
           text: "Install the GitHub Agent",
-          link: PLUMBER_GITHUB_ACTION_URL,
+          link: PLUMBER_GITHUB_APP_URL,
           variant: "secondary",
           newTab: true,
         },
@@ -311,12 +311,13 @@ export const footerColumns: FooterColumn[] = [
 ];
 
 export const footerSocials: SocialLink[] = [
-  { text: "GitHub", link: "https://github.com/getplumber", icon: "tabler/brand-github" },
+  // pixel icons from the designer (src/icons/social); Discord keeps the Tabler mark until one exists
+  { text: "GitHub", link: "https://github.com/getplumber", icon: "social/github" },
   { text: "Discord", link: "/discord", icon: "tabler/brand-discord" },
   {
     text: "LinkedIn",
     link: "https://www.linkedin.com/company/getplumber",
-    icon: "tabler/brand-linkedin",
+    icon: "social/linkedin",
   },
-  { text: "X", link: "https://x.com/getplumber_io", icon: "tabler/brand-x" },
+  { text: "X", link: "https://x.com/getplumber_io", icon: "social/x" },
 ];
