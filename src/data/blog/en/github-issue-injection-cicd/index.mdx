@@ -1,0 +1,190 @@
+---
+title: "Issue titles that run in your CI"
+description: "One actor posted commands as GitHub issues, pull requests and comments on 61 public repositories, aiming at workflows that paste that text into a shell. How to check your workflows and the one-line fix."
+draft: false
+authors:
+  - plumber
+pubDate: 2026-10-29
+heroImage: ./heroImage.png
+categories:
+  - "News"
+  - "CI/CD"
+  - "Security"
+  - "Supply Chain"
+  - "GitHub Actions"
+  - "GitLab"
+---
+
+On September 1, 2026, a coordinated campaign posted 83 GitHub issues, pull requests and comments carrying a shell command, against 61 public repositories, including `aquasecurity/trivy`, `mlflow/mlflow`, `github/docs` and `PX4/PX4-Autopilot`. [Radware](https://www.radware.com/blog/inside-a-github-supply-chain-attack-campaign/) published the campaign on October 29.
+
+Nobody needed write access. The target was any workflow that starts on an issue, a pull request or a comment and pastes its title or body straight into a `run:` script. In two repositories, the run logs show the command ran. The pipeline was the door, and the key was a text field anyone can fill in.
+
+## What happened
+
+![The GitHub issue injection attack path, step by step: 74 accounts post 83 issues, pull requests and comments in two bursts on September 1, then the five steps inside a workflow that inlines the title, from the trigger to environment variables sent to 54.205.16.142 on port 8443](./attack-path.svg)
+
+**The campaign**
+
+- September 1, 11:26:51 to 12:10:00 UTC: 77 items in about 43 minutes. A second burst of 6 follows from 18:17:19 to 18:19:29 UTC ([Radware](https://www.radware.com/blog/inside-a-github-supply-chain-attack-campaign/)).
+- 59 issues and 24 pull requests on 61 repositories. The command sits in the title in 31 cases, in the body in 17 and in a comment in 35 ([Radware](https://www.radware.com/blog/inside-a-github-supply-chain-attack-campaign/)).
+- 74 named accounts posted them. Radware has no evidence that every account was compromised, but some were likely taken over: the owner of the account used on the `hurl` issue denied writing it the same day.
+- Every command reports to the same server, `54.205.16.142` on port `8443` over plain HTTP, under the path `/c/`, with one identifier per item ([Radware](https://www.radware.com/blog/inside-a-github-supply-chain-attack-campaign/)).
+
+**Where it ran**
+
+- `PX4/PX4-Autopilot`, pull request #28488 at 11:31:09 UTC. The "Commit Quality" [workflow](https://github.com/PX4/PX4-Autopilot/blob/a0e42f20324a14c00687ae5422991cc3292afecc/.github/workflows/commit_checks.yml) runs on `pull_request` and passed `"${{ github.event.pull_request.title }}"` straight to a Python script in its `run:` step.
+- `Snouzy/workout-cool`, issue #251 at 11:33:26 UTC. The "Discord Issue Notification" [workflow](https://github.com/Snouzy/workout-cool/blob/e3dcd23b4ebdfb6254010b9a7c350cfef9e236c8/.github/workflows/notify-discord-issues.yml) runs on `issues` and set `ISSUE_TITLE="${{ github.event.issue.title }}"` inside its `run:` step.
+- Radware found direct evidence of execution in these two cases only. It did not establish that the server received secrets, or that the attacker gained write access or changed any code ([Radware](https://www.radware.com/blog/inside-a-github-supply-chain-attack-campaign/), [The Register](https://www.theregister.com/security/2026/10/29/attackers-turn-github-issues-into-supply-chain-campaign-against-61-public-repos-in-less-than-an-hour/5306153)).
+
+**The cleanup**
+
+- Radware notified the maintainers. Per [The Register](https://www.theregister.com/security/2026/10/29/attackers-turn-github-issues-into-supply-chain-campaign-against-61-public-repos-in-less-than-an-hour/5306153), most repositories were closed or fixed, but Radware cannot confirm that all of them were.
+- PX4 changed its workflow on September 20 to pass the title through an environment variable ([PX4 #28772](https://github.com/PX4/PX4-Autopilot/commit/2fc441493eb887199c279e2eff990f3f4cd0deef)).
+
+## The Plumber take
+
+**Pipelines are production code.** A `run:` block is a shell script, and `${{ }}` is pasted into it as text before the shell starts. Put an issue title there and you have written a script whose source code any GitHub user can edit. This is a documented anti-pattern, and the campaign shows someone now scans for it at scale: 77 attempts in 43 minutes.
+
+**The trigger decides how bad it gets.** The PX4 run came from a fork's pull request: per [GitHub's documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows), the job gets no repository secrets and a read-only `GITHUB_TOKEN`. An `issues` or `issue_comment` workflow runs from your default branch, in your repository, with whatever token permissions you declared, or the repository default if you declared none. Same bug, very different blast radius.
+
+**No click needed.** No maintainer has to review, approve or merge anything. Opening the issue starts the workflow "within a second", as Radware's Gabi Nakibly told [The Register](https://www.theregister.com/security/2026/10/29/attackers-turn-github-issues-into-supply-chain-campaign-against-61-public-repos-in-less-than-an-hour/5306153). The vulnerable jobs were small helpers: a Discord notification, a pull request title check. Few teams review those as attack surface. They are exactly what this campaign hit.
+
+In our [State of CI/CD Security 2026](/blog/state-of-cicd-security-2026) research, 15% of projects carry an injection or cache-poisoning path, and 54% have over-broad or undeclared workflow permissions. The first is the door, the second decides what is behind it.
+
+"Were we exposed?" should take an hour. For this one it takes one search over `.github/workflows`, and one over your September 1 runs.
+
+## Are you exposed?
+
+### The 60-second check
+
+<Aside variant="caution" title="Three quick checks">
+
+**1. Your workflows inline event text today** (run from the repository root):
+
+~~~bash
+P='\$\{\{ *github\.(head_ref|event\.(issue|pull_request|comment|review|review_comment|discussion|discussion_comment)\.(title|body)|event\.pull_request\.head\.(ref|label)) *\}\}'
+grep -rnE "$P" .github/workflows
+~~~
+
+A hit on a `NAME: ${{ ... }}` line under `env:` is the safe form. Every other hit is the bug.
+
+**2. Hit on September 1**: search that day's runs and your issues for `54.205.16.142` (commands below).
+
+**3. Your pipeline config**: `plumber analyze github.com/OWNER/REPO` or [your score](https://score.getplumber.io/github.com/OWNER/REPO). `ISSUE-207` flags `run:` steps that inline a title, a body or a branch name. `ISSUE-801` flags workflows with no `permissions:` block.
+
+</Aside>
+
+### Detailed check
+
+Two questions, in this order:
+
+- **Exposed today**: does any workflow paste event text into a shell? Anyone can try again tomorrow, from any account, with a new server.
+- **Hit during the campaign**: did one of your workflows run on one of these items on September 1, 2026?
+
+A clean workflow today proves nothing about September 1. A fixed workflow does not undo a run that already happened.
+
+#### Your files, GitHub
+
+The grep above lists every inlined title, body, branch name and head label in your workflows. For each hit outside an `env:` block, look at the trigger at the top of the file:
+
+- `issues`, `issue_comment`, `discussion`, `pull_request_target`, `workflow_run`: the job runs in your repository with your token. Fix it first.
+- `pull_request`: from a fork, the job has no secrets and a read-only token. Fix it anyway: a pull request from a branch in your own repository runs with your secrets.
+
+#### GitHub Actions
+
+List the runs of September 1 and look for the server in their titles and logs:
+
+~~~bash
+gh run list --created 2026-09-01 --limit 500 --json databaseId,event,displayTitle,workflowName
+gh run view <RUN_ID> --log | grep -nE '(^|[^0-9.])54\.205\.16\.142([^0-9]|$)'
+~~~
+
+Then search your issues and pull requests, comments included:
+
+~~~bash
+gh search issues --repo OWNER/REPO "54.205.16.142" --include-prs
+gh search issues --repo OWNER/REPO "54.205.16.142" --include-prs --match comments
+~~~
+
+- A hit in a run log means the command ran in that job. Treat every secret that job could read as exposed: rotate it, and review your GitHub and cloud audit logs from September 1.
+- Run logs are kept 90 days by default, so September 1 logs start to expire at the end of November. Read them now.
+- The attacker can change the server at any time. The workflow pattern, not the IP, is what to fix.
+
+#### GitLab CI
+
+GitLab does not paste variables into the script text: `echo "$CI_MERGE_REQUEST_TITLE"` stays text. The same bug appears when a user-controlled variable goes through `eval`, `sh -c`, `bash -c` or `source`:
+
+~~~bash
+grep -rnE '(eval|sh -c|bash -c|source)[^#]*\$\{?CI_(MERGE_REQUEST_(TITLE|DESCRIPTION|SOURCE_BRANCH_NAME)|COMMIT_(MESSAGE|TITLE|TAG_MESSAGE|REF_NAME|REF_SLUG|BRANCH))' .gitlab-ci.yml
+~~~
+
+`plumber analyze` reports these as `ISSUE-204`.
+
+#### Machines, runners and images
+
+On a self-hosted runner, a job that ran the command shared the machine with every later job. Rebuild the runner, and check its outbound connections for `54.205.16.142`.
+
+## The fix that would have stopped it
+
+GitHub Actions, before:
+
+~~~yaml
+on:
+  issues:
+    types: [opened]
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build payload
+        run: |
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          echo "New issue: $ISSUE_TITLE"
+~~~
+
+After:
+
+~~~yaml
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build payload
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          echo "New issue: $ISSUE_TITLE"
+~~~
+
+The title now reaches the shell as the value of a variable. Whatever the attacker types stays text. The `permissions:` block caps what the token can do if something else goes wrong. PX4 made the same `env:` change on September 20.
+
+GitLab CI, same idea:
+
+~~~yaml
+notify:
+  script:
+    # before: - sh -c "echo New MR: $CI_MERGE_REQUEST_TITLE"
+    - echo "New MR: $CI_MERGE_REQUEST_TITLE"
+~~~
+
+## Key takeaways
+
+- On September 1, 2026, 74 accounts posted commands in 83 issues, pull requests and comments on 61 public repositories, aimed at workflows that paste event text into a shell.
+- The command ran in at least two repositories, PX4 and workout-cool. Whether any secret was sent is not established.
+- Never put `${{ github.event.* }}` titles, bodies or branch names inside `run:`. Pass them through `env:` and quote the variable.
+- Declare `permissions:` in every workflow. A workflow started by a stranger's issue should not hold a write token.
+- Workflows on `issues` and `issue_comment` run from your default branch, in your repository. Review them first.
+- Search the logs of your September 1 runs for `54.205.16.142` before they expire, and rotate what any matching job could read.
+- On GitLab, the same bug is a user-controlled variable inside `eval`, `sh -c` or `bash -c`.
+
+## Next steps
+
+- Install the Plumber app to analyze and fix your pipelines: [github.com/apps/plumber-agent](https://github.com/apps/plumber-agent)
+- Scan your pipelines with the open source CLI: [/docs/cli/github](/docs/cli/github)
+- Star [getplumber/plumber](https://github.com/getplumber/plumber)
+- Sources: [Radware](https://www.radware.com/blog/inside-a-github-supply-chain-attack-campaign/), [The Register](https://www.theregister.com/security/2026/10/29/attackers-turn-github-issues-into-supply-chain-campaign-against-61-public-repos-in-less-than-an-hour/5306153), [PX4 pull request #28488](https://github.com/PX4/PX4-Autopilot/pull/28488), [workout-cool issue #251](https://github.com/Snouzy/workout-cool/issues/251), [PX4 fix #28772](https://github.com/PX4/PX4-Autopilot/commit/2fc441493eb887199c279e2eff990f3f4cd0deef), [GitHub: events that trigger workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows), [GitHub: secure use reference](https://docs.github.com/en/actions/reference/security/secure-use), [GitHub: log retention](https://docs.github.com/en/organizations/managing-organization-settings/configuring-the-retention-period-for-github-actions-artifacts-and-logs-in-your-organization)
