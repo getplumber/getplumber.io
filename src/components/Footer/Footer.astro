@@ -10,7 +10,16 @@
  * and the oversized wordmark 100px under that. The newsletter submits with the Figma pixel
  * chevron at the right of the field (review of 2026-10-27). Links and copy are 14px, titles 16px,
  * the legal row a darker grey, and the social icons sit on the last link line.
+ *
+ * The wordmark is the vector from the Figma footer (node 2513:2088, 873.5 x 140.6), not
+ * live text: from lg the page is a five-column grid (three content-width link columns, the
+ * Legal column stretching but never narrower than its links, the newsletter at 422px when
+ * there is room and narrower first when the page is tight, so nothing overflows between
+ * 1024 and about 1140px) and the wordmark spans the last two columns, so its left edge sits
+ * on the Legal column and its bottom on the page's edge, with no padding under it. Below lg
+ * it keeps the former text size, right-aligned.
  */
+import Wordmark from "@assets/brand/plumber-wordmark.svg";
 import FooterLink from "@components/Footer/FooterLink.astro";
 import { footerColumns, footerSocials } from "@config/en/homeData.json";
 import { Icon } from "astro-icon/components";
@@ -20,94 +29,97 @@ const isDocs = Astro.url.pathname.startsWith("/docs");
 ---
 
 <footer class="bg-background stroke-tint border-t">
-  <div class:list={[isDocs ? "docs-site-container" : "home-container", "pt-20 lg:pt-[112px]"]}>
-    <div class="flex flex-col gap-12 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
-      <nav
-        class="grid grid-cols-2 gap-x-8 gap-y-10 lg:flex lg:flex-wrap lg:gap-x-16"
-        aria-label="Footer"
-      >
-        {footerColumns.map((column) => (
-          <div class="flex flex-col">
-            <h3 class="subtitle text-foreground mb-7 font-normal">{column.title}</h3>
-            <ul class="flex flex-col gap-[14px]">
-              {column.links.map((item) => (
-                <li class="flex">
-                  <FooterLink href={item.link} newTab={item.newTab}>
-                    {item.text}
-                  </FooterLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </nav>
-
-      <div class="flex w-full flex-col gap-8 lg:w-[422px] lg:shrink-0 lg:self-stretch lg:justify-between">
+  <div
+    class:list={[
+      isDocs ? "docs-site-container" : "home-container",
+      "flex flex-col gap-12 pt-20 lg:grid lg:grid-cols-[max-content_max-content_max-content_minmax(max-content,1fr)_minmax(0,422px)] lg:gap-x-16 lg:gap-y-0 lg:pt-[112px]",
+    ]}
+  >
+    <nav
+      class="grid grid-cols-2 gap-x-8 gap-y-10 lg:col-span-4 lg:grid-cols-subgrid lg:gap-x-16 lg:gap-y-0"
+      aria-label="Footer"
+    >
+      {footerColumns.map((column) => (
         <div class="flex flex-col">
-          <h3 class="subtitle text-foreground mb-4 font-normal">Newsletter</h3>
-          <form
-            data-form="newsletter"
-            action="/api/newsletter"
-            method="post"
-            class="relative"
-            novalidate
-          >
-            <label class="sr-only" for="newsletter-email">
-              Your email
-            </label>
-            <div class="relative">
-              <input
-                id="newsletter-email"
-                name="email"
-                type="email"
-                autocomplete="email"
-                required
-                placeholder="Your email"
-                class="form__input body-sm py-7 pr-10 leading-none"
-              />
-              <button
-                type="submit"
-                class="newsletter__submit text-muted-foreground hover:text-foreground primary-focus absolute top-1/2 right-0 flex h-8 w-8 -translate-y-1/2 items-center justify-center transition-colors duration-200"
-                aria-label="Subscribe"
-              >
-                <Icon name="home/pixel-chevron" class="h-[14px] w-[8px]" aria-hidden="true" />
-              </button>
-            </div>
-            <input
-              type="text"
-              name="website"
-              tabindex="-1"
-              autocomplete="off"
-              class="hidden"
-              aria-hidden="true"
-            />
-            <p
-              data-form-status
-              class="body-sm text-muted-foreground absolute top-full left-0 mt-1.5"
-              aria-live="polite"
-            ></p>
-          </form>
+          <h3 class="subtitle text-foreground mb-7 font-normal">{column.title}</h3>
+          <ul class="flex flex-col gap-[14px]">
+            {column.links.map((item) => (
+              <li class="flex">
+                <FooterLink href={item.link} newTab={item.newTab}>
+                  {item.text}
+                </FooterLink>
+              </li>
+            ))}
+          </ul>
         </div>
+      ))}
+    </nav>
 
-        <ul class="flex items-center gap-3" aria-label="Social links">
-          {footerSocials.map((social) => (
-            <li>
-              <a
-                href={social.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={social.text}
-                class="text-muted-foreground hover:text-foreground primary-focus flex h-7 w-7 items-center justify-center transition duration-200"
-              >
-                <Icon name={social.icon} class="size-6" aria-hidden="true" />
-              </a>
-            </li>
-          ))}
-        </ul>
+    <div class="flex w-full flex-col gap-8 lg:justify-between">
+      <div class="flex flex-col">
+        <h3 class="subtitle text-foreground mb-4 font-normal">Newsletter</h3>
+        <form
+          data-form="newsletter"
+          action="/api/newsletter"
+          method="post"
+          class="relative"
+          novalidate
+        >
+          <label class="sr-only" for="newsletter-email">
+            Your email
+          </label>
+          <div class="relative">
+            <input
+              id="newsletter-email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+              placeholder="Your email"
+              class="form__input body-sm py-7 pr-10 leading-none"
+            />
+            <button
+              type="submit"
+              class="newsletter__submit text-muted-foreground hover:text-foreground primary-focus absolute top-1/2 right-0 flex h-8 w-8 -translate-y-1/2 items-center justify-center transition-colors duration-200"
+              aria-label="Subscribe"
+            >
+              <Icon name="home/pixel-chevron" class="h-[14px] w-[8px]" aria-hidden="true" />
+            </button>
+          </div>
+          <input
+            type="text"
+            name="website"
+            tabindex="-1"
+            autocomplete="off"
+            class="hidden"
+            aria-hidden="true"
+          />
+          <p
+            data-form-status
+            class="body-sm text-muted-foreground absolute top-full left-0 mt-1.5"
+            aria-live="polite"
+          ></p>
+        </form>
       </div>
+
+      <ul class="flex items-center gap-3" aria-label="Social links">
+        {footerSocials.map((social) => (
+          <li>
+            <a
+              href={social.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={social.text}
+              class="text-muted-foreground hover:text-foreground primary-focus flex h-7 w-7 items-center justify-center transition duration-200"
+            >
+              <Icon name={social.icon} class="size-6" aria-hidden="true" />
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
 
-    <p class="body-sm text-base-600 mt-16 flex flex-wrap gap-x-3 gap-y-1 lg:mt-[100px]">
+    <p class="body-sm text-base-600 mt-4 flex flex-wrap gap-x-3 gap-y-1 lg:col-span-4 lg:mt-[100px]">
       <span>&copy;PLUMBER {year}</span>
       <span aria-hidden="true">&middot;</span>
       <span>All rights reserved</span>
@@ -117,11 +129,13 @@ const isDocs = Astro.url.pathname.startsWith("/docs");
       </a>
     </p>
 
-    <p
-      class="font-heading text-foreground mt-16 overflow-hidden text-right text-[clamp(3.5rem,12.2vw,11rem)] leading-none tracking-[-0.02em] lg:mt-[100px]"
-      aria-hidden="true"
-    >
-      PLUMBER
-    </p>
+    {/* inline-size containment from lg: the inline svg would otherwise feed its default
+        300px intrinsic width into the grid's track sizing */}
+    <div class="mt-4 self-end lg:col-span-2 lg:col-start-4 lg:mt-[100px] lg:self-auto lg:contain-inline-size">
+      <Wordmark
+        class="text-foreground block h-[clamp(2.5rem,8.9vw,8rem)] w-auto lg:h-auto lg:w-full"
+        aria-hidden="true"
+      />
+    </div>
   </div>
 </footer>
