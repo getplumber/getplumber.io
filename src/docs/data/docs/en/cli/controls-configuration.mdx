@@ -91,6 +91,7 @@ requiredGroups:
 |---|---|---|---|
 | `CTRL-102` | [`containerImageMustNotUseForbiddenTags`](#containerimagemustnotuseforbiddentags) | on | 102, 103 |
 | `CTRL-501` | [`branchMustBeProtected`](#branchmustbeprotected) | on | 501, 505 |
+| `CTRL-510` | [`tagMustBeProtected`](#tagmustbeprotected) | on | 510 |
 | `CTRL-203` | [`pipelineMustNotEnableDebugTrace`](#pipelinemustnotenabledebugtrace) | on | 203 |
 | `CTRL-410` | [`securityJobsMustNotBeWeakened`](#securityjobsmustnotbeweakened) | on | 410 |
 | `CTRL-411` | [`pipelineMustNotExecuteUnverifiedScripts`](#pipelinemustnotexecuteunverifiedscripts) | on | 411 |
@@ -287,6 +288,53 @@ github:
       namePatterns: [main, master, release/*, production, dev]
       allowForcePush: false
       codeOwnerApprovalRequired: false
+```
+
+  </TabsContent>
+</Tabs>
+
+### tagMustBeProtected
+
+<div class="not-content mt-1 mb-5 flex flex-wrap items-center gap-1.5">
+  <Badge text="CTRL-510" variant="info" />
+  <Badge text="On by default" variant="tip" />
+  <Badge text="Needs an API token" variant="note" />
+</div>
+
+Checks that the release tag patterns in use are protected: tag updates and deletions blocked, and tag creation restricted. Raises [ISSUE-510](/docs/use-plumber/issues/ISSUE-510) (critical, or high when no pipeline or workflow runs on a tag). A pattern is only checked while it is in use: an existing tag matches it or, on GitHub, a workflow triggers on it. On GitLab it reads protected tags; on GitHub, active tag rulesets, the repository's own and the organization's. Without access the control reports "not evaluated" and raises no finding. On GitLab it is not evaluated in Platform mode yet.
+
+| Field | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Turns the control on. |
+| `namePatterns` | `[v*]` | Tag name patterns that must be protected. Wildcards are supported. On GitHub, every `on.push.tags` pattern of a workflow is checked as well. |
+| `requireCreationRestricted` | `true` | Expectation: `true` also requires tag creation to be restricted (GitLab: left to Maintainers or narrower; GitHub: **Restrict creations**). `false` checks updates and deletions only. |
+
+<Tabs defaultValue="gitlab" syncKey="provider">
+  <TabsList>
+    <TabsTrigger value="gitlab">GitLab</TabsTrigger>
+    <TabsTrigger value="github">GitHub</TabsTrigger>
+  </TabsList>
+  <TabsContent value="gitlab">
+
+```yaml
+gitlab:
+  controls:
+    tagMustBeProtected:
+      enabled: true
+      namePatterns: [v*]
+      requireCreationRestricted: true
+```
+
+  </TabsContent>
+  <TabsContent value="github">
+
+```yaml
+github:
+  controls:
+    tagMustBeProtected:
+      enabled: true
+      namePatterns: [v*]
+      requireCreationRestricted: true
 ```
 
   </TabsContent>

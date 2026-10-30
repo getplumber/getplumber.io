@@ -62,6 +62,7 @@ export const controlIds: Record<string, { id: string; name: string }> = {
   workflowsMustHaveExplicitName: { id: "CTRL-422", name: "Workflows must have an explicit name" },
   workflowsMustBeValid: { id: "CTRL-423", name: "Workflow files must be valid" },
   branchMustBeProtected: { id: "CTRL-501", name: "Branch must be protected" },
+  tagMustBeProtected: { id: "CTRL-510", name: "Tag must be protected" },
   mergeRequestApprovalRulesMustRequireMinimumApprovals: { id: "CTRL-502", name: "MR approval rules must require a minimum number of approvals" },
   mergeRequestApprovalSettingsMustBeCompliant: { id: "CTRL-503", name: "MR approval settings must be compliant" },
   mergeRequestApprovalRulesMustCoverAllProtectedBranches: { id: "CTRL-504", name: "MR approval rules must cover all protected branches" },
