@@ -1,0 +1,181 @@
+---
+title: "Official organizations"
+seoTitle: "Official organizations: a signed, public Plumber Score for your whole org"
+description: "An official organization gets a public, organization-level attestation of its Plumber scores, verified from signed CI runs without any server-side re-run."
+sidebar:
+  label: "Official organizations"
+  order: 2
+---
+
+An **official organization** is a GitHub organization registered with Plumber so
+that every public repository's score, once pushed from a correctly locked-down
+CI workflow, counts toward a signed, organization-wide attestation on
+[`score.getplumber.io`](https://score.getplumber.io).
+
+Registration is a Plumber-side entry, not a self-service toggle: Plumber
+confirms ownership of the organization out of band before registering it, and
+the attestation covers only the organization's **public repositories**. There
+is no GitHub App, no installed credential, and no customer secret of any kind
+on the service's side: it reads public GitHub data with a Plumber-owned token
+used only for rate limits.
+
+The verification model follows the one the [OpenSSF
+Scorecard](https://github.com/ossf/scorecard) project uses to publish results
+from a repository's own Actions run: a signed result plus an inspectable
+workflow, never a re-run.
+
+## How to request one
+
+Write to the address on the [contact page](/contact) with the organization's
+name and its numeric GitHub owner id, readable at:
+
+```
+https://api.github.com/orgs/<name>
+```
+
+(the `id` field of the response). Plumber confirms ownership and registers
+the organization; there is no UI and no self-service form.
+
+## What the page shows
+
+`https://score.getplumber.io/github.com/<org>` shows:
+
+- **Header**: the organization's name and logo, a link to it, the attestation
+  sentence, an attestation id, the last verified date, and a ring with the
+  organization's grade and points, the mean of every `verified` repository.
+- **Repositories** and **grade distribution** cards: how many public
+  repositories are visible, how many are scored, and the A-to-E split, with a
+  note that unscored repositories are excluded from the mean.
+- **A table**, one row per visible repository: name, grade (marked `custom`
+  when its committed policy disables a default control), controls enabled
+  over total, configuration, verification status, and last run, searchable
+  and filterable (All, Verified, Needs attention, Not scored). Expanding a
+  row shows the analyzed branch and commit, the CLI version, the action's
+  commit, a link to the run, the configuration file and its disabled
+  controls, every verification check with its outcome, the Rekor log index,
+  and the rejection reason when the latest attempt was rejected.
+- **"How Plumber verifies this page"**: the checks below, and the limits that
+  stay open, in plain words.
+- **"Show this attestation"**: the badge preview, a Markdown embed, the
+  attestation link, and the command to verify it.
+
+Per-repository and per-organization signed attestations, and the Sigstore
+bundle a repository's own row was verified against, are documented on
+[verify an attestation](/docs/plumber-score/verify-an-attestation) and the
+signing key on [keys](/docs/plumber-score/keys).
+
+## Status vocabulary
+
+| Status | Meaning |
+|---|---|
+| `verified` | The latest accepted push passed every check below. |
+| `rejected` | The latest attempt failed a check; the last verified grade keeps showing, marked "last verified grade shown". |
+| `unverified` | The repository has accepted analyses but none carries a signed bundle (a push from before the organization was official, or from an older CLI); shown with a grey pill, excluded from the mean and from the attestation. |
+| `not_scored` | A public repository with no accepted analysis yet. |
+
+A rejection never erases history: a `rejected` repository keeps its last
+`verified` grade on display. Organization-wide, zero `verified` repositories
+renders a neutral card and an `unknown` badge, never an invented grade.
+
+### Reason codes
+
+Shown on a `rejected` repository's expanded row, naming the check that failed:
+
+| Reason code | Meaning |
+|---|---|
+| `bundle_missing` | The push carried no Sigstore bundle. |
+| `bundle_invalid` | The bundle did not verify: a broken certificate chain, a broken Rekor inclusion proof, or a payload hash that does not match the pushed body. |
+| `bundle_stale` | The Rekor integrated time is older than 24 hours. |
+| `identity_mismatch` | The certificate's issuer, repository, owner id, workflow path or run id do not match the registry, the push, or the report. |
+| `not_default_branch` | The certificate's ref is not the repository's default branch. |
+| `trigger_not_allowed` | The certificate's trigger is not `push`, `schedule`, or `workflow_dispatch`. |
+| `workflow_unlocked:<rule>` | The workflow file at the certificate's commit violates one rule of the [workflow lock](/docs/plumber-score/locked-workflow); the rule's name follows the colon. |
+| `config_mismatch` | The committed `.plumber.yaml` at the certificate's commit does not match the report's configuration, or a control the policy enables is missing or skipped. |
+| `partial_analysis` | The report shows controls skipped or disabled that the committed policy requires. |
+| `duplicate_run` | An accepted analysis already exists for this certificate's commit, run id and run attempt. |
+
+An operational failure, such as a GitHub or Sigstore read that cannot
+complete, is never one of these codes and never a verdict: the push gets a
+`503` and the CI run's own retry takes it from there.
+
+## What each check verifies
+
+In the order they run, on every push from an official organization's
+repository:
+
+1. **Bundle.** The signed Sigstore bundle verifies offline: the certificate
+   chains to Fulcio, the Rekor inclusion proof and signed entry timestamp
+   check out, the entry's payload hash equals the pushed body, and the
+   certificate was valid at an integrated time no older than 24 hours.
+2. **Identity.** The certificate's own facts, never the pushed body, decide
+   who ran this: issuer, repository, owner id, ref (the default branch),
+   workflow path (in the same repository), and trigger (`push`, `schedule`,
+   or `workflow_dispatch`). The commit is the certificate's sha; the body's
+   claimed commit must match it.
+3. **Workflow lock.** The workflow file at the certificate's commit, read
+   from the public GitHub API, must satisfy every rule of the
+   [locked workflow](/docs/plumber-score/locked-workflow): no user code, no
+   environment, only pinned, allowlisted actions, on a GitHub-hosted runner.
+4. **Configuration.** The `.plumber.yaml` at the certificate's commit must
+   match the report's own record of it, and every control the committed
+   policy enables must actually appear in the report, not skipped.
+5. **Uniqueness.** No accepted analysis already exists for this exact
+   certificate, run id and run attempt, so one run cannot be pushed twice.
+
+## Limits
+
+### What this page does not do
+
+- **No server-side re-run.** The grade is the one the organization's own CI
+  produced; Plumber verifies the signature and the workflow, never
+  recomputes the analysis.
+- **No GitHub App, and no customer credential of any kind.** Nothing is
+  installed on the organization's side; the service reads public GitHub data
+  with a Plumber-owned token used only for rate limits.
+- **Public repositories only.** Private repositories never appear, and
+  nothing about them is inferred.
+- **No staleness check beyond the "verified at" dates.** There is no webhook
+  and no periodic re-check of a repository once it is `verified`; the page
+  shows when each row was last verified and leaves the judgment to the
+  reader.
+
+### What stays open
+
+Even once every check above passes, these five limits stay true and are
+stated on the page itself:
+
+- **The organization can weaken its committed policy.** This is visible on
+  every row and capped on the badge: the organization-wide badge and ring
+  carry the share of `verified` repositories still on the default policy, and
+  a repository with a weakened policy shows a `custom` mark. No grade is
+  altered because of it.
+- **Controls that read live settings see the state at the run, not now.** A
+  setting can change before or after that run; every date on the page is
+  "verified at".
+- **An organization chooses which repositories push.** The coverage (scored
+  over visible) and the distribution are visible, and the badge carries the
+  scored share.
+- **GitHub-hosted runners, GitHub's OIDC issuer, Sigstore's Fulcio and Rekor,
+  and the allowlisted actions at their pinned commits are trusted.**
+- **Plumber's own aggregation is trusted only up to Plumber's signing key.**
+  Every per-repository entry can still be checked against GitHub's identity
+  and Rekor without trusting Plumber at all.
+
+## Badge embed
+
+```md
+[![Plumber Verified](https://score.getplumber.io/github.com/ORG.svg)](https://score.getplumber.io/github.com/ORG)
+```
+
+The organization badge reads `Plumber Verified | {org} · {grade} · {default-policy
+share}% default policy`.
+
+## See also
+
+- [The locked workflow](/docs/plumber-score/locked-workflow): the exact file
+  to copy, and every rule it must pass.
+- [Verify an attestation](/docs/plumber-score/verify-an-attestation): the
+  predicate schemas and the commands to check an organization or a
+  repository attestation independently.
+- [Keys](/docs/plumber-score/keys): the public key the organization
+  attestation is signed with.

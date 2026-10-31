@@ -1,0 +1,32 @@
+---
+title: "Verify an attestation"
+seoTitle: "Verify a Plumber Score attestation independently"
+description: "The commands to verify an official organization's signed attestation, or a single repository's row, without trusting Plumber."
+sidebar:
+  label: "Verify an attestation"
+  order: 4
+---
+
+An official organization's attestation, and each repository's own row inside
+it, can be checked independently. Verify the organization attestation
+against Plumber's published key (see [Keys](/docs/plumber-score/keys)):
+
+```bash
+cosign verify-blob-attestation --key plumber-score.pub \
+  --type https://getplumber.io/attestation/org/v1 --bundle attestation.json view.json
+```
+
+Verify a single repository's row against GitHub's own identity instead,
+using the Sigstore bundle served under that row's `sourceBundle`, without
+trusting Plumber's key at all:
+
+```bash
+cosign verify-blob --bundle <repository's sourceBundle> \
+  --certificate-identity-regexp '<repository's workflow path>' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  <the repository's result bytes>
+```
+
+This page is a stub: the exact file names, flags and a worked example land
+with the first official organization, together with the published key and
+the two predicate schemas.
