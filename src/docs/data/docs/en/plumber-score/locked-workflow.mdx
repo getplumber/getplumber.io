@@ -1,0 +1,121 @@
+---
+title: "The locked workflow"
+seoTitle: "The locked Plumber Score workflow for official organizations"
+description: "The exact GitHub Actions workflow an official organization's repository must run to publish a signed, verified Plumber Score, and the twenty rules it is checked against."
+sidebar:
+  label: "Locked workflow"
+  order: 3
+---
+
+A repository of an [official organization](/docs/plumber-score/official-organizations)
+earns a `verified` row only when the workflow that pushed its score, read back
+from the public GitHub API at the commit the Sigstore certificate names,
+matches this shape exactly. Copy it as it is: any other shape of job that
+still runs `getplumber/plumber` with `score-push: true` fails one of the
+rules below, reported as `` workflow_unlocked:<rule> ``.
+
+## The canonical workflow
+
+```yaml title=".github/workflows/plumber-score.yml"
+name: Plumber Score
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+permissions: read-all
+jobs:
+  plumber:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: getplumber/plumber@2342834dc0b67d2c87a33ac86789e481ad869402
+        with:
+          version: v0.7.17
+          score-push: true
+```
+
+Replace `main` with your own default branch name if it differs, and the
+schedule's cron expression with any schedule you want (or drop `schedule`
+entirely). Everything else, including the exact set of keys on the job and
+on each step, must stay as it is: the rules below are a closed vocabulary,
+not a minimum.
+
+The `getplumber/plumber` pin and the `version` input above must name a
+release that signs the push: the release that follows v0.7.17. The file
+published here is updated to that release's commit and tag once it ships.
+
+<Aside variant="caution" title="Every sha must be a released commit">
+Every `uses` above is pinned to a full 40-character commit sha, not a tag or a
+branch. Find the sha of a `getplumber/plumber` release with:
+
+```bash
+git ls-remote --tags https://github.com/getplumber/plumber v0.7.17
+```
+
+The sha returned must be the commit the release tag points to; a short sha, a
+tag, or a branch name in `uses` fails the `sha_pin` rule below. The same
+applies to `actions/checkout`, `step-security/harden-runner`,
+`actions/upload-artifact`, and `github/codeql-action/upload-sarif`: pin each to
+a full commit sha of that action's own repository.
+</Aside>
+
+## The twenty rules
+
+The first rule a pushed workflow violates names the rejection reason,
+`` workflow_unlocked:<rule> ``. They run in this order:
+
+| Rule | What it requires | Why |
+|---|---|---|
+| `workflow_path` | The certificate's workflow file is under `.github/workflows/` in the same repository. | A reusable workflow pulled in from another repository could carry different rules than the ones checked here. |
+| `parse` | A single YAML document, no anchors or aliases, no duplicate keys, and every mapping key in the whole file written in lowercase (third-party inputs in other jobs, matrix keys and `workflow_dispatch` input names included). | An anchor, a duplicate key, or a differently-cased key lets a human reviewer, or every other rule below, read one value while a YAML-literal consumer acts on another. |
+| `triggers` | `on` contains only `push`, `schedule`, `workflow_dispatch`; a `push.branches` list, when present, must name the default branch literally (no glob); `branches-ignore` entries are checked the same way, each must be a literal name (no glob) and none may name the default branch. | Closes triggers (`pull_request_target` and similar) that can run the job against a different, attacker-influenced tree. |
+| `global_permissions` | Workflow-level `permissions` is only a mapping, `read-all`, or `{}`; no workflow-level `write`/`write-all`; `id-token: write` only on the Plumber job. | Stops any job, including one added later, from inheriting write access or an OIDC token it was never meant to have. |
+| `global_env` | No workflow-level `env` or `defaults`. | A workflow-level variable or shell default would reach the Plumber job invisibly. |
+| `one_plumber_job` | Exactly one job runs `getplumber/plumber`; a second job may exist but must not hold `id-token: write`. | Only one job's identity can ever sign the pushed result; no other job can mint that token. |
+| `runner` | Exactly one `ubuntu-*` GitHub-hosted runner label on the Plumber job, minimum `22.04`. | A self-hosted runner could be tampered with before the job starts; the certificate also records the runner environment, so it is checked twice. |
+| `job_env` | The Plumber job has no `env`, `defaults`, `container`, `services`, `environment`. | The same injection surface as `global_env`, closed at the job itself. |
+| `job_keys` | The Plumber job carries only `name`, `runs-on`, `permissions`, `steps`, `timeout-minutes`. | Closes every other job-level key (`if`, `needs`, `strategy`, `concurrency`, and others) this lock does not otherwise examine. |
+| `job_permissions` | Every scope on the Plumber job's own `permissions` is `read` or `none`, except `id-token` and `security-events`, which may be `write`. | The job needs `id-token` for OIDC and may need `security-events` to publish SARIF; nothing else should ever be writable. |
+| `uses_only` | Every step of the Plumber job has `uses`; a `run` key is refused anywhere in the job, at any nesting depth. | A `run` step is the one place a planted binary, a proxy, or an altered checkout could run. |
+| `allowlist` | Every `uses` is one of `actions/checkout`, `getplumber/plumber`, `step-security/harden-runner`, `actions/upload-artifact`, `github/codeql-action/upload-sarif`; exactly one `actions/checkout` step before exactly one `getplumber/plumber` step. | Closes the job to known actions only, and guarantees the source Plumber analyzed is the one actually checked out, not one a reordered or duplicated checkout could swap in. |
+| `sha_pin` | Every `uses` is pinned to a full 40-character lowercase hex commit sha that belongs to that action's own repository. | A tag or a short sha can be moved or is ambiguous; checking the sha against the action's own commit history stops an imposter commit that exists but belongs to the wrong repository. |
+| `plumber_release` | The `getplumber/plumber` sha is the commit of a released tag at or above the registered organization's floor; a `version` input, when present, equals that tag. | Stops an old or forked build of the CLI, with fewer or weaker rules, from producing the signed result. |
+| `checkout_inputs` | `actions/checkout`'s `with` is limited to `persist-credentials`, `fetch-depth`. | Closes `ref` and `repository` inputs that could check out a different tree than the one the certificate names. |
+| `plumber_inputs` | `getplumber/plumber`'s `with` is limited to `version`, `score-push`, `score`, `min-points`, `min-score`, `fail-warnings`, `github-token`, `metadata-token`; `score-push` must be `true`; the two token inputs must be `` ${{ github.token }} `` or a `` ${{ secrets.NAME }} `` expression. | Closes inputs (`controls`, `skip-controls`, `config-file`, a different `github-url`) that could change what gets analyzed, and guarantees the run actually pushes its result. |
+| `harden_runner_inputs` | `step-security/harden-runner`'s `with` is limited to `egress-policy`, `allowed-endpoints`, `disable-sudo`. | Keeps this optional hardening step to its own purpose. |
+| `upload_inputs` | `actions/upload-artifact`'s `with` is limited to `name`, `path`, `retention-days`, `if-no-files-found`; `github/codeql-action/upload-sarif`'s to `sarif_file`, `category`. | Closes these two side actions to their ordinary purpose, same as the other allowlisted actions' own input rules. |
+| `step_keys` | Every step of the Plumber job carries only `name`, `id`, `uses`, `with`. | Closes step-level `env`, `shell`, `working-directory` and similar keys that could route data into the job outside its declared inputs. |
+| `no_expressions` | No `` ${{ }} `` expression anywhere in the Plumber job, except the two token inputs above. | An expression anywhere else could inject attacker-controlled or run-time text into a value every other rule assumes is a plain literal. |
+
+## Inputs allowed on each action
+
+| Action | Allowed `with` keys |
+|---|---|
+| `actions/checkout` | `persist-credentials`, `fetch-depth` |
+| `getplumber/plumber` | `version`, `score-push`, `score`, `min-points`, `min-score`, `fail-warnings`, `github-token`, `metadata-token` |
+| `step-security/harden-runner` | `egress-policy`, `allowed-endpoints`, `disable-sudo` |
+| `actions/upload-artifact` | `name`, `path`, `retention-days`, `if-no-files-found` |
+| `github/codeql-action/upload-sarif` | `sarif_file`, `category` |
+
+Any key outside the list for an action's own `with` fails the matching
+`*_inputs` rule, even when the key would be valid on a different action.
+
+## See also
+
+- [Official organizations](/docs/plumber-score/official-organizations): the
+  status vocabulary, the reason codes, and what stays open once the lock
+  passes.
+- [Verify an attestation](/docs/plumber-score/verify-an-attestation): the
+  commands to check a repository's row against GitHub's own identity, without
+  trusting Plumber.
