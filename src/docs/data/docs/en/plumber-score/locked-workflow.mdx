@@ -39,9 +39,9 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
-      - uses: getplumber/plumber@2342834dc0b67d2c87a33ac86789e481ad869402
+      - uses: getplumber/plumber@ebc213aa45dccd233ce5c2630f0aafa8e8d650c5
         with:
-          version: v0.7.17
+          version: v0.7.18
           score-push: true
 ```
 
@@ -52,7 +52,7 @@ on each step, must stay as it is: the rules below are a closed vocabulary,
 not a minimum.
 
 The `getplumber/plumber` pin and the `version` input above must name a
-release that signs the push: the release that follows v0.7.17. The file
+release that signs the push, v0.7.18. The file
 published here is updated to that release's commit and tag once it ships.
 
 <Aside variant="caution" title="Every sha must be a released commit">
@@ -60,7 +60,7 @@ Every `uses` above is pinned to a full 40-character commit sha, not a tag or a
 branch. Find the sha of a `getplumber/plumber` release with:
 
 ```bash
-git ls-remote --tags https://github.com/getplumber/plumber v0.7.17
+git ls-remote --tags https://github.com/getplumber/plumber v0.7.18
 ```
 
 The sha returned must be the commit the release tag points to; a short sha, a
