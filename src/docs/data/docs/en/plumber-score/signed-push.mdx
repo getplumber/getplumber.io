@@ -7,8 +7,6 @@ sidebar:
   order: 2
 ---
 
-import { Aside } from "@astrojs/starlight/components";
-
 When the Plumber CLI publishes a score from GitHub Actions, it signs the exact
 bytes it sends. The signature is **keyless**: no key to create, store or rotate,
 on your side or on Plumber's. The job's own identity, as GitHub states it,
@@ -129,7 +127,7 @@ one: a fixed set of sha-pinned actions, a single Plumber step at a released
 version, hosted runners only, no expressions. The signature says what ran;
 the locked workflow says what that can mean.
 
-<Aside type="note">
+<Aside variant="info" title="The Rekor entry is public">
   The Rekor entry is public. It reveals the repository, the workflow path, the
   commit and the sha256 of the report, never the report itself. Signing is
   limited to the hosted service, and official organizations are public
