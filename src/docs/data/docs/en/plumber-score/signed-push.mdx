@@ -1,15 +1,15 @@
 ---
 title: "The signed score push"
 seoTitle: "How the Plumber CLI signs a score push with Sigstore"
-description: "On GitHub Actions the Plumber CLI signs the score it publishes, keyless, with Sigstore. What it brings you, what happens step by step, and how to check a run yourself."
+description: "On GitHub Actions the Plumber CLI signs the score it publishes, keyless, with Sigstore: a score anyone can verify, what happens step by step, and how to check a run."
 sidebar:
   label: "Signed push"
   order: 2
 ---
 
-## What it brings you
+## A score anyone can verify
 
-On GitHub Actions, the Plumber CLI signs the score it publishes. For you, this means:
+On GitHub Actions, the Plumber CLI signs the score it publishes. A signed score brings:
 
 - **Proof of origin.** Anyone can check that a published score came from your repository's own workflow, at a given commit, in a given run. Not from a laptop, not from a fork.
 - **Nothing to manage.** No signing key to create, store or rotate, on your side or on Plumber's. The job's GitHub identity is the key.
