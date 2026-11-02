@@ -56,7 +56,7 @@
     "@astrojs/ts-plugin": "^1.10.11",
     "@eslint/js": "10.0.1",
     "@playform/compress": "0.2.5",
-    "conventional-changelog-conventionalcommits": "10.4.1",
+    "conventional-changelog-conventionalcommits": "10.2.1",
     "esbuild": "^0.28.2",
     "eslint": "10.14.0",
     "eslint-plugin-astro": "3.2.1",
@@ -74,6 +74,7 @@
     "typescript-eslint": "8.72.1"
   },
   "//": "overrides note: @semantic-release/npm is stubbed with @semantic-release/error because this site never publishes to npm, the plugin is not in .releaserc.json, and its `npm` dependency bundles vulnerable tar/brace-expansion copies that overrides cannot patch. Remove the stub if npm publishing is ever needed.",
+  "// conventional-changelog-conventionalcommits": "pinned to 10.2.1: 10.3+ needs conventional-changelog-writer@9, which @semantic-release/release-notes-generator (<= 14.x) does not ship, so semantic-release fails in generateNotes. Mirrors the Dependabot ignore in .github/dependabot.yml; lift both once release-notes-generator depends on writer 9.",
   "overrides": {
     "@expressive-code/core": {
       "postcss-nested": "^7.0.2"
