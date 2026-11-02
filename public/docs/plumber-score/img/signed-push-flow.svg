@@ -50,7 +50,7 @@
   <text class="num" x="118" y="190">3</text><text x="138" y="190">token B, for Sigstore</text>
   <line class="msg sig ret" x1="300" y1="212" x2="110" y2="212"/>
 
-  <rect class="budget" x="34" y="226" width="862" height="262" rx="6"/>
+  <rect class="budget" x="34" y="226" width="862" height="318" rx="6"/>
   <text class="sub tsig" x="44" y="242">60 s cap</text>
 
   <rect class="box" x="40" y="252" width="220" height="32" rx="4"/>
@@ -74,7 +74,7 @@
   <rect class="box" x="40" y="500" width="220" height="32" rx="4"/>
   <text class="num" x="48" y="521">9</text><text class="b" x="66" y="521">Bundle</text>
 
-  <rect class="box warn" x="300" y="500" width="300" height="32" rx="4"/>
+  <rect class="box warn" x="300" y="500" width="440" height="32" rx="4"/>
   <text class="twarn" x="312" y="521">Any failure in 3 to 9: one warning, unsigned push</text>
 
   <line class="msg" x1="110" y1="572" x2="990" y2="572"/>
