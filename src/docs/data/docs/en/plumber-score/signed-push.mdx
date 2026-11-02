@@ -1,0 +1,171 @@
+---
+title: "The signed score push"
+seoTitle: "How the Plumber CLI signs a score push with Sigstore"
+description: "On GitHub Actions the Plumber CLI signs the report it publishes to the score service, keyless, with Sigstore: what happens step by step, what it proves, what it does not, and how to check a run yourself."
+sidebar:
+  label: "Signed push"
+  order: 2
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+When the Plumber CLI publishes a score from GitHub Actions, it signs the exact
+bytes it sends. The signature is **keyless**: no key to create, store or rotate,
+on your side or on Plumber's. The job's own identity, as GitHub states it,
+becomes a short-lived certificate, the signature is recorded in a public
+transparency log, and the whole thing travels with the push as a Sigstore
+bundle. The hosted score service uses that bundle to verify pushes from
+[official organizations](/docs/plumber-score): a grade that nobody, Plumber
+included, can forge from outside the repository's own CI.
+
+This page describes the mechanism in the CLI. It applies from CLI `v0.7.18`.
+
+## When the push is signed
+
+All of the following must hold, otherwise the push goes out exactly as before,
+unsigned, and nothing on this page runs:
+
+- the run publishes a score (`score-push: true` on the action, or
+  `--score-push` on the command line);
+- the destination is the hosted service, `score.getplumber.io`. For a
+  self-hosted score service that verifies the bundle, set
+  `PLUMBER_SCORE_SIGN=true` (environment variable, no flag). Any other
+  destination is never signed: no Sigstore token is minted and nothing is
+  written to Rekor;
+- the job runs on GitHub Actions with `permissions: id-token: write`, the same
+  grant the push itself needs.
+
+GitLab pipelines and local runs publish unsigned. Without `score-push`, the
+CLI makes no request at all: no token, no Sigstore call, no push.
+
+## What happens, step by step
+
+<img
+  src="/docs/plumber-score/img/signed-push-flow.svg"
+  alt="Sequence diagram of the signed score push: the CLI builds the payload, mints two OIDC tokens, fetches the Sigstore trusted root, obtains a Fulcio certificate, signs the payload, records the signature in Rekor, builds the bundle and posts the payload with the bundle header to the score service, which verifies it offline"
+/>
+
+1. **The payload.** The CLI builds the report it publishes. Compared with the
+   `--output` file it drops `analyzedCiConfig` and carries three provenance
+   keys: `cliVersion`, `configFileSha256` (the sha256 of the committed
+   `.plumber.yaml` as read from disk, empty for the built-in default) and
+   `ci` (`runId`, `runAttempt`, `runUrl`). These exact bytes are what gets
+   signed and what gets posted.
+2. **The gate** above.
+3. **Token A.** A GitHub OIDC token whose audience is the score endpoint. It
+   authenticates the push, as before this feature.
+4. **Token B.** A second GitHub OIDC token, audience `sigstore`. GitHub fills
+   in the repository, owner id, ref, commit, workflow path, trigger, runner
+   type and run id. The job cannot edit a claim.
+5. **An ephemeral key pair**, ECDSA P-256, generated in memory and discarded
+   once the bundle exists. It is never written anywhere.
+6. **The Sigstore trusted root** (Fulcio and Rekor public keys) is fetched
+   through TUF and cached by sigstore-go.
+7. **Fulcio** receives token B and the public key, checks the token against
+   GitHub's published keys, makes the job prove it holds the private key, and
+   issues a certificate valid for about ten minutes with the identity from
+   token B copied into its extensions.
+8. **The signature**: the sha256 of the payload, signed with the ephemeral
+   key.
+9. **Rekor** receives the hash, the signature and the certificate, appends
+   them to its public log and returns the log index, the integrated time, a
+   signed entry timestamp and an inclusion proof.
+10. **The bundle** (Sigstore bundle v0.3, protojson): certificate, Rekor entry,
+    signature. Base64-encoded for the header. A bundle over 64 KiB is dropped
+    with a warning.
+11. **The push.** `POST https://score.getplumber.io/github.com/{org}/{repo}`
+    with `Authorization: Bearer <token A>`, the payload as the body, and the
+    bundle in the `Plumber-Sigstore-Bundle` request header. On success the CLI
+    prints:
+
+    ```
+    ✓ Plumber Score published: https://score.getplumber.io/github.com/ORG/REPO
+    ✓ report signed (Rekor index 3648963887)
+    ```
+
+12. **The service**, for a repository of an official organization, verifies
+    the bundle offline against the trusted root (certificate chain to Fulcio,
+    signature over the body bytes, Rekor signed timestamp and inclusion proof,
+    integrated time under 24 hours), reads the identity from the certificate,
+    and checks it against the registry, the default branch, the workflow file
+    at the certificate's commit and the committed `.plumber.yaml`. One
+    analysis per run attempt. A push that fails a check is recorded as
+    rejected with its reason; an unsigned push is stored as `unverified` and
+    never replaces a verified result.
+
+## Time budget and failure
+
+Signing is bounded and never fails the run. Steps 5 to 10 share a 60 second
+cap. Inside it, each Fulcio and TUF request gets 15 seconds and the Rekor
+upload, the slow leg, gets 30 seconds with two retries. Any failure, a slow
+Sigstore included, prints one warning and the push goes out unsigned:
+
+```
+⚠️  report not signed (sign the report: Post "https://rekor.sigstore.dev/api/v1/log/entries": giving up after 1 attempt(s): context deadline exceeded); pushed without a Sigstore bundle (the run is not failed)
+```
+
+For a repository outside an official organization nothing changes: the score
+is published as before. For a repository of an official organization that run
+is stored `unverified` and the organization page keeps the last verified
+result until the next signed run.
+
+## What the signature proves, and what it does not
+
+The chain proves **provenance**: this workflow file, at this commit, on this
+GitHub-hosted runner, during this run attempt, produced exactly these bytes.
+Three facts make that hard to fake from inside the job:
+
+- the identity in the certificate comes from GitHub's OIDC token, which the
+  job can request but not edit;
+- the signature is over the pushed bytes, so one changed byte fails it;
+- the Rekor entry is a public, time-stamped record, and a bundle without the
+  log's signed timestamp and inclusion proof is refused.
+
+It does **not** prove that the bytes are a correct analysis. A job that tampers
+with the CLI or its output signs its tampered bytes with a valid identity.
+That is why the hosted service only trusts a signed push from an
+organization's repository when the workflow that produced it is the locked
+one: a fixed set of sha-pinned actions, a single Plumber step at a released
+version, hosted runners only, no expressions. The signature says what ran;
+the locked workflow says what that can mean.
+
+<Aside type="note">
+  The Rekor entry is public. It reveals the repository, the workflow path, the
+  commit and the sha256 of the report, never the report itself. Signing is
+  limited to the hosted service, and official organizations are public
+  repositories, for that reason.
+</Aside>
+
+## Check a run yourself
+
+The Rekor index printed by the CLI identifies the entry. Set
+`PLUMBER_SCORE_PAYLOAD_OUT=<path>` (environment variable, no flag) before the
+run and the CLI writes the exact published bytes there, which the `--output`
+file is not. Then compare the hash the log recorded with the hash of the file:
+
+```bash
+idx=3648963887
+curl -sSf "https://rekor.sigstore.dev/api/v1/log/entries?logIndex=$idx" \
+  | python3 -c 'import json,base64,sys; e=json.load(sys.stdin); u=next(iter(e)); print(json.loads(base64.b64decode(e[u]["body"]))["spec"]["data"]["hash"]["value"])'
+sha256sum payload.json
+```
+
+The two values are equal. With `rekor-cli` installed,
+`rekor-cli get --log-index $idx` prints the same entry with the certificate,
+whose extensions name the repository, the commit and the workflow that signed
+it.
+
+## Reference
+
+| Item                        | Value                                                                                           |
+| --------------------------- | ----------------------------------------------------------------------------------------------- |
+| Request header              | `Plumber-Sigstore-Bundle`, the protojson bundle, base64-encoded, at most 64 KiB                 |
+| Report keys                 | `cliVersion`, `configFileSha256`, `ci.runId`, `ci.runAttempt`, `ci.runUrl`                      |
+| Signed for                  | `score.getplumber.io`, or any endpoint when `PLUMBER_SCORE_SIGN=true`                          |
+| Where                       | GitHub Actions with `permissions: id-token: write`; GitLab and local runs publish unsigned      |
+| Identity provider           | GitHub Actions OIDC, audience `sigstore`                                                        |
+| Certificate authority       | `https://fulcio.sigstore.dev`, 15 s per request, one retry                                      |
+| Transparency log            | `https://rekor.sigstore.dev`, 30 s per request, two retries                                     |
+| Overall cap                 | 60 s for the whole signing, then the push goes out unsigned                                     |
+| Exact pushed bytes          | `PLUMBER_SCORE_PAYLOAD_OUT=<path>`                                                              |
+| On failure                  | One warning on stderr, unsigned push, the run never fails                                       |

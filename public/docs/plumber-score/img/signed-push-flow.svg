@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 980" width="1080" height="980" role="img" aria-label="Sequence diagram of the signed score push: the CLI mints two OIDC tokens, obtains a Fulcio certificate, signs the report, records it in Rekor, and posts the report with the bundle to the score service, which verifies it offline" style="color-scheme: light dark">
+  <style>
+    svg{--ink:#1f2328;--muted:#5d6670;--line:#c9cdd2;--lane:#e9ebe6;--sig:#0b7a75;--sigsoft:#d7eeec;--warn:#b45309;--warnsoft:#fbe9d2;--svc:#3b4ea8;--svcsoft:#dfe4f7;--box:#f7f6f2;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+    @media (prefers-color-scheme: dark){svg{--ink:#e6e8eb;--muted:#9aa3ad;--line:#3a4048;--lane:#1f242a;--sig:#4fc3bb;--sigsoft:#15302f;--warn:#f0a94a;--warnsoft:#3a2a12;--svc:#8fa0ea;--svcsoft:#1f2648;--box:#15181c}}
+    text{fill:var(--ink);font-size:13px}
+    .lane{fill:var(--lane)}
+    .life{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4}
+    .actor{font-weight:600;font-size:14px}
+    .sub{fill:var(--muted);font-size:11.5px}
+    .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+    .b{font-weight:600}
+    .msg{stroke:var(--ink);stroke-width:1.4;fill:none;marker-end:url(#arrow)}
+    .msg.sig{stroke:var(--sig);marker-end:url(#arrow-sig)}
+    .ret{stroke-dasharray:5 4}
+    .num{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:500;fill:var(--muted)}
+    .box{fill:var(--sigsoft);stroke:var(--sig);stroke-width:1}
+    .box.plain{fill:var(--box);stroke:var(--line)}
+    .box.warn{fill:var(--warnsoft);stroke:var(--warn)}
+    .box.svc{fill:var(--svcsoft);stroke:var(--svc)}
+    .budget{fill:none;stroke:var(--sig);stroke-width:1;stroke-dasharray:2 3}
+    .tsig{fill:var(--sig)}
+    .twarn{fill:var(--warn)}
+    .tsvc{fill:var(--svc)}
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--ink)"/></marker>
+    <marker id="arrow-sig" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--sig)"/></marker>
+  </defs>
+
+  <g>
+    <rect class="lane" x="30" y="20" width="160" height="52" rx="4"/><text class="actor" x="110" y="42" text-anchor="middle">Job: Plumber CLI</text><text class="sub" x="110" y="60" text-anchor="middle">GitHub-hosted runner</text>
+    <rect class="lane" x="225" y="20" width="150" height="52" rx="4"/><text class="actor" x="300" y="42" text-anchor="middle">GitHub OIDC</text><text class="sub" x="300" y="60" text-anchor="middle">ACTIONS_ID_TOKEN_REQUEST_URL</text>
+    <rect class="lane" x="405" y="20" width="130" height="52" rx="4"/><text class="actor" x="470" y="42" text-anchor="middle">Sigstore TUF</text><text class="sub" x="470" y="60" text-anchor="middle">trusted root</text>
+    <rect class="lane" x="575" y="20" width="130" height="52" rx="4"/><text class="actor" x="640" y="42" text-anchor="middle">Fulcio</text><text class="sub" x="640" y="60" text-anchor="middle">certificate authority</text>
+    <rect class="lane" x="745" y="20" width="130" height="52" rx="4"/><text class="actor" x="810" y="42" text-anchor="middle">Rekor</text><text class="sub" x="810" y="60" text-anchor="middle">transparency log</text>
+    <rect class="lane" x="915" y="20" width="150" height="52" rx="4"/><text class="actor" x="990" y="42" text-anchor="middle">Score service</text><text class="sub" x="990" y="60" text-anchor="middle">score.getplumber.io</text>
+  </g>
+  <g class="life">
+    <line x1="110" y1="72" x2="110" y2="950"/><line x1="300" y1="72" x2="300" y2="950"/><line x1="470" y1="72" x2="470" y2="950"/>
+    <line x1="640" y1="72" x2="640" y2="950"/><line x1="810" y1="72" x2="810" y2="950"/><line x1="990" y1="72" x2="990" y2="950"/>
+  </g>
+
+  <rect class="box plain" x="40" y="92" width="300" height="58" rx="4"/>
+  <text class="num" x="48" y="108">1</text>
+  <text class="b" x="64" y="108">Analyze, build the push payload</text>
+  <text class="mono" x="64" y="126">cliVersion  configFileSha256  ci{runId,runAttempt,runUrl}</text>
+  <text class="sub" x="64" y="142">analyzedCiConfig dropped. These exact bytes are what gets signed.</text>
+
+  <rect class="box plain" x="40" y="162" width="300" height="58" rx="4"/>
+  <text class="num" x="48" y="178">2</text>
+  <text class="b" x="64" y="178">Gate: sign at all?</text>
+  <text class="sub" x="64" y="195">--score-push set, endpoint is the hosted one (or PLUMBER_SCORE_SIGN=true),</text>
+  <text class="sub" x="64" y="211">provider github with the id-token grant. Otherwise: push unsigned, silently.</text>
+
+  <line class="msg" x1="110" y1="245" x2="300" y2="245"/>
+  <text class="num" x="118" y="240">3</text><text x="138" y="240">mint token A, audience = score endpoint</text>
+  <line class="msg ret" x1="300" y1="268" x2="110" y2="268"/>
+  <text class="sub" x="138" y="283">JWT: the push credential (bearer)</text>
+
+  <line class="msg sig" x1="110" y1="306" x2="300" y2="306"/>
+  <text class="num" x="118" y="301">4</text><text x="138" y="301">mint token B, audience = "sigstore"</text>
+  <line class="msg sig ret" x1="300" y1="329" x2="110" y2="329"/>
+  <text class="sub" x="138" y="344">JWT: repo, owner id, ref, sha, workflow, trigger, runner, run id</text>
+
+  <rect class="budget" x="34" y="356" width="862" height="420" rx="6"/>
+  <text class="sub tsig" x="44" y="372">60 s cap on steps 5 to 10, or the push goes out unsigned</text>
+
+  <rect class="box" x="40" y="384" width="300" height="40" rx="4"/>
+  <text class="num" x="48" y="400">5</text>
+  <text class="b" x="64" y="400">Ephemeral ECDSA P-256 key pair, in memory</text>
+  <text class="sub" x="64" y="416">never written, discarded after the bundle</text>
+
+  <line class="msg sig" x1="110" y1="452" x2="470" y2="452"/>
+  <text class="num" x="118" y="447">6</text><text x="138" y="447">fetch the public trusted root</text>
+  <text class="mono sub tsig" x="300" y="447" text-anchor="middle">15 s per request</text>
+  <line class="msg sig ret" x1="470" y1="474" x2="110" y2="474"/>
+  <text class="sub" x="138" y="489">Fulcio and Rekor keys, cached by sigstore-go</text>
+
+  <line class="msg sig" x1="110" y1="518" x2="640" y2="518"/>
+  <text class="num" x="118" y="513">7</text><text x="138" y="513">token B + public key: certificate request</text>
+  <text class="mono sub tsig" x="520" y="513" text-anchor="middle">15 s, 1 retry</text>
+  <line class="msg sig ret" x1="640" y1="540" x2="110" y2="540"/>
+  <text class="sub" x="138" y="555">short-lived certificate, the job identity copied from token B into its extensions</text>
+
+  <rect class="box" x="40" y="572" width="300" height="40" rx="4"/>
+  <text class="num" x="48" y="588">8</text>
+  <text class="b" x="64" y="588">Sign sha256(payload) with the ephemeral key</text>
+  <text class="sub" x="64" y="604">signature over the bytes of step 1</text>
+
+  <line class="msg sig" x1="110" y1="640" x2="810" y2="640"/>
+  <text class="num" x="118" y="635">9</text><text x="138" y="635">hashedrekord: hash, signature, certificate</text>
+  <text class="mono sub tsig" x="620" y="635" text-anchor="middle">30 s, 2 retries</text>
+  <line class="msg sig ret" x1="810" y1="662" x2="110" y2="662"/>
+  <text class="sub" x="138" y="677">log index, integrated time, signed entry timestamp, inclusion proof</text>
+
+  <rect class="box" x="40" y="696" width="300" height="60" rx="4"/>
+  <text class="num" x="48" y="712">10</text>
+  <text class="b" x="64" y="712">Sigstore bundle v0.3 (protojson)</text>
+  <text class="sub" x="64" y="729">certificate + Rekor entry + message signature</text>
+  <text class="sub" x="64" y="745">base64 for the header; over 64 KiB: dropped with a warning</text>
+
+  <rect class="box warn" x="360" y="696" width="300" height="60" rx="4"/>
+  <text class="b twarn" x="372" y="714">Any failure in 4 to 10</text>
+  <text class="sub" x="372" y="731">one stderr warning "report not signed (...)",</text>
+  <text class="sub" x="372" y="747">the push still goes out, without the header. Run never fails.</text>
+
+  <line class="msg" x1="110" y1="810" x2="990" y2="810"/>
+  <text class="num" x="118" y="792">11</text><text x="138" y="792">POST /github.com/{org}/{repo}</text>
+  <text class="mono" x="138" y="805">Authorization: Bearer token A   Plumber-Sigstore-Bundle: base64(bundle)   body = payload</text>
+  <line class="msg ret" x1="990" y1="834" x2="110" y2="834"/>
+  <text class="sub" x="138" y="849">201. stderr: "Plumber Score published", "report signed (Rekor index N)". PLUMBER_SCORE_PAYLOAD_OUT holds the exact body.</text>
+
+  <rect class="box svc" x="700" y="862" width="366" height="106" rx="4"/>
+  <text class="num" x="708" y="878">12</text>
+  <text class="b tsvc" x="724" y="878">Service, official organizations only</text>
+  <text class="sub" x="724" y="895">bundle verified offline against the trusted root: chain to Fulcio,</text>
+  <text class="sub" x="724" y="910">signature over the body bytes, Rekor timestamp + proof, under 24 h;</text>
+  <text class="sub" x="724" y="925">identity from the certificate vs registry and default branch;</text>
+  <text class="sub" x="724" y="940">workflow at the certificate sha vs the locked workflow; .plumber.yaml hash;</text>
+  <text class="sub" x="724" y="955">coverage; one analysis per run attempt. Verdict: verified / rejected.</text>
+  <text class="sub" x="40" y="900">Unsigned push, or a repository outside an official organization:</text>
+  <text class="sub" x="40" y="916">stored as before (status unverified for an official repository),</text>
+  <text class="sub" x="40" y="932">a verified pointer is never replaced by it.</text>
+</svg>
