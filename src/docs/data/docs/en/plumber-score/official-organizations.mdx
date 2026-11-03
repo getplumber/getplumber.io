@@ -177,6 +177,13 @@ entirely). Everything else, including the exact set of keys on the job and
 on each step, must stay as it is: the rules below are a closed vocabulary,
 not a minimum.
 
+This workflow never runs on pull requests, by design: a pull request run
+cannot produce a verified score (its certificate names a merge ref, not
+the default branch), and the `pull_request` family of triggers is where a
+fork's code gets to run. To check pull requests with Plumber, keep a second
+workflow of your own, without `score-push`; the lock only reads the workflow
+that signed a push.
+
 The `getplumber/plumber` pin and the `version` input above must name a
 release that signs the push, v0.7.18. The file
 published here is updated to that release's commit and tag once it ships.
