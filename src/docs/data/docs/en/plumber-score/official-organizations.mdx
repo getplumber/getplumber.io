@@ -122,6 +122,14 @@ repository:
 5. **Uniqueness.** No accepted analysis already exists for this exact
    certificate, run id and run attempt, so one run cannot be pushed twice.
 
+An organization can be registered without the workflow lock, by Plumber
+only, when its repositories run workflows the lock cannot describe. Check 3
+is then skipped: the push is still verified by its signature, its identity,
+its configuration and its coverage, and the CLI release named in the report
+must be at or above the organization's floor. Nothing hides it: the page
+carries a notice, every repository's check list says the lock was waived,
+and the attestation records `lockWaived`.
+
 ## Limits
 
 ### What this page does not do
