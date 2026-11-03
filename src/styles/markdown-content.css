@@ -155,6 +155,8 @@
 }
 .markdown-content ol:not(:where(.not-content, .not-content *)) > li::marker {
   font-family: var(--font-pixel);
+  /* the pixel font draws 7px digits at 16px, so size it up to the body cap height (12px) */
+  font-size: 1.5rem;
   color: var(--muted-foreground);
 }
 .markdown-content li:not(:where(.not-content, .not-content *)) {
