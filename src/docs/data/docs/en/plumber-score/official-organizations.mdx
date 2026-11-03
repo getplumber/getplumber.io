@@ -1,142 +1,50 @@
 ---
 title: "Official organizations"
 seoTitle: "Official organizations: a signed, public Plumber Score for your whole org"
-description: "An official organization gets a public, organization-level attestation of its Plumber scores, verified from signed CI runs against a locked workflow, with the commands and signing key to check the result independently."
+description: "An official organization gets a public, organization-wide Plumber Score page with a signed attestation anyone can verify."
 sidebar:
   label: "Official organizations"
   order: 3
 ---
 
-An **official organization** is a GitHub organization registered with Plumber so
-that every public repository's score, once pushed from a correctly locked-down
-CI workflow, counts toward a signed, organization-wide attestation on
-[`score.getplumber.io`](https://score.getplumber.io).
+An **official organization** is a GitHub organization registered with
+Plumber so that its score, badge and card cover the whole organization, not
+just one repository. The score is verified straight from the organization's
+own CI runs, using [the signed score push](/docs/plumber-score/signed-push),
+never recomputed by Plumber, and backed by a signed attestation anyone can
+check independently.
 
-Registration is a Plumber-side entry, not a self-service toggle: Plumber
-confirms ownership of the organization out of band before registering it, and
-the attestation covers only the organization's **public repositories**. There
-is no GitHub App, no installed credential, and no customer secret of any kind
-on the service's side: it reads public GitHub data with a Plumber-owned token
-used only for rate limits.
+## How to become one
 
-The verification model follows the one the [OpenSSF
-Scorecard](https://github.com/ossf/scorecard) project uses to publish results
-from a repository's own Actions run: a signed result plus an inspectable
-workflow, never a re-run.
-
-## How to request one
-
-Write to the address on the [contact page](/contact) with the organization's
-name and its numeric GitHub owner id, readable at:
-
-```
-https://api.github.com/orgs/<name>
-```
-
-(the `id` field of the response). Plumber confirms ownership and registers
-the organization; there is no UI and no self-service form.
+- Write to the address on the [contact page](/contact) with the
+  organization's name.
+- Only public GitHub repositories count; private repositories never appear.
+- Each repository runs the workflow below, unchanged, on its default branch,
+  with `score-push: true`.
+- The workflow must use `getplumber/plumber` release v0.7.18 or newer.
 
 ## What the page shows
 
-`https://score.getplumber.io/github.com/<org>` shows:
+- The organization's grade and points, averaged over its verified
+  repositories.
+- The share of repositories verified, and the share still on the default
+  policy.
+- One row per public repository, with its current status.
+- A link to the signed attestation behind the page.
 
-- **Header**: the organization's name and logo, a link to it, the attestation
-  sentence, an attestation id, the last verified date, and a ring with the
-  organization's grade and points, the mean of every `verified` repository.
-- **Repositories** and **grade distribution** cards: how many public
-  repositories are visible, how many are scored, and the A-to-E split, with a
-  note that unscored repositories are excluded from the mean.
-- **A table**, one row per visible repository: name, grade (marked `custom`
-  when its committed policy disables a default control), controls enabled
-  over total, configuration, verification status, and last run, searchable
-  and filterable (All, Verified, Needs attention, Not scored). Expanding a
-  row shows the analyzed branch and commit, the CLI version, the action's
-  commit, a link to the run, the configuration file and its disabled
-  controls, every verification check with its outcome, the Rekor log index,
-  and the rejection reason when the latest attempt was rejected.
-- **"How Plumber verifies this page"**: the checks below, and the limits that
-  stay open, in plain words.
-- **"Show this attestation"**: the badge preview, a Markdown embed, the
-  attestation link, and the command to verify it.
+## Repository statuses
 
-Per-repository and per-organization signed attestations, the Sigstore bundle
-a repository's own row was verified against, and the signing key are
-documented under [Verify an attestation](/docs/plumber-score/official-organizations#verify-an-attestation)
-below.
+- **Verified**: the latest push passed every check.
+- **Rejected**: the latest attempt failed a check, shown with its reason on
+  the page; the last verified grade stays on display.
+- **Unverified**: the repository has analyses but no signed push, from
+  before the organization was official or from an older CLI.
+- **Not scored**: a public repository with no accepted push yet.
 
-## Status vocabulary
+## The workflow to run
 
-| Status | Meaning |
-|---|---|
-| `verified` | The latest accepted push passed every check below. |
-| `rejected` | The latest attempt failed a check; the last verified grade keeps showing, marked "last verified grade shown". |
-| `unverified` | The repository has accepted analyses but none carries a signed bundle (a push from before the organization was official, or from an older CLI); shown with a grey pill, excluded from the mean and from the attestation. |
-| `not_scored` | A public repository with no accepted analysis yet. |
-
-A rejection never erases history: a `rejected` repository keeps its last
-`verified` grade on display. Organization-wide, zero `verified` repositories
-renders a neutral card and an `unknown` badge, never an invented grade.
-
-### Reason codes
-
-Shown on a `rejected` repository's expanded row, naming the check that failed:
-
-| Reason code | Meaning |
-|---|---|
-| `bundle_missing` | The push carried no Sigstore bundle. |
-| `bundle_invalid` | The bundle did not verify: a broken certificate chain, a broken Rekor inclusion proof, or a payload hash that does not match the pushed body. |
-| `bundle_stale` | The Rekor integrated time is older than 24 hours. |
-| `identity_mismatch` | The certificate's issuer, repository, owner id, workflow path or run id do not match the registry, the push, or the report. |
-| `not_default_branch` | The certificate's ref is not the repository's default branch. |
-| `trigger_not_allowed` | The certificate's trigger is not `push`, `schedule`, or `workflow_dispatch`. |
-| `workflow_unlocked:<rule>` | The workflow file at the certificate's commit violates one rule of the [locked workflow](/docs/plumber-score/official-organizations#the-locked-workflow); the rule's name follows the colon. |
-| `config_mismatch` | The committed `.plumber.yaml` at the certificate's commit does not match the report's configuration, or a control the policy enables is missing or skipped. |
-| `partial_analysis` | The report shows controls skipped or disabled that the committed policy requires. |
-| `duplicate_run` | An accepted analysis already exists for this certificate's commit, run id and run attempt. |
-
-An operational failure, such as a GitHub or Sigstore read that cannot
-complete, is never one of these codes and never a verdict: the push gets a
-`503` and the CI run's own retry takes it from there.
-
-## What each check verifies
-
-In the order they run, on every push from an official organization's
-repository:
-
-1. **Bundle.** The signed Sigstore bundle verifies offline: the certificate
-   chains to Fulcio, the Rekor inclusion proof and signed entry timestamp
-   check out, the entry's payload hash equals the pushed body, and the
-   certificate was valid at an integrated time no older than 24 hours.
-2. **Identity.** The certificate's own facts, never the pushed body, decide
-   who ran this: issuer, repository, owner id, ref (the default branch),
-   workflow path (in the same repository), and trigger (`push`, `schedule`,
-   or `workflow_dispatch`). The commit is the certificate's sha; the body's
-   claimed commit must match it.
-3. **Workflow lock.** The workflow file at the certificate's commit, read
-   from the public GitHub API, must satisfy every rule of
-   [the locked workflow](/docs/plumber-score/official-organizations#the-locked-workflow): no user code, no
-   environment, only pinned, allowlisted actions, on a GitHub-hosted runner.
-4. **Configuration.** The `.plumber.yaml` at the certificate's commit must
-   match the report's own record of it, and every control the committed
-   policy enables must actually appear in the report, not skipped.
-5. **Uniqueness.** No accepted analysis already exists for this exact
-   certificate, run id and run attempt, so one run cannot be pushed twice.
-
-An organization can be registered without the workflow lock, by Plumber
-only, when its repositories run workflows the lock cannot describe. Check 3
-is then skipped: the push is still verified by its signature, its identity,
-its configuration and its coverage, and the CLI release named in the report
-must be at or above the organization's floor. Nothing hides it: the page
-carries a notice, every repository's check list says the lock was waived,
-and the attestation records `lockWaived`.
-
-## The locked workflow
-
-A repository earns a `verified` row only when the workflow that pushed its
-score, read back from the public GitHub API at the commit the Sigstore
-certificate names, matches this shape exactly. Copy it as it is: any other
-shape of job that still runs `getplumber/plumber` with `score-push: true`
-fails one of the rules below, reported as `` workflow_unlocked:<rule> ``.
+A repository earns a verified row only when the workflow that pushed its
+score matches this shape exactly:
 
 ```yaml title=".github/workflows/plumber-score.yml"
 name: Plumber Score
@@ -169,97 +77,28 @@ jobs:
 
 The canonical copy of this exact file is served at
 [`/plumber-score/locked.yml`](/plumber-score/locked.yml); diff your own
-workflow against it directly instead of retyping it from this page.
+workflow against it instead of retyping it from this page.
 
-Replace `main` with your own default branch name if it differs, and the
-schedule's cron expression with any schedule you want (or drop `schedule`
-entirely). Everything else, including the exact set of keys on the job and
-on each step, must stay as it is: the rules below are a closed vocabulary,
-not a minimum.
+What must stay as it is:
 
-This workflow never runs on pull requests, by design: a pull request run
-cannot produce a verified score (its certificate names a merge ref, not
-the default branch), and the `pull_request` family of triggers is where a
-fork's code gets to run. To check pull requests with Plumber, keep a second
-workflow of your own, without `score-push`; the lock only reads the workflow
-that signed a push.
+- Only the actions shown above, each pinned to a full commit sha.
+- One checkout step, then one Plumber step, in that order.
+- Triggered only by a push to the default branch, a schedule, or a manual
+  run.
+- No other steps, no job or step `env`, no container or service.
+- A GitHub-hosted runner.
 
-The `getplumber/plumber` pin and the `version` input above must name a
-release that signs the push, v0.7.18. The file
-published here is updated to that release's commit and tag once it ships.
-
-<Aside variant="caution" title="Every sha must be a released commit">
-Every `uses` above is pinned to a full 40-character commit sha, not a tag or a
-branch. Find the sha of a `getplumber/plumber` release with:
-
-```bash
-git ls-remote --tags https://github.com/getplumber/plumber v0.7.18
-```
-
-The sha returned must be the commit the release tag points to; a short sha, a
-tag, or a branch name in `uses` fails the `sha_pin` rule below. The same
-applies to `actions/checkout`, `step-security/harden-runner`,
-`actions/upload-artifact`, and `github/codeql-action/upload-sarif`: pin each to
-a full commit sha of that action's own repository.
-</Aside>
-
-### The twenty rules
-
-The first rule a pushed workflow violates names the rejection reason,
-`` workflow_unlocked:<rule> ``. They run in this order:
-
-| Rule | What it requires | Why |
-|---|---|---|
-| `workflow_path` | The certificate's workflow file is under `.github/workflows/` in the same repository. | A reusable workflow pulled in from another repository could carry different rules than the ones checked here. |
-| `parse` | A single YAML document, no anchors or aliases, no duplicate keys, and every mapping key in the whole file written in lowercase (third-party inputs in other jobs, matrix keys and `workflow_dispatch` input names included). | An anchor, a duplicate key, or a differently-cased key lets a human reviewer, or every other rule below, read one value while a YAML-literal consumer acts on another. |
-| `triggers` | `on` contains only `push`, `schedule`, `workflow_dispatch`; a `push.branches` list, when present, must name the default branch literally (no glob); `branches-ignore` entries are checked the same way, each must be a literal name (no glob) and none may name the default branch. | Closes triggers (`pull_request_target` and similar) that can run the job against a different, attacker-influenced tree. |
-| `global_permissions` | Workflow-level `permissions` is only a mapping, `read-all`, or `{}`; no workflow-level `write`/`write-all`; `id-token: write` only on the Plumber job. | Stops any job, including one added later, from inheriting write access or an OIDC token it was never meant to have. |
-| `global_env` | No workflow-level `env` or `defaults`. | A workflow-level variable or shell default would reach the Plumber job invisibly. |
-| `one_plumber_job` | Exactly one job runs `getplumber/plumber`; a second job may exist but must not hold `id-token: write`. | Only one job's identity can ever sign the pushed result; no other job can mint that token. |
-| `runner` | Exactly one `ubuntu-*` GitHub-hosted runner label on the Plumber job, minimum `22.04`. | A self-hosted runner could be tampered with before the job starts; the certificate also records the runner environment, so it is checked twice. |
-| `job_env` | The Plumber job has no `env`, `defaults`, `container`, `services`, `environment`. | The same injection surface as `global_env`, closed at the job itself. |
-| `job_keys` | The Plumber job carries only `name`, `runs-on`, `permissions`, `steps`, `timeout-minutes`. | Closes every other job-level key (`if`, `needs`, `strategy`, `concurrency`, and others) this lock does not otherwise examine. |
-| `job_permissions` | Every scope on the Plumber job's own `permissions` is `read` or `none`, except `id-token` and `security-events`, which may be `write`. | The job needs `id-token` for OIDC and may need `security-events` to publish SARIF; nothing else should ever be writable. |
-| `uses_only` | Every step of the Plumber job has `uses`; a `run` key is refused anywhere in the job, at any nesting depth. | A `run` step is the one place a planted binary, a proxy, or an altered checkout could run. |
-| `allowlist` | Every `uses` is one of `actions/checkout`, `getplumber/plumber`, `step-security/harden-runner`, `actions/upload-artifact`, `github/codeql-action/upload-sarif`; exactly one `actions/checkout` step before exactly one `getplumber/plumber` step. | Closes the job to known actions only, and guarantees the source Plumber analyzed is the one actually checked out, not one a reordered or duplicated checkout could swap in. |
-| `sha_pin` | Every `uses` is pinned to a full 40-character lowercase hex commit sha that belongs to that action's own repository. | A tag or a short sha can be moved or is ambiguous; checking the sha against the action's own commit history stops an imposter commit that exists but belongs to the wrong repository. |
-| `plumber_release` | The `getplumber/plumber` sha is the commit of a released tag at or above the registered organization's floor; a `version` input, when present, equals that tag. | Stops an old or forked build of the CLI, with fewer or weaker rules, from producing the signed result. |
-| `checkout_inputs` | `actions/checkout`'s `with` is limited to `persist-credentials`, `fetch-depth`. | Closes `ref` and `repository` inputs that could check out a different tree than the one the certificate names. |
-| `plumber_inputs` | `getplumber/plumber`'s `with` is limited to `version`, `score-push`, `score`, `min-points`, `min-score`, `fail-warnings`, `github-token`, `metadata-token`; `score-push` must be `true`; the two token inputs must be `` ${{ github.token }} `` or a `` ${{ secrets.NAME }} `` expression. | Closes inputs (`controls`, `skip-controls`, `config-file`, a different `github-url`) that could change what gets analyzed, and guarantees the run actually pushes its result. |
-| `harden_runner_inputs` | `step-security/harden-runner`'s `with` is limited to `egress-policy`, `allowed-endpoints`, `disable-sudo`. | Keeps this optional hardening step to its own purpose. |
-| `upload_inputs` | `actions/upload-artifact`'s `with` is limited to `name`, `path`, `retention-days`, `if-no-files-found`; `github/codeql-action/upload-sarif`'s to `sarif_file`, `category`. | Closes these two side actions to their ordinary purpose, same as the other allowlisted actions' own input rules. |
-| `step_keys` | Every step of the Plumber job carries only `name`, `id`, `uses`, `with`. | Closes step-level `env`, `shell`, `working-directory` and similar keys that could route data into the job outside its declared inputs. |
-| `no_expressions` | No `` ${{ }} `` expression anywhere in the Plumber job, except the two token inputs above. | An expression anywhere else could inject attacker-controlled or run-time text into a value every other rule assumes is a plain literal. |
-
-### Inputs allowed on each action
-
-| Action | Allowed `with` keys |
-|---|---|
-| `actions/checkout` | `persist-credentials`, `fetch-depth` |
-| `getplumber/plumber` | `version`, `score-push`, `score`, `min-points`, `min-score`, `fail-warnings`, `github-token`, `metadata-token` |
-| `step-security/harden-runner` | `egress-policy`, `allowed-endpoints`, `disable-sudo` |
-| `actions/upload-artifact` | `name`, `path`, `retention-days`, `if-no-files-found` |
-| `github/codeql-action/upload-sarif` | `sarif_file`, `category` |
-
-Any key outside the list for an action's own `with` fails the matching
-`*_inputs` rule, even when the key would be valid on a different action.
+This workflow never runs on pull requests: a pull request run cannot
+produce a verified score. Keep a second workflow, without `score-push`, to
+check pull requests with Plumber.
 
 ## Verify an attestation
 
-An official organization's page rests on two signatures. The organization
-attestation is signed by Plumber with [the signing
-key](/docs/plumber-score/official-organizations#the-signing-key). Each
-repository's row rests on the Sigstore bundle its own GitHub Actions job
-produced, which needs no Plumber key at all.
+Both checks below run offline with [cosign](https://github.com/sigstore/cosign)
+v3. They use the `getplumber` organization as the example; replace the
+names with the organization and repository you check.
 
-Both checks run offline with [cosign](https://github.com/sigstore/cosign) v3.
-The commands below are the ones Plumber's own CI runs on every build. They
-use the `getplumber` organization as the example; replace the names with the
-organization and repository you check.
-
-### The organization attestation
-
-Download the view the attestation signs, the attestation, and the key:
+Verify the organization attestation:
 
 ```bash
 curl -O https://score.getplumber.io/github.com/getplumber/view.json
@@ -271,22 +110,9 @@ cosign verify-blob-attestation --key plumber-score.pub \
 ```
 
 `Verified OK` means the view file you downloaded is byte for byte the one
-Plumber signed, the signature is Plumber's, and the Rekor log holds it. The
-attestation is an in-toto statement: its `subject` is the sha256 of
-`view.json`, its `predicate` restates the organization, the grade, the
-shares and every repository's row.
+Plumber signed, with Plumber's own key.
 
-To read the signed statement:
-
-```bash
-jq -r '.dsseEnvelope.payload' attestation.json | base64 -d | jq .
-```
-
-### One repository's row
-
-A row's provenance comes from GitHub, not from Plumber. The repository
-attestation carries the Sigstore bundle the job produced and names the exact
-report bytes it signed:
+Verify one repository's row:
 
 ```bash
 curl -O https://score.getplumber.io/github.com/getplumber/plumber-platform/attestation.json
@@ -299,106 +125,15 @@ cosign verify-blob --bundle source-bundle.json \
 ```
 
 `Verified OK` means a GitHub Actions job of that repository, running one of
-its own workflow files, signed exactly these report bytes. The certificate
-inside the bundle names the commit, the workflow path and the run; the
-organization attestation restates those fields in the row's
-`certificateIdentity`.
+its own workflow files, signed exactly these report bytes.
 
-### What a verified row does not say
-
-The signature proves where the report came from. It does not prove the
-report is a correct analysis. Plumber adds that assurance by checking the
-workflow that produced the push against [the locked
-workflow](/docs/plumber-score/official-organizations#the-locked-workflow) and
-the committed `.plumber.yaml`. A row marked `verified` passed those checks
-too. The organization page shows every check with its outcome.
-
-cosign v2 can run the same commands with `--new-bundle-format` added before
-the `--bundle` argument.
-
-### The signing key
-
-Plumber signs the organization attestation with one ECDSA P-256 key. Its
-public half is published here and at
-[`/plumber-score/plumber-score.pub`](/plumber-score/plumber-score.pub).
-Every signature is also recorded in the public Rekor transparency log.
-
-| Key id                                         | Valid from | Status  |
-| ----------------------------------------------- | ---------- | ------- |
-| `vb+vC2GZ536byCfGaCCW8XXixV9jjzlDCfBE3BmmLCI=` | 2026-11-03 | current |
-
-```
------BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEPlJ+BV60fK/qAdMx4UR2isikWpJ6
-pk6AEgv6p9kBVHYsk/nX0yssfB4dOL1+te3UfLRHCPBsomVfQgCF7J6h7A==
------END PUBLIC KEY-----
-```
-
-The key id is the base64 of the sha256 of the key's DER encoding. The same
-value sits in every attestation under `predicate.keyId`, so a verifier knows
-which key to use before trying it:
-
-```bash
-openssl ec -pubin -in plumber-score.pub -outform DER 2>/dev/null | openssl dgst -sha256 -binary | base64
-```
-
-A new key is published on this page, with its validity date, before it signs
-anything. The previous key stays listed with an end date, so attestations
-signed before the switch keep verifying. An attestation always names its key
-by id. The private key never leaves Plumber's production environment and is
-never shared with an organization.
-
-## Limits
-
-### What this page does not do
-
-- **No server-side re-run.** The grade is the one the organization's own CI
-  produced; Plumber verifies the signature and the workflow, never
-  recomputes the analysis.
-- **No GitHub App, and no customer credential of any kind.** Nothing is
-  installed on the organization's side; the service reads public GitHub data
-  with a Plumber-owned token used only for rate limits.
-- **Public repositories only.** Private repositories never appear, and
-  nothing about them is inferred.
-- **No staleness check beyond the "verified at" dates.** There is no webhook
-  and no periodic re-check of a repository once it is `verified`; the page
-  shows when each row was last verified and leaves the judgment to the
-  reader.
-
-### What stays open
-
-Even once every check above passes, these five limits stay true and are
-stated on the page itself:
-
-- **The organization can weaken its committed policy.** This is visible on
-  every row and capped on the badge: the organization-wide badge and ring
-  carry the share of `verified` repositories still on the default policy, and
-  a repository with a weakened policy shows a `custom` mark. No grade is
-  altered because of it.
-- **Controls that read live settings see the state at the run, not now.** A
-  setting can change before or after that run; every date on the page is
-  "verified at".
-- **An organization chooses which repositories push.** The coverage (scored
-  over visible) and the distribution are visible, and the badge carries the
-  scored share.
-- **GitHub-hosted runners, GitHub's OIDC issuer, Sigstore's Fulcio and Rekor,
-  and the allowlisted actions at their pinned commits are trusted.**
-- **Plumber's own aggregation is trusted only up to Plumber's signing key.**
-  Every per-repository entry can still be checked against GitHub's identity
-  and Rekor without trusting Plumber at all.
+The signing key is published at
+[`/plumber-score/plumber-score.pub`](/plumber-score/plumber-score.pub). A
+new key is announced on this page, with its validity date, before it signs
+anything.
 
 ## Badge embed
 
 ```md
 [![Plumber Verified](https://score.getplumber.io/github.com/ORG.svg)](https://score.getplumber.io/github.com/ORG)
 ```
-
-The organization badge reads `Plumber Verified | {org} · {grade} · {default-policy
-share}% default policy`.
-
-## See also
-
-- [Plumber Score](/docs/plumber-score): the grade itself, and how to publish
-  it from your pipeline.
-- [The signed score push](/docs/plumber-score/signed-push): the Sigstore
-  signing step this whole verification model rests on.
