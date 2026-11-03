@@ -10,6 +10,13 @@ Guidance for AI assistants (Claude Code, Cursor, etc.) working in this repositor
 - Follow conventional commits (`feat:`, `fix:`, `chore:`, ...) — they drive semantic-release
   (see `.releaserc.json`).
 
+## GitHub workflows
+
+Actions are locked in `.github/workflows/actions.lock` (`uses:` refs are tags; the lockfile holds
+the commits). After adding a workflow or changing any `uses:`, run `gh actions-lock` and commit the
+lockfile with it; never edit it by hand. CI's `Lockfile` check runs `gh actions-lock --verify`.
+See "Changing GitHub workflows" in `README.md`.
+
 ## Updating packages and resolving CVEs
 
 CI (GitHub Actions `setup-node` with Node 22, and Vercel) runs **npm 10**. npm 11 writes
