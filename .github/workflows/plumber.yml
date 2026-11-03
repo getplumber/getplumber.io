@@ -3,6 +3,9 @@ on:
   push:
     branches: [main]   # scope to the default branch so a PR push isn't scanned twice
   pull_request: null
+  schedule:
+    - cron: "17 4 * * 1"   # weekly, keeps the published score fresh
+  workflow_dispatch:
 
 permissions:
   contents: read
