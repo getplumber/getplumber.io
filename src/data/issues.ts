@@ -2601,25 +2601,26 @@ jobs:
   "ISSUE-510": {
     code: "ISSUE-510",
     gitlab: {
-      title: "Release tag pattern is not protected",
+      title: "Tags are not protected",
       category: "Access and Authorization",
       severity: "critical",
       productScope: "cli",
       controlName: "Tag must be protected",
       controlConfigKey: "tagMustBeProtected",
       description:
-        "A release tag pattern is in use, but anyone allowed to push a tag can move, delete or create a matching tag. A pattern is in use when an existing tag matches it.",
+        "The project uses tags, but anyone allowed to push a tag can move, delete or create one. By default every tag must be covered by a protected tag `*`; when the control lists `namePatterns`, each listed pattern must be covered instead.",
       impact:
         "Tags are what release pipelines run on and what consumers pin to. A moved tag ships unreviewed code under a version name consumers already trust: the tj-actions/changed-files compromise re-pointed existing version tags to a malicious commit.",
       remediation:
-        "Protect the tag pattern in the project settings and leave tag creation to Maintainers or a narrower set.",
+        "Protect all tags with a protected tag `*` in the project settings, and leave tag creation to Maintainers or a narrower set.",
       remediationSteps: [
         {
           title: "Open **Settings > Repository > Protected tags** and click **Add new**.",
         },
         {
-          title: "In **Tag**, enter the release pattern, for example `v*`.",
-          detail: "Use the same patterns as the control's `namePatterns`. A protected tag already blocks updates and deletions by itself.",
+          title: "In **Tag**, enter `*` to cover every tag.",
+          detail:
+            "If the control lists `namePatterns`, protect each listed pattern instead, for example `v*`. A protected tag already blocks updates and deletions by itself.",
         },
         {
           title: "Set **Allowed to create** to **Maintainers**, or a narrower set.",
@@ -2630,34 +2631,36 @@ jobs:
           title: "Click **Protect** and re-run Plumber to confirm the finding clears.",
         },
       ],
-      badExample: `# .gitlab-ci.yml: ❌ the tag pipeline publishes, but v* tags are not protected
+      badExample: `# .gitlab-ci.yml: ❌ the tag pipeline publishes, but no protected tag covers all tags
 publish:
   rules:
     - if: $CI_COMMIT_TAG
   script:
     - ./publish.sh`,
-      badExampleCaption: "A job runs on tag pipelines while anyone with push access can create or move a `v*` tag.",
+      badExampleCaption: "A job runs on tag pipelines while anyone with push access can create or move a tag.",
       tips: [
         "The finding is critical when a job runs on tag pipelines (`only: [tags]`, or a `rules:` entry on `$CI_COMMIT_TAG`), high otherwise.",
-        "A pattern no existing tag matches is not checked, so a project that never tags stays quiet.",
+        "By default the control raises one finding, for the tag pattern `*`. A protected tag on a narrower pattern such as `v*` does not cover all tags.",
+        "To check specific patterns instead, set `namePatterns`, for example `[v*]`. Each pattern then gets its own finding.",
+        "Nothing is checked until the project has a tag or a job runs on tag pipelines, so a project that never tags stays quiet.",
         "Plumber needs a token with `read_api` to list protected tags and tags. Without it the control reports \"not evaluated\" and raises no finding.",
         "Protected tags are available on every GitLab plan. Restricting creation to named users or groups needs GitLab Premium.",
       ],
       relatedCodes: ["ISSUE-501", "ISSUE-701"],
     },
     github: {
-      title: "Release tag pattern is not protected",
+      title: "Tags are not protected",
       category: "Access and Authorization",
       severity: "critical",
       productScope: "cli",
       controlName: "Tag must be protected",
       controlConfigKey: "tagMustBeProtected",
       description:
-        "A release tag pattern is in use, but anyone with push access can move, delete or create a matching tag. A pattern is in use when an existing tag matches it or a workflow triggers on it.",
+        "The repository uses tags, but anyone with push access can move, delete or create one. By default every tag must be covered by active tag rulesets that target all tags; when the control lists `namePatterns`, each listed pattern must be covered instead.",
       impact:
         "Tags are what release workflows run on and what consumers pin to. A moved tag ships unreviewed code under a version name consumers already trust: the tj-actions/changed-files compromise re-pointed existing version tags to a malicious commit.",
       remediation:
-        "In the repository settings, cover the tag pattern with an active tag ruleset that restricts creations, updates and deletions.",
+        "In the repository settings, cover all tags with an active tag ruleset that restricts creations, updates and deletions.",
       remediationSteps: [
         {
           title: "Open **Settings > Rules > Rulesets** and click **New ruleset > New tag ruleset**.",
@@ -2667,7 +2670,9 @@ publish:
           detail: "A ruleset in **Evaluate** mode only reports and blocks nothing, so Plumber does not count it.",
         },
         {
-          title: "Under **Target tags**, add the release pattern, for example `v*`, or target all tags.",
+          title: "Under **Target tags**, click **Add target > Include all tags**.",
+          detail:
+            "Leave out exclude patterns: a ruleset that excludes some tags does not cover all of them. If the control lists `namePatterns`, target each listed pattern instead, for example `v*`.",
         },
         {
           title: "Enable **Restrict creations**, **Restrict updates** and **Restrict deletions**.",
@@ -2680,7 +2685,7 @@ publish:
           title: "Click **Create** and re-run Plumber to confirm the finding clears.",
         },
       ],
-      badExample: `# .github/workflows/release.yml: ❌ runs on v* tags, but no tag ruleset covers them
+      badExample: `# .github/workflows/release.yml: ❌ runs on v* tags, but no tag ruleset covers all tags
 on:
   push:
     tags: ["v*"]
@@ -2690,10 +2695,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: ./publish.sh`,
-      badExampleCaption: "A release workflow runs on `v*` tags while anyone with push access can create or move one.",
+      badExampleCaption: "A release workflow runs on `v*` tags while anyone with push access can create or move a tag.",
       tips: [
         "The finding is critical when a workflow runs on a tag push (`on.push.tags`, `on.push.tags-ignore`, or `on: release`), high otherwise.",
-        "Every `on.push.tags` pattern of a workflow is checked too, on top of the control's `namePatterns`.",
+        "By default the control raises one finding, for the tag pattern `~ALL` (GitHub's name for all tags). A ruleset on `v*` or `*` does not cover all tags.",
+        "To check specific patterns instead, set `namePatterns`, for example `[v*]`. Each pattern then gets its own finding.",
+        "Workflow `on.push.tags` patterns never add a pattern to check: they only make the finding critical.",
+        "Nothing is checked until the repository has a tag or a workflow runs on tags, so a repository that never tags stays quiet.",
         "The three rules may come from different rulesets, the repository's own or inherited from the organization.",
         "Listing rulesets and tags needs only `Metadata: Read`, which every `GITHUB_TOKEN` carries. Without access, or where rulesets are unavailable, the control reports \"not evaluated\" and raises no finding.",
       ],

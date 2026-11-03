@@ -301,12 +301,12 @@ github:
   <Badge text="Needs an API token" variant="note" />
 </div>
 
-Checks that the release tag patterns in use are protected: tag updates and deletions blocked, and tag creation restricted. Raises [ISSUE-510](/docs/use-plumber/issues/ISSUE-510) (critical, or high when no pipeline or workflow runs on a tag). A pattern is only checked while it is in use: an existing tag matches it or, on GitHub, a workflow triggers on it. On GitLab it reads protected tags; on GitHub, active tag rulesets, the repository's own and the organization's. Without access the control reports "not evaluated" and raises no finding. On GitLab it is not evaluated in Platform mode yet.
+Checks that tags are protected: tag updates and deletions blocked, and tag creation restricted. By default every tag must be covered by one rule on all tags: a GitLab protected tag `*`, or GitHub tag rulesets targeting **All tags** with no exclude pattern. List `namePatterns` to check specific patterns instead. Raises [ISSUE-510](/docs/use-plumber/issues/ISSUE-510) (critical, or high when no pipeline or workflow runs on a tag). Nothing is checked until the repository has a tag or a pipeline or workflow runs on tags. Workflow tag triggers never add a pattern to check, they only raise the severity. On GitLab it reads protected tags; on GitHub, active tag rulesets, the repository's own and the organization's. Without access the control reports "not evaluated" and raises no finding. On GitLab it is not evaluated in Platform mode yet.
 
 | Field | Default | Description |
 |---|---|---|
 | `enabled` | `true` | Turns the control on. |
-| `namePatterns` | `[v*]` | Tag name patterns that must be protected. Wildcards are supported. On GitHub, every `on.push.tags` pattern of a workflow is checked as well. |
+| `namePatterns` | `[]` | Tag name patterns that must be protected, each checked on its own. Wildcards are supported. Empty means all tags: a GitLab protected tag `*`, or GitHub rulesets on **All tags** (`~ALL`), with no exclusion. |
 | `requireCreationRestricted` | `true` | Expectation: `true` also requires tag creation to be restricted (GitLab: left to Maintainers or narrower; GitHub: **Restrict creations**). `false` checks updates and deletions only. |
 
 <Tabs defaultValue="gitlab" syncKey="provider">
@@ -321,7 +321,7 @@ gitlab:
   controls:
     tagMustBeProtected:
       enabled: true
-      namePatterns: [v*]
+      namePatterns: [] # all tags; or [v*] to check specific patterns
       requireCreationRestricted: true
 ```
 
@@ -333,7 +333,7 @@ github:
   controls:
     tagMustBeProtected:
       enabled: true
-      namePatterns: [v*]
+      namePatterns: [] # all tags; or [v*] to check specific patterns
       requireCreationRestricted: true
 ```
 
