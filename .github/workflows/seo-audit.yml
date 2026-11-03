@@ -31,12 +31,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: "22"
           # astro 7.4 needs >=22.23.4; the runner cache lags, so fetch the latest 22.x
@@ -56,7 +56,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload SEO Report
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: seo-report
           path: seo-report.json
@@ -66,7 +66,7 @@ jobs:
       # the report content itself rather than on failure().
       - name: Create Issue on Score Drop
         if: github.event_name == 'schedule'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@v8.0.0
         with:
           script: |
             const fs = require('fs');
