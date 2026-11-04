@@ -34,8 +34,8 @@ helm upgrade --install plumber plumber-platform/plumber-platform \
 ```
 
 The chart is named `plumber-platform`, and its version matches the platform version it installs
-(chart `2.0.0` installs `v2.0.0`). Both application images are pinned by the chart and always move
-together.
+(chart `X.Y.Z` installs `vX.Y.Z`). Both application images are pinned by the chart to that version
+and always move together: leave `front.tag` and `backend.tag` out of your values.
 
 <Steps>
 
@@ -490,24 +490,23 @@ Scale the single backend vertically (`backend.resources`, `PLUMBER_DB_MAX_OPEN_C
    helm repo update
    ```
 
-2. Bump `front.tag` and `backend.tag` **together** in your values: every release pins both images
-   to one version.
-   ```yaml
-   front:
-     tag: v2.0.0
-   backend:
-     tag: v2.0.0
-   ```
-
-3. Run the helm upgrade
+2. Run the helm upgrade: the new chart pins both images to its own version, there is no tag to
+   bump.
    ```sh
    helm upgrade --install plumber plumber-platform/plumber-platform \
      -n plumber -f custom_values.yaml
    ```
 
-4. You have successfully updated Plumber 🎉
+   <Aside variant="caution">
+   If your values file sets `front.tag` or `backend.tag`, remove both: a pinned tag overrides the
+   chart and freezes the install on that version through every upgrade, whatever chart version
+   Helm installs. `helm get values plumber -n plumber` shows what your release pins, and the
+   chart's install notes warn when a tag diverges from the chart.
+   </Aside>
 
-5. If your GitLab holds a copy of the Plumber component,
+3. You have successfully updated Plumber 🎉
+
+4. If your GitLab holds a copy of the Plumber component,
    [refresh it](/docs/installation/component-update).
 
 </Steps>
