@@ -17,7 +17,7 @@ workflows:
         - 'actions/setup-node@v7.1.0'
     '.github/workflows/plumber.yml':
         - 'actions/checkout@v7.0.1'
-        - 'getplumber/plumber@v0.7.18'
+        - 'getplumber/plumber@v1'
     '.github/workflows/preview.yaml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.1.0'
@@ -72,9 +72,9 @@ dependencies:
         commit: 'sha1-cf430e030ddbb5b0abf93d22962f4752f3646cd9'
         owner_id: 44036562
         repo_id: 192625955
-    'getplumber/plumber@v0.7.18':
-        ref: 'v0.7.18'
-        commit: 'sha1-ebc213aa45dccd233ce5c2630f0aafa8e8d650c5'
+    'getplumber/plumber@v1':
+        ref: 'v1'
+        commit: 'sha1-e9ad2dc6d6faa2dfd84395aac18e461284062640'
         owner_id: 255179076
         repo_id: 1137327132
         uses:
