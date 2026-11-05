@@ -245,7 +245,7 @@ export const proof = {
   // lists the source each one will be queried from
   stats: [
     { value: "100+", label: "open-source projects graded A or B" },
-    { value: "25,000+", label: "open-source downloads" },
+    { value: "140,000+", label: "open-source downloads" },
     { value: "16,644", label: "public projects graded" },
     { value: "250k+", label: "leaks found" },
   ] as Stat[],
