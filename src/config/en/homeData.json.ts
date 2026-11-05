@@ -244,10 +244,10 @@ export const proof = {
   // figures are static for now; docs/superpowers/plans/2026-10-27-home-numbers-sources.md
   // lists the source each one will be queried from
   stats: [
-    { value: "100+", label: "open-source projects graded A or B" },
+    { value: "200+", label: "open-source projects graded A or B" },
     { value: "140,000+", label: "open-source downloads" },
-    { value: "16,644", label: "public projects graded" },
-    { value: "250k+", label: "leaks found" },
+    { value: "110,000+", label: "public projects graded" },
+    { value: "260k+", label: "leaks found" },
   ] as Stat[],
 };
 
