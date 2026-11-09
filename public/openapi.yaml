@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Plumber Platform API
-  version: 2.11.0
+  version: 2.13.0
   description: |-
     The HTTP API of the Plumber Platform, served by your Plumber instance under `/api/v1`.
 
@@ -4904,11 +4904,11 @@ components:
         snapshot:
           type: object
           properties:
-            collected_at: { type: string, format: date-time }
+            collected_at: { type: string, format: date-time, description: 'When the collection pass that wrote this snapshot ran. A field listed in data.carried_fields is older: its value is as of the time given there.' }
             last_attempt_at:
               type: string
               format: date-time
-              description: 'When the platform last attempted a collection pass for this project, whatever that pass concluded; distinct from `collected_at`, which is when the last good data was collected. A pass that learned nothing keeps the last good data at its real age, and this field says the platform did try. Absent when no pass has ever run for the project.'
+              description: 'When the platform last attempted a collection pass for this project, whatever that pass concluded; distinct from `collected_at`, which is when the last pass that wrote a snapshot ran. A pass that learned nothing keeps the last good data at its real age, and this field says the platform did try. Absent when no pass has ever run for the project.'
             last_attempt_outcome:
               type: string
               description: 'How the pass at `last_attempt_at` ended. `complete`: every fetch it attempted succeeded. `partial`: some fetches succeeded and some did not (a genuine degradation, or an endpoint answering an absence-shaped 404, as GitLab CE does for MR-approval endpoints), and the snapshot was written. `learned_nothing`: no fetch succeeded and no absence-shaped 404 was seen; the snapshot write was skipped. `outage`: no fetch succeeded and at least one endpoint answered an absence-shaped 404, which on a project the platform already knows means the git host is down; the write was skipped. Absent when no pass has ever run.'
@@ -4989,6 +4989,10 @@ components:
                   type: array
                   items: { type: string, enum: [branch_protection, mr_approvals, variables, merged_yaml, project_details, raw_config, source_catalog, security_policy_project, includes_jobs] }
                   description: 'Stable identifiers of every field whose fetch failed in this collection. A name here means "could not be fetched, treat as not_evaluable"; a field absent from the payload and from this list is genuinely empty (a control may fail against it). One identifier can cover several fetches (mr_approvals: rules + settings; variables: group + project + instance scopes); each appears at most once. An archived project or an INVALID user CI config does not add "merged_yaml" here: those are facts, not fetch failures. `raw_config`: the file was fetched but exceeded 1 MiB, or ci_config_path names a file outside the project that could not be read or that the platform does not read (anything but the instance''s central file). `source_catalog`: at least one component include''s catalog lookup failed (never when a lookup determined "not a catalog resource"). `security_policy_project`: the linkage read was not authoritative (known=false). `includes_jobs`: at least one include''s job attribution could not be established, or the derivation was capped or failed.'
+                carried_fields:
+                  type: object
+                  additionalProperties: { type: string, format: date-time }
+                  description: 'Fields the code host refused to serve on this collection (rate limited, a server error, access refused, or unreachable) that keep the value of an earlier collection instead, each mapped to the time that earlier collection actually fetched it (RFC 3339). Keys use the same identifiers as degraded_fields; a carried field is not listed in degraded_fields, but the degraded_fields entries the earlier collection recorded for what it carries (`source_catalog`, `includes_jobs` and `raw_config` beside a carried `merged_yaml`) are listed again. The value is served as of that time: a field refused again on the next collection keeps its original time. A field is carried for at most 48 hours by default, after which it degrades and appears in degraded_fields. A confirmed answer is never carried: a missing file or feature, an archived project, an invalid CI configuration, or a project that no longer exists. Absent when nothing was carried.'
     DismissedIssue:
       type: object
       description: 'One entry of ProjectContext.dismissed_issues: the match key the CLI uses to mark its own findings as dismissed. See that field for the cap, ordering, version-skip, and branch-blindness rules.'
