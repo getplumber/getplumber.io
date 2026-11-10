@@ -28,6 +28,46 @@ categories:
   }
   .markdown-content blockquote.pull-quote p { margin: 0; color: inherit; line-height: 1.35; }
   .markdown-content blockquote.pull-quote code { font-size: 0.85em; }
+  .tj-fig { margin: 2rem 0; padding: 1.25rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); font-size: 0.9rem; line-height: 1.45; }
+  .tj-fig code, .tj-mono { font-family: var(--font-mono); font-size: 0.85em; }
+  .tj-cap { margin-top: 1rem; font-size: 0.8rem; color: var(--muted-foreground); text-align: center; }
+  .tj-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); }
+  .tj-box { border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.8rem; background: var(--background); }
+  .tj-box.tj-ok { border-color: var(--accent-text); }
+  .tj-box.tj-bad { border-color: var(--error); }
+  .tj-ok-t { color: var(--accent-text); font-weight: 700; }
+  .tj-bad-t { color: var(--error); font-weight: 700; }
+  .tj-sub { display: block; font-size: 0.8rem; color: var(--muted-foreground); }
+  .tj-arrow { color: var(--muted-foreground); font-weight: 700; }
+  .tj-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem; }
+  .tj-row + .tj-row { margin-top: 0.9rem; }
+  .tj-row > .tj-label { flex: 0 0 5.5rem; }
+  .tj-stairs { display: flex; flex-direction: column-reverse; gap: 0.5rem; }
+  .tj-stairs .tj-box { display: flex; gap: 0.75rem; align-items: flex-start; }
+  .tj-s2 { margin-left: 7%; } .tj-s3 { margin-left: 14%; } .tj-s4 { margin-left: 21%; }
+  .tj-num { flex: 0 0 1.6rem; height: 1.6rem; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; background: var(--accent-text); color: var(--background); }
+  .tj-bad .tj-num { background: var(--error); color: #fff; }
+  .tj-tl { display: grid; grid-template-columns: 5.5rem 1fr; }
+  .tj-tl > div { padding: 0.45rem 0 0.45rem 1rem; }
+  .tj-tl .tj-time { padding-left: 0; text-align: right; padding-right: 1rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted-foreground); }
+  .tj-tl .tj-ev { border-left: 2px solid var(--border); position: relative; }
+  .tj-tl .tj-ev::before { content: ""; position: absolute; left: -6px; top: 0.85rem; width: 10px; height: 10px; border-radius: 999px; background: var(--accent-text); }
+  .tj-tl .tj-ev.tj-hot { border-left-color: var(--error); }
+  .tj-tl .tj-ev.tj-hot::before { background: var(--error); }
+  .tj-tl .tj-ev.tj-gap::before { display: none; }
+  .tj-tl .tj-ev.tj-gap { border-left-style: dashed; border-left-color: var(--error); }
+  .tj-funnel { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+  .tj-funnel .tj-box { text-align: center; }
+  .tj-funnel b { font-size: 1.25rem; display: block; line-height: 1.2; }
+  .tj-f1 { width: 100%; } .tj-f2 { width: 82%; } .tj-f3 { width: 64%; } .tj-f4 { width: 46%; }
+  .tj-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.9rem; }
+  .tj-cols .tj-box > div + div { margin-top: 0.45rem; }
+  .tj-bar { display: flex; height: 2.6rem; border-radius: 8px; overflow: hidden; font-weight: 700; }
+  .tj-bar > div { display: flex; align-items: center; justify-content: center; }
+  .tj-bar .tj-b68 { width: 68%; background: var(--error); color: #fff; }
+  .tj-bar .tj-b32 { width: 32%; background: var(--accent-text); color: var(--background); }
+  .tj-legend { display: flex; justify-content: space-between; gap: 1rem; margin-top: 0.5rem; font-size: 0.8rem; color: var(--muted-foreground); }
+  .tj-legend span:last-child { white-space: nowrap; }
 `}</style>
 
 Five GitHub accounts. All deleted. Behind each of them, the same attacker. One person, one group, nobody knows.
@@ -66,6 +106,26 @@ steps:
 
 Now look at the end of that line. `v44` is not a thing. It is a label, a sticky note stuck on one specific version of the code. By writing it, you tell the repository: "I trust you. Give me whatever `v44` points to."
 
+<div class="not-content tj-fig">
+  <div class="tj-row">
+    <span class="tj-label">Today</span>
+    <span class="tj-box tj-mono">uses: ...@v44</span>
+    <span class="tj-arrow">→</span>
+    <span class="tj-box">tag <code>v44</code></span>
+    <span class="tj-arrow">→</span>
+    <span class="tj-box tj-ok">commit A<span class="tj-sub">the code you trusted</span></span>
+  </div>
+  <div class="tj-row">
+    <span class="tj-label">Tomorrow?</span>
+    <span class="tj-box tj-mono">uses: ...@v44</span>
+    <span class="tj-arrow">→</span>
+    <span class="tj-box">tag <code>v44</code> <span class="tj-bad-t">moved</span></span>
+    <span class="tj-arrow">→</span>
+    <span class="tj-box tj-bad">commit B<span class="tj-sub">whatever the tag owner pushed</span></span>
+  </div>
+  <div class="tj-cap">Your workflow file never changes. What it runs can.</div>
+</div>
+
 <blockquote class="pull-quote">
 
 So here is the question I could not let go of: what happens if tomorrow someone moves the sticky note?
@@ -89,6 +149,16 @@ Think about that. You have a working key to someone else's house, and you wait n
 Why reviewdog? Because reviewdog is used by thousands of other projects, including one very specific one: a tiny action in the **tj-actions** organization, `eslint-changed-files`. Tiny, but its pipeline runs with the organization's bot account, the bot that holds the keys to everything. So when the poisoned reviewdog ran inside it, it dumped the secrets, and in the dump was the master key of tj-actions. The key to `changed-files`. The key to 23,000 projects.
 
 Look at it: a pull request on a tiny Java project, a security tool, a linting tool, a bot. Four steps, three months. And not one of those steps broke a rule. Nobody clicked a bad link. Nobody shared a password. Every project trusted exactly what everyone tells you to trust.
+
+<div class="not-content tj-fig">
+  <div class="tj-stairs">
+    <div class="tj-box tj-s1"><span class="tj-num">1</span><span><b>A SpotBugs Java project</b>, December 2024<span class="tj-sub">pwn request → a maintainer's token, held for three months</span></span></div>
+    <div class="tj-box tj-s2"><span class="tj-num">2</span><span><b>spotbugs/spotbugs</b>, March 11, 10:50 UTC<span class="tj-sub">one-second branch → a reviewdog maintainer's token</span></span></div>
+    <div class="tj-box tj-s3"><span class="tj-num">3</span><span><b>reviewdog/action-setup</b>, March 11, 18:42 UTC<span class="tj-sub">poisoned for 1h49 → runs inside tj-actions/eslint-changed-files, leaks the bot's token</span></span></div>
+    <div class="tj-box tj-s4 tj-bad"><span class="tj-num">4</span><span><b>tj-actions/changed-files</b><span class="tj-sub">the master key to 23,000 projects</span></span></div>
+  </div>
+  <div class="tj-cap">Read from the bottom up: each stolen key opens the next project.</div>
+</div>
 
 <blockquote class="pull-quote">
 
@@ -114,6 +184,17 @@ What do you do?
 
 **16:57 UTC.** They made a choice. If they could not have Coinbase quietly, they would take everything, loudly. Remember the boring tags? They moved every single one of them, `v44`, `v45`, `v35`, dozens of versions, to point at their poisoned commit. Retroactively. So every pipeline on earth asking for "the version I have always used" got the poison. Silently.
 
+<div class="not-content tj-fig">
+  <div class="tj-tl">
+    <div class="tj-time">Mar 12</div><div class="tj-ev">Coinbase repositories forked, payload tested</div>
+    <div class="tj-time">Mar 14, 15:10</div><div class="tj-ev">A Coinbase write token leaks. <b>The heist begins.</b></div>
+    <div class="tj-time">16:37</div><div class="tj-ev">Coinbase deletes the workflow. <b>Door closed, nothing taken.</b></div>
+    <div class="tj-time tj-bad-t">20 min</div><div class="tj-ev tj-gap"><span class="tj-bad-t">The attacker still holds the master key, and decides.</span></div>
+    <div class="tj-time">16:57</div><div class="tj-ev tj-hot"><b>Every tag of changed-files repointed</b> to the poisoned commit</div>
+  </div>
+  <div class="tj-cap">All times UTC.</div>
+</div>
+
 ## 23,000
 
 Still the same day, a security company's monitoring started seeing build servers make a network call they had never made before.
@@ -128,6 +209,16 @@ The numbers, as counted by Endor Labs:
 - **218** leaked real secrets into public logs.
 - **72** different kinds of secrets: cloud tokens, GitHub tokens, private keys, npm publish tokens.
 
+<div class="not-content tj-fig">
+  <div class="tj-funnel">
+    <div class="tj-box tj-f1"><b>23,000</b>repositories used the action</div>
+    <div class="tj-box tj-f2"><b>5,416</b>had it wired into a pipeline</div>
+    <div class="tj-box tj-f3"><b>614</b>ran it while the poison was live</div>
+    <div class="tj-box tj-f4 tj-bad"><b class="tj-bad-t">218</b>leaked real secrets into public logs</div>
+  </div>
+  <div class="tj-cap">Source: Endor Labs. Widths are not to scale.</div>
+</div>
+
 218 front doors, left open, published to the internet, on a Friday.
 
 That same night, PyTorch was ripping the action out of its repositories; the commit title says it all: ["Tags in tj-actions/changed-files are compromised"](https://github.com/pytorch/serve/commit/4f2b031681ca7d02f5ee51105ac3406ef147cd8c). Picture that room. A Friday afternoon, a thousand teams running the same horrible checklist. Did we run it? In the window? What did we leak? Rotate everything. Now.
@@ -141,6 +232,25 @@ Which leaves the question every good story ends on: who?
 And this is where it goes cold. Every account they used is gone. The December stranger, the one who walked into SpotBugs, the one who forked Coinbase: all deleted. The malicious commits were signed as `renovate[bot]`, a trusted automation account, so they would wear a friendly face in the history.
 
 So what do we actually know? Patient enough to wait three months. Precise enough to target one company. Skilled enough to run the whole chain and vanish completely. We do not know their name, or their names. We do not know their country. We know they wanted Coinbase, they missed, and on their way out they set fire to 23,000 projects.
+
+<div class="not-content tj-fig">
+  <div class="tj-cols">
+    <div class="tj-box tj-ok">
+      <div class="tj-label">What we know</div>
+      <div>Waited three months between two steps</div>
+      <div>Built the payload for one company: Coinbase</div>
+      <div>Signed the commits as <code>renovate[bot]</code></div>
+      <div>Ran the whole chain, then deleted every account</div>
+    </div>
+    <div class="tj-box">
+      <div class="tj-label">What we do not know</div>
+      <div>A name</div>
+      <div>A country</div>
+      <div>One person, or a group</div>
+      <div>Whether they are climbing another staircase</div>
+    </div>
+  </div>
+</div>
 
 And thousands of staircases like the one they climbed still exist today.
 
@@ -164,9 +274,47 @@ That was the classic defense, and for a year it was the only one. It works. It i
 
 In October 2026, GitHub shipped the thing that should have existed in March 2025: a [lockfile for Actions](https://github.blog/changelog/2026-10-14-github-actions-workflow-lockfiles-in-public-preview/). You keep `@v44` in your workflow, readable. One command, `gh actions-lock`, records the exact commit of every action and of everything it depends on into `.github/workflows/actions.lock`, and GitHub runs the lock, not the label. It is `package-lock`, for your pipeline.
 
+<div class="not-content tj-fig">
+  <div class="tj-row">
+    <span class="tj-label">Tag</span>
+    <span class="tj-box tj-mono">@v44</span>
+    <span class="tj-arrow">→</span>
+    <span class="tj-box">tag, <span class="tj-bad-t">moved by the attacker</span></span>
+    <span class="tj-arrow">→</span>
+    <span class="tj-box tj-bad">poisoned commit</span>
+  </div>
+  <div class="tj-row">
+    <span class="tj-label">SHA pin</span>
+    <span class="tj-box tj-mono">@a1b2c3d...</span>
+    <span class="tj-arrow">→</span>
+    <span class="tj-box tj-ok">the exact commit<span class="tj-sub">no tag involved, nothing to move</span></span>
+  </div>
+  <div class="tj-row">
+    <span class="tj-label">Lockfile</span>
+    <span class="tj-box tj-mono">@v44</span>
+    <span class="tj-arrow">+</span>
+    <span class="tj-box tj-mono">actions.lock</span>
+    <span class="tj-arrow">→</span>
+    <span class="tj-box tj-ok">the locked commit<span class="tj-sub">and the locked commits of its dependencies</span></span>
+  </div>
+  <div class="tj-cap">Same attack, three ways to ask for the action, one bad outcome.</div>
+</div>
+
 ## Where your pipeline stands
 
 Remember the number from the start: **two out of three** public projects have not even done the classic fix.
+
+<div class="not-content tj-fig">
+  <div class="tj-bar">
+    <div class="tj-b68">68%</div>
+    <div class="tj-b32">32%</div>
+  </div>
+  <div class="tj-legend">
+    <span>use at least one action from a mutable tag</span>
+    <span>do not</span>
+  </div>
+  <div class="tj-cap">Public GitHub repositories scanned by the Plumber Radar.</div>
+</div>
 
 If your project is open source, it is probably already on the [Radar](/radar). Search for it, and in ten seconds you will know whether your pipeline has the same door open, and what grade it gets.
 
