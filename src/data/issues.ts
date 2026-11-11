@@ -2721,7 +2721,7 @@ jobs:
       impact:
         "Tag and branch refs are mutable. The March 2025 `tj-actions/changed-files` compromise (CVE-2025-30066) retagged a stable version to point at malicious code that exfiltrated repo secrets from every CI run consuming the action, and there were thousands of them.",
       remediation:
-        "Replace each `uses: owner/repo@vX` with `uses: owner/repo@<40-char-sha>  # vX.Y.Z`, or, when the action publishes immutable releases, reference the exact released tag (`uses: owner/repo@v4.2.1`). Use Dependabot or Renovate to bump the SHA when upstream releases. For steps, a [workflow dependency lockfile](https://docs.github.com/actions/concepts/security/workflow-dependency-lockfiles) is a third way: your workflow files keep their readable tags and GitHub runs the commits the lockfile records. To set one up:",
+        "Replace each `uses: owner/repo@vX` with `uses: owner/repo@<40-char-sha>  # vX.Y.Z`, or, when the action publishes immutable releases, reference the exact released tag (`uses: owner/repo@v4.2.1`). Use Dependabot or Renovate to bump the SHA when upstream releases. For steps you can also commit a [workflow dependency lockfile](https://docs.github.com/actions/concepts/security/workflow-dependency-lockfiles): your workflow files keep their readable tags and GitHub runs the commits the lockfile records. To set one up:",
       remediationSteps: [
         {
           title: "Install the GitHub CLI extension: `gh extension install github/gh-actions-lock`.",
@@ -2731,12 +2731,12 @@ jobs:
         {
           title: "Run `gh actions-lock` at the root of the repository and commit `.github/workflows/actions.lock`.",
           detail:
-            "The file is machine-generated. Its `workflows:` map lists each onboarded workflow and the `owner/repo@ref` references it uses. Its `dependencies:` map resolves each reference to a commit SHA, the owner and repository ids, and the actions that action calls in turn. The workflow files are left untouched.",
+            "The file's `workflows:` map lists each onboarded workflow and the `owner/repo@ref` references it uses. Its `dependencies:` map resolves each reference to a commit SHA, the owner and repository ids, and the actions that action calls in turn. Your workflow files stay as they are.",
         },
         {
           title: "GitHub then runs the locked commit, whatever the tag points at.",
           detail:
-            "At job start the runner uses the commit recorded in the lockfile even if the tag was moved, and checks the ids so a renamed or recreated repository cannot stand in for the original. It refuses to start an onboarded workflow when a dependency has no entry or the file is malformed. A stale lockfile therefore breaks the run instead of running unpinned code, which is why Plumber only checks that the file is present.",
+            "At job start the runner uses the commit recorded in the lockfile even if the tag was moved, and checks the ids so a renamed or recreated repository cannot stand in for the original. It refuses to start an onboarded workflow when a dependency has no entry or the file is malformed, so a stale lockfile stops the run before any unpinned code executes. That is why Plumber only checks that the file is present.",
         },
         {
           title: "Re-run `gh actions-lock` whenever an action changes, and verify the lockfile in CI with `gh actions-lock --verify`.",
