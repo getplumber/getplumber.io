@@ -51,6 +51,8 @@ export interface navCta {
   link: string;
   variant: "primary" | "secondary";
   newTab?: boolean;
+  /** Plausible goal sent on click (the component adds the placement), see Button.astro */
+  track?: string;
 }
 
 // --------------------------------------------------------
@@ -105,6 +107,8 @@ export interface Cta {
   link: string;
   variant: "primary" | "secondary" | "secondary-trailing" | "ghost";
   newTab?: boolean;
+  /** Plausible goal sent on click (the component adds the placement), see Button.astro */
+  track?: string;
 }
 
 export interface Stat {
@@ -147,4 +151,6 @@ export interface ProductColumn {
   text: string;
   quote?: string;
   ctas: Cta[];
+  /** "placement" prop of the Plausible goals sent by this column's CTAs */
+  trackPlacement?: string;
 }

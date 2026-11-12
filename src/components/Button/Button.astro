@@ -7,6 +7,10 @@ import type { HTMLAttributes } from "astro/types";
  * Variants: primary (accent fill, marker after), secondary (stroke, marker before),
  * secondary-trailing (stroke, marker after), ghost (text only).
  * Size "navbar" is the compact variant used in the site header.
+ *
+ * Click tracking: pass data-track-event="<Plausible goal>" (and data-track-placement="<where>")
+ * and the click sends that custom event with a "placement" prop, so every CTA gets its own count
+ * in Plausible (the script below). Add the goal in the Plausible dashboard once to see it listed.
  */
 interface Props extends HTMLAttributes<"button">, Omit<HTMLAttributes<"a">, "type"> {
   variant?: "primary" | "secondary" | "secondary-trailing" | "ghost";
@@ -58,3 +62,13 @@ const Component = href ? "a" : "button";
 >
   <slot />
 </Component>
+
+<script>
+  // One document-level listener for every tracked CTA; it survives view transitions.
+  document.addEventListener("click", (event) => {
+    const cta = (event.target as Element | null)?.closest<HTMLElement>("[data-track-event]");
+    const name = cta?.dataset.trackEvent;
+    if (!cta || !name || typeof window.plausible !== "function") return;
+    window.plausible(name, { props: { placement: cta.dataset.trackPlacement ?? "unknown" } });
+  });
+</script>

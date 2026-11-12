@@ -35,6 +35,8 @@ import SectionHeading from "./SectionHeading.astro";
           href={proof.ctas[0].link}
           target={proof.ctas[0].newTab ? "_blank" : undefined}
           rel={proof.ctas[0].newTab ? "noopener noreferrer" : undefined}
+          data-track-event={proof.ctas[0].track}
+          data-track-placement="proof"
         >
           {proof.ctas[0].text}
         </Button>

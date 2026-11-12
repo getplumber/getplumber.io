@@ -70,10 +70,18 @@ const letters = "PLUMBER".split("");
             target={hero.ctas[0].newTab ? "_blank" : undefined}
             rel={hero.ctas[0].newTab ? "noopener noreferrer" : undefined}
             class="w-full sm:w-auto sm:self-start"
+            data-track-event={hero.ctas[0].track}
+            data-track-placement="hero"
           >
             {hero.ctas[0].text}
           </Button>
-          <Button variant="primary" href={hero.ctas[1].link} class="w-full sm:w-auto sm:self-auto">
+          <Button
+            variant="primary"
+            href={hero.ctas[1].link}
+            class="w-full sm:w-auto sm:self-auto"
+            data-track-event={hero.ctas[1].track}
+            data-track-placement="hero"
+          >
             {hero.ctas[1].text}
           </Button>
         </div>

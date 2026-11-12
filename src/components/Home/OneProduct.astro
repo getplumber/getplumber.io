@@ -57,6 +57,8 @@ import SectionHeading from "./SectionHeading.astro";
                         ? "path__cta w-full sm:w-auto"
                         : "w-full transition-colors duration-400 sm:w-auto"
                     }
+                    data-track-event={cta.track}
+                    data-track-placement={column.trackPlacement}
                   >
                     {cta.text}
                   </Button>
