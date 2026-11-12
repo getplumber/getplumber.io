@@ -57,6 +57,8 @@ const isDocs = Astro.url.pathname.startsWith("/docs");
             href={cta.link}
             target={cta.newTab ? "_blank" : undefined}
             rel={cta.newTab ? "noopener noreferrer" : undefined}
+            data-track-event={cta.track}
+            data-track-placement="nav"
           >
             {cta.text}
           </Button>

@@ -138,6 +138,8 @@ if (!docsMenuExists) {
             class="w-auto"
             target={cta.newTab ? "_blank" : undefined}
             rel={cta.newTab ? "noopener noreferrer" : undefined}
+            data-track-event={cta.track}
+            data-track-placement="mobile-nav"
           >
             {cta.text}
           </Button>

@@ -29,8 +29,14 @@ export const hero = {
   headline: "Leaking CI/CD pipelines kill your company.",
   headlineMuted: "Plumber prevents it.",
   ctas: [
-    { text: "See on GitHub", link: PLUMBER_GITHUB_REPO_URL, variant: "secondary", newTab: true },
-    { text: "Book a demo", link: "/#book-a-demo", variant: "primary" },
+    {
+      text: "See on GitHub",
+      link: PLUMBER_GITHUB_REPO_URL,
+      variant: "secondary",
+      newTab: true,
+      track: "See on GitHub",
+    },
+    { text: "Book a demo", link: "/#book-a-demo", variant: "primary", track: "Book a demo" },
   ] as Cta[],
 };
 
@@ -214,9 +220,11 @@ export const oneProduct = {
           link: PLUMBER_GITHUB_APP_URL,
           variant: "secondary",
           newTab: true,
+          track: "Install GitHub agent",
         },
         { text: "Install the CLI", link: "/docs/cli/installation", variant: "secondary-trailing" },
       ],
+      trackPlacement: "developers",
     },
     {
       number: "02",
@@ -224,7 +232,8 @@ export const oneProduct = {
       text: "Continuous CI/CD security posture across every repo and every team. One dashboard, audit-ready reporting, and an AI agent that fixes what it finds.",
       quote:
         "Securing one pipeline by hand takes about an hour a month. For 500 pipelines, that's $600k per year.",
-      ctas: [{ text: "Book a demo", link: "/#book-a-demo", variant: "primary" }],
+      ctas: [{ text: "Book a demo", link: "/#book-a-demo", variant: "primary", track: "Book a demo" }],
+      trackPlacement: "organizations",
     },
   ] as ProductColumn[],
 };
@@ -238,7 +247,13 @@ export const proof = {
   headlineStrong: "Check the grade.",
   text: "Every check Plumber runs is open source. Run it on your own pipeline and you'll get the same grade we do.",
   ctas: [
-    { text: "View on GitHub", link: PLUMBER_GITHUB_REPO_URL, variant: "primary", newTab: true },
+    {
+      text: "View on GitHub",
+      link: PLUMBER_GITHUB_REPO_URL,
+      variant: "primary",
+      newTab: true,
+      track: "See on GitHub",
+    },
     { text: "Join the Discord", link: "/discord", variant: "secondary", newTab: true },
   ] as Cta[],
   // figures are static for now; docs/superpowers/plans/2026-10-27-home-numbers-sources.md

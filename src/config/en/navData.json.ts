@@ -44,11 +44,13 @@ export const navCtas: navCta[] = [
     link: PLUMBER_GITHUB_APP_URL,
     variant: "secondary",
     newTab: true,
+    track: "Install GitHub agent",
   },
   {
     text: "Book a demo",
     link: "/#book-a-demo",
     variant: "primary",
+    track: "Book a demo",
   },
 ];
 
