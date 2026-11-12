@@ -45,7 +45,8 @@ No GitHub Action was compromised and no package was typosquatted. The attacker u
 
 - Every secret and variable the job could read, the `GITHUB_TOKEN`, cloud access through OIDC (AWS, GCP, Azure), registry tokens and AI provider keys ([Aikido](https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories)).
 - With that access, the attacker rewrote AWS role trust policies to accept any AWS account, added Azure federated credentials named `wfx-ci-*` and posted forged `success` statuses under the names of required checks. These survive a secret rotation.
-- Packages named so far: Packagist `digitalelvis/neuronai-studio` `3.14.3`, Go `github.com/onuragtas/docker-env` `v1.0.278` and `v1.0.280` (in a workflow file only, which Go builds do not run), per Aikido, and Go `github.com/vkuznet/gocurl` `v0.0.0-20261111095532-8d5aad0cb0da`, per StepSecurity.
+- Packages named so far: Packagist `digitalelvis/neuronai-studio` `3.14.3`, Go `github.com/onuragtas/docker-env` `v1.0.278` and `v1.0.280` (in a workflow file only, which Go builds do not run), per Aikido, `v1.0.282` as well (listed under the module name `github.com/onuragtas/redock`), per [OX Security](https://www.ox.security/blog/thousands-of-github-accounts-hijacked-with-wfx-loot-ci-secret-stealing-malware-via-github-actions-npm/), and Go `github.com/vkuznet/gocurl` `v0.0.0-20261111095532-8d5aad0cb0da`, per StepSecurity. [Packagist](https://packagist.org/packages/digitalelvis/neuronai-studio) now flags `3.14.2`, `3.14.3` and `3.14.4` of `neuronai-studio` as malware.
+- From November 12, around 05:30 UTC, new copies send the stolen data through Telegram bots instead of the collection servers ([OX Security](https://www.ox.security/blog/thousands-of-github-accounts-hijacked-with-wfx-loot-ci-secret-stealing-malware-via-github-actions-npm/)).
 
 ## The Plumber take
 
@@ -93,12 +94,13 @@ A clean default branch today proves nothing about the window: the attacker rever
 #### Your files, GitHub or GitLab
 
 ~~~bash
-P='\.ci-[a-z0-9]{6}\.sh|build-audit-[a-z0-9]{6}\.yml|b42d70a7aab9140ca19e8249|15f44heehnax8jdf41yx|194\.150\.166\.244|18\.143\.168\.96|153\.75\.82\.159|Restore cache j632|WFX-BEGIN|wfx-loot-'
+P='\.ci-[a-z0-9]{6}\.sh|build-audit-[a-z0-9]{6}\.yml|b42d70a7aab9140ca19e8249|15f44heehnax8jdf41yx|194\.150\.166\.244|18\.143\.168\.96|153\.75\.82\.159|-1004340163187|Restore cache j632|WFX-BEGIN|wfx-loot-'
 grep -rnE "$P" --exclude-dir=.git --exclude-dir=node_modules .
 git ls-remote origin 'refs/heads/wfx-docs' 'refs/heads/chore/*' 'refs/heads/ci-check-*'
 ~~~
 
-- The first command finds the hook script, the throwaway workflow and the collection addresses in package files and workflows. A name like `.ci-config.sh` also matches: open it before you conclude.
+- The first command finds the hook script, the throwaway workflow, the collection addresses and the Telegram group used since November 12 in package files and workflows. A name like `.ci-config.sh` also matches: open it before you conclude.
+- If you recovered a suspicious script, compare `sha256sum <file>` with the payload hash OX Security published: `89695abb392d5cfd4972672961e644bb46baa98aa1ed7173c2a2816c762735cf`. A match confirms it; no match proves nothing, since the payload comes in several variants.
 - The second lists the attacker's branch names. `chore/*` is a common name: check the author of each.
 - Search your default-branch history too, since the payload was reverted: `git log -p --since=2026-11-10 -- .github/workflows package.json '*.sh' | grep -nE "$P"`.
 
@@ -135,7 +137,7 @@ The campaign targeted GitHub accounts. If you mirror those repositories into Git
 - **Self-hosted runners**: the job could read instance metadata credentials. Rebuild the runner, do not clean it.
 - **AWS**: in CloudTrail since November 10, look for `UpdateAssumeRolePolicy` and `CreateAccessKey`, and for sessions named `wfx-*`. Remove any trust policy with `"AWS": "*"` and delete keys you did not create.
 - **Azure**: delete federated identity credentials named `wfx-ci-*` on your app registrations.
-- **Packages**: if you installed Packagist `digitalelvis/neuronai-studio` `3.14.3`, pin `3.14.2` or earlier and treat that machine as compromised.
+- **Packages**: if you installed Packagist `digitalelvis/neuronai-studio` `3.14.2`, `3.14.3` or `3.14.4` (all three flagged as malware by Packagist), pin `3.14.1` or earlier and treat that machine as compromised.
 
 Then, in this order: lock the accounts (sessions, personal access tokens, SSH keys, OAuth grants), rotate every secret the affected workflows could reach, remove the cloud persistence, close the probe pull requests and delete the attacker's branches.
 
@@ -223,4 +225,4 @@ Keep the variables protected, protect the default branch with "Allowed to push: 
 - Install the Plumber app to analyze and fix your pipelines: [github.com/apps/plumber-agent](https://github.com/apps/plumber-agent)
 - Scan your pipelines with the open source CLI: [/docs/cli/github](/docs/cli/github)
 - Star [getplumber/plumber](https://github.com/getplumber/plumber)
-- Sources: [Aikido](https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories), [StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer), [Endor Labs](https://www.endorlabs.com/learn/github-actions-supply-chain-attack-targeting-ci-secrets-at-scale), [Help Net Security](https://www.helpnetsecurity.com/2026/11/12/wfx-loot-github-actions-secret-stealer/), [SecurityWeek](https://www.securityweek.com/attacker-targets-60000-github-repositories-in-credential-theft-campaign/), [nextcloud/docker revert commit](https://github.com/nextcloud/docker/commit/e7e9e4aac26b48466c3bbae8990899bba3463ce0)
+- Sources: [Aikido](https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories), [StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer), [Endor Labs](https://www.endorlabs.com/learn/github-actions-supply-chain-attack-targeting-ci-secrets-at-scale), [OX Security](https://www.ox.security/blog/thousands-of-github-accounts-hijacked-with-wfx-loot-ci-secret-stealing-malware-via-github-actions-npm/), [Packagist](https://packagist.org/packages/digitalelvis/neuronai-studio), [Help Net Security](https://www.helpnetsecurity.com/2026/11/12/wfx-loot-github-actions-secret-stealer/), [SecurityWeek](https://www.securityweek.com/attacker-targets-60000-github-repositories-in-credential-theft-campaign/), [nextcloud/docker revert commit](https://github.com/nextcloud/docker/commit/e7e9e4aac26b48466c3bbae8990899bba3463ce0)
