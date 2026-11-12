@@ -40,7 +40,7 @@ No GitHub Action was compromised and no package was typosquatted. The attacker u
 
 - The change is reverted (`ci: restore`, sometimes `ci: cleanup`), then the workflow run and its logs are deleted ([StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer)).
 - What stays: the commits in git history, and a gap in the workflow's run numbers. StepSecurity and Endor Labs call that gap the most reliable sign the stealer ran.
-- It is not over. On November 12, between 20:07 and 20:11 UTC, at least 10 more public repositories got the campaign's commits (`ci: refresh build cache` or `chore: add ci helper`, then `ci: restore` within minutes), three of them for the second time that day (GitHub commit history of each repository). If you checked before, check again, and lock the account before you clean up, or it can be used again.
+- It is not over. On November 12, between 20:07 and 20:16 UTC, at least 11 more public repositories got the campaign's commits (`ci: refresh build cache` or `chore: add ci helper`, then `ci: restore` within minutes), four of them already hit earlier that day (GitHub commit history of each repository). If you checked before, check again, and lock the account before you clean up, or it can be used again.
 
 **What it reached, and what it left**
 
