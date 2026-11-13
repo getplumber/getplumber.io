@@ -100,11 +100,12 @@ A clean default branch today proves nothing about the window: the attacker rever
 P='\.ci-[a-z0-9]{6}\.sh|build-audit-[a-z0-9]{6}\.yml|b42d70a7aab9140ca19e8249|15f44heehnax8jdf41yx|194\.150\.166\.244|18\.143\.168\.96|153\.75\.82\.159|45\.61\.182\.54|-1004340163187|Restore cache j632|WFX-BEGIN|wfx-loot-'
 grep -rnE "$P" --exclude-dir=.git --exclude-dir=node_modules .
 git ls-remote origin 'refs/heads/wfx-docs' 'refs/heads/chore/*' 'refs/heads/ci-check-*'
+git ls-remote origin 'refs/heads/ci-*' | grep -E 'refs/heads/ci-[0-9]+-[0-9]+-[0-9]+$'
 ~~~
 
 - The first command finds the hook script, the throwaway workflow, the collection addresses (including the one used in October), and the Telegram group used since November 12 in package files and workflows. A name like `.ci-config.sh` also matches: open it before you conclude.
 - If you recovered a suspicious script, compare `sha256sum <file>` with the payload hash OX Security published: `89695abb392d5cfd4972672961e644bb46baa98aa1ed7173c2a2816c762735cf`. A match confirms it; no match proves nothing, since the payload comes in several variants.
-- The second lists the attacker's branch names. `chore/*` is a common name: check the author of each.
+- The second lists the attacker's branch names. `chore/*` is a common name: check the author of each. The third finds branches named `ci-<run>-<job>-<pid>` (three numbers), which [GitGuardian](https://blog.gitguardian.com/wfx-loot-a-ci-secret-stealer-pushed-with-stolen-github-credentials/) lists as left by the payload.
 - Search your default-branch history too, since the payload was reverted: `git log -p --since=2026-10-24 -- .github/workflows package.json '*.sh' | grep -nE "$P"`.
 
 #### GitHub Actions
@@ -122,8 +123,9 @@ gh run list --workflow ci.yml --created '>=2026-10-24' --limit 500 --json number
   --jq '[.[].number] | sort | . as $n | range(1; length) | select($n[.] - $n[. - 1] > 1) | "missing runs between \($n[. - 1]) and \($n[.])"'
 ~~~
 
-- Run it for every workflow that runs on `push` or `pull_request`. A gap right after one of the commits above means the stealer most likely ran.
-- Check the statuses on recent commits of your default branch for a `success` you cannot match to a real run: `gh api repos/OWNER/REPO/commits/<sha>/statuses`.
+- Run it for every workflow that runs on `push` or `pull_request`. A gap right after one of the commits above means a run was created and then deleted. It does not prove the run executed: check your organization audit log for that run ([GitGuardian](https://blog.gitguardian.com/wfx-loot-a-ci-secret-stealer-pushed-with-stolen-github-credentials/)). If you cannot rule it out, treat it as executed.
+- For the install-hook form, a job log line running `sh ./.ci-` followed by six characters means the payload ran (GitGuardian). On the logs you still have: `gh run view <run-id> --log | grep -nE 'sh \./\.ci-[a-z0-9]{6}\.sh( |$)'`.
+- Check the statuses on recent commits of your default branch for a `success` you cannot match to a real run, and for any status whose description contains `wfx` (GitGuardian): `gh api repos/OWNER/REPO/commits/<sha>/statuses --jq '.[] | select((.description // "") | test("wfx")) | .context'`.
 - If you find a probe pull request, treat the account that opened it as compromised, even if no payload ran.
 
 #### GitLab CI
@@ -141,11 +143,11 @@ The campaign targeted GitHub accounts. If you mirror those repositories into Git
 - **AWS**: in CloudTrail since October 24, look for `UpdateAssumeRolePolicy` and `CreateAccessKey`, and for sessions named `wfx-*`. Remove any trust policy with `"AWS": "*"` and delete keys you did not create.
 - **Azure**: delete federated identity credentials named `wfx-ci-*` on your app registrations.
 - **GCP**: the stealer can impersonate service accounts through GitHub OIDC ([Chainguard](https://www.chainguard.dev/unchained/wfx-loot-stolen-github-tokens-pushed-a-ci-secret-stealer-into-60-000-repositories-november-2026)). Since October 24, look for `generateAccessToken` or `signJwt` calls from a GitHub OIDC principal you did not configure, and delete service account keys you did not create.
-- **Vault**: if your workflows log in to Vault with GitHub OIDC, look for JWT logins from the GitHub OIDC issuer since October 24 that you cannot match to a real run ([SafeDep](https://safedep.io/blog/github-actions-wfx-credential-stealer)).
+- **Vault and Kubernetes**: if your workflows log in to Vault or a Kubernetes cluster with GitHub OIDC, look for JWT logins and secret reads by GitHub OIDC identities since October 24 that you cannot match to a real run ([SafeDep](https://safedep.io/blog/github-actions-wfx-credential-stealer), [GitGuardian](https://blog.gitguardian.com/wfx-loot-a-ci-secret-stealer-pushed-with-stolen-github-credentials/)).
 - **Packages you installed**: if you installed Packagist `digitalelvis/neuronai-studio` `3.14.2`, `3.14.3` or `3.14.4` (all three flagged as malware by Packagist), pin `3.14.1` or earlier and treat that machine as compromised.
 - **Packages you published**: if a release was built from a commit between the attacker's commit and its revert, pull that version and publish again from a clean commit ([SafeDep](https://safedep.io/blog/github-actions-wfx-credential-stealer)).
 
-Then, in this order: lock the accounts (sessions, personal access tokens, SSH keys, OAuth grants), rotate every secret the affected workflows could reach, remove the cloud persistence, close the probe pull requests and delete the attacker's branches.
+Then, in this order: lock the accounts (sessions, personal access tokens, SSH keys, OAuth grants), rotate every repository and organization secret and variable, not only the ones the workflow names, plus any secret committed in the repository's last 100 commits ([GitGuardian](https://blog.gitguardian.com/wfx-loot-a-ci-secret-stealer-pushed-with-stolen-github-credentials/)), remove the cloud persistence, close the probe pull requests and delete the attacker's branches.
 
 ## The fix that would have stopped it
 
@@ -221,7 +223,7 @@ Keep the variables protected, protect the default branch with "Allowed to push: 
 - From November 10, stolen tokens of 4,837 GitHub accounts were used to push a CI secret stealer; at least 1,806 repositories ran it, per Aikido. A first small wave ran from October 24 to 29, per GitGuardian: check from October 24.
 - The change was reverted within minutes and the run deleted. Check your git history and your run numbers, not only today's files.
 - A probe pull request titled `docs: dependency audit notes` means the account that opened it is compromised, even if nothing ran.
-- If the payload ran, rotate every secret the workflow could reach, then remove the cloud persistence: AWS trust policies on `"AWS": "*"`, unknown IAM keys, Azure `wfx-ci-*` credentials, GCP service account keys you did not create.
+- If the payload ran, rotate every repository and organization secret, not only the ones the workflow names, then remove the cloud persistence: AWS trust policies on `"AWS": "*"`, unknown IAM keys, Azure `wfx-ci-*` credentials, GCP service account keys you did not create.
 - Remove bypass rights from bots and apps on your default branch. One of them pushed the payload in webdriverio.
 - Give workflow files, `package.json` and CI scripts a code owner, and run `npm ci --ignore-scripts` in CI.
 - Scope cloud trust to a branch or an environment, so a commit on a throwaway branch cannot assume your production role.
