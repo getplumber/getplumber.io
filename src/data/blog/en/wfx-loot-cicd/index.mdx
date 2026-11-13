@@ -28,6 +28,7 @@ No GitHub Action was compromised and no package was typosquatted. The attacker u
 - The attacker used stolen tokens of developer and bot accounts, the way a developer would use them. No GitHub Actions vulnerability is involved ([StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer)).
 - How the tokens were stolen is not established. One victim reported a leaked GitHub CLI OAuth token ([Endor Labs](https://www.endorlabs.com/learn/github-actions-supply-chain-attack-targeting-ci-secrets-at-scale)). Some tokens were issued to the Fly.io GitHub App; StepSecurity says it has no evidence of a breach of Fly.io's infrastructure.
 - 10,431 of the probe pull requests landed in repositories the account does not own, reached through collaborator or organization access ([Aikido](https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories)).
+- It started earlier than the mass wave. [GitGuardian](https://blog.gitguardian.com/wfx-loot-a-ci-secret-stealer-pushed-with-stolen-github-credentials/) dates the first payload commit to October 24, 00:05 UTC: a small first phase until October 29 (80 payload patches, 7 accounts, 12 repositories), no payload commits from October 30 to November 9, then the mass wave from November 10. That is why the checks below start on October 24.
 
 **The probe and the payload**
 
@@ -35,7 +36,7 @@ No GitHub Action was compromised and no package was typosquatted. The attacker u
 - Then one of three changes ([Endor Labs](https://www.endorlabs.com/learn/github-actions-supply-chain-attack-targeting-ci-secrets-at-scale)): steps added to an existing workflow (`ci: refresh build cache`), a new `.github/workflows/build-audit-<6 chars>.yml` on a throwaway `chore/<8 chars>` branch (`chore: add dependency audit workflow`), or a hidden `.ci-<6 chars>.sh` called from a `package.json` install hook (`chore: add ci helper`).
 - In [nextcloud/docker](https://github.com/nextcloud/docker), the stealer was appended to `update.sh`, a script the repository's own workflow runs ([StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer)). It was reverted 27 minutes later ([commit](https://github.com/nextcloud/docker/commit/e7e9e4aac26b48466c3bbae8990899bba3463ce0)).
 - In webdriverio, two install-hook commits were pushed as the project's bot account, which was allowed to bypass branch protection ([StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer)).
-- In more than 100 repositories, the stealer was injected into workflow files left from the October GhostAction campaign ([Aikido](https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories)). If your repository received GhostAction workflows in October, check that they are gone from every branch.
+- In more than 100 repositories, the stealer was injected into workflow files left from the October GhostAction campaign ([Aikido](https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories)). If your repository received GhostAction workflows in October, check that they are gone from every branch. GitGuardian counts 431 of the accounts used in this campaign, about 20%, as already compromised in GhostAction.
 
 **The cleanup, by the attacker**
 
@@ -58,9 +59,9 @@ No GitHub Action was compromised and no package was typosquatted. The attacker u
 
 **The runner is the crown jewel, and the cloud is behind it.** Rotating the GitHub secret is not the end of the job here. An OIDC trust that accepts any branch of your repository, or a trust policy rewritten to `"AWS": "*"`, keeps the door open after every password reset.
 
-**A revert is not a cleanup.** The attacker reverted its own commit within minutes and deleted the run. Your default branch looks clean today. The question is what ran between November 10 and now, and the answer is in your run numbers, your git history and your cloud audit logs.
+**A revert is not a cleanup.** The attacker reverted its own commit within minutes and deleted the run. Your default branch looks clean today. The question is what ran between October 24 and now, and the answer is in your run numbers, your git history and your cloud audit logs.
 
-If your team cannot say which commits ran in CI since November 10, and with which secrets, you cannot answer the question your CEO will ask: "were we exposed?". That answer should take an hour, not a week.
+If your team cannot say which commits ran in CI since October 24, and with which secrets, you cannot answer the question your CEO will ask: "were we exposed?". That answer should take an hour, not a week.
 
 ## Are you exposed?
 
@@ -72,8 +73,8 @@ If your team cannot say which commits ran in CI since November 10, and with whic
 
 ~~~bash
 git fetch --all --quiet
-git log --all --since=2026-11-10 --format='%h %an %ad %s' -E \
-  --grep='^(ci: refresh build cache|chore: add ci helper|chore: add dependency audit workflow|ci: restore|ci: cleanup|docs: dependency audit notes)$'
+git log --all --since=2026-10-24 --format='%h %an %ad %s' -E \
+  --grep='^(ci: refresh build cache|chore: add ci helper|chore: add dependency audit workflow|ci: restore|ci: cleanup|ci: cache|docs: dependency audit notes)$'
 ~~~
 
 A hit is a lead: open the commit and check its author. A revert does not remove it from history.
@@ -89,22 +90,22 @@ A hit is a lead: open the commit and check its author. A revert does not remove 
 Two questions, in this order:
 
 - **Exposed today**: is the attacker still in? A probe pull request, an attacker branch, a hook file, a cloud trust policy or a federated credential that is still there.
-- **Exposed during the window**: did a run execute the payload since November 10? Then every secret and cloud role that job could reach is stolen.
+- **Exposed during the window**: did a run execute the payload since October 24? Then every secret and cloud role that job could reach is stolen.
 
 A clean default branch today proves nothing about the window: the attacker reverts its own change.
 
 #### Your files, GitHub or GitLab
 
 ~~~bash
-P='\.ci-[a-z0-9]{6}\.sh|build-audit-[a-z0-9]{6}\.yml|b42d70a7aab9140ca19e8249|15f44heehnax8jdf41yx|194\.150\.166\.244|18\.143\.168\.96|153\.75\.82\.159|-1004340163187|Restore cache j632|WFX-BEGIN|wfx-loot-'
+P='\.ci-[a-z0-9]{6}\.sh|build-audit-[a-z0-9]{6}\.yml|b42d70a7aab9140ca19e8249|15f44heehnax8jdf41yx|194\.150\.166\.244|18\.143\.168\.96|153\.75\.82\.159|45\.61\.182\.54|-1004340163187|Restore cache j632|WFX-BEGIN|wfx-loot-'
 grep -rnE "$P" --exclude-dir=.git --exclude-dir=node_modules .
 git ls-remote origin 'refs/heads/wfx-docs' 'refs/heads/chore/*' 'refs/heads/ci-check-*'
 ~~~
 
-- The first command finds the hook script, the throwaway workflow, the collection addresses and the Telegram group used since November 12 in package files and workflows. A name like `.ci-config.sh` also matches: open it before you conclude.
+- The first command finds the hook script, the throwaway workflow, the collection addresses (including the one used in October), and the Telegram group used since November 12 in package files and workflows. A name like `.ci-config.sh` also matches: open it before you conclude.
 - If you recovered a suspicious script, compare `sha256sum <file>` with the payload hash OX Security published: `89695abb392d5cfd4972672961e644bb46baa98aa1ed7173c2a2816c762735cf`. A match confirms it; no match proves nothing, since the payload comes in several variants.
 - The second lists the attacker's branch names. `chore/*` is a common name: check the author of each.
-- Search your default-branch history too, since the payload was reverted: `git log -p --since=2026-11-10 -- .github/workflows package.json '*.sh' | grep -nE "$P"`.
+- Search your default-branch history too, since the payload was reverted: `git log -p --since=2026-10-24 -- .github/workflows package.json '*.sh' | grep -nE "$P"`.
 
 #### GitHub Actions
 
@@ -114,10 +115,10 @@ Probe pull requests, open or closed, across your organization:
 gh search prs --owner YOUR_ORG "docs: dependency audit notes" --json repository,number,state,author
 ~~~
 
-Run-number gaps, per workflow, since November 10:
+Run-number gaps, per workflow, since October 24:
 
 ~~~bash
-gh run list --workflow ci.yml --created '>=2026-11-10' --limit 500 --json number \
+gh run list --workflow ci.yml --created '>=2026-10-24' --limit 500 --json number \
   --jq '[.[].number] | sort | . as $n | range(1; length) | select($n[.] - $n[. - 1] > 1) | "missing runs between \($n[. - 1]) and \($n[.])"'
 ~~~
 
@@ -130,17 +131,17 @@ gh run list --workflow ci.yml --created '>=2026-11-10' --limit 500 --json number
 The campaign targeted GitHub accounts. If you mirror those repositories into GitLab, or the same people hold GitLab tokens:
 
 - Run check 1 on the GitLab clone: a mirrored payload commit runs in GitLab CI too.
-- Look for pipelines since November 10 triggered by those commits, and for an `npm install` that ran a new `postinstall` hook.
+- Look for pipelines since October 24 triggered by those commits, and for an `npm install` that ran a new `postinstall` hook.
 - Rotate the GitLab tokens of anyone whose GitHub account was hit.
 
 #### Machines, runners and cloud
 
 - **Developer machines**: anyone who ran `npm install` on an affected repository before the revert ran the hook locally. Rotate their credentials.
 - **Self-hosted runners**: the job could read instance metadata credentials. Rebuild the runner, do not clean it.
-- **AWS**: in CloudTrail since November 10, look for `UpdateAssumeRolePolicy` and `CreateAccessKey`, and for sessions named `wfx-*`. Remove any trust policy with `"AWS": "*"` and delete keys you did not create.
+- **AWS**: in CloudTrail since October 24, look for `UpdateAssumeRolePolicy` and `CreateAccessKey`, and for sessions named `wfx-*`. Remove any trust policy with `"AWS": "*"` and delete keys you did not create.
 - **Azure**: delete federated identity credentials named `wfx-ci-*` on your app registrations.
-- **GCP**: the stealer can impersonate service accounts through GitHub OIDC ([Chainguard](https://www.chainguard.dev/unchained/wfx-loot-stolen-github-tokens-pushed-a-ci-secret-stealer-into-60-000-repositories-november-2026)). Since November 10, look for `generateAccessToken` or `signJwt` calls from a GitHub OIDC principal you did not configure, and delete service account keys you did not create.
-- **Vault**: if your workflows log in to Vault with GitHub OIDC, look for JWT logins from the GitHub OIDC issuer since November 10 that you cannot match to a real run ([SafeDep](https://safedep.io/blog/github-actions-wfx-credential-stealer)).
+- **GCP**: the stealer can impersonate service accounts through GitHub OIDC ([Chainguard](https://www.chainguard.dev/unchained/wfx-loot-stolen-github-tokens-pushed-a-ci-secret-stealer-into-60-000-repositories-november-2026)). Since October 24, look for `generateAccessToken` or `signJwt` calls from a GitHub OIDC principal you did not configure, and delete service account keys you did not create.
+- **Vault**: if your workflows log in to Vault with GitHub OIDC, look for JWT logins from the GitHub OIDC issuer since October 24 that you cannot match to a real run ([SafeDep](https://safedep.io/blog/github-actions-wfx-credential-stealer)).
 - **Packages you installed**: if you installed Packagist `digitalelvis/neuronai-studio` `3.14.2`, `3.14.3` or `3.14.4` (all three flagged as malware by Packagist), pin `3.14.1` or earlier and treat that machine as compromised.
 - **Packages you published**: if a release was built from a commit between the attacker's commit and its revert, pull that version and publish again from a clean commit ([SafeDep](https://safedep.io/blog/github-actions-wfx-credential-stealer)).
 
@@ -217,7 +218,7 @@ Keep the variables protected, protect the default branch with "Allowed to push: 
 
 ## Key takeaways
 
-- From November 10, stolen tokens of 4,837 GitHub accounts were used to push a CI secret stealer; at least 1,806 repositories ran it, per Aikido.
+- From November 10, stolen tokens of 4,837 GitHub accounts were used to push a CI secret stealer; at least 1,806 repositories ran it, per Aikido. A first small wave ran from October 24 to 29, per GitGuardian: check from October 24.
 - The change was reverted within minutes and the run deleted. Check your git history and your run numbers, not only today's files.
 - A probe pull request titled `docs: dependency audit notes` means the account that opened it is compromised, even if nothing ran.
 - If the payload ran, rotate every secret the workflow could reach, then remove the cloud persistence: AWS trust policies on `"AWS": "*"`, unknown IAM keys, Azure `wfx-ci-*` credentials, GCP service account keys you did not create.
@@ -230,4 +231,4 @@ Keep the variables protected, protect the default branch with "Allowed to push: 
 - Install the Plumber app to analyze and fix your pipelines: [github.com/apps/plumber-agent](https://github.com/apps/plumber-agent)
 - Scan your pipelines with the open source CLI: [/docs/cli/github](/docs/cli/github)
 - Star [getplumber/plumber](https://github.com/getplumber/plumber)
-- Sources: [Aikido](https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories), [StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer), [Endor Labs](https://www.endorlabs.com/learn/github-actions-supply-chain-attack-targeting-ci-secrets-at-scale), [OX Security](https://www.ox.security/blog/thousands-of-github-accounts-hijacked-with-wfx-loot-ci-secret-stealing-malware-via-github-actions-npm/), [Chainguard](https://www.chainguard.dev/unchained/wfx-loot-stolen-github-tokens-pushed-a-ci-secret-stealer-into-60-000-repositories-november-2026), [SafeDep](https://safedep.io/blog/github-actions-wfx-credential-stealer), [Packagist](https://packagist.org/packages/digitalelvis/neuronai-studio), [Help Net Security](https://www.helpnetsecurity.com/2026/11/12/wfx-loot-github-actions-secret-stealer/), [SecurityWeek](https://www.securityweek.com/attacker-targets-60000-github-repositories-in-credential-theft-campaign/), [nextcloud/docker revert commit](https://github.com/nextcloud/docker/commit/e7e9e4aac26b48466c3bbae8990899bba3463ce0)
+- Sources: [Aikido](https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories), [StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer), [Endor Labs](https://www.endorlabs.com/learn/github-actions-supply-chain-attack-targeting-ci-secrets-at-scale), [OX Security](https://www.ox.security/blog/thousands-of-github-accounts-hijacked-with-wfx-loot-ci-secret-stealing-malware-via-github-actions-npm/), [Chainguard](https://www.chainguard.dev/unchained/wfx-loot-stolen-github-tokens-pushed-a-ci-secret-stealer-into-60-000-repositories-november-2026), [SafeDep](https://safedep.io/blog/github-actions-wfx-credential-stealer), [GitGuardian](https://blog.gitguardian.com/wfx-loot-a-ci-secret-stealer-pushed-with-stolen-github-credentials/), [Packagist](https://packagist.org/packages/digitalelvis/neuronai-studio), [Help Net Security](https://www.helpnetsecurity.com/2026/11/12/wfx-loot-github-actions-secret-stealer/), [SecurityWeek](https://www.securityweek.com/attacker-targets-60000-github-repositories-in-credential-theft-campaign/), [nextcloud/docker revert commit](https://github.com/nextcloud/docker/commit/e7e9e4aac26b48466c3bbae8990899bba3463ce0)
