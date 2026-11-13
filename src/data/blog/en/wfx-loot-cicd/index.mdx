@@ -35,6 +35,7 @@ No GitHub Action was compromised and no package was typosquatted. The attacker u
 - Then one of three changes ([Endor Labs](https://www.endorlabs.com/learn/github-actions-supply-chain-attack-targeting-ci-secrets-at-scale)): steps added to an existing workflow (`ci: refresh build cache`), a new `.github/workflows/build-audit-<6 chars>.yml` on a throwaway `chore/<8 chars>` branch (`chore: add dependency audit workflow`), or a hidden `.ci-<6 chars>.sh` called from a `package.json` install hook (`chore: add ci helper`).
 - In [nextcloud/docker](https://github.com/nextcloud/docker), the stealer was appended to `update.sh`, a script the repository's own workflow runs ([StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer)). It was reverted 27 minutes later ([commit](https://github.com/nextcloud/docker/commit/e7e9e4aac26b48466c3bbae8990899bba3463ce0)).
 - In webdriverio, two install-hook commits were pushed as the project's bot account, which was allowed to bypass branch protection ([StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer)).
+- In more than 100 repositories, the stealer was injected into workflow files left from the October GhostAction campaign ([Aikido](https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories)). If your repository received GhostAction workflows in October, check that they are gone from every branch.
 
 **The cleanup, by the attacker**
 
