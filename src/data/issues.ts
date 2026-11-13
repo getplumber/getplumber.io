@@ -2717,11 +2717,38 @@ jobs:
       controlName: "Third-party actions must be pinned by commit SHA",
       controlConfigKey: "actionsMustBePinnedByCommitSha",
       description:
-        "A workflow step (or a job-level reusable-workflow call) references a third-party action by a mutable ref (tag like `v4` or branch like `main`) instead of a 40-character commit SHA. A tag backed by an immutable release is accepted: it can never be moved or deleted.",
+        "A workflow step (or a job-level reusable-workflow call) references a third-party action by a mutable ref (tag like `v4` or branch like `main`) instead of a 40-character commit SHA. A tag backed by an immutable release is accepted: it can never be moved or deleted. So are the steps of a repository that commits a workflow lockfile (`.github/workflows/actions.lock`): the runner executes the commits the lockfile records.",
       impact:
         "Tag and branch refs are mutable. The March 2025 `tj-actions/changed-files` compromise (CVE-2025-30066) retagged a stable version to point at malicious code that exfiltrated repo secrets from every CI run consuming the action, and there were thousands of them.",
       remediation:
-        "Replace each `uses: owner/repo@vX` with `uses: owner/repo@<40-char-sha>  # vX.Y.Z`, or, when the action publishes immutable releases, reference the exact released tag (`uses: owner/repo@v4.2.1`). Use Dependabot or Renovate to bump the SHA when upstream releases.",
+        "Replace each `uses: owner/repo@vX` with `uses: owner/repo@<40-char-sha>  # vX.Y.Z`, or, when the action publishes immutable releases, reference the exact released tag (`uses: owner/repo@v4.2.1`). Use Dependabot or Renovate to bump the SHA when upstream releases. For steps you can also commit a [workflow dependency lockfile](https://docs.github.com/actions/concepts/security/workflow-dependency-lockfiles): your workflow files keep their readable tags and GitHub runs the commits the lockfile records. To set one up:",
+      remediationSteps: [
+        {
+          title: "Install the GitHub CLI extension: `gh extension install github/gh-actions-lock`.",
+          detail:
+            "Workflow lockfiles are a GitHub public preview. They are not available on GitHub Enterprise Server, and a workflow that uses a local-path action (`uses: ./…`) cannot be onboarded yet: pin its steps by SHA instead.",
+        },
+        {
+          title: "Run `gh actions-lock` at the root of the repository and commit `.github/workflows/actions.lock`.",
+          detail:
+            "The file's `workflows:` map lists each onboarded workflow and the `owner/repo@ref` references it uses. Its `dependencies:` map resolves each reference to a commit SHA, the owner and repository ids, and the actions that action calls in turn. Your workflow files stay as they are.",
+        },
+        {
+          title: "GitHub then runs the locked commit, whatever the tag points at.",
+          detail:
+            "At job start the runner uses the commit recorded in the lockfile even if the tag was moved, and checks the ids so a renamed or recreated repository cannot stand in for the original. It refuses to start an onboarded workflow when a dependency has no entry or the file is malformed, so a stale lockfile stops the run before any unpinned code executes. That is why Plumber only checks that the file is present.",
+        },
+        {
+          title: "Re-run `gh actions-lock` whenever an action changes, and verify the lockfile in CI with `gh actions-lock --verify`.",
+          detail:
+            "A Dependabot or Renovate bump of a `uses:` line must regenerate the lockfile in the same pull request. `--verify` fails when the lockfile is out of sync with the workflows, or when a locked commit no longer matches upstream (moved tag, renamed or replaced repository).",
+        },
+        {
+          title: "Pin reusable-workflow calls by SHA or by an immutable release tag.",
+          detail:
+            "The lockfile schema does not cover job-level `uses: owner/repo/.github/workflows/x.yml@ref` calls, so a mutable ref there is still reported. The steps of a reusable workflow defined in another repository are governed by that repository's lockfile, which Plumber does not read: they are still judged.",
+        },
+      ],
       badExample: `# .github/workflows/test.yml: ❌ Mutable refs everywhere
 jobs:
   test:
@@ -2742,6 +2769,7 @@ jobs:
       goodExampleCaption: "Every `uses:` carries a full SHA; the trailing comment names the release.",
       tips: [
         "A tag backed by an [immutable release](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/immutable-releases) counts as pinned, for steps and reusable workflows. Only the exact released tag qualifies: `docker/build-push-action@v7.4.0` is accepted, the floating `@v7` (no release behind it) is not, and neither is a tag that a same-named branch shadows. Plumber reads the release with `GET /repos/{owner}/{repo}/releases/tags/{tag}`, so this needs a GitHub token. Without one, or when the release cannot be read, the reference is reported. Accepted references are listed in the JSON report under `actionPinningResult.immutableReleaseRefs` with `pinnedVia: immutable_release`.",
+        "When the analyzed branch commits `.github/workflows/actions.lock`, the steps of the repository's own jobs count as pinned, same-repository reusable workflows included. Plumber checks only that the file is there: GitHub refuses to start a workflow the lockfile does not fully cover. Reusable-workflow calls and the steps of another repository's reusable workflow are still judged. The JSON report names the file under `actionPinningResult.workflowLockfile`, lists the accepted references under `workflowLockfileRefs` with `pinnedVia: workflow_lockfile`, and counts them in `metrics.actionRefsWorkflowLockfile`.",
         "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions.",
         "Local actions (`uses: ./.github/actions/foo`) are exempt from this rule because the local reference itself lives in the same repo, but a third-party action it pulls in through that local composite is judged like any other nested reference.",
         "This control skips `uses: docker://…` steps and leaves them out of `actionRefsTotal` / `actionRefsUnpinned`. ISSUE-101, ISSUE-102 and ISSUE-103 judge their images.",
