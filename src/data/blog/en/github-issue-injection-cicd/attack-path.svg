@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="t">
+  <title id="t">The GitHub issue injection attack path: text posted in issues, pull requests and comments, then how a workflow that inlines it runs it on the runner</title>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4E6B6B"/></marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0A0F0C"/><stop offset="100%" stop-color="#070A08"/></linearGradient>
+  </defs>
+  <rect width="1200" height="640" fill="url(#bg)" rx="16"/>
+  <text x="64" y="48" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" letter-spacing="1.8" font-weight="700" fill="#F2B544">UPSTREAM · HOW THE TEXT GOT IN (SEPTEMBER 1, 2026, UTC)</text>
+  <rect x="64" y="66" width="336" height="150" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="86" cy="90" r="13" fill="#F2B544"/>
+  <text x="86" y="95" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">A</text>
+  <text x="108" y="95" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">74 GitHub accounts</text>
+  <text x="80" y="120" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">Some likely taken over: one owner</text>
+  <text x="80" y="139" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">denied writing the post and reset the</text>
+  <text x="80" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">password and keys the next day.</text>
+  <text x="80" y="177" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">No write access needed anywhere.</text>
+  <line x1="404" y1="141.0" x2="442" y2="141.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="446" y="66" width="336" height="150" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="468" cy="90" r="13" fill="#F2B544"/>
+  <text x="468" y="95" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">B</text>
+  <text x="490" y="95" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">83 issues, PRs, comments</text>
+  <text x="462" y="120" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">59 issues and 24 pull requests on</text>
+  <text x="462" y="139" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">61 public repositories. The command</text>
+  <text x="462" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">sits in the title (31), the body (17)</text>
+  <text x="462" y="177" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">or a comment (35).</text>
+  <line x1="786" y1="141.0" x2="824" y2="141.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="828" y="66" width="336" height="150" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="850" cy="90" r="13" fill="#F2B544"/>
+  <text x="850" y="95" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">C</text>
+  <text x="872" y="95" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">Two bursts</text>
+  <text x="844" y="120" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">11:26 to 12:10: 77 items in about</text>
+  <text x="844" y="139" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">43 minutes.</text>
+  <text x="844" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">18:17 to 18:19: 6 more.</text>
+  <text x="844" y="177" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">Each one starts a workflow run.</text>
+  <path d="M 996.0 216 L 996.0 246 L 42 246 L 42 410.0 L 59 410.0" fill="none" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="76" y="266" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#93A3A3">opening an issue, a pull request or a comment is enough to start the workflow</text>
+  <text x="64" y="304" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" letter-spacing="1.8" font-weight="700" fill="#09C3C3">YOUR PIPELINE · HOW IT RAN ON THE RUNNER</text>
+  <rect x="64" y="322" width="200" height="176" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="86" cy="346" r="13" fill="#09C3C3"/>
+  <text x="86" y="351" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">1</text>
+  <text x="108" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">Trigger</text>
+  <text x="80" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">A workflow on</text>
+  <text x="80" y="395" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">issues</text>
+  <text x="80" y="414" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">pull_request</text>
+  <text x="80" y="433" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">issue_comment</text>
+  <text x="80" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">starts within seconds.</text>
+  <line x1="267" y1="410.0" x2="285" y2="410.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="288" y="322" width="200" height="176" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="310" cy="346" r="13" fill="#09C3C3"/>
+  <text x="310" y="351" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">2</text>
+  <text x="332" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">Inlined text</text>
+  <text x="304" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">A run: step pastes</text>
+  <text x="304" y="395" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">issue.title</text>
+  <text x="304" y="414" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">pull_request.title</text>
+  <text x="304" y="433" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">into the script before</text>
+  <text x="304" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">the shell starts.</text>
+  <line x1="491" y1="410.0" x2="509" y2="410.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="512" y="322" width="200" height="176" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="534" cy="346" r="13" fill="#09C3C3"/>
+  <text x="534" y="351" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">3</text>
+  <text x="556" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">Code execution</text>
+  <text x="528" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">The shell reads the</text>
+  <text x="528" y="395" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">title as code and runs</text>
+  <text x="528" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">the command. Run logs</text>
+  <text x="528" y="433" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">show it ran in 2 repos:</text>
+  <text x="528" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">PX4, workout-cool.</text>
+  <line x1="715" y1="410.0" x2="733" y2="410.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="736" y="322" width="200" height="176" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="758" cy="346" r="13" fill="#09C3C3"/>
+  <text x="758" y="351" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">4</text>
+  <text x="780" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">What was reachable</text>
+  <text x="752" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">The job's environment</text>
+  <text x="752" y="395" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">variables and its</text>
+  <text x="752" y="414" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">GITHUB_TOKEN</text>
+  <text x="752" y="433" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">The trigger and the</text>
+  <text x="752" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">permissions decide how</text>
+  <text x="752" y="471" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">far that token reaches.</text>
+  <line x1="939" y1="410.0" x2="957" y2="410.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="960" y="322" width="200" height="176" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="982" cy="346" r="13" fill="#09C3C3"/>
+  <text x="982" y="351" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">5</text>
+  <text x="1004" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">Exfiltration</text>
+  <text x="976" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">Environment variables</text>
+  <text x="976" y="395" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">sent over plain HTTP to</text>
+  <text x="976" y="414" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">54.205.16.142:8443</text>
+  <text x="976" y="433" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">What it received is</text>
+  <text x="976" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">not confirmed.</text>
+  <rect x="64" y="526" width="1072" height="78" rx="11" fill="#061A1A" stroke="#2AC7C7" stroke-width="1.5"/>
+  <text x="84" y="549" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" letter-spacing="1.5" font-weight="700" fill="#2AC7C7">WHERE IT BREAKS</text>
+  <text x="84" y="571" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF">Step 2 never happens when the title goes through env: and the script reads "$TITLE":</text>
+  <text x="84" y="592" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF">the shell then sees text, not code, whatever the attacker typed.</text>
+</svg>
