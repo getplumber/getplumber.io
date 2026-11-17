@@ -1,0 +1,139 @@
+---
+title: "Official organizations"
+seoTitle: "Official organizations: a signed, public Plumber Score for your whole org"
+description: "An official organization gets a public, organization-wide Plumber Score page with a signed attestation anyone can verify."
+sidebar:
+  label: "Official organizations"
+  order: 3
+---
+
+An **official organization** is a GitHub organization registered with
+Plumber so that its score, badge and card cover the whole organization, not
+just one repository. The score is verified straight from the organization's
+own CI runs, using [the signed score push](/docs/plumber-score/signed-push),
+never recomputed by Plumber, and backed by a signed attestation anyone can
+check independently.
+
+## How to become one
+
+- Write to the address on the [contact page](/contact) with the
+  organization's name.
+- Only public GitHub repositories count; private repositories never appear.
+- Each repository runs the workflow below, unchanged, on its default branch,
+  with `score-push: true`.
+- The workflow must use `getplumber/plumber` release v0.7.18 or newer.
+
+## What the page shows
+
+- The organization's grade and points, averaged over its verified
+  repositories.
+- The share of repositories verified, and the share still on the default
+  policy.
+- One row per public repository, with its current status.
+- A link to the signed attestation behind the page.
+
+## Repository statuses
+
+- **Verified**: the latest push passed every check.
+- **Rejected**: the latest attempt failed a check, shown with its reason on
+  the page; the last verified grade stays on display.
+- **Unverified**: the repository has analyses but no signed push, from
+  before the organization was official or from an older CLI.
+- **Not scored**: a public repository with no accepted push yet.
+
+## The workflow to run
+
+A repository earns a verified row only when the workflow that pushed its
+score matches this shape exactly:
+
+```yaml title=".github/workflows/plumber-score.yml"
+name: Plumber Score
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+permissions: read-all
+jobs:
+  plumber:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: getplumber/plumber@ebc213aa45dccd233ce5c2630f0aafa8e8d650c5
+        with:
+          version: v0.7.18
+          score-push: true
+```
+
+The canonical copy of this exact file is served at
+[`/plumber-score/locked.yml`](/plumber-score/locked.yml); diff your own
+workflow against it instead of retyping it from this page.
+
+What must stay as it is:
+
+- Only the actions shown above, each pinned to a full commit sha.
+- One checkout step, then one Plumber step, in that order.
+- Triggered only by a push to the default branch, a schedule, or a manual
+  run.
+- No other steps, no job or step `env`, no container or service.
+- A GitHub-hosted runner.
+
+This workflow never runs on pull requests: a pull request run cannot
+produce a verified score. Keep a second workflow, without `score-push`, to
+check pull requests with Plumber.
+
+## Verify an attestation
+
+Both checks below run offline with [cosign](https://github.com/sigstore/cosign)
+v3. They use the `getplumber` organization as the example; replace the
+names with the organization and repository you check.
+
+Verify the organization attestation:
+
+```bash
+curl -O https://score.getplumber.io/github.com/getplumber/view.json
+curl -O https://score.getplumber.io/github.com/getplumber/attestation.json
+curl -O https://getplumber.io/plumber-score/plumber-score.pub
+cosign verify-blob-attestation --key plumber-score.pub \
+  --type https://getplumber.io/attestation/org/v1 \
+  --bundle attestation.json view.json
+```
+
+`Verified OK` means the view file you downloaded is byte for byte the one
+Plumber signed, with Plumber's own key.
+
+Verify one repository's row:
+
+```bash
+curl -O https://score.getplumber.io/github.com/getplumber/plumber-platform/attestation.json
+curl -O https://score.getplumber.io/github.com/getplumber/plumber-platform/attestation.report.json
+jq -r '.predicate.sourceBundle' attestation.json > source-bundle.json
+cosign verify-blob --bundle source-bundle.json \
+  --certificate-identity-regexp 'https://github.com/getplumber/plumber-platform/\.github/workflows/.+' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  attestation.report.json
+```
+
+`Verified OK` means a GitHub Actions job of that repository, running one of
+its own workflow files, signed exactly these report bytes.
+
+The signing key is published at
+[`/plumber-score/plumber-score.pub`](/plumber-score/plumber-score.pub). A
+new key is announced on this page, with its validity date, before it signs
+anything.
+
+## Badge embed
+
+```md
+[![Plumber Verified](https://score.getplumber.io/github.com/ORG.svg)](https://score.getplumber.io/github.com/ORG)
+```
