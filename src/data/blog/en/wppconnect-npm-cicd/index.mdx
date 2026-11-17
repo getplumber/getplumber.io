@@ -44,6 +44,7 @@ The library had 7,498 npm downloads the week before. No npm token was needed. Un
 - November 16, 04:00 UTC: a user reports both versions ([wppconnect #2968](https://github.com/wppconnect-team/wppconnect/issues/2968), [wppconnect-server #2734](https://github.com/wppconnect-team/wppconnect-server/issues/2734)).
 - Both versions are now deprecated on npm. `latest` is back to `2.4.0` and `2.10.81`.
 - At 14:44 UTC a maintainer wrote that containment of the publishing access is not confirmed yet. No new npm version has been published since.
+- November 17, 06:31 UTC: GitHub published malware advisories for both packages, [GHSA-rj96-rg6c-9hw8](https://github.com/advisories/GHSA-rj96-rg6c-9hw8) (`= 2.4.1`) and [GHSA-96hm-h5v4-92fq](https://github.com/advisories/GHSA-96hm-h5v4-92fq) (`= 2.10.82`), credited to OpenSSF.
 
 ## The Plumber take
 
@@ -90,6 +91,8 @@ Two questions, in this order:
 - **Exposed during the window**: did a job, server or container load `2.4.1` or start `2.10.82` or `2.10.83`?
 
 A hit in today's files does not prove the code ran. A clean repo today proves nothing about that night.
+
+Per [GitHub's advisory](https://github.com/advisories/GHSA-96hm-h5v4-92fq), the code skips machines that look like CI environments or sandboxes, so servers, bot hosts and laptops are where it most likely ran. Check your CI jobs anyway: if one loaded a bad version, treat its secrets as exposed.
 
 #### Your files, GitHub or GitLab
 
@@ -252,4 +255,4 @@ publish:
 - Install the Plumber app to analyze and fix your pipelines: [github.com/apps/plumber-agent](https://github.com/apps/plumber-agent)
 - Scan your pipelines with the open source CLI: [/docs/cli/github](/docs/cli/github)
 - Star [getplumber/plumber](https://github.com/getplumber/plumber)
-- Sources: [StepSecurity](https://www.stepsecurity.io/blog/wppconnect-compromised-malicious-releases-steal-secrets-and-whatsapp-sessions), [npm: @wppconnect-team/wppconnect](https://www.npmjs.com/package/@wppconnect-team/wppconnect), [npm: @wppconnect/server](https://www.npmjs.com/package/@wppconnect/server), [wppconnect issue #2968](https://github.com/wppconnect-team/wppconnect/issues/2968), [wppconnect-server issue #2734](https://github.com/wppconnect-team/wppconnect-server/issues/2734), [Docker Hub tags](https://hub.docker.com/r/wppconnect/wppconnect-server/tags), [library publish.yml](https://github.com/wppconnect-team/wppconnect/blob/dee571e55aef07e648d675055a45fcef13f9e586/.github/workflows/publish.yml), [server release.yml](https://github.com/wppconnect-team/wppconnect-server/blob/ccdc9c9eb6fed6cf17067fbedbc0b0c62aacb7ea/.github/workflows/release.yml)
+- Sources: [StepSecurity](https://www.stepsecurity.io/blog/wppconnect-compromised-malicious-releases-steal-secrets-and-whatsapp-sessions), [GHSA-rj96-rg6c-9hw8](https://github.com/advisories/GHSA-rj96-rg6c-9hw8), [GHSA-96hm-h5v4-92fq](https://github.com/advisories/GHSA-96hm-h5v4-92fq), [npm: @wppconnect-team/wppconnect](https://www.npmjs.com/package/@wppconnect-team/wppconnect), [npm: @wppconnect/server](https://www.npmjs.com/package/@wppconnect/server), [wppconnect issue #2968](https://github.com/wppconnect-team/wppconnect/issues/2968), [wppconnect-server issue #2734](https://github.com/wppconnect-team/wppconnect-server/issues/2734), [Docker Hub tags](https://hub.docker.com/r/wppconnect/wppconnect-server/tags), [library publish.yml](https://github.com/wppconnect-team/wppconnect/blob/dee571e55aef07e648d675055a45fcef13f9e586/.github/workflows/publish.yml), [server release.yml](https://github.com/wppconnect-team/wppconnect-server/blob/ccdc9c9eb6fed6cf17067fbedbc0b0c62aacb7ea/.github/workflows/release.yml)
