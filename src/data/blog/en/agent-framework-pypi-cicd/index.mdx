@@ -35,13 +35,15 @@ On November 17, 2026, `agent-framework` `1.26.1` and then `1.26.2` went up on Py
 
 - Both wheels pin the real `agent-framework-core[all]==1.26.0`, so your application keeps working and nothing looks broken.
 - A `.pth` file in `site-packages` runs the payload each time Python starts in that environment.
-- It reads environment variables with secret-looking names, Azure managed identity tokens, Azure DevOps OIDC tokens and agent credential files, GitHub Actions OIDC tokens where the job has `id-token: write`, and files such as `.npmrc`, `.netrc`, `.git-credentials` and `.docker/config.json`. It sends them to one `webhook.site` URL ([Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack)).
+- It reads environment variables with secret-looking names, including those of other processes on the same machine ([Aikido Security](https://www.aikido.dev/blog/two-malicious-agent-framework-releases-hit-pypi-in-33-minutes)), Azure managed identity tokens, Azure DevOps OIDC tokens and agent credential files, GitHub Actions OIDC tokens where the job has `id-token: write`, and files such as `.npmrc`, `.netrc`, `.git-credentials` and `.docker/config.json`. It sends them to one `webhook.site` URL ([Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack)).
 
 **How it was published**
 
 - The project's repository has a `python-1.26.0` tag and no `python-1.26.1` or `python-1.26.2` tag ([tags](https://github.com/microsoft/agent-framework/tags)).
 - Its GitHub release workflow does not publish to PyPI: per a comment in the workflow, Azure DevOps owns the build and publication ([python-release.yml](https://github.com/microsoft/agent-framework/blob/main/.github/workflows/python-release.yml)).
-- Per Endor Labs, the uploads came from "an account or token with publishing rights". Whether that credential was stolen, and from where, is not public yet. Microsoft had not commented on the issue at the time of writing.
+- Each release was a single wheel, while Microsoft's pipeline normally publishes a wheel and an sdist ([Aikido Security](https://www.aikido.dev/blog/two-malicious-agent-framework-releases-hit-pypi-in-33-minutes)).
+- Per Endor Labs, the uploads came from "an account or token with publishing rights". Whether that credential was stolen, and from where, is not public yet.
+- At 22:08 UTC, a member of the Microsoft GitHub organization confirmed on the issue that both versions "have been pulled from the package feed" and that the team is investigating ([issue #10411](https://github.com/microsoft/agent-framework/issues/10411)).
 
 ## The Plumber take
 
@@ -125,13 +127,13 @@ gh run view <RUN_ID> --log | grep -E "$P"
 Self-hosted runners, dev machines, servers, containers. Do not run `pip` or `python` before this check: the payload runs on every Python start.
 
 ~~~bash
-find / -name agent_framework_meta.pth -o -name af_runtime_diag.pth -o -name af_runtime_diag.py -o -name 'agent_framework-1.26.[12].dist-info' 2>/dev/null
+find / -name agent_framework_meta.pth -o -name af_runtime_diag.pth -o -name af_runtime_diag.py -o -path '*/agent_framework_meta/_telemetry.py' -o -name 'agent_framework-1.26.[12].dist-info' 2>/dev/null
 grep -E 'd381fd80-ec62-42ad-8f5c-d1b15103c9bb|runtime-diagnostics/1' <your proxy or egress logs>
 ~~~
 
 - A file hit means that environment ran the payload. Rebuild it from a clean image rather than cleaning it in place.
 - A log hit means data left. `webhook.site` is a legitimate service: match the full path above, not the domain.
-- Then rotate, from a clean machine, everything that environment could reach: managed identities, service principals, Azure DevOps agents and tokens, GitHub federated credentials, cloud and registry tokens, model provider keys. Review audit logs from the install time on.
+- Then rotate, from a clean machine, everything that environment could reach: managed identities, service principals, Azure DevOps agents and tokens, GitHub federated credentials, cloud and registry tokens, model provider keys. On a self-hosted runner or a shared machine, that includes the secrets of the other jobs and processes that ran on it: the payload also reads other processes' environments. Review audit logs from the install time on.
 
 ## The fix that would have stopped it
 
@@ -202,7 +204,7 @@ deploy:
 ## Key takeaways
 
 - `agent-framework` `1.26.1` and `1.26.2` on PyPI carried a credential stealer. Both are gone. `1.26.0` is the version to pin.
-- A pipeline that ran an unpinned `pip install agent-framework` on November 17 between 20:35 and 22:00 UTC should treat that job's secrets and cloud logins as stolen.
+- A pipeline that ran an unpinned `pip install agent-framework` on November 17 between 20:35 and 22:00 UTC should treat that job's secrets and cloud logins as stolen, and on a self-hosted runner, those of everything else that ran on that machine.
 - Check your CI logs for that evening, not only your repo. A clean lockfile today proves nothing about yesterday.
 - Pin Python dependencies with exact versions and hashes. A second malicious version followed the first 33 minutes later.
 - Keep `id-token: write` in the deploy job only. A test job that installs packages should not be able to mint a cloud login.
@@ -214,4 +216,4 @@ deploy:
 - Install the Plumber app to analyze and fix your pipelines: [github.com/apps/plumber-agent](https://github.com/apps/plumber-agent)
 - Scan your pipelines with the open source CLI: [/docs/cli/github](/docs/cli/github)
 - Star [getplumber/plumber](https://github.com/getplumber/plumber)
-- Sources: [Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack), [agent-framework issue #10411](https://github.com/microsoft/agent-framework/issues/10411), [PyPI project page](https://pypi.org/project/agent-framework/), [PyPI simple index](https://pypi.org/simple/agent-framework/), [pypistats](https://pypistats.org/packages/agent-framework), [agent-framework tags](https://github.com/microsoft/agent-framework/tags), [python-release.yml](https://github.com/microsoft/agent-framework/blob/main/.github/workflows/python-release.yml)
+- Sources: [Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack), [Aikido Security](https://www.aikido.dev/blog/two-malicious-agent-framework-releases-hit-pypi-in-33-minutes), [OX Security](https://www.ox.security/blog/breaking-hijacked-releases-of-microsofts-official-agent-framework-steals-azure-and-ci-credentials/), [agent-framework issue #10411](https://github.com/microsoft/agent-framework/issues/10411), [PyPI project page](https://pypi.org/project/agent-framework/), [PyPI simple index](https://pypi.org/simple/agent-framework/), [pypistats](https://pypistats.org/packages/agent-framework), [agent-framework tags](https://github.com/microsoft/agent-framework/tags), [python-release.yml](https://github.com/microsoft/agent-framework/blob/main/.github/workflows/python-release.yml)
