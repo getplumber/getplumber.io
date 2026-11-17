@@ -1,0 +1,93 @@
+---
+title: GitHub Installation
+seoTitle: Connect the Plumber Platform to a GitHub.com organization
+description: This page describes how to connect a self-managed Plumber Platform to one GitHub.com organization through a GitHub App you own.
+sidebar:
+  order: 5
+  label: GitHub
+---
+
+The Plumber Platform connects to **one GitHub.com organization** through a **GitHub App that you create in that organization**. The App is yours: its private key and secrets are stored encrypted in the Platform database and never leave your installation, and no Plumber-hosted service is involved. A second organization is a second Plumber installation. GitHub Enterprise Server is not supported yet.
+
+The App gives the Platform two kinds of credentials. The **installation token**, minted from the App's private key for one hour at a time and never stored, is used for everything the Platform does on its own: listing repositories, reading their settings, following pull requests, posting comments. Each **user's own token**, obtained when they sign in with GitHub, is used for what that person does: opening the onboarding pull request of a repository, for example.
+
+## Before you start
+
+- A Platform deployed with [Docker Compose](/docs/installation/docker-compose), **Manual install** tab, steps 1 to 6 (the stack is running and the first boot has migrated the database). In step 2, set `GITLAB_URL` to `https://github.com`: a GitHub installation does not use it, but `preflight.sh` requires it and checks that it is reachable (unless `PLUMBER_PREFLIGHT_OFFLINE` is set). This page replaces step 7 (the GitLab connection) and step 8. The interactive installer and the Kubernetes chart's bootstrap Job configure a GitLab instance only today; for a GitHub-only installation on Kubernetes, contact us.
+- An **owner** of the GitHub organization, to create and install the App.
+- `https://<your Plumber URL>` reachable from github.com if you want webhooks (see [Webhooks](#webhooks)); without it the Platform still works, on a schedule.
+
+## 1. Create the GitHub App
+
+In the organization's settings on github.com, open **Developer settings > GitHub Apps > New GitHub App** and fill in:
+
+| Setting | Value |
+|---|---|
+| GitHub App name | anything, for example `Plumber` |
+| Homepage URL | `https://<your Plumber URL>` |
+| Callback URL | `https://<your Plumber URL>/api/v1/auth/callback` |
+| Expire user authorization tokens | **checked** (required: a sign-in with a token that never expires is refused) |
+| Request user authorization (OAuth) during installation | **unchecked** |
+| Webhook | **Active**, URL `https://<your Plumber URL>/api/v1/webhooks/github`, a secret of your choice (see [Webhooks](#webhooks)) |
+| Where can this GitHub App be installed? | Only on this account |
+
+**Repository permissions:** Administration **Read-only**, Actions **Read and write**, Contents **Read and write**, Environments **Read-only**, Issues **Read and write**, Metadata **Read-only**, Pull requests **Read and write**, Secrets **Read-only**, Variables **Read-only**, Workflows **Read and write**. **Organization permissions:** Members **Read-only**. These eleven are required: the Platform refuses an installation that lacks one, and names it.
+
+**Subscribe to events:** Push and Repository.
+
+<Aside variant="info">
+**Optional: Administration Read and write.** With it, the Platform can fix branch protection issues by managing one repository ruleset named `plumber-branch-protection`. It also lets the App change any setting of the installed repositories, so it stays your choice: without it, everything else works and those fixes answer that the permission is missing. You can grant it later (see [Changing the App's permissions](#changing-the-apps-permissions)).
+</Aside>
+
+Create the App, then on its page note the **App ID**, the **Client ID** and the App's **slug** (the last part of its public URL, `github.com/apps/<slug>`), generate a **client secret**, and generate a **private key** (a `.pem` file is downloaded).
+
+## 2. Install the App
+
+From the App's page, **Install App** on your organization, for **all repositories** or **only the repositories Plumber should govern**. The Platform only ever sees the repositories the installation covers, and a member only sees, among those, the repositories they can read on GitHub. Note the installation id from the installation's URL (`.../settings/installations/<id>`); it is optional below.
+
+## 3. Connect the Platform: `plumber-bootstrap`
+
+`plumber-bootstrap` ships in the backend image. It converts the Platform's unconfigured default instance into your GitHub organization, checks that the installation holds every required permission, stores the App's credentials encrypted, and resolves the organization. Secrets are passed through the environment and a mounted file, never on the command line. Copy the private key to the server, then, from the directory of your Compose stack:
+
+```bash
+mkdir -m 700 -p ~/plumber-github
+install -m 0444 /path/to/<app>.private-key.pem ~/plumber-github/app.pem
+read -rs PLUMBER_BOOTSTRAP_CLIENT_SECRET && export PLUMBER_BOOTSTRAP_CLIENT_SECRET   # paste the client secret
+
+docker compose run --rm --no-deps --label traefik.enable=false \
+  --entrypoint /usr/local/bin/plumber-bootstrap \
+  -v ~/plumber-github/app.pem:/run/plumber/app.pem:ro \
+  -e PLUMBER_BOOTSTRAP_APP_PRIVATE_KEY_FILE=/run/plumber/app.pem \
+  -e PLUMBER_BOOTSTRAP_CLIENT_SECRET \
+  backend \
+  -provider github -org <organization-login> -app-id <app-id> \
+  -app-slug <app-slug> -client-id <client-id> [-installation-id <installation-id>]
+
+unset PLUMBER_BOOTSTRAP_CLIENT_SECRET
+rm -rf ~/plumber-github
+```
+
+The key file is world-readable only inside a directory nobody else can enter, because the backend runs as a non-root user; the directory is removed afterwards (the Platform keeps its own encrypted copy, and you can generate a new key from the App's page at any time). To store the App's webhook secret in the same run, export it as `PLUMBER_BOOTSTRAP_WEBHOOK_SECRET` and add `-e PLUMBER_BOOTSTRAP_WEBHOOK_SECRET` next to the client secret (see [Webhooks](#webhooks)). The `traefik.enable=false` label keeps this one-off container out of the reverse proxy while it runs. Without `-installation-id` the command looks the installation up on the organization. It exits `1` naming the next step when the App is not installed yet or the organization does not resolve; running it again finishes a pending configuration, and it refuses an instance that is already configured.
+
+## 4. First sign-in and maintainers
+
+Open `https://<your Plumber URL>` and **sign in with GitHub** as an **owner** of the organization: owners are Plumber Admins. Members of the organization sign in as Members; anyone else (a pending invitation, a billing manager, an outside collaborator) is refused at sign-in and nothing is stored about them. In **Settings > Authorization**, pick the GitHub teams whose members are Maintainers (see [Roles & Permissions](/docs/use-plumber/roles-permissions#github-roles)).
+
+## Webhooks
+
+The App's webhook tells the Platform about changes as they happen: a push on a default branch refreshes that repository, and a repository added to or removed from the installation starts a sync. A delivery is only a trigger: everything the Platform stores is read from the GitHub API with the installation token, each delivery is accepted once, and deliveries are checked against the webhook secret stored in the Platform. If you passed the secret you set on the App as `PLUMBER_BOOTSTRAP_WEBHOOK_SECRET` to `plumber-bootstrap`, it is already stored and nothing else is needed. Otherwise, after the first sign-in, an Admin **rotates the webhook secret once** in Settings, on the GitHub instance: the Platform generates a new secret, sets it on the App through the GitHub API and stores it encrypted; until then, deliveries are refused. The App's **Recent Deliveries** tab on github.com then shows `202` for the next push on a default branch. A steady run of `401` answers there means the secrets differ: rotate again.
+
+**An installation that cannot receive GitHub's webhooks.** When github.com cannot reach your Platform (a firewall, no inbound route), leave the webhook inactive: the daily sync is the only refresh. Raise it to hourly with `PLUMBER_SYNC_CRON`: on Docker Compose, add it to the `environment` list of the `backend` service in `compose.yml` (the `backend` service lists its environment explicitly, so a variable set only in `.env` does not reach it), then run `docker compose up -d`:
+
+```yaml title="compose.yml"
+  backend:
+    environment:
+      # ...the existing entries...
+      - PLUMBER_SYNC_CRON=20 * * * *
+```
+
+Every sync reads with the installation token, whose budget is 5,000 requests per hour (more on large organizations) and is shared with the snapshot refreshes. A first sync of a large organization spends a large share of an hour's budget, so switch to the hourly schedule after the first sync has run. When the budget runs out, the Platform holds its GitHub reads until GitHub's reset instead of spending more, and what could not be read is read again on the next pass.
+
+## Changing the App's permissions
+
+When a Plumber release asks for a new permission, or you add the optional Administration write, edit the App (**Permissions & events**) and save; then each organization owner accepts the change on the installation (GitHub sends a review request). Until it is accepted the installation keeps its old permissions. A missing required permission is named in Settings; the optional Administration write is not checked there: until it is accepted, a branch protection fix answers that it is not fixable because the App lacks the Administration write permission.

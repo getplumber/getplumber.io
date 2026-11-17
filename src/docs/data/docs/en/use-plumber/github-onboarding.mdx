@@ -1,0 +1,58 @@
+---
+title: Onboarding GitHub repositories
+seoTitle: Onboard GitHub repositories to the Plumber Platform
+description: How the Plumber Platform onboards, re-checks, fixes and unboards a GitHub repository with a workflow file it owns.
+sidebar:
+  order: 2
+  label: GitHub onboarding
+---
+
+On GitHub, the Platform runs Plumber in each repository through **one workflow file it owns**: `.github/workflows/plumber.yml`. Onboarding adds it, unboarding deletes it, and the Platform never edits or starts a workflow it did not write.
+
+## Onboarding a repository
+
+A Maintainer onboards a repository from the Platform. With **the Maintainer's own GitHub token** (never the App's), the Platform creates a branch named `plumber/onboard-<id>`, commits `.github/workflows/plumber.yml` on it and opens a ready pull request; the Maintainer merges it from the Platform or on GitHub. The first line of the file marks it as the Platform's:
+
+```yaml
+# Managed by the Plumber platform: onboarding wrote this file and unboarding deletes it.
+name: Plumber
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  plumber:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@<commit sha> # <version>
+        with:
+          persist-credentials: false
+      - uses: getplumber/plumber@<commit sha> # <release tag>
+        with:
+          platform: https://<your Plumber URL>
+```
+
+Both actions are pinned by commit, with their version as a comment; the job gets no permission beyond reading the code and minting its identity token, which is how its results reach the Platform. The file is checked locally before the commit (GitHub has no validation API), and the branch in `on.push` is the repository's default branch.
+
+Onboarding is refused, with a sentence saying why, when the repository already has a `.github/workflows/plumber.yml` the Platform did not write, when another workflow of the repository already runs the Plumber action, or when GitHub Actions is disabled on the repository.
+
+## Re-check
+
+GitHub has no way to retry a finished job, so **Re-check** starts the Platform's `plumber.yml` on the default branch (a workflow dispatch, with the installation token) and follows the run it opened. Only that file is ever started: a workflow of yours that runs the Plumber action is never dispatched, because it could run other jobs with your secrets. If the Platform's file is missing, was edited to drop `workflow_dispatch`, or is disabled on GitHub, the re-check says so and starts nothing. A missing file marks the repository as lost on the next sync: onboard it again to restore the file. A file that lost its `workflow_dispatch` trigger, or a workflow disabled on GitHub, still belongs to the Platform and the repository stays onboarded, so onboarding refuses it: restore the trigger or re-enable the workflow on GitHub, or unboard the repository and onboard it again. Each re-check is one full Actions run, billed in your Actions minutes; a re-check of a whole policy or organization starts one run per GitHub repository in scope.
+
+## Fixes
+
+**Branch protection** issues can be fixed from the Platform when the App holds the optional **Administration: Read and write** permission and the person asking is an **admin of the repository** on GitHub. The fix creates, then updates in place, one repository ruleset named `plumber-branch-protection` targeting the branch the issue names; it never writes an organization ruleset or one of yours. You can edit it (a bypass list, an extra rule or an exclusion you add is kept) or delete it (the next fix recreates it). A requirement about who may push or merge has no ruleset equivalent and is reported as not fixable. Branch protection is the only fix available on GitHub today; other issues show no fix button on a GitHub repository.
+
+## Comments and summary issues
+
+With the organization's toggles on, the pull request comment and the summary issue are written by the App's bot account (`<app-slug>[bot]`) with the installation token. A repository with issues disabled gets no summary issue.
+
+## Unboarding
+
+Unboarding opens a pull request, with the Maintainer's own token, that deletes the Platform's `plumber.yml`. A Plumber workflow the Platform did not write is left untouched, and the pull request says so. When the file is already gone, unboarding completes without a pull request.
