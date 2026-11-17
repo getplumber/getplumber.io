@@ -1,0 +1,217 @@
+---
+title: "Poisoned agent-framework in your CI"
+description: "Two malicious agent-framework releases reached PyPI on November 17, built to steal CI and Azure credentials. How to check your pipelines and what to rotate."
+draft: false
+authors:
+  - plumber
+pubDate: 2026-11-18
+heroImage: ./heroImage.png
+categories:
+  - "News"
+  - "CI/CD"
+  - "Security"
+  - "Supply Chain"
+  - "GitHub Actions"
+  - "GitLab"
+---
+
+On November 17, 2026, `agent-framework` `1.26.1` and then `1.26.2` went up on PyPI. This is the meta package of the Microsoft Agent Framework. Both releases carry a credential stealer that runs on every Python start, and neither matches a release tag in the project's repository. Both were gone from PyPI by 22:00 UTC.
+
+`agent-framework` had 41,366 PyPI downloads in the week before. Per [Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack), the payload "is written for CI runners and Azure workloads". If one of your pipelines ran `pip install agent-framework` with no version that evening, the pipeline was the door.
+
+## What happened
+
+![The agent-framework 1.26.1 and 1.26.2 attack path, step by step: a publishing credential and two poisoned wheels upstream, then the five steps inside your pipeline, from an unpinned pip install to a startup hook that stays in site-packages](./attack-path.svg)
+
+**The releases**
+
+- November 17, 20:35:20 UTC: `1.26.1` is uploaded to [PyPI](https://pypi.org/project/agent-framework/) as a single wheel, with no sdist and no attestation, and becomes the latest version ([Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack)).
+- 20:54 UTC: an outside researcher reports it in [issue #10411](https://github.com/microsoft/agent-framework/issues/10411) on the project's repository.
+- `1.26.1` is gone from the index by 21:13 UTC. Who removed it is not established ([Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack)).
+- 21:08:39 UTC: `1.26.2` goes up, again one wheel, no sdist, no attestation. It is still the latest version at 21:16 UTC. This one also goes after GitHub Actions OIDC tokens ([Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack)).
+- By 22:00 UTC, both versions are gone and [PyPI](https://pypi.org/simple/agent-framework/) lists `1.26.0` (November 12) as the newest release.
+
+**What it does, at defender level**
+
+- Both wheels pin the real `agent-framework-core[all]==1.26.0`, so your application keeps working and nothing looks broken.
+- A `.pth` file in `site-packages` runs the payload each time Python starts in that environment.
+- It reads environment variables with secret-looking names, Azure managed identity tokens, Azure DevOps OIDC tokens and agent credential files, GitHub Actions OIDC tokens where the job has `id-token: write`, and files such as `.npmrc`, `.netrc`, `.git-credentials` and `.docker/config.json`. It sends them to one `webhook.site` URL ([Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack)).
+
+**How it was published**
+
+- The project's repository has a `python-1.26.0` tag and no `python-1.26.1` or `python-1.26.2` tag ([tags](https://github.com/microsoft/agent-framework/tags)).
+- Its GitHub release workflow does not publish to PyPI: per a comment in the workflow, Azure DevOps owns the build and publication ([python-release.yml](https://github.com/microsoft/agent-framework/blob/main/.github/workflows/python-release.yml)).
+- Per Endor Labs, the uploads came from "an account or token with publishing rights". Whether that credential was stolen, and from where, is not public yet. Microsoft had not commented on the issue at the time of writing.
+
+## The Plumber take
+
+**The runner is the crown jewel.** The payload goes after Azure DevOps agent credentials, GitHub Actions OIDC tokens and the Azure managed identity of the machine. In short: the things a CI job holds for a few minutes that let it log in to your cloud.
+
+**An OIDC token is a login.** Teams moved to OIDC to get rid of long-lived cloud keys, and that was right. But a job with `id-token: write` can mint a cloud login for anyone who runs code in it, including a test dependency. Give `id-token: write` to the one job that deploys, and run your tests and installs somewhere else.
+
+**Pulling the bad version is not the fix.** `1.26.1` was gone by 21:13 UTC, and `1.26.2` was already up at 21:08 UTC. As long as the publishing credential works, the next upload can come at any minute. On your side, the only thing that holds is a version and a hash you chose.
+
+In our [State of CI/CD Security 2026](/blog/state-of-cicd-security-2026) research, 55% of projects still have unpinned or mutable dependencies. That is the population that installed this release on its own.
+
+If your CI cannot say which bytes it ran on November 17 between 20:35 and 22:00 UTC, you cannot answer the question your CEO will ask tomorrow: "were we exposed?". That answer should take an hour, not a week.
+
+## Are you exposed?
+
+### The 60-second check
+
+<Aside variant="caution" title="Three quick checks">
+
+**1. Pinned to a bad version today** (repo files, GitHub or GitLab):
+
+~~~bash
+P='(^|[^a-z0-9_.-])agent[-_]framework(\[[^]]*\])? *===? *1\.26\.[12]([^0-9a-z.]|$)|(^|[^a-z0-9_.-])agent[-_]framework-1\.26\.[12]([- .]|$)|d27fa34414e6201d5e03|3d20a8bc91351a9a16b6'
+grep -rnE "$P" .
+~~~
+
+It covers requirements files, `pyproject.toml`, `uv.lock`, `poetry.lock` and `Pipfile.lock`.
+
+**2. Installed during the window** (November 17, 20:35 to 22:00 UTC): search the logs of every CI job that installed Python packages in that window for the same pattern (commands below). This is the check that matters for unpinned installs.
+
+**3. Your pipeline config**: `plumber analyze github.com/OWNER/REPO` or [your score](https://score.getplumber.io/github.com/OWNER/REPO). `ISSUE-803` flags any workflow or job on `permissions: write-all`, which hands an OIDC token to every step, a poisoned package included. Then check by hand which jobs both install packages and hold `id-token: write`.
+
+</Aside>
+
+### Detailed check
+
+Two questions, in this order:
+
+- **Exposed today**: do your files point at `1.26.1` or `1.26.2`?
+- **Exposed during the window**: did a job install one of them between November 17, 20:35 UTC and the removal (by 22:00 UTC)?
+
+A hit in today's files does not prove exposure during the window. A clean repo today proves nothing about that evening.
+
+#### Your files, GitHub or GitLab
+
+~~~bash
+P='(^|[^a-z0-9_.-])agent[-_]framework(\[[^]]*\])? *===? *1\.26\.[12]([^0-9a-z.]|$)|(^|[^a-z0-9_.-])agent[-_]framework-1\.26\.[12]([- .]|$)|d27fa34414e6201d5e03|3d20a8bc91351a9a16b6'
+grep -rnE "$P" .
+grep -rnE '^[^#]*pip3? install[^#]*agent[-_]framework([^-_a-z]|$)' .github/workflows .gitlab-ci.yml azure-pipelines.yml Dockerfile* 2>/dev/null
+grep -rnE --include='*.txt' --include='*.in' --include='*.toml' '(^ *|")agent[-_]framework(\[[^]]*\])? *($|[<>~!;#"])' .
+~~~
+
+- The first command finds the bad versions, or their wheel hashes, in any lockfile format.
+- The second lists every install line that names `agent-framework`.
+- The third lists every requirement on `agent-framework` without `==`.
+
+Any line without an exact version and hashes could have pulled a bad version during the window.
+
+#### GitHub Actions
+
+List that evening's runs and search their logs:
+
+~~~bash
+gh run list --created '>=2026-11-17' --limit 200 --json databaseId,workflowName,createdAt
+gh run view <RUN_ID> --log | grep -E "$P"
+~~~
+
+- A hit in a log is a yes, even if your files are clean today. `pip` logs it as `agent-framework-1.26.1`, `uv` as `agent-framework==1.26.1`; the pattern covers both.
+- If that job had `id-token: write`, review the sign-ins of every cloud role it can assume, from the install time on.
+- Delete the Actions caches built that evening: `gh cache list`, then `gh cache delete <id>`. A cached virtualenv keeps the startup hook.
+
+#### GitLab CI and Azure Pipelines
+
+- Open the job logs of the pipelines that ran in the window and search for `agent-framework-1.26.1`, `agent-framework-1.26.2` and `agent_framework-1.26.`. A hit is a yes.
+- Clear the runner caches built that evening ("Clear runner caches" on the GitLab pipelines page).
+- On Azure DevOps, treat the service connections, agent credentials and personal access tokens used by a hit job as exposed.
+- Purge both versions from any internal mirror or proxy (`Artifactory`, `Nexus`, `devpi`) and block them there.
+
+#### Machines, runners and images
+
+Self-hosted runners, dev machines, servers, containers. Do not run `pip` or `python` before this check: the payload runs on every Python start.
+
+~~~bash
+find / -name agent_framework_meta.pth -o -name af_runtime_diag.pth -o -name af_runtime_diag.py -o -name 'agent_framework-1.26.[12].dist-info' 2>/dev/null
+grep -E 'd381fd80-ec62-42ad-8f5c-d1b15103c9bb|runtime-diagnostics/1' <your proxy or egress logs>
+~~~
+
+- A file hit means that environment ran the payload. Rebuild it from a clean image rather than cleaning it in place.
+- A log hit means data left. `webhook.site` is a legitimate service: match the full path above, not the domain.
+- Then rotate, from a clean machine, everything that environment could reach: managed identities, service principals, Azure DevOps agents and tokens, GitHub federated credentials, cloud and registry tokens, model provider keys. Review audit logs from the install time on.
+
+## The fix that would have stopped it
+
+GitHub Actions, before:
+
+~~~yaml
+permissions: write-all
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install agent-framework pytest
+      - run: pytest
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+~~~
+
+After:
+
+~~~yaml
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install --require-hashes -r requirements.txt  # agent-framework==1.26.0 with --hash lines
+      - run: pytest
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+~~~
+
+Generate the hashed file with `pip-compile --generate-hashes`, or use `uv sync --locked` with a committed `uv.lock`. Then a new upload on PyPI changes nothing in your pipeline until a pull request bumps it. And the job that runs third-party code no longer holds the cloud login.
+
+GitLab CI, same idea:
+
+~~~yaml
+test:
+  image: python:3.12.7
+  script:
+    - pip install --require-hashes -r requirements.txt
+
+deploy:
+  needs: [test]
+  id_tokens:
+    AZURE_ID_TOKEN:
+      aud: api://AzureADTokenExchange
+  script:
+    - ./deploy.sh
+~~~
+
+## Key takeaways
+
+- `agent-framework` `1.26.1` and `1.26.2` on PyPI carried a credential stealer. Both are gone. `1.26.0` is the version to pin.
+- A pipeline that ran an unpinned `pip install agent-framework` on November 17 between 20:35 and 22:00 UTC should treat that job's secrets and cloud logins as stolen.
+- Check your CI logs for that evening, not only your repo. A clean lockfile today proves nothing about yesterday.
+- Pin Python dependencies with exact versions and hashes. A second malicious version followed the first 33 minutes later.
+- Keep `id-token: write` in the deploy job only. A test job that installs packages should not be able to mint a cloud login.
+- Block `1.26.1` and `1.26.2` in your package proxy, and delete caches and images built in the window.
+- Do not run `pip` or `python` on a machine you suspect. Check for the `.pth` files from the shell first.
+
+## Next steps
+
+- Install the Plumber app to analyze and fix your pipelines: [github.com/apps/plumber-agent](https://github.com/apps/plumber-agent)
+- Scan your pipelines with the open source CLI: [/docs/cli/github](/docs/cli/github)
+- Star [getplumber/plumber](https://github.com/getplumber/plumber)
+- Sources: [Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack), [agent-framework issue #10411](https://github.com/microsoft/agent-framework/issues/10411), [PyPI project page](https://pypi.org/project/agent-framework/), [PyPI simple index](https://pypi.org/simple/agent-framework/), [pypistats](https://pypistats.org/packages/agent-framework), [agent-framework tags](https://github.com/microsoft/agent-framework/tags), [python-release.yml](https://github.com/microsoft/agent-framework/blob/main/.github/workflows/python-release.yml)
