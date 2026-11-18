@@ -140,6 +140,11 @@
   }
   html {
     @apply bg-background text-foreground leading-[1.6rem] scheme-light dark:scheme-dark;
+    /* grayscale antialiasing: light text on the dark background otherwise renders heavier
+       than the Figma rasteriser, which made Inter and the pixel font look medium/bold
+       (review of 2026-11-18) */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
     scroll-padding-top: 0.25rem;
     -moz-text-size-adjust: none;
@@ -159,12 +164,16 @@
 }
 
 @layer components {
-  /* Figma type scale. Headings are Inter 400; sizes shrink on phones with clamp(). */
+  /* Figma type scale. Headings are Inter 400; sizes shrink on phones with clamp().
+     Figma rounds every line height to a whole pixel (62px at 112% is 69px, 14px at 140% is
+     20px), so the classes round the same way where the browser supports round().
+     Page titles grew from 54 to 62px in the designer review of 2026-11-17. */
   .h1 {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: clamp(2.125rem, 1.4rem + 2.6vw, 3.375rem); /* 34px to 54px */
-    line-height: 1.2;
+    font-size: clamp(2.25rem, 1.45rem + 3vw, 3.875rem); /* 36px to 62px */
+    line-height: 1.12;
+    line-height: round(1.12em, 1px);
     letter-spacing: 0;
   }
 
@@ -173,6 +182,7 @@
     font-weight: 400;
     font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.375rem); /* 28px to 38px */
     line-height: 1.1;
+    line-height: round(1.1em, 1px);
   }
 
   .h3 {
@@ -180,11 +190,13 @@
     font-weight: 400;
     font-size: clamp(1.5rem, 1.3rem + 0.7vw, 2rem); /* 24px to 32px */
     line-height: 1.1;
+    line-height: round(1.1em, 1px);
   }
 
   .body-xl {
     font-size: 1.5rem;
     line-height: 1.2;
+    line-height: round(1.2em, 1px);
   }
   .body-lg {
     font-size: 1.125rem;
@@ -197,10 +209,12 @@
   .body-sm {
     font-size: 0.875rem;
     line-height: 1.4;
+    line-height: round(1.4em, 1px);
   }
   .body-xs {
     font-size: 0.75rem;
     line-height: 1.4;
+    line-height: round(1.4em, 1px);
   }
   .subtitle {
     font-size: 1rem;
@@ -208,11 +222,13 @@
     font-weight: 500;
   }
 
-  /* Pixel-font eyebrow above section headings (Figma "Eyebrow-Haxr22"). */
+  /* Pixel-font eyebrow above section headings (Figma "Eyebrow-Haxr22", raised to 24px in
+     the review of 2026-11-17). */
   .eyebrow {
     font-family: var(--font-pixel);
-    font-size: 1.375rem;
+    font-size: 1.5rem;
     line-height: 0.8;
+    line-height: round(0.8em, 1px);
     letter-spacing: 0.02em;
     text-transform: uppercase;
     color: var(--accent-text);
@@ -223,8 +239,72 @@
     font-family: var(--font-pixel);
     font-size: 1.125rem;
     line-height: 0.6;
+    line-height: round(0.6em, 1px);
     letter-spacing: 0.02em;
     text-transform: uppercase;
+  }
+
+  /* Pixel-font labels of the blog page (Figma HaxrCorp 22 at 80% and 20 at 60% line height):
+     filters, list categories and dates at 22px, the featured post tag and date at 20px. */
+  .pixel-label {
+    font-family: var(--font-pixel);
+    font-size: 1.375rem;
+    line-height: 0.8;
+    line-height: round(0.8em, 1px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .pixel-label-sm {
+    font-family: var(--font-pixel);
+    font-size: 1.25rem;
+    line-height: 0.6;
+    line-height: round(0.6em, 1px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  /* Text link with a pixel chevron (Figma "Learn more", "View on GitHub", "All install
+     methods"): accent colour, Regular weight, the label trimmed to its cap height like the
+     Figma text box (text-box), 8px before the chevron (6 x 10.8 at 14px, 6.51 x 11.73 at
+     16px), 10px of padding then a 1px underline under the whole text + chevron block
+     (rule from the review of 2026-11-18), drawn on hover and focus only. Browsers without text-box keep the full line box,
+     so the underline sits a few pixels lower there. */
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 10px;
+    /* the underline shows on hover and keyboard focus only; its 1px stays reserved so
+       the link never shifts */
+    border-bottom: 1px solid transparent;
+    color: var(--accent-text);
+    font-weight: 400;
+    line-height: 1.4;
+    text-decoration: none;
+    transition: border-color 200ms ease;
+  }
+  .link-arrow:hover,
+  .link-arrow:focus-visible {
+    border-bottom-color: currentColor;
+  }
+  .link-arrow > span,
+  .link-trim {
+    text-box: trim-both cap alphabetic;
+  }
+  .link-arrow > svg {
+    width: 6px;
+    height: 10.8px;
+    flex: none;
+    shape-rendering: crispEdges;
+  }
+  .link-arrow.text-base > svg {
+    width: 6.51px;
+    height: 11.73px;
+  }
+  /* the same link without underline (Figma docs cards and docs pagination) */
+  .link-arrow--plain {
+    padding-bottom: 0;
+    border-bottom: 0;
   }
 
   /* Code line (Figma "Codeligne-13"). */
@@ -281,6 +361,10 @@
   }
   .stroke-tint {
     border-color: var(--color-tint-25);
+  }
+  /* Figma rule under the blog filters, featured tag row, list rows: #8D9596 at 25 percent */
+  .stroke-muted {
+    border-color: color-mix(in srgb, var(--color-base-400) 25%, transparent);
   }
 
   /* Alternating section backgrounds (legacy landing page, removed with the old sections). */
@@ -369,13 +453,14 @@
     transition: opacity 1100ms ease;
     transition-delay: var(--reveal-delay, 0ms);
   }
-  /* children of a stagger group fade in one after the other, left to right */
+  /* children of a stagger group fade in one after the other, left to right; a group can
+     slow down with --reveal-step (gap between children) and --reveal-duration (each fade) */
   .reveal-ready [data-reveal-stagger] > * {
     opacity: 0;
   }
   .reveal-ready [data-reveal-stagger].is-visible > * {
     opacity: 1;
-    transition: opacity 850ms ease;
+    transition: opacity var(--reveal-duration, 850ms) ease;
     transition-delay: calc(var(--reveal-base, 0ms) + var(--reveal-step, 280ms) * var(--i, 0));
   }
 

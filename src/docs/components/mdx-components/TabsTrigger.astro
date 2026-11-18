@@ -12,7 +12,7 @@ const { value, class: className, ...rest } = Astro.props;
   class:list={[
     "relative flex border-b-2 border-transparent px-4 py-1 font-medium whitespace-nowrap transition-colors",
     "data-[state=active]:text-foreground data-[state=active]:border-foreground",
-    "focus-visible:outline-outline focus-visible:outline-2 focus-visible:outline-offset-2",
+    "focus-visible:outline-outline focus-visible:outline-2 focus-visible:-outline-offset-2",
     "disabled:pointer-events-none disabled:opacity-50",
     className,
   ]}

@@ -2,6 +2,8 @@
 /**
  * Page header shared by the blog, archive and error pages: pixel eyebrow with a 6px
  * teal square, uppercase H1 and an optional lead paragraph (same block as the docs pages).
+ * Figma Blog-Black frame 1000001531: 1008px wide, 24px between the three lines, so the
+ * blog lead stays on one line at 1440.
  */
 interface Props {
   eyebrow?: string;
@@ -13,7 +15,7 @@ interface Props {
 const { eyebrow, title, lead, class: className } = Astro.props;
 ---
 
-<header class:list={["flex max-w-[786px] flex-col gap-6", className]}>
+<header class:list={["flex max-w-[1008px] flex-col gap-6", className]}>
   {eyebrow && (
     <p class="eyebrow flex items-center gap-2">
       <span class="eyebrow-dot" aria-hidden="true" />

@@ -67,7 +67,10 @@ const relatedPosts = allPosts
               {formatDate(pubDate, currLocale)}
             </time>
             {updatedDate && (
-              <time class="subtitle-pixel text-muted-foreground" datetime={updatedDate.toISOString()}>
+              <time
+                class="subtitle-pixel text-muted-foreground"
+                datetime={updatedDate.toISOString()}
+              >
                 Updated {formatDate(updatedDate, currLocale)}
               </time>
             )}
@@ -79,44 +82,44 @@ const relatedPosts = allPosts
         </header>
 
         <div class="mt-14">
-        <!-- hero at top of page on mobile/tablet -->
-        {heroImage && (
-          <div class="card-tint rounded-r15 mb-10 overflow-hidden lg:hidden">
-            <Image
-              src={heroImage}
-              alt={`Cover for ${title}`}
-              width={800}
-              densities={[1, 2]}
-              quality={90}
-              class="w-full object-cover"
-              loading="eager"
-              format="webp"
-            />
-          </div>
-        )}
-        <section id="blog-post-content" class="markdown-content">
-          <slot />
-        </section>
-
-        <!-- related posts -->
-        {relatedPosts.length > 0 && (
-          <div class="stroke-tint mt-20 border-t pt-14">
-            <p class="eyebrow text-muted-foreground">Keep reading</p>
-            <h2 class="h2 text-foreground mt-6">Related posts</h2>
-            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {relatedPosts.map((relatedPost) => (
-                <PostCard post={relatedPost} />
-              ))}
+          <!-- hero at top of page on mobile/tablet -->
+          {heroImage && (
+            <div class="card-tint rounded-r15 mb-10 overflow-hidden lg:hidden">
+              <Image
+                src={heroImage}
+                alt={`Cover for ${title}`}
+                width={800}
+                densities={[1, 2]}
+                quality={90}
+                class="w-full object-cover"
+                loading="eager"
+                format="webp"
+              />
             </div>
-          </div>
-        )}
+          )}
+          <section id="blog-post-content" class="markdown-content">
+            <slot />
+          </section>
 
-        <!-- button to go back to all posts -->
-        <div class="mt-14 flex">
-          <Button variant="secondary" href="/blog">
-            All posts
-          </Button>
-        </div>
+          <!-- related posts -->
+          {relatedPosts.length > 0 && (
+            <div class="stroke-tint mt-20 border-t pt-14">
+              <p class="eyebrow text-muted-foreground">Keep reading</p>
+              <h2 class="h2 text-foreground mt-6">Related posts</h2>
+              <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {relatedPosts.map((relatedPost) => (
+                  <PostCard post={relatedPost} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <!-- button to go back to all posts -->
+          <div class="mt-14 flex">
+            <Button variant="secondary" href="/blog">
+              All posts
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -136,7 +139,7 @@ const relatedPosts = allPosts
             />
           </div>
         )}
-        <div class="lg:sticky lg:top-[calc(76px+2rem)]">
+        <div class="lg:sticky lg:top-[calc(78px+2rem)]">
           <TableOfContents headings={headings} headingIcons={post.data.tocHeadingIcons} />
         </div>
       </aside>

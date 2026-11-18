@@ -1,0 +1,20 @@
+---
+/**
+ * Text link with the pixel chevron and, on hover, the underline 10px under text + chevron (the site
+ * rule for this kind of link, see .link-arrow in global.css). Used in MDX for links such as
+ * "All install methods" on the getting-started page.
+ */
+import type { HTMLAttributes } from "astro/types";
+import { Icon } from "astro-icon/components";
+
+type Props = HTMLAttributes<"a">;
+
+const { class: className, ...rest } = Astro.props as Props;
+---
+
+<a class:list={["link-arrow not-content text-base", className]} {...rest}>
+  <span>
+    <slot />
+  </span>
+  <Icon name="home/pixel-chevron" aria-hidden="true" />
+</a>

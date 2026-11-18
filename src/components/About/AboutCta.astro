@@ -1,0 +1,134 @@
+---
+/**
+ * Closing calls to action (Figma About us, "Cards" at y5960, 280px under "Backed by"): two
+ * 649px columns 21px apart, each behind a 4px dashed rule on its left with 40px of padding:
+ * the 26px pixel number, 64px, the 38/110 title, 16px, the 16/140 text and the button at the
+ * bottom (215px for text plus button). Both cards rest in the grey state of the second Figma
+ * card (#5C6262 25% rule, grey number, title and text, stroke button). The state Figma draws
+ * on the first card (accent rule and number, white title, accent button) is the active one:
+ * a card takes it while hovered or focused, and on tablets and phones while it is in view
+ * (data-hover-reveal, like the home "One product" columns). The second card keeps the fixed
+ * 365px of the file; 269px separate the cards from the footer band. The cards fade in left
+ * to right (data-reveal-stagger) through a wrapper so their colour transitions stay theirs.
+ */
+import Button from "@components/Button/Button.astro";
+import { aboutCta as data } from "@config/en/aboutData.json";
+---
+
+<section class="home-container mt-[120px] lg:mt-[280px] lg:pb-[85px]" aria-label="Next steps">
+  <div
+    class="grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-[21px]"
+    data-reveal-stagger
+    style="--reveal-step: 350ms;"
+  >
+    {data.cards.map((card) => (
+      <div>
+        <div
+          class:list={[
+            "about-cta flex flex-col gap-10 pl-6 lg:gap-16 lg:pl-10",
+            !card.accent && "lg:min-h-[365px]",
+          ]}
+          data-hover-reveal
+        >
+          <span class="about-cta__number">{card.number}</span>
+          <div class="flex flex-1 flex-col gap-4">
+            <h2 class="h2 about-cta__title">{card.title}</h2>
+            <div class="flex flex-1 flex-col justify-between gap-12 lg:min-h-[215px]">
+              <p class="about-cta__text text-base leading-[22px]">{card.text}</p>
+              <Button
+                href={card.cta.href}
+                variant="secondary-trailing"
+                class="about-cta__button self-start"
+                data-track-event={card.cta.track}
+                data-track-placement="about"
+              >
+                {card.cta.text}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .about-cta {
+    border-left: 4px dashed rgb(92 98 98 / 0.25);
+    transition: border-color 400ms ease;
+  }
+  .about-cta__number {
+    font-family: var(--font-pixel);
+    font-size: 1.625rem;
+    line-height: 20px;
+    letter-spacing: 0.02em;
+    color: var(--color-base-600);
+    transition: color 400ms ease;
+  }
+  .about-cta__title {
+    color: var(--color-base-400);
+    transition: color 400ms ease;
+  }
+  .about-cta__text {
+    color: var(--color-base-600);
+    transition: color 400ms ease;
+  }
+  .about-cta :global(.about-cta__button) {
+    color: var(--muted-foreground);
+    transition:
+      background-color 400ms ease,
+      border-color 400ms ease,
+      color 400ms ease;
+  }
+
+  /* active: the accent card of the Figma file */
+  .about-cta:hover,
+  .about-cta:focus-within {
+    border-left-color: var(--color-primary-500);
+  }
+  .about-cta:hover .about-cta__number,
+  .about-cta:focus-within .about-cta__number {
+    color: var(--color-primary-500);
+  }
+  .about-cta:hover .about-cta__title,
+  .about-cta:focus-within .about-cta__title {
+    color: var(--color-base-50);
+  }
+  .about-cta:hover .about-cta__text,
+  .about-cta:focus-within .about-cta__text {
+    color: var(--color-base-400);
+  }
+  .about-cta:hover :global(.about-cta__button),
+  .about-cta:focus-within :global(.about-cta__button) {
+    background-color: var(--color-primary-500);
+    border-color: var(--color-primary-500);
+    color: var(--color-base-950);
+  }
+  /* the button itself hovered: the primary button hover (stroke, no fill) */
+  .about-cta :global(.about-cta__button:hover) {
+    background-color: transparent;
+    border-color: var(--foreground);
+    color: var(--foreground);
+  }
+
+  /* tablets and phones: the card takes its active state while it is in view */
+  @media (hover: none), (max-width: 1023px) {
+    .about-cta.is-in-view {
+      border-left-color: var(--color-primary-500);
+    }
+    .about-cta.is-in-view .about-cta__number {
+      color: var(--color-primary-500);
+    }
+    .about-cta.is-in-view .about-cta__title {
+      color: var(--color-base-50);
+    }
+    .about-cta.is-in-view .about-cta__text {
+      color: var(--color-base-400);
+    }
+    .about-cta.is-in-view :global(.about-cta__button) {
+      background-color: var(--color-primary-500);
+      border-color: var(--color-primary-500);
+      color: var(--color-base-950);
+    }
+  }
+</style>

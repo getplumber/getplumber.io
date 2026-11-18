@@ -1,0 +1,91 @@
+---
+/**
+ * Blog list row (Figma Blog-Black, component "Component 150", 1320 x 142, re-measured on
+ * 2026-11-18): 32px by 24px padding and its own 1px #5C6262 25% rule on top and bottom (so
+ * two rules meet between rows, as in the file). On the left an 847px column with the title
+ * (Inter 20/150 in the Figma grey) and, 16px under it, the 14/140 description on 736px whose
+ * text box is trimmed to cap height and baseline like the Figma text (text-box); 24px to its
+ * right the 202px category column, and the 113px date column right-aligned at the end. The
+ * whole row turns accent blue on hover with near-black text, eased like the home incident
+ * rows (250ms). Below md the labels move under the text.
+ */
+import { getLocaleFromUrl } from "@js/localeUtils";
+import { formatDate } from "@js/textUtils";
+import { type CollectionEntry } from "astro:content";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+  class?: string;
+}
+
+const { post, class: className } = Astro.props as Props;
+const { title, description, pubDate, categories } = post.data;
+const category = categories?.find((c): c is string => typeof c === "string");
+
+const currLocale = getLocaleFromUrl(Astro.url);
+---
+
+<a
+  href={`/blog/${post.id}`}
+  class:list={[
+    "post-row group grid gap-y-4 border-y px-4 py-6 no-underline md:grid-cols-[minmax(0,847px)_226px_minmax(0,1fr)_113px] md:px-6 md:py-8",
+    className,
+  ]}
+  data-pagefind-ignore
+>
+  <span class="flex min-w-0 flex-col gap-3 md:gap-4">
+    <span class="post-row__title text-muted-foreground text-xl leading-[1.5] font-normal">
+      {title}
+    </span>
+    <span class="post-row__text body-sm text-muted-foreground line-clamp-2 max-w-[736px]">
+      {description}
+    </span>
+  </span>
+  <span class="post-row__meta pixel-label text-muted-foreground flex flex-wrap gap-x-6 gap-y-2 md:contents">
+    {category && <span class="post-row__label md:col-start-2 md:pl-6">{category}</span>}
+    <time
+      class="post-row__label ml-auto md:col-start-4 md:row-start-1 md:ml-0 md:text-right"
+      datetime={pubDate.toISOString()}
+    >
+      {formatDate(pubDate, currLocale)}
+    </time>
+  </span>
+</a>
+
+<style is:global>
+  .post-row {
+    border-color: var(--color-tint-25);
+  }
+  /* Figma trims the description box to cap height and baseline (2 lines: a 30px box): for
+     14px Inter on a 20px line that is 5px above the caps and under the baseline. Negative
+     margins give the same box in every browser (text-box only trims a clamped block's end
+     in Chrome). */
+  .post-row__text {
+    margin-block: -5px;
+  }
+  .post-row,
+  .post-row__title,
+  .post-row__text,
+  .post-row__meta {
+    transition:
+      background-color 250ms ease,
+      border-color 250ms ease,
+      color 250ms ease;
+  }
+  .post-row:hover,
+  .post-row:focus-visible {
+    background-color: var(--color-primary-500);
+    border-color: var(--color-primary-500);
+    outline: none;
+  }
+  .post-row:hover .post-row__title,
+  .post-row:focus-visible .post-row__title {
+    color: var(--color-base-950);
+  }
+  .post-row:hover .post-row__text,
+  .post-row:hover .post-row__meta,
+  .post-row:focus-visible .post-row__text,
+  .post-row:focus-visible .post-row__meta {
+    color: rgb(22 24 24 / 0.9);
+  }
+</style>

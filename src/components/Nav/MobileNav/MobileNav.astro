@@ -68,9 +68,9 @@ if (!docsMenuExists) {
     ]}
   >
     <div class="dialog-frame">
-      <!-- same 76px row as the navbar, so the logo and the close button sit where the
+      <!-- same 77px row as the navbar, so the logo and the close button sit where the
            logo and the hamburger are -->
-      <div class="flex h-[76px] items-center justify-between">
+      <div class="flex h-[77px] items-center justify-between">
         <SiteLogo />
         <!-- mobile nav close -->
         <button
@@ -180,13 +180,33 @@ if (!docsMenuExists) {
         // window.addEventListener("click", onClick);
       };
 
+      // the menu fades in (animate-in) and fades out the same way before the dialog closes
+      let closing = false;
       const closeModal = () => {
-        dialog.close();
+        if (closing || !dialog.open) return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          dialog.close();
+          return;
+        }
+        closing = true;
+        const fade = dialog.animate([{ opacity: 1 }, { opacity: 0 }], {
+          duration: 200,
+          easing: "ease-out",
+        });
+        fade.addEventListener("finish", () => {
+          closing = false;
+          dialog.close();
+        });
       };
 
       openBtn.addEventListener("click", openModal);
       openBtn.disabled = false;
       closeBtn.addEventListener("click", closeModal);
+      // Escape fades out too (the browser may still close at once on a repeated Escape)
+      dialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        closeModal();
+      });
 
       // runs for the close button and for Escape alike
       dialog.addEventListener("close", () => {

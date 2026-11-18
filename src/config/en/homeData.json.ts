@@ -7,7 +7,11 @@
  * colour on its own line (the Figma pattern), unless the section says otherwise.
  */
 
-import { PLUMBER_GITHUB_APP_URL, PLUMBER_GITHUB_REPO_URL } from "@js/plumberGithubRepo";
+import {
+  PLUMBER_GITHUB_APP_URL,
+  PLUMBER_GITHUB_REPO_URL,
+  PLUMBER_GITLAB_CATALOG_URL,
+} from "@js/plumberGithubRepo";
 
 import {
   type Callout,
@@ -232,7 +236,9 @@ export const oneProduct = {
       text: "Continuous CI/CD security posture across every repo and every team. One dashboard, audit-ready reporting, and an AI agent that fixes what it finds.",
       quote:
         "Securing one pipeline by hand takes about an hour a month. For 500 pipelines, that's $600k per year.",
-      ctas: [{ text: "Book a demo", link: "/#book-a-demo", variant: "primary", track: "Book a demo" }],
+      ctas: [
+        { text: "Book a demo", link: "/#book-a-demo", variant: "primary", track: "Book a demo" },
+      ],
       trackPlacement: "organizations",
     },
   ] as ProductColumn[],
@@ -300,6 +306,7 @@ export const footerColumns: FooterColumn[] = [
     title: "Pages",
     links: [
       { text: "Home", link: "/" },
+      { text: "About us", link: "/about" },
       { text: "Products", link: "/#product" },
       { text: "Radar", link: "/radar" },
       { text: "Docs", link: "/docs/getting-started" },
@@ -326,13 +333,14 @@ export const footerColumns: FooterColumn[] = [
 ];
 
 export const footerSocials: SocialLink[] = [
-  // pixel icons from the designer (src/icons/social); Discord keeps the Tabler mark until one exists
+  // pixel icons from the Figma footer of 2026-11-17 (src/icons/social), in the Figma order
   { text: "GitHub", link: "https://github.com/getplumber", icon: "social/github" },
-  { text: "Discord", link: "/discord", icon: "tabler/brand-discord" },
+  { text: "GitLab", link: PLUMBER_GITLAB_CATALOG_URL, icon: "social/gitlab" },
   {
     text: "LinkedIn",
     link: "https://www.linkedin.com/company/getplumber",
     icon: "social/linkedin",
   },
   { text: "X", link: "https://x.com/getplumber_io", icon: "social/x" },
+  { text: "Discord", link: "/discord", icon: "social/discord" },
 ];

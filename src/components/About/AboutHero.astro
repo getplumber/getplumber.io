@@ -1,0 +1,96 @@
+---
+/**
+ * About us hero (Figma About us 2728:4912, frame 1000001399, 1320 wide, re-read on
+ * 2026-11-18): it starts 80px under the fixed 78px navbar (158px from the top, as in Figma), the margin
+ * shared with the blog pages. Pixel eyebrow, the 62/112 uppercase title on 1087px (grey, the
+ * last clause in white), 56px under it a fixed 216px row: two 18/160 paragraphs (898px, 32px
+ * apart) and, 95px to the right, the 327px facts list (72px rows: 26px pixel label with a 6px
+ * teal marker 16px before it, 16/150 value, #5C6262 25% rules). 124px lower the numbers
+ * strip: three 440px cells (32px side padding, 38/110 number, 24px pixel label 16px under it)
+ * with #8D9596 25% dividers between #5C6262 25% rules; Figma centres those strokes on the
+ * 157px frame, so the cells keep 39px of vertical padding inside the 1px rules. Below lg the
+ * columns stack and the cells go one per row.
+ */
+import { aboutHero as data } from "@config/en/aboutData.json";
+---
+
+<section class="home-container mt-[134px] md:mt-[158px]" aria-labelledby="about-title">
+  <div class="flex flex-col gap-6" data-reveal>
+    <p class="eyebrow flex items-center gap-2">
+      <span class="eyebrow-dot" aria-hidden="true"></span>
+      {data.eyebrow}
+    </p>
+    <div class="flex flex-col gap-10 lg:gap-14">
+      <h1 id="about-title" class="h1 text-muted-foreground max-w-[1087px] uppercase">
+        {data.title} <span class="text-foreground">{data.titleAccent}</span>
+      </h1>
+      <div class="flex flex-col gap-10 lg:h-[216px] lg:flex-row lg:items-start lg:gap-[95px]">
+        <div class="flex flex-col gap-8 lg:w-[898px] lg:flex-none">
+          {data.paragraphs.map((text, index) => (
+            <p
+              class:list={[
+                "text-muted-foreground text-lg leading-[29px]",
+                index === 0 && "lg:max-w-[874px]",
+              ]}
+            >
+              {text}
+            </p>
+          ))}
+        </div>
+        <dl class="about-facts stroke-tint w-full border-t lg:w-[327px] lg:flex-none">
+          {data.facts.map((fact) => (
+            <div class="about-facts__row stroke-tint flex items-center justify-between gap-7 border-b pt-[23px] pb-6">
+              <dt class="pixel-26 text-foreground flex items-center gap-4">
+                <span class="bg-primary-500 size-1.5 flex-none" aria-hidden="true"></span>
+                {fact.label}
+              </dt>
+              <dd class="body text-muted-foreground">{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <ul
+    class="about-numbers stroke-tint mt-16 grid border-y md:grid-cols-3 lg:mt-[124px]"
+    data-reveal-stagger
+    style="--reveal-step: 350ms;"
+  >
+    {data.numbers.map((item) => (
+      <li class="about-numbers__cell stroke-muted flex flex-col gap-4 px-8 py-[39px]">
+        <span class="h2 text-foreground">{item.value}</span>
+        <span class="pixel-24 text-muted-foreground">{item.label}</span>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .pixel-26 {
+    font-family: var(--font-pixel);
+    font-size: 1.625rem;
+    line-height: 0.8;
+    line-height: round(0.8em, 1px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .pixel-24 {
+    font-family: var(--font-pixel);
+    font-size: 1.5rem;
+    line-height: 0.8;
+    line-height: round(0.8em, 1px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  @media (min-width: 768px) {
+    .about-numbers__cell + .about-numbers__cell {
+      border-left-width: 1px;
+    }
+  }
+  @media (max-width: 767px) {
+    .about-numbers__cell + .about-numbers__cell {
+      border-top-width: 1px;
+    }
+  }
+</style>

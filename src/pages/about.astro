@@ -1,0 +1,31 @@
+---
+/**
+ * About us page (Figma "Plumber - Website - Ready", frame About us 2728:4912, 1440 x 7336,
+ * built from the file on 2026-11-18). Six sections 280px apart on desktop: hero with the
+ * facts list and the numbers strip, the story with the team photo, the beliefs band and the
+ * four rules, the team list, "Backed by." and the two closing calls to action. Sections fade
+ * in as they scroll into view like on the home page (RevealOnScroll); card rows (numbers,
+ * story columns, rules, closing cards) fade in one after the other, left to right.
+ */
+import AboutBackedBy from "@components/About/AboutBackedBy.astro";
+import AboutBeliefs from "@components/About/AboutBeliefs.astro";
+import AboutCta from "@components/About/AboutCta.astro";
+import AboutHero from "@components/About/AboutHero.astro";
+import AboutStory from "@components/About/AboutStory.astro";
+import AboutTeam from "@components/About/AboutTeam.astro";
+import RevealOnScroll from "@components/Reveal/RevealOnScroll.astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="About Plumber - The team securing CI/CD pipelines"
+  description="Plumber is the security agent that checks every pipeline change before it runs. Meet the team, read how it started and who backs it."
+>
+  <AboutHero />
+  <AboutStory />
+  <AboutBeliefs />
+  <AboutTeam />
+  <AboutBackedBy />
+  <AboutCta />
+  <RevealOnScroll />
+</BaseLayout>

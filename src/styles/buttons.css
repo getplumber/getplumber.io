@@ -2,9 +2,18 @@
    stroke, marker before the label), secondary-trailing (marker after the label), ghost (text only).
    The square marker is drawn with pseudo-elements so callers only pass the label.
    Hover swaps the fill: filled buttons go transparent with a foreground stroke, transparent
-   ones take the accent fill. */
+   ones take the accent fill.
+   Labels are set in the HaxrCorp pixel font since the review of 2026-11-17: 24px on the site,
+   20px in the navbar (Figma navbar button: 20px horizontal and 14px vertical padding, 46px tall). */
 .button {
-  @apply rounded-r0 inline-flex items-center justify-center gap-3.5 px-6 py-4 text-base leading-none font-normal whitespace-nowrap;
+  @apply rounded-r0 inline-flex items-center justify-center gap-3.5 font-normal whitespace-nowrap uppercase;
+  /* Figma Button_*_Classic: 17px by 28px of padding, the 24px label on a 19px line, 55px tall */
+  padding: 17px 28px;
+  font-family: var(--font-pixel);
+  font-size: 1.5rem;
+  line-height: 0.8;
+  line-height: round(0.8em, 1px);
+  letter-spacing: 0.02em;
   @apply focus-visible:ring-primary-500 focus-visible:ring-offset-background focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2;
   @apply disabled:pointer-events-none disabled:opacity-60;
   transition:
@@ -66,15 +75,12 @@
 }
 
 .button--ghost {
-  @apply text-foreground bg-transparent px-0 underline-offset-4 hover:underline;
+  @apply text-foreground bg-transparent underline-offset-4 hover:underline;
+  padding-inline: 0;
 }
 
 /* smaller size for the navbar CTAs */
 .button--navbar {
-  @apply px-5 py-3 text-sm;
-}
-.button--navbar::before,
-.button--navbar::after {
-  width: 5px;
-  height: 5px;
+  padding: 14px 20px;
+  font-size: 1.25rem;
 }

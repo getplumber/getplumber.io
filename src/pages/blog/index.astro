@@ -4,6 +4,7 @@ import { getAllPosts } from "@js/blogUtils";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
 import BlogIndexLayout from "@layouts/BlogIndexLayout2.astro";
+import { Icon } from "astro-icon/components";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const posts = await getAllPosts(currLocale, true); // exclude archived posts (archive/)
@@ -21,7 +22,7 @@ const filterCategories = [
   title="Plumber Blog - CI/CD Security & Pipeline Governance"
   description="Learn DevOps best practices for CI/CD security, pipeline governance, drift detection, and automated, secure deployments."
 >
-  <div class="site-container mt-24 mb-24 md:mt-36">
+  <div class="site-container mt-[134px] mb-24 md:mt-[158px]">
     <PageHeader
       eyebrow="Blog"
       title="Plumber blog"
@@ -29,14 +30,9 @@ const filterCategories = [
     />
     <BlogIndexLayout posts={posts} filterCategories={filterCategories} class="mt-14" />
     <div class="mt-16 flex">
-      <a
-        href="/blog/archive"
-        class="text-accent-text inline-flex items-center gap-2 text-base no-underline hover:underline"
-      >
-        R2Devops release archive
-        <span class="subtitle-pixel" aria-hidden="true">
-          &gt;
-        </span>
+      <a href="/blog/archive" class="link-arrow text-base">
+        <span>R2Devops release archive</span>
+        <Icon name="home/pixel-chevron" aria-hidden="true" />
       </a>
     </div>
   </div>
