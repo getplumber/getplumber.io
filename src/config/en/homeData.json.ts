@@ -306,6 +306,7 @@ export const footerColumns: FooterColumn[] = [
     title: "Pages",
     links: [
       { text: "Home", link: "/" },
+      { text: "About us", link: "/about" },
       { text: "Products", link: "/#product" },
       { text: "Radar", link: "/radar" },
       { text: "Docs", link: "/docs/getting-started" },

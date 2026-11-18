@@ -1,0 +1,72 @@
+---
+/**
+ * "How Plumber started" (Figma About us, section "how started", 280px under the hero):
+ * eyebrow and the one-line 62/112 title ("started." in white), 56px under them the team
+ * photo (1320 x 726, shown black and white as in the file), 80px lower three story blocks:
+ * a 312px column on the left, a 650px column on the right (two blocks 64px apart), each an
+ * H3 (32/110) and an 18/150 paragraph 24px apart. Below lg the columns stack.
+ */
+import { aboutStory as data } from "@config/en/aboutData.json";
+import { Image } from "astro:assets";
+---
+
+<section class="home-container mt-[120px] lg:mt-[280px]" aria-labelledby="about-story-title">
+  <div class="flex flex-col gap-6" data-reveal>
+    <p class="eyebrow flex items-center gap-2">
+      <span class="eyebrow-dot" aria-hidden="true"></span>
+      {data.eyebrow}
+    </p>
+    <h2 id="about-story-title" class="h1 text-muted-foreground uppercase">
+      {data.title} <span class="text-foreground">{data.titleAccent}</span>
+    </h2>
+  </div>
+
+  <Image
+    src={data.photo}
+    alt={data.photoAlt}
+    width={2640}
+    height={1452}
+    densities={[1, 2]}
+    quality={85}
+    class="mt-10 aspect-[1320/726] w-full object-cover grayscale lg:mt-14"
+    loading="eager"
+    fetchpriority="low"
+    decoding="async"
+    data-reveal
+  />
+
+  <div
+    class="mt-12 grid gap-12 lg:mt-20 lg:grid-cols-[312px_650px] lg:justify-between lg:gap-x-6"
+    data-reveal-stagger
+    style="--reveal-step: 350ms;"
+  >
+    <div class="flex flex-col gap-6">
+      <h3 class="about-h3 text-foreground">{data.columns.left.title}</h3>
+      <p class="body-lg text-muted-foreground">{data.columns.left.text}</p>
+    </div>
+    <div class="flex flex-col gap-12 lg:gap-16">
+      {data.columns.right.map((block) => (
+        <div class="flex flex-col gap-6">
+          <h3 class="about-h3 text-foreground">{block.title}</h3>
+          <p class="body-lg text-muted-foreground">{block.text}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Figma H3: 32/110 (the shared .h3 only reaches 32px past 1600px wide) */
+  .about-h3 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(1.5rem, 1.3rem + 0.7vw, 2rem);
+    line-height: 1.1;
+    line-height: round(1.1em, 1px);
+  }
+  @media (min-width: 1024px) {
+    .about-h3 {
+      font-size: 2rem;
+    }
+  }
+</style>

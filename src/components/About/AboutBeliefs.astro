@@ -1,0 +1,118 @@
+---
+/**
+ * "What we believe" (Figma About us, group 38932 at y3063, 280px under the story): a full
+ * width #49B4B8 band, 571.48px tall, its content 120px from the top: the pixel eyebrow in
+ * #161818 (its capitals level with the title's) and, 40px to its right, the 62/112 Medium title (1028px) and the 18/150 paragraph
+ * (812px) 56px apart, all in #161818. 132.52px under the band the four rules: 312px cards
+ * 24px apart (0 top, 32px right, 16px bottom padding, a #5C6262 50% rule on their right
+ * edge): the 92px pixel number in the accent, 24px, the 18/110 Medium title on a 40px line,
+ * 24px, the 16/24 text and 24px of padding under it (346px tall cards), or, for the last
+ * card, the "View on GitHub" chevron link pinned to the bottom. Below lg the band stacks and the cards go two then one per row.
+ */
+import { aboutBeliefs as data } from "@config/en/aboutData.json";
+import { Icon } from "astro-icon/components";
+---
+
+<section class="mt-[120px] lg:mt-[280px]" aria-labelledby="about-beliefs-title">
+  <div class="about-band">
+    <div
+      class="home-container flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10"
+      data-reveal
+    >
+      <p class="eyebrow about-band__eyebrow flex flex-none items-center gap-2">
+        <span class="about-band__dot" aria-hidden="true"></span>
+        {data.eyebrow}
+      </p>
+      <div class="flex max-w-[1028px] flex-col gap-8 lg:gap-14">
+        <h2 id="about-beliefs-title" class="h1 about-band__title uppercase">
+          {data.title}
+        </h2>
+        <p class="body-lg about-band__text max-w-[812px]">{data.text}</p>
+      </div>
+    </div>
+  </div>
+
+  <ol
+    class="home-container mt-16 grid gap-10 md:grid-cols-2 lg:mt-[132.52px] lg:grid-cols-4 lg:gap-6"
+    data-reveal-stagger
+    style="--reveal-step: 700ms; --reveal-duration: 1700ms;"
+  >
+    {data.rules.map((rule) => (
+      <li class="about-rule flex flex-col gap-6 lg:pr-8 lg:pb-4">
+        <span class="about-rule__number text-primary-500">{rule.number}</span>
+        <div class:list={["flex flex-1 flex-col gap-6", !rule.link && "lg:pb-6"]}>
+          <h3 class="about-rule__title text-foreground">{rule.title}</h3>
+          <p class="text-muted-foreground text-base leading-6">{rule.text}</p>
+          {rule.link && (
+            <a
+              href={rule.link.href}
+              class="link-arrow mt-auto self-start text-base"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-track-event={rule.link.track}
+              data-track-placement="about"
+            >
+              <span>{rule.link.text}</span>
+              <Icon name="home/pixel-chevron" aria-hidden="true" />
+            </a>
+          )}
+        </div>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .about-band {
+    background-color: #49b4b8;
+    padding: 64px 0;
+  }
+  @media (min-width: 1024px) {
+    .about-band {
+      padding: 120px 0 107.48px;
+    }
+  }
+  .about-band__eyebrow,
+  .about-band__title,
+  .about-band__text {
+    color: #161818;
+  }
+  /* side by side, the eyebrow's capitals start on the title's cap line: the h1 (same clamp
+     as .h1, 112% rounded line) has 0.1918em above its capitals, the 24px pixel eyebrow 4px */
+  @media (min-width: 1024px) {
+    .about-band__eyebrow {
+      margin-top: calc(0.1918 * clamp(2.25rem, 1.45rem + 3vw, 3.875rem) - 4px);
+    }
+  }
+  .about-band__dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    flex: none;
+    background-color: #161818;
+  }
+  .about-band__title {
+    font-weight: 500;
+  }
+  .about-rule__number {
+    font-family: var(--font-pixel);
+    font-size: 5.75rem;
+    line-height: 0.8;
+    line-height: round(0.8em, 1px);
+    letter-spacing: 0.02em;
+  }
+  .about-rule__title {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    font-size: 1.125rem;
+    line-height: 1.1;
+    line-height: round(1.1em, 1px);
+    font-weight: 500;
+  }
+  @media (min-width: 1024px) {
+    .about-rule:not(:last-child) {
+      border-right: 1px solid rgb(92 98 98 / 0.5);
+    }
+  }
+</style>

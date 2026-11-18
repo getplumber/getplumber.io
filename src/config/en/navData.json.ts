@@ -14,7 +14,6 @@ const navConfig: navItem[] = [
   {
     text: "About us",
     link: "/about",
-    hidden: true,
   },
   {
     text: "Product",

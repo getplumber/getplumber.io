@@ -1,0 +1,205 @@
+---
+/**
+ * "Our team" (Figma About us, frame Team, 1320 x 655, 280px under the rules; component sets
+ * re-read on 2026-11-18): the heading column on the left (the "Meet the Plumbers" eyebrow in
+ * place of the Figma "FAQ", 20px, the 54/112 uppercase title with "team" in white) and the 872px member list on the right. Each member (Figma
+ * component sets Thomas, Aurélien Coget, Thibaud Van den Berghe, Amine Saboni, Thibault
+ * Condemine) is a 128px row, 32px by 24px padding, a #5C6262 25% rule on top: the 28/110 name
+ * over the 16/150 Medium role, both in #5C6262. The component's chevron is at opacity 0 in
+ * every variant, so none is drawn. Hovered, the row takes the accent fill with near-black
+ * text. Opened (click on the header), the row grows to 378px between two solid #5C6262 rules: name in
+ * white, role in grey, the 16/150 bio in #C6C6C6 at the bottom of a 424px column, the 312px
+ * portrait on the right (every portrait downloads with the page at low priority, so it is
+ * ready when a member opens; a lazy image inside the hidden panel would only start then); a click anywhere on the open card closes it. Below lg the open row
+ * stacks the bio and the portrait.
+ */
+import { aboutTeam as data } from "@config/en/aboutData.json";
+import { Image } from "astro:assets";
+---
+
+<section
+  class="home-container mt-[120px] flex flex-col gap-12 lg:mt-[280px] lg:min-h-[655px] lg:flex-row lg:justify-between lg:gap-6"
+  aria-labelledby="about-team-title"
+  data-reveal
+>
+  <div class="flex flex-col gap-5 lg:w-[424px] lg:flex-none">
+    <p class="eyebrow flex items-center gap-2">
+      <span class="eyebrow-dot" aria-hidden="true"></span>
+      {data.eyebrow}
+    </p>
+    <h2 id="about-team-title" class="about-team__title text-muted-foreground uppercase">
+      {data.title} <span class="text-foreground">{data.titleAccent}</span>
+    </h2>
+  </div>
+
+  <ul class="about-team__list w-full lg:w-[872px] lg:flex-none" data-about-team>
+    {data.members.map((member, index) => {
+      const panelId = `about-member-${index}`;
+      return (
+        <li class="about-member" data-about-member>
+          <button
+            type="button"
+            class="about-member__head primary-focus"
+            aria-expanded="false"
+            aria-controls={panelId}
+          >
+            <span class="flex flex-col gap-2">
+              <span class="about-member__name">{member.name}</span>
+              <span class="about-member__role">{member.role}</span>
+            </span>
+          </button>
+          <p class="about-member__bio" id={panelId} hidden>
+            {member.bio}
+          </p>
+          <div class="about-member__photo" hidden>
+            <Image
+              src={member.photo}
+              alt={`Portrait of ${member.name}`}
+              width={624}
+              height={624}
+              densities={[1, 2]}
+              quality={85}
+              class="aspect-square w-full object-cover grayscale"
+              loading="eager"
+              fetchpriority="low"
+              decoding="async"
+            />
+          </div>
+        </li>
+      );
+    })}
+  </ul>
+</section>
+
+<style>
+  /* Figma H1 54/112 (the title style of this section, smaller than the page titles) */
+  .about-team__title {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 1.5rem + 2.5vw, 3.375rem);
+    line-height: 1.12;
+    line-height: round(1.12em, 1px);
+  }
+
+  .about-member {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 32px 24px;
+    border-top: 1px solid var(--color-tint-25);
+    color: var(--color-base-600);
+    transition:
+      background-color 250ms ease,
+      border-color 250ms ease,
+      color 250ms ease;
+  }
+  .about-member__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    width: 100%;
+    text-align: left;
+    color: inherit;
+  }
+  .about-member__name {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    line-height: 1.1;
+    line-height: round(1.1em, 1px);
+  }
+  .about-member__role {
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+  .about-member:not(.is-open):hover,
+  .about-member:not(.is-open):has(.about-member__head:focus-visible) {
+    background-color: var(--color-primary-500);
+    border-top-color: var(--color-primary-500);
+    color: var(--color-base-950);
+  }
+
+  /* open: solid #5C6262 rules on top and bottom, white name, grey role, light-grey bio,
+     portrait on the right */
+  .about-member.is-open {
+    cursor: pointer;
+    border-top-color: var(--color-base-600);
+    border-bottom: 1px solid var(--color-base-600);
+    row-gap: 24px;
+  }
+  .about-member.is-open .about-member__name {
+    color: var(--color-base-50);
+  }
+  .about-member.is-open .about-member__role {
+    color: var(--color-base-400);
+  }
+  .about-member__bio {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--color-base-200);
+  }
+  .about-member__photo {
+    max-width: 312px;
+  }
+  @media (min-width: 1024px) {
+    .about-member.is-open {
+      grid-template-columns: 424px 312px;
+      grid-template-rows: auto 1fr;
+      justify-content: space-between;
+      row-gap: 0;
+    }
+    .about-member.is-open .about-member__head {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .about-member.is-open .about-member__bio {
+      grid-column: 1;
+      grid-row: 2;
+      align-self: end;
+      padding-top: 24px;
+    }
+    .about-member.is-open .about-member__photo {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      width: 312px;
+      height: 312px;
+    }
+  }
+</style>
+
+<script>
+  import { isClosing, toggleWithMotion } from "@js/disclosureMotion";
+
+  function initAboutTeam() {
+    const lists = document.querySelectorAll<HTMLElement>("[data-about-team]");
+    lists.forEach((list) => {
+      if (list.dataset.ready === "true") return;
+      list.dataset.ready = "true";
+      // the header toggles its member; once open, a click anywhere on the card closes it
+      // (except when the click ends a text selection inside the bio)
+      list.addEventListener("click", (event) => {
+        const target = event.target as Element | null;
+        const member = target?.closest<HTMLElement>("[data-about-member]");
+        if (!member) return;
+        const head = member.querySelector<HTMLButtonElement>(".about-member__head");
+        if (!head) return;
+        const onHead = Boolean(target?.closest(".about-member__head"));
+        // a member still folding counts as closed, so a click opens it back
+        const isOpen = member.classList.contains("is-open") && !isClosing(member);
+        if (!onHead && !isOpen) return;
+        if (!onHead && window.getSelection()?.toString()) return;
+        toggleWithMotion(member, !isOpen, (open) => {
+          member.classList.toggle("is-open", open);
+          head.setAttribute("aria-expanded", String(open));
+          member
+            .querySelectorAll<HTMLElement>(".about-member__bio, .about-member__photo")
+            .forEach((el) => {
+              el.hidden = !open;
+            });
+        });
+      });
+    });
+  }
+  initAboutTeam();
+  document.addEventListener("astro:after-swap", initAboutTeam);
+</script>
