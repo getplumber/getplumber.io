@@ -27,8 +27,8 @@ On November 17, 2026, `agent-framework` `1.26.1` and then `1.26.2` went up on Py
 
 - November 17, 20:35:20 UTC: `1.26.1` is uploaded to [PyPI](https://pypi.org/project/agent-framework/) as a single wheel, with no sdist and no attestation, and becomes the latest version ([Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack)).
 - 20:54 UTC: an outside researcher reports it in issue #10411 on the project's GitHub repository.
-- PyPI admins quarantine `1.26.1` ([PyPI](https://pypi.org/project/agent-framework/1.26.1/)). It is gone from the index by 21:13 UTC ([Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack)).
-- 21:08:39 UTC: `1.26.2` goes up anyway, after the quarantine of `1.26.1` ([Chainguard](https://www.chainguard.dev/unchained/microsoft-agent-framework-compromised-on-pypi-november-2026)), again one wheel, no sdist, no attestation. It is still the latest version at 21:16 UTC. This one also goes after GitHub Actions OIDC tokens ([Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack)).
+- 21:06:16 UTC: PyPI admins quarantine `1.26.1` ([StepSecurity](https://www.stepsecurity.io/blog/microsoft-agent-framework-pypi-package-compromised), [PyPI](https://pypi.org/project/agent-framework/1.26.1/)).
+- 21:08:39 UTC: `1.26.2` goes up anyway, after the quarantine of `1.26.1` ([Chainguard](https://www.chainguard.dev/unchained/microsoft-agent-framework-compromised-on-pypi-november-2026)), again one wheel, no sdist, no attestation. PyPI admins quarantine it at 21:16:44 UTC ([StepSecurity](https://www.stepsecurity.io/blog/microsoft-agent-framework-pypi-package-compromised)). This one also goes after GitHub Actions OIDC tokens ([Endor Labs](https://www.endorlabs.com/learn/agent-framework-compromised-software-supply-chain-attack)).
 - By 22:00 UTC, both versions are gone, both are marked as quarantined by PyPI admins ([PyPI](https://pypi.org/project/agent-framework/1.26.2/)), and [PyPI](https://pypi.org/simple/agent-framework/) lists `1.26.0` (November 12) as the newest release.
 
 **What it does, at defender level**
@@ -124,20 +124,22 @@ gh run view <RUN_ID> --log | grep -E "$P"
 
 #### Machines, runners and images
 
-Self-hosted runners, dev machines, servers, containers. Do not run `pip` or `python` before this check: the payload runs on every Python start.
+Self-hosted runners, dev machines, servers, containers. If a machine may have installed a bad version, cut it off the network first, then check it with shell tools only. Do not run `pip` or `python` on it, not even `pip show` or `pip uninstall`: the payload runs on every Python start ([StepSecurity](https://www.stepsecurity.io/blog/microsoft-agent-framework-pypi-package-compromised)).
 
 ~~~bash
-find / -name agent_framework_meta.pth -o -name af_runtime_diag.pth -o -name af_runtime_diag.py -o -path '*/agent_framework_meta/_telemetry.py' -o -name 'agent_framework-1.26.[12].dist-info' 2>/dev/null
+find / -name agent_framework_meta.pth -o -name af_runtime_diag.pth -o -name af_runtime_diag.py -o -name 'af_runtime_diag.*.pyc' -o -path '*/agent_framework_meta/_telemetry.py' -o -path '*/agent_framework_meta/__pycache__/_telemetry.*.pyc' -o -name 'agent_framework-1.26.[12].dist-info' 2>/dev/null
+ps -eo pid,ppid,lstart,args | grep -iE '[p]ython'
 grep -E 'd381fd80-ec62-42ad-8f5c-d1b15103c9bb|runtime-diagnostics/1' <your proxy or egress logs>
 find / -name '*.pth' -path '*-packages/*' -exec grep -HnE '^import[[:blank:]]' {} + 2>/dev/null
 ~~~
 
-- A file hit means that environment ran the payload. Rebuild it from a clean image rather than cleaning it in place.
+- A file hit means that environment ran the payload. The first command also finds the cached bytecode of the payload files.
+- Removing the package or the hook does not stop a collector process the payload already started, and that process can outlive the job ([StepSecurity](https://www.stepsecurity.io/blog/microsoft-agent-framework-pypi-package-compromised)). The `ps` line lists running Python processes with their start time: save that list and your logs, stop any Python process started after the install that you cannot explain, then rebuild the environment from a clean image rather than cleaning it in place.
 - The last command lists every `.pth` line that runs code at each Python start. Some are normal (`distutils-precedence.pth` from setuptools, virtualenv or coverage hooks). Review any line you do not recognize ([Chainguard](https://www.chainguard.dev/unchained/microsoft-agent-framework-compromised-on-pypi-november-2026)).
 - On cloud machines and self-hosted runners, look in your network or flow logs for calls to `169.254.169.254` (instance metadata) from processes that should not need it ([Chainguard](https://www.chainguard.dev/unchained/microsoft-agent-framework-compromised-on-pypi-november-2026)).
 - A log hit means data left. `webhook.site` is a legitimate service: match the full path above, not the domain. [Wiz](https://www.wiz.io/blog/malicious-version-of-microsofts-agent-framework-published-to-pypi) reads a `200` response as data accepted and a `410` or `429` as likely rejected. Rotate in every case.
 - Then rotate, from a clean machine, everything that environment could reach: managed identities, service principals, Azure CLI sessions, Azure DevOps agents, service connections and tokens, GitHub federated credentials, PyPI, npm, NuGet, Docker and Hugging Face tokens, git credentials, cloud and registry tokens, model provider keys. On a self-hosted runner or a shared machine, that includes the secrets of the other jobs and processes that ran on it: the payload also reads other processes' environments. Review audit logs from the install time on. Stolen managed identity and OIDC-exchanged tokens can stay valid for up to 24 hours (Wiz), so review sign-ins for at least the full day after the install.
-- On a self-hosted runner, treat the runner's own credential files as read too, including registration files under `_work/_temp`, and re-register the runner. In Entra ID, remove any federated identity credential (`AzureADTokenExchange`) you do not expect, and check sign-in logs from November 17 on ([StepSecurity](https://www.stepsecurity.io/blog/microsoft-agent-framework-pypi-package-compromised)).
+- On a self-hosted runner, treat the runner's own credential files as read too, including registration files under `_work/_temp`, and re-register the runner. In Entra ID, remove any federated identity credential (`AzureADTokenExchange`) you do not expect, and check sign-in logs from November 17 on. Deleting a trust does not necessarily revoke tokens already issued ([StepSecurity](https://www.stepsecurity.io/blog/microsoft-agent-framework-pypi-package-compromised)).
 
 ## The fix that would have stopped it
 
@@ -214,7 +216,7 @@ deploy:
 - Pin Python dependencies with exact versions and hashes. A second malicious version followed the first 33 minutes later.
 - Keep `id-token: write` in the deploy job only. A test job that installs packages should not be able to mint a cloud login.
 - Block `1.26.1` and `1.26.2` in your package proxy, and delete caches and images built in the window.
-- Do not run `pip` or `python` on a machine you suspect. Check for the `.pth` files from the shell first.
+- Cut a machine you suspect off the network and do not run `pip` or `python` on it. Check for the `.pth` files from the shell, and rebuild it: deleting the files does not stop a collector that is already running.
 
 ## Next steps
 
