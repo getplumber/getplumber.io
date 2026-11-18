@@ -1,0 +1,13 @@
+---
+/**
+ * Open/close motion of every <details> dropdown on the page (src/js/disclosureMotion.ts).
+ * Included once per layout: BaseLayout for the site, DocsShell for the docs.
+ */
+---
+
+<script>
+  import { initDetailsMotion } from "@js/disclosureMotion";
+
+  initDetailsMotion();
+  document.addEventListener("astro:after-swap", () => initDetailsMotion());
+</script>

@@ -4,15 +4,18 @@ import { Icon } from "astro-icon/components";
 interface Props {
   variant: "tip" | "caution" | "danger" | "info";
   title?: string;
+  /** Figma "Message" (Docs_Getting-Started_OK): one centered line, icon then text, no title */
+  message?: boolean;
 }
 
-const { variant, title } = Astro.props as Props;
+const { variant, title, message = false } = Astro.props as Props;
 
 // create a switch statement that switches on "variant" and returns the appropriate icon
 const icon = (() => {
   switch (variant) {
     case "tip":
-      return "tabler/bulb";
+      // pixel shield from the Docs_Getting-Started_OK frame (review of 2026-11-17)
+      return "pixel/shield-warning";
     case "caution":
       return "tabler/alert-triangle";
     case "danger":
@@ -27,53 +30,87 @@ if (!icon) {
 }
 ---
 
-<div
-  class:list={[
-    "docs-aside text-foreground rounded-r8 my-6 border px-6 py-4",
-
-    {
-      "border-accent-20 bg-primary-500/5 docs-aside-success": variant === "tip",
-    },
-    {
-      "border-warning/40 bg-warning/5 docs-aside-warning": variant === "caution",
-    },
-    {
-      "border-danger-25 bg-danger-5 docs-aside-error": variant === "danger",
-    },
-    {
-      "border-accent-20 bg-primary-500/5 docs-aside-info": variant === "info",
-    },
-  ]}
->
-  <div class="not-content flex items-center gap-3 pb-2">
-    <Icon
-      name={icon}
-      class:list={[
-        "size-[22px] shrink-0",
-        {
-          "text-primary-500": variant === "tip",
-        },
-        {
-          "text-warning": variant === "caution",
-        },
-        {
-          "text-danger-500": variant === "danger",
-        },
-        {
-          "text-primary-500": variant === "info",
-        },
-      ]}
-    />
-    <p class="subtitle text-foreground">
-      {title || variant.charAt(0).toUpperCase() + variant.slice(1)}
-    </p>
+{message ? (
+  <div class="docs-aside docs-message not-content my-6 flex items-center justify-center gap-2 rounded-[8px] border p-4">
+    <Icon name={icon} class="text-primary-500 size-6 shrink-0" />
+    <div class="docs-message__text">
+      <slot />
+    </div>
   </div>
-  <slot />
-</div>
+) : (
+  <div
+    class:list={[
+      "docs-aside text-foreground rounded-r8 my-6 border px-6 py-4",
+
+      {
+        "border-accent-20 bg-primary-500/5 docs-aside-success": variant === "tip",
+      },
+      {
+        "border-warning/40 bg-warning/5 docs-aside-warning": variant === "caution",
+      },
+      {
+        "border-danger-25 bg-danger-5 docs-aside-error": variant === "danger",
+      },
+      {
+        "border-accent-20 bg-primary-500/5 docs-aside-info": variant === "info",
+      },
+    ]}
+  >
+    <div class="not-content flex items-center gap-3 pb-2">
+      <Icon
+        name={icon}
+        class:list={[
+          "size-[22px] shrink-0",
+          {
+            "text-primary-500": variant === "tip",
+          },
+          {
+            "text-warning": variant === "caution",
+          },
+          {
+            "text-danger-500": variant === "danger",
+          },
+          {
+            "text-primary-500": variant === "info",
+          },
+        ]}
+      />
+      <p class="subtitle text-foreground">
+        {title || variant.charAt(0).toUpperCase() + variant.slice(1)}
+      </p>
+    </div>
+    <slot />
+  </div>
+)}
 
 <style is:global>
   @import "tailwindcss/theme" theme(reference);
   @import "@/styles/tailwind-theme.css" theme(reference);
+
+  /* Figma Message: accent at 5% with a 25% stroke, 16px padding, 8px between the 24px pixel
+     shield and the 16/140 Medium #D5D9D9 text (box trimmed to the caps), code in accent */
+  .docs-message {
+    border-color: rgb(9 195 195 / 0.25);
+    background-color: rgb(9 195 195 / 0.05);
+  }
+  .docs-message__text {
+    color: #d5d9d9;
+    font-size: 1rem;
+    line-height: 22px;
+    font-weight: 500;
+  }
+  .docs-message__text > p {
+    margin: 0;
+    text-box: trim-both cap alphabetic;
+  }
+  .docs-message__text code {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-primary-500);
+    font-family: inherit;
+    font-size: inherit;
+  }
 
   .docs-aside > :first-child {
     @apply mt-0;

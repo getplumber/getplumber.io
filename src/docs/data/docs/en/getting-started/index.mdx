@@ -26,18 +26,18 @@ brew tap getplumber/plumber
 brew install plumber
 ```
 
-No Homebrew? [All install methods](/docs/cli/installation)
+No Homebrew? <LinkArrow href="/docs/cli/installation">All install methods</LinkArrow>
 
 ## Get your first score
 
 Authenticate with your provider:
 
 <CardGrid>
-  <Card title="GitHub" icon="tabler/brand-github" badge="GH_TOKEN" links={[{ text: "Details", href: "/docs/cli/github#authentication" }]}>
+  <Card title="GitHub" icon="social/github" badge="GH_TOKEN" links={[{ text: "Details", href: "/docs/cli/github#authentication" }]}>
     - Already logged in with the `gh` CLI? Nothing to do, Plumber finds it automatically.
     - Otherwise set `GH_TOKEN`.
   </Card>
-  <Card title="GitLab" icon="tabler/brand-gitlab" badge="GITLAB_TOKEN" links={[{ text: "Details", href: "/docs/cli/gitlab#authentication" }]}>
+  <Card title="GitLab" icon="social/gitlab" badge="GITLAB_TOKEN" links={[{ text: "Details", href: "/docs/cli/gitlab#authentication" }]}>
     - Set `GITLAB_TOKEN`.
   </Card>
 </CardGrid>
@@ -67,7 +67,7 @@ individual findings, each with one fix:
   }}
 />
 
-<Aside variant="tip" title="Next step">
+<Aside variant="tip" message>
   Run `plumber explain -a 1` to see every finding behind attack path 1.
 </Aside>
 
@@ -91,6 +91,6 @@ individual findings, each with one fix:
 ## Community & support
 
 <CardGrid joined>
-  <Card variant="link" icon="tabler/brand-discord" eyebrow="Join our Discord" title="Community" href="/discord" />
-  <Card variant="link" icon="tabler/mail" eyebrow="Open a ticket" title="help@getplumber.io" href="mailto:help@getplumber.io" />
+  <Card variant="link" icon="pixel/chat" eyebrow="Join our Discord" title="Community" href="/discord" />
+  <Card variant="link" icon="pixel/mail" eyebrow="Open a ticket" title="help@getplumber.io" href="mailto:help@getplumber.io" />
 </CardGrid>

@@ -1,32 +1,49 @@
 ---
-import PostCard from "@components/PostCard/PostCardDetailed.astro";
-import PostCardLarge from "@components/PostCard/PostCardLargeDetailed.astro";
+/**
+ * Blog index (Figma Blog-Black frame 2698:4501, measured again for the review of
+ * 2026-11-18): pixel category filters (34px tall, 14px apart, #5C6262 stroke at 50% over a
+ * 5% fill) over a #8D9596 25% rule 24px under them, 114px later the newest matching post
+ * featured (image left, text right), 128px later an "All articles" pixel label and, 32px
+ * under it, the other posts as full-width rows, ten per page, then 88px later the Figma
+ * pagination row (38px selects with the same grey stroke and fill, 14.4 x 8 pixel chevrons,
+ * per-page select on the left, "1–10 of N" and page controls 32px apart on the right). Filtering and paging run in the browser over the rows rendered here, so every
+ * post stays in the HTML; the state lives in the URL (?category=, ?page=, ?per=).
+ */
+import PostFeatured from "@components/PostCard/PostFeatured.astro";
+import PostRow from "@components/PostCard/PostRow.astro";
 import { type CollectionEntry } from "astro:content";
+import { Icon } from "astro-icon/components";
 
 type FilterCategory = string | { id: string; label: string };
 
 interface Props {
   posts: CollectionEntry<"blog">[];
   filterCategories?: FilterCategory[];
+  perPage?: number;
   class?: string;
 }
 
-const { posts, filterCategories = [], class: className } = Astro.props as Props;
+const { posts, filterCategories = [], perPage = 10, class: className } = Astro.props as Props;
 
 const normalizedFilters = filterCategories.map((c) =>
   typeof c === "string" ? { id: c, label: c } : c,
 );
 const hasFilters = normalizedFilters.length > 0;
+const perPageOptions = [10, 20, 50];
+
+const categoriesOf = (post: CollectionEntry<"blog">) =>
+  (post.data.categories ?? []).filter((c): c is string => typeof c === "string");
 ---
 
-<div class:list={[className]}>
+<div class:list={["blog-index", className]} data-blog-index data-per-page={perPage}>
   {hasFilters && (
     <nav
-      class="mb-10 flex flex-wrap gap-3"
+      class="blog-filters stroke-muted flex flex-wrap gap-3.5 border-b pb-6"
       id="blog-category-filters"
       aria-label="Filter blog posts by category"
     >
-      <a href="/blog" data-category="all" class="blog-filter-btn">
+      {/* active from the server so the default filter does not fade in when the script runs */}
+      <a href="/blog" data-category="all" class="blog-filter-btn active">
         All
       </a>
       {normalizedFilters.map((cat) => (
@@ -41,158 +58,327 @@ const hasFilters = normalizedFilters.length > 0;
     </nav>
   )}
 
-  <div class="grid gap-6 gap-y-8 md:grid-cols-2 lg:grid-cols-3" id="blog-posts-grid">
-    {posts.map((post, index) => {
-      const cats = (post.data.categories ?? []).filter((c): c is string => typeof c === "string");
-      const isFirst = index === 0;
-      return (
+  {/* newest matching post: every post has a featured variant, the script shows one */}
+  <div class:list={["blog-featured", hasFilters ? "mt-16 lg:mt-[114px]" : ""]} data-blog-featured>
+    {posts.map((post, index) => (
+      <div
+        class:list={["blog-featured__item", { hidden: index !== 0 }]}
+        data-categories={JSON.stringify(categoriesOf(post))}
+        data-blog-slug={post.id}
+      >
+        <PostFeatured post={post} />
+      </div>
+    ))}
+    <p class="blog-empty body-lg text-muted-foreground hidden" data-blog-empty>
+      No posts in this category yet.
+    </p>
+  </div>
+
+  <section class="blog-list mt-20 lg:mt-32" data-blog-list aria-label="All articles">
+    <p class="eyebrow flex items-center gap-2">
+      <span class="eyebrow-dot" aria-hidden="true"></span>
+      All articles
+    </p>
+    <div class="mt-8" id="blog-posts-grid">
+      {posts.map((post, index) => (
         <div
-          class:list={["blog-post-item", { "md:col-span-2 lg:col-span-3": isFirst }]}
-          data-categories={JSON.stringify(cats)}
+          class:list={["blog-post-item", { hidden: index === 0 || index > perPage }]}
+          data-categories={JSON.stringify(categoriesOf(post))}
           data-blog-slug={post.id}
         >
-          <div class:list={["blog-card-large", { hidden: !isFirst }]}>
-            <PostCardLarge post={post} showDescription={true} />
-          </div>
-          <div class:list={["blog-card-small h-full", { hidden: isFirst }]}>
-            <PostCard post={post} showDescription={false} class="h-full" />
-          </div>
+          <PostRow post={post} />
         </div>
-      );
-    })}
-  </div>
+      ))}
+    </div>
+
+    <div
+      class="blog-pagination mt-12 flex flex-wrap items-center justify-between gap-x-8 gap-y-4 lg:mt-[88px]"
+      data-blog-pagination
+    >
+      <label class="text-foreground flex items-center gap-4 text-base">
+        Show
+        <span class="blog-select">
+          <select data-blog-per-page aria-label="Posts per page">
+            {perPageOptions.map((n) => (
+              <option value={n} selected={n === perPage}>
+                {n}
+              </option>
+            ))}
+          </select>
+          <Icon name="pixel/chevron-down" class="blog-select__icon" aria-hidden="true" />
+        </span>
+        per page
+      </label>
+      <div class="flex items-center gap-8">
+        <p class="text-foreground text-base" data-blog-range aria-live="polite"></p>
+        <button type="button" class="blog-page-btn" data-blog-prev aria-label="Previous page">
+          <Icon name="home/pixel-chevron" class="rotate-180" aria-hidden="true" />
+        </button>
+        <span class="blog-select">
+          <select data-blog-page aria-label="Page"></select>
+          <Icon name="pixel/chevron-down" class="blog-select__icon" aria-hidden="true" />
+        </span>
+        <button type="button" class="blog-page-btn" data-blog-next aria-label="Next page">
+          <Icon name="home/pixel-chevron" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  </section>
 </div>
 
 <style is:global>
-  /* Figma secondary button, square: stroke, tint fill, 6px marker that turns teal when active */
+  /* Figma filter (34px tall): 22px pixel label at 80%, 16px by 8px padding including the
+     1px #5C6262 stroke at 50 percent, a 5 percent fill, a 6px marker 10px before the label;
+     the active one takes the accent fill with near-black text */
   .blog-filter-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.625rem;
-    padding: 0.625rem 1rem;
-    border: 1px solid var(--color-tint-25);
-    border-radius: var(--radius-r4);
+    padding: 7px 15px;
+    border: 1px solid rgb(92 98 98 / 0.5);
+    border-radius: var(--radius-r0);
     background-color: var(--color-tint-5);
     color: var(--muted-foreground);
-    font-size: 0.875rem;
-    line-height: 1;
+    font-family: var(--font-pixel);
+    font-size: 1.375rem;
+    font-weight: 400;
+    line-height: 0.8;
+    line-height: round(0.8em, 1px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
     text-decoration: none;
     cursor: pointer;
     transition:
-      color 150ms ease,
-      border-color 150ms ease,
-      background-color 150ms ease;
+      color 250ms ease,
+      background-color 250ms ease,
+      border-color 250ms ease;
   }
   .blog-filter-btn::before {
     content: "";
     width: 6px;
     height: 6px;
     flex: none;
-    background-color: var(--color-tint-25);
-    transition: background-color 150ms ease;
+    background-color: currentColor;
   }
   .blog-filter-btn:hover {
     color: var(--foreground);
     background-color: var(--color-tint-10);
   }
   .blog-filter-btn.active {
-    color: var(--foreground);
+    color: var(--color-base-950);
+    background-color: var(--color-primary-500);
     border-color: var(--color-primary-500);
   }
-  .blog-filter-btn.active::before {
-    background-color: var(--color-primary-500);
-  }
-  .blog-post-item.hidden-by-filter {
+  .blog-post-item.hidden-by-filter,
+  .blog-featured__item.hidden-by-filter {
     display: none;
+  }
+
+  /* Figma pagination select (38px tall): #8D9596 at 5 percent with a 1px #8D9596 stroke at
+     25 percent, 4px radius, 16px by 8px padding including the stroke, 16/140 text, the
+     14.4 x 8 pixel chevron 16px after the text and 16px from the right edge */
+  .blog-select {
+    position: relative;
+    display: inline-flex;
+  }
+  .blog-select select {
+    appearance: none;
+    /* @tailwindcss/forms draws its own chevron as a background image; only ours shows */
+    background-image: none;
+    padding: 7px 45px 7px 15px;
+    border: 1px solid color-mix(in srgb, var(--color-base-400) 25%, transparent);
+    border-radius: var(--radius-r4);
+    background-color: color-mix(in srgb, var(--color-base-400) 5%, transparent);
+    color: var(--foreground);
+    font-size: 1rem;
+    line-height: 1.4;
+    cursor: pointer;
+    transition:
+      background-color 250ms ease,
+      border-color 250ms ease;
+  }
+  .blog-select select:hover {
+    background-color: color-mix(in srgb, var(--color-base-400) 10%, transparent);
+  }
+  .blog-select select:focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
+  }
+  .blog-select__icon {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    width: 14.4px;
+    height: 8px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--muted-foreground);
+    shape-rendering: crispEdges;
+  }
+  /* previous/next: the 8 x 14.4 pixel chevrons alone, a 12px hit area around them */
+  .blog-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    margin: -12px;
+    color: var(--muted-foreground);
+    transition: color 250ms ease;
+  }
+  .blog-page-btn svg {
+    width: 8px;
+    height: 14.4px;
+    shape-rendering: crispEdges;
+  }
+  .blog-page-btn:hover:not(:disabled) {
+    color: var(--foreground);
+  }
+  .blog-page-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .blog-page-btn:focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
   }
 </style>
 
 <script>
-  function initBlogFilters() {
-    const filterNav = document.getElementById("blog-category-filters");
-    const posts = document.querySelectorAll<HTMLElement>(".blog-post-item");
-    if (!filterNav || !posts.length) return;
+  function initBlogIndex() {
+    const root = document.querySelector<HTMLElement>("[data-blog-index]");
+    if (!root || root.dataset.ready === "true") return;
+    root.dataset.ready = "true";
 
-    const buttons = filterNav.querySelectorAll<HTMLAnchorElement>(".blog-filter-btn");
+    const filterNav = root.querySelector<HTMLElement>("#blog-category-filters");
+    const buttons = filterNav
+      ? Array.from(filterNav.querySelectorAll<HTMLAnchorElement>(".blog-filter-btn"))
+      : [];
+    const featured = Array.from(root.querySelectorAll<HTMLElement>(".blog-featured__item"));
+    const rows = Array.from(root.querySelectorAll<HTMLElement>(".blog-post-item"));
+    const empty = root.querySelector<HTMLElement>("[data-blog-empty]");
+    const list = root.querySelector<HTMLElement>("[data-blog-list]");
+    const pagination = root.querySelector<HTMLElement>("[data-blog-pagination]");
+    const perPageSelect = root.querySelector<HTMLSelectElement>("[data-blog-per-page]");
+    const pageSelect = root.querySelector<HTMLSelectElement>("[data-blog-page]");
+    const range = root.querySelector<HTMLElement>("[data-blog-range]");
+    const prev = root.querySelector<HTMLButtonElement>("[data-blog-prev]");
+    const next = root.querySelector<HTMLButtonElement>("[data-blog-next]");
+    const defaultPerPage = Number(root.dataset.perPage) || 10;
 
-    function normalizeCategoryParam(raw: string | null): string | null {
+    const state = { category: "all", page: 1, perPage: defaultPerPage };
+
+    function normalizeCategoryParam(raw: string | null): string {
+      if (!raw) return "all";
       if (raw === "Releases") return "releases-platform";
       return raw;
     }
 
-    function postMatchesFilter(
-      activeCategory: string,
-      postCategories: string[],
-      blogSlug: string,
-    ): boolean {
-      if (activeCategory === "all") return true;
-      if (activeCategory === "releases-platform" && blogSlug.includes("release-cli")) {
-        return false;
-      }
-      return postCategories.includes(activeCategory);
+    function postMatchesFilter(category: string, item: HTMLElement): boolean {
+      if (category === "all") return true;
+      const postCategories: string[] = JSON.parse(item.dataset.categories || "[]");
+      const blogSlug = item.dataset.blogSlug ?? "";
+      if (category === "releases-platform" && blogSlug.includes("release-cli")) return false;
+      return postCategories.includes(category);
     }
 
-    function applyFilter(category: string | null) {
-      const activeCategory = category || "all";
+    function readUrl() {
+      const params = new URLSearchParams(window.location.search);
+      state.category = normalizeCategoryParam(params.get("category"));
+      const per = Number(params.get("per"));
+      state.perPage = per > 0 ? per : defaultPerPage;
+      const page = Number(params.get("page"));
+      state.page = page > 0 ? page : 1;
+    }
 
+    function writeUrl(push: boolean) {
+      const params = new URLSearchParams();
+      if (state.category !== "all") params.set("category", state.category);
+      if (state.perPage !== defaultPerPage) params.set("per", String(state.perPage));
+      if (state.page > 1) params.set("page", String(state.page));
+      const query = params.toString();
+      const url = window.location.pathname + (query ? `?${query}` : "");
+      if (push) window.history.pushState({}, "", url);
+      else window.history.replaceState({}, "", url);
+    }
+
+    function render() {
       buttons.forEach((btn) => {
-        const isActive = btn.dataset.category === activeCategory;
+        const isActive = btn.dataset.category === state.category;
         btn.classList.toggle("active", isActive);
         btn.setAttribute("aria-pressed", String(isActive));
       });
 
-      posts.forEach((post) => {
-        const postCategories: string[] = JSON.parse(post.dataset.categories || "[]");
-        const blogSlug = post.dataset.blogSlug ?? "";
-        const matches = postMatchesFilter(activeCategory, postCategories, blogSlug);
-        post.classList.toggle("hidden-by-filter", !matches);
+      // the newest match is featured, the others are rows
+      const matching = rows.filter((row) => postMatchesFilter(state.category, row));
+      const featuredSlug = matching[0]?.dataset.blogSlug;
+      featured.forEach((item) => {
+        item.classList.toggle("hidden", item.dataset.blogSlug !== featuredSlug);
       });
+      empty?.classList.toggle("hidden", matching.length > 0);
 
-      let firstVisible = true;
-      posts.forEach((post) => {
-        if (post.classList.contains("hidden-by-filter")) return;
+      const listRows = matching.slice(1);
+      const pageCount = Math.max(1, Math.ceil(listRows.length / state.perPage));
+      if (state.page > pageCount) state.page = pageCount;
+      const start = (state.page - 1) * state.perPage;
+      const visible = new Set(listRows.slice(start, start + state.perPage));
+      rows.forEach((row) => row.classList.toggle("hidden", !visible.has(row)));
+      list?.classList.toggle("hidden", listRows.length === 0);
 
-        const large = post.querySelector<HTMLElement>(".blog-card-large");
-        const small = post.querySelector<HTMLElement>(".blog-card-small");
-
-        if (firstVisible) {
-          post.classList.add("md:col-span-2", "lg:col-span-3");
-          if (large) large.classList.remove("hidden");
-          if (small) small.classList.add("hidden");
-          firstVisible = false;
-        } else {
-          post.classList.remove("md:col-span-2", "lg:col-span-3");
-          if (large) large.classList.add("hidden");
-          if (small) small.classList.remove("hidden");
-        }
-      });
+      if (range) {
+        const end = Math.min(start + state.perPage, listRows.length);
+        range.textContent = listRows.length ? `${start + 1}–${end} of ${listRows.length}` : "";
+      }
+      if (pageSelect) {
+        pageSelect.replaceChildren(
+          ...Array.from({ length: pageCount }, (_, i) => {
+            const option = document.createElement("option");
+            option.value = String(i + 1);
+            option.textContent = `${i + 1}/${pageCount}`;
+            option.selected = i + 1 === state.page;
+            return option;
+          }),
+        );
+      }
+      if (perPageSelect) perPageSelect.value = String(state.perPage);
+      if (prev) prev.disabled = state.page <= 1;
+      if (next) next.disabled = state.page >= pageCount;
+      pagination?.classList.toggle("hidden", listRows.length === 0);
     }
 
-    function getCategoryFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      return normalizeCategoryParam(params.get("category"));
+    function goToPage(page: number) {
+      state.page = page;
+      writeUrl(false);
+      render();
+      list?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     buttons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
-        const category = btn.dataset.category!;
-        const url =
-          category === "all"
-            ? window.location.pathname
-            : `${window.location.pathname}?category=${encodeURIComponent(category)}`;
-        window.history.pushState({}, "", url);
-        applyFilter(category === "all" ? null : category);
+        state.category = btn.dataset.category || "all";
+        state.page = 1;
+        writeUrl(true);
+        render();
       });
     });
-
+    perPageSelect?.addEventListener("change", () => {
+      state.perPage = Number(perPageSelect.value) || defaultPerPage;
+      state.page = 1;
+      writeUrl(false);
+      render();
+    });
+    pageSelect?.addEventListener("change", () => goToPage(Number(pageSelect.value) || 1));
+    prev?.addEventListener("click", () => goToPage(state.page - 1));
+    next?.addEventListener("click", () => goToPage(state.page + 1));
     window.addEventListener("popstate", () => {
-      applyFilter(getCategoryFromUrl());
+      readUrl();
+      render();
     });
 
-    applyFilter(getCategoryFromUrl());
+    readUrl();
+    render();
   }
 
-  initBlogFilters();
-  document.addEventListener("astro:after-swap", initBlogFilters);
+  initBlogIndex();
+  document.addEventListener("astro:after-swap", initBlogIndex);
 </script>

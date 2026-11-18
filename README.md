@@ -968,16 +968,16 @@ Every conventional type releases, because every merge changes the published site
 
 Push the branch and open a PR against `main`. On every push, the checks below run; the **Deploy Preview** workflow also posts the preview URL on the PR, so reviewers see the change on a real Vercel deployment.
 
-| Check             | Workflow                | What it verifies                                                                                  |
-| ----------------- | ----------------------- | ------------------------------------------------------------------------------------------------- |
-| ESLint            | `lint.yml`              | `npm run lint`                                                                                    |
-| Astro Build       | `build.yml`             | `npm run build` without secrets (also covers Dependabot PRs, which get no preview)                |
-| Lockfile          | `verify-lockfile.yml`   | `gh actions-lock --verify`: every `uses:` is pinned in `actions.lock`                             |
-| NPM Audit         | `security.yml`          | `node scripts/npm-audit.mjs --audit-level=moderate` and `npm audit --omit=dev --audit-level=high` |
-| Dependency Review | `dependency-review.yml` | The PR introduces no dependency with a known vulnerability (moderate and above)                   |
-| CodeQL            | `codeql.yml`            | Static analysis of the JavaScript/TypeScript                                                      |
-| Plumber           | `plumber.yml`           | Plumber grades this repository's own workflows; fails under 90 points                             |
-| Deploy Preview    | `preview.yaml`          | Builds and deploys the branch to a Vercel preview (not for Dependabot branches)                   |
+| Check             | Workflow                | What it verifies                                                                                                   |
+| ----------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| ESLint            | `lint.yml`              | `npm run lint`                                                                                                     |
+| Astro Build       | `build.yml`             | `npm run build` without secrets (also covers Dependabot PRs, which get no preview)                                 |
+| Lockfile          | `verify-lockfile.yml`   | `gh actions-lock --verify`: every `uses:` is pinned in `actions.lock`                                              |
+| NPM Audit         | `security.yml`          | `node scripts/npm-audit.mjs --audit-level=moderate` and `node scripts/npm-audit.mjs --omit=dev --audit-level=high` |
+| Dependency Review | `dependency-review.yml` | The PR introduces no dependency with a known vulnerability (moderate and above)                                    |
+| CodeQL            | `codeql.yml`            | Static analysis of the JavaScript/TypeScript                                                                       |
+| Plumber           | `plumber.yml`           | Plumber grades this repository's own workflows; fails under 90 points                                              |
+| Deploy Preview    | `preview.yaml`          | Builds and deploys the branch to a Vercel preview (not for Dependabot branches)                                    |
 
 Run the same validation locally before pushing (see [Contributing](#-contributing)): `npm run lint`, `npm run build`, and the two audit commands.
 
@@ -1242,7 +1242,7 @@ CI and Vercel install with **npm 10**. A `package-lock.json` written by npm 11+ 
   ```bash
   npx -y npm@10 ci --dry-run
   node scripts/npm-audit.mjs --audit-level=moderate
-  npm audit --omit=dev --audit-level=high
+  node scripts/npm-audit.mjs --omit=dev --audit-level=high
   npm run lint
   npm run build
   ```

@@ -7,11 +7,11 @@
 
 @layer base {
   #documentation-layout {
-    /* site navbar: 76px plus its bottom stroke */
-    --nav-height: 77px;
-    /* distance between the navbar and the content and rail (Figma: 56px); the sidebar
-       starts 32px under the navbar */
-    --main-content-pt: 3.5rem;
+    /* site navbar: 77px plus its bottom stroke, 78px like the Figma Navbar */
+    --nav-height: 78px;
+    /* distance between the navbar and the sidebar, content and rail (Figma
+       Docs_Getting-Started_OK: 80px, as on the blog and About pages) */
+    --main-content-pt: 80px;
   }
 
   /* starwind preflight merged with site theme */
@@ -37,8 +37,9 @@
   .docs-h1 {
     font-family: var(--font-heading);
     font-weight: 400;
-    font-size: clamp(2.125rem, 1.4rem + 2.6vw, 3.375rem);
+    font-size: clamp(2.25rem, 1.45rem + 3vw, 3.875rem); /* 36px to 62px, as .h1 */
     line-height: 1.12;
+    line-height: round(1.12em, 1px);
     text-transform: uppercase;
   }
 

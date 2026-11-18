@@ -1,10 +1,13 @@
 ---
 /**
- * Docs page shell (Figma Docs_Getting-Started, node 2556:5303): a sidebar column with the
- * search field and the section menu, a content column capped at 786px, and the
- * "on this page" rail. Below md the sidebar lives in a sticky "Menu" disclosure, below lg
+ * Docs page shell (Figma Docs_Getting-Started_OK, re-measured on 2026-11-18): at 1440 the
+ * sidebar column ends on its rule at x334 (60px gutter, 234px menu, 40px padding, the search
+ * 45px above the menu), the content column starts 60px after it and is capped at 786px, and
+ * the "on this page" rail sits in the last 200px. Sidebar, content and rail start 80px under
+ * the navbar. Below md the sidebar lives in a sticky "Menu" disclosure, below lg
  * the rail becomes an "On this page" disclosure. Used by DocsLayout and DocsLayoutStandalone.
  */
+import DisclosureMotion from "@components/DisclosureMotion/DisclosureMotion.astro";
 import type { MarkdownHeading } from "astro";
 
 import SidebarNav from "@/docs/components/nav/SidebarNav.astro";
@@ -24,12 +27,12 @@ const { sectionId, headings, minHeadingLevel = 2, pagefind = false } = Astro.pro
 const hasToc = headings.length > 0;
 ---
 
-<div class="docs-site-container docs-shell min-h-[calc(100vh-var(--nav-height))] md:grid md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[300px_minmax(0,1fr)_200px]">
+<div class="docs-site-container docs-shell min-h-[calc(100vh-var(--nav-height))] md:grid md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[274px_minmax(0,1fr)_200px]">
   {/* Desktop sidebar: search field, then the section menu */}
   <aside class="docs-shell__sidebar stroke-tint hidden border-r md:block">
     <div class="sticky top-(--nav-height)">
-      <div class="docs-scroll max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-8 pr-10 pb-10">
-        <DocsSearch class="mb-11" />
+      <div class="docs-scroll max-h-[calc(100vh-var(--nav-height))] overflow-y-auto pt-8 pr-10 pb-10 lg:pt-(--main-content-pt)">
+        <DocsSearch class="mb-[45px]" />
         <SidebarNav sectionId={sectionId} />
       </div>
     </div>
@@ -77,6 +80,7 @@ const hasToc = headings.length > 0;
       <slot />
     </div>
   </main>
+  <DisclosureMotion />
 
   {/* Desktop on-this-page rail */}
   <aside class="hidden lg:block">

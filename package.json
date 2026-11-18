@@ -40,7 +40,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vercel/analytics": "^2.0.1",
-    "astro": "^7.4.4",
+    "astro": "^7.4.12",
     "astro-auto-import": "0.6.0",
     "astro-expressive-code": "^0.44.3",
     "astro-icon": "1.2.0",

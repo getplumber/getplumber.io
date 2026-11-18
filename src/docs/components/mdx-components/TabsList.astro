@@ -1,4 +1,10 @@
 ---
+/**
+ * Row of tab triggers over a 2px rule. The rule lives on the outer element so it always
+ * spans the full width; the triggers sit in an inner row that scrolls sideways (scrollbar
+ * hidden) when they are wider than the column, so a long list never widens the page on
+ * phones.
+ */
 import type { HTMLAttributes } from "astro/types";
 
 type Props = Omit<HTMLAttributes<"div">, "role">;
@@ -8,12 +14,25 @@ const { class: className, ...rest } = Astro.props;
 
 <div
   class:list={[
-    "not-content text-muted-foreground relative flex w-full",
+    "not-content text-muted-foreground relative w-full",
     "before:border-border before:absolute before:inset-x-0 before:bottom-0 before:border-b-2",
     className,
   ]}
-  role="tablist"
-  {...rest}
 >
-  <slot />
+  <div
+    class="docs-tabs-list flex w-full overflow-x-auto overscroll-x-contain"
+    role="tablist"
+    {...rest}
+  >
+    <slot />
+  </div>
 </div>
+
+<style>
+  .docs-tabs-list {
+    scrollbar-width: none;
+  }
+  .docs-tabs-list::-webkit-scrollbar {
+    display: none;
+  }
+</style>

@@ -1,24 +1,22 @@
 ---
 /**
- * Site footer (Figma symbol 2513:2041, 1440 x 639, measured in the file on 2026-10-27):
- * 112px above the column titles, content-width link columns 64px apart on the left (a
- * two-column grid below lg, so the columns line up), the
- * newsletter block isolated on the right (422px): title, 16px, a 74px field (32px above
- * and below the 14px text, stroke at the bottom), 32px, the 28px social icons. Link
- * columns: Regular 16px title, 32px to the links, links on a 34px pitch (14px text), which
- * puts the social icons on the last link line; the copyright row 100px under the columns
- * and the oversized wordmark 100px under that. The newsletter submits with the Figma pixel
- * chevron at the right of the field (review of 2026-10-27). Links and copy are 14px, titles 16px,
- * the legal row a darker grey, and the social icons sit on the last link line.
+ * Site footer, teal version (Figma Blog-Black frame, group 2698:4502, 1440 x 742, measured
+ * in the file on 2026-11-17). It replaces the black footer of 2026-10-27 on every page.
  *
- * The wordmark is the vector from the Figma footer (node 2513:2088, 873.5 x 140.6), not
- * live text: from lg the page is a five-column grid (three content-width link columns, the
- * Legal column stretching but never narrower than its links, the newsletter at 422px when
- * there is room and narrower first when the page is tight, so nothing overflows between
- * 1024 and about 1140px) and the wordmark spans the last two columns, so its left edge sits
- * on the Legal column and its bottom on the page's edge, with no padding under it. Below lg
- * it keeps the former text size, right-aligned.
+ * A 180px band of 60px pixels (3 rows of 24, the vector in footer-pixel-band.svg) leads from
+ * the page background into the accent-blue block; the band scales with the page width so the
+ * squares stay square. Inside the block (re-measured on 2026-11-18, every value from the
+ * Blog-Black and About us exports): content starts 124px from the top of the block, the
+ * content-width link columns 66px apart on the left (a two-column grid below lg), the title
+ * 32px over the first link, links on a 34px pitch; the newsletter block on the right (421px):
+ * title, 32px, a 74px field with a #161818 75% stroke (24px text inset), 32px, the 24px pixel
+ * social icons 24px apart (4px of padding around the row). Column titles and the legal row
+ * are the 24px pixel font, links and the field 14px Inter in the Figma near-black (#161818 at
+ * 90%), the social icons and the legal row at 75%. 108px under the columns one row holds the
+ * legal items (24px apart) and, 110px after them, the 873.5 x 140.6 wordmark that reaches the
+ * right edge of the page at 1440 and closes the block; below lg it wraps under them.
  */
+import PixelBand from "@assets/brand/footer-pixel-band.svg";
 import Wordmark from "@assets/brand/plumber-wordmark.svg";
 import FooterLink from "@components/Footer/FooterLink.astro";
 import { footerColumns, footerSocials } from "@config/en/homeData.json";
@@ -28,114 +26,181 @@ const year = new Date().getFullYear();
 const isDocs = Astro.url.pathname.startsWith("/docs");
 ---
 
-<footer class="bg-background stroke-tint border-t">
-  <div
-    class:list={[
-      isDocs ? "docs-site-container" : "home-container",
-      "flex flex-col gap-12 pt-20 lg:grid lg:grid-cols-[max-content_max-content_max-content_minmax(max-content,1fr)_minmax(0,422px)] lg:gap-x-16 lg:gap-y-0 lg:pt-[112px]",
-    ]}
-  >
-    <nav
-      class="grid grid-cols-2 gap-x-8 gap-y-10 lg:col-span-4 lg:grid-cols-subgrid lg:gap-x-16 lg:gap-y-0"
-      aria-label="Footer"
-    >
-      {footerColumns.map((column) => (
-        <div class="flex flex-col">
-          <h3 class="subtitle text-foreground mb-7 font-normal">{column.title}</h3>
-          <ul class="flex flex-col gap-[14px]">
-            {column.links.map((item) => (
-              <li class="flex">
-                <FooterLink href={item.link} newTab={item.newTab}>
-                  {item.text}
-                </FooterLink>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </nav>
+<footer class="site-footer bg-background pt-16 lg:pt-[184px]">
+  {/* pixel transition from the page background into the teal block */}
+  <PixelBand class="text-primary-500 -mb-px block h-auto w-full" aria-hidden="true" />
 
-    <div class="flex w-full flex-col gap-8 lg:justify-between">
-      <div class="flex flex-col">
-        <h3 class="subtitle text-foreground mb-4 font-normal">Newsletter</h3>
-        <form
-          data-form="newsletter"
-          action="/api/newsletter"
-          method="post"
-          class="relative"
-          novalidate
-        >
-          <label class="sr-only" for="newsletter-email">
-            Your email
-          </label>
-          <div class="relative">
-            <input
-              id="newsletter-email"
-              name="email"
-              type="email"
-              autocomplete="email"
-              required
-              placeholder="Your email"
-              class="form__input body-sm py-7 pr-10 leading-none"
-            />
-            <button
-              type="submit"
-              class="newsletter__submit text-muted-foreground hover:text-foreground primary-focus absolute top-1/2 right-0 flex h-8 w-8 -translate-y-1/2 items-center justify-center transition-colors duration-200"
-              aria-label="Subscribe"
-            >
-              <Icon name="home/pixel-chevron" class="h-[14px] w-[8px]" aria-hidden="true" />
-            </button>
+  <div class="site-footer__block bg-primary-500 text-base-950 border-t">
+    <div
+      class:list={[
+        isDocs ? "docs-site-container" : "home-container",
+        "flex flex-col gap-12 pt-16 lg:grid lg:grid-cols-[max-content_max-content_max-content_minmax(max-content,1fr)_minmax(0,421px)] lg:gap-x-[66px] lg:gap-y-0 lg:pt-[124px]",
+      ]}
+    >
+      <nav
+        class="grid grid-cols-2 gap-x-8 gap-y-10 lg:col-span-4 lg:grid-cols-subgrid lg:gap-x-[66px] lg:gap-y-0"
+        aria-label="Footer"
+      >
+        {footerColumns.map((column) => (
+          <div class="flex flex-col">
+            <h3 class="footer-title mb-[27px]">{column.title}</h3>
+            <ul class="flex flex-col gap-[14px]">
+              {column.links.map((item) => (
+                <li class="flex">
+                  <FooterLink href={item.link} newTab={item.newTab}>
+                    {item.text}
+                  </FooterLink>
+                </li>
+              ))}
+            </ul>
           </div>
-          <input
-            type="text"
-            name="website"
-            tabindex="-1"
-            autocomplete="off"
-            class="hidden"
-            aria-hidden="true"
-          />
-          <p
-            data-form-status
-            class="body-sm text-muted-foreground absolute top-full left-0 mt-1.5"
-            aria-live="polite"
-          ></p>
-        </form>
+        ))}
+      </nav>
+
+      <div class="flex w-full flex-col gap-8">
+        <div class="flex flex-col">
+          <h3 class="footer-title mb-8">Newsletter</h3>
+          <form
+            data-form="newsletter"
+            action="/api/newsletter"
+            method="post"
+            class="relative"
+            novalidate
+          >
+            <label class="sr-only" for="newsletter-email">
+              Your email
+            </label>
+            <div class="relative">
+              <input
+                id="newsletter-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                placeholder="Your email"
+                class="footer-input body-sm"
+              />
+              <button
+                type="submit"
+                class="newsletter__submit footer-focus absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 items-center justify-center opacity-75 transition-opacity duration-200 hover:opacity-100"
+                aria-label="Subscribe"
+              >
+                <Icon name="home/pixel-chevron" class="h-[14px] w-[8px]" aria-hidden="true" />
+              </button>
+            </div>
+            <input
+              type="text"
+              name="website"
+              tabindex="-1"
+              autocomplete="off"
+              class="hidden"
+              aria-hidden="true"
+            />
+            <p
+              data-form-status
+              class="body-sm footer-muted absolute top-full left-0 mt-1.5"
+              aria-live="polite"
+            ></p>
+          </form>
+        </div>
+
+        <ul class="flex items-center gap-6 py-1" aria-label="Social links">
+          {footerSocials.map((social) => (
+            <li>
+              <a
+                href={social.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.text}
+                class="footer-focus flex size-6 items-center justify-center opacity-75 transition-opacity duration-200 hover:opacity-100"
+              >
+                <Icon name={social.icon} class="size-6" aria-hidden="true" />
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      <ul class="flex items-center gap-3" aria-label="Social links">
-        {footerSocials.map((social) => (
-          <li>
-            <a
-              href={social.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={social.text}
-              class="text-muted-foreground hover:text-foreground primary-focus flex h-7 w-7 items-center justify-center transition duration-200"
-            >
-              <Icon name={social.icon} class="size-6" aria-hidden="true" />
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-
-    <p class="body-sm text-base-600 mt-4 flex flex-wrap gap-x-3 gap-y-1 lg:col-span-4 lg:mt-[100px]">
-      <span>&copy;PLUMBER {year}</span>
-      <span aria-hidden="true">&middot;</span>
-      <span>All rights reserved</span>
-      <span aria-hidden="true">&middot;</span>
-      <a href="/privacy-policy" class="hover:text-foreground transition duration-200">
-        Cookies
-      </a>
-    </p>
-
-    {/* inline-size containment from lg: the inline svg would otherwise feed its default
-        300px intrinsic width into the grid's track sizing */}
-    <div class="mt-4 self-end lg:col-span-2 lg:col-start-4 lg:mt-[100px] lg:self-auto lg:contain-inline-size">
-      <Wordmark
-        class="text-foreground block h-[clamp(2.5rem,8.9vw,8rem)] w-auto lg:h-auto lg:w-full"
-        aria-hidden="true"
-      />
+      {/* legal row and wordmark share one row: the row runs 58.52px past the container so
+          the wordmark ends at the page edge at 1440 (Figma Frame 1000001529, 1378.52 wide);
+          inline-size containment keeps its width out of the grid's track sizing */}
+      <div class="mt-4 flex flex-wrap items-start gap-x-[110px] gap-y-8 lg:col-span-5 lg:mt-[108px] lg:-mr-[58.52px] lg:contain-inline-size">
+        <p class="footer-legal flex flex-wrap gap-x-6 gap-y-2">
+          <span>&copy;Plumber {year}</span>
+          <span>All rights reserved</span>
+          <a href="/privacy-policy" class="footer-focus transition duration-200 hover:underline">
+            Cookies
+          </a>
+        </p>
+        <Wordmark
+          class="text-base-950 ml-auto block h-[clamp(2.5rem,8.9vw,8rem)] w-auto lg:h-[140.61px]"
+          aria-hidden="true"
+        />
+      </div>
     </div>
   </div>
 </footer>
+
+<style is:global>
+  /* Figma near-black on the accent block: titles and the wordmark solid, links at 90% */
+  .site-footer__block {
+    --footer-ink: #161818;
+    border-color: var(--color-tint-25);
+  }
+  .site-footer .footer-title,
+  .site-footer .footer-legal {
+    font-family: var(--font-pixel);
+    font-size: 1.5rem;
+    line-height: 0.8;
+    line-height: round(0.8em, 1px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-base-950);
+  }
+  .site-footer .footer-legal {
+    color: rgb(22 24 24 / 0.75);
+  }
+  .site-footer .footer-link,
+  .site-footer .footer-muted,
+  .site-footer .newsletter__submit,
+  .site-footer [aria-label="Social links"] a {
+    color: rgb(22 24 24 / 0.9);
+  }
+  .site-footer .footer-link:hover,
+  .site-footer .footer-legal a:hover {
+    color: var(--color-base-950);
+  }
+  /* 74px bordered field: 24px text inset, the stroke in the near-black at 75%, no fill */
+  .site-footer .footer-input {
+    width: 100%;
+    height: 74px;
+    padding: 0 3.5rem 0 1.5rem;
+    border: 1px solid rgb(22 24 24 / 0.75);
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-base-950);
+    outline: none;
+    transition: border-color 150ms ease;
+  }
+  .site-footer .footer-input::placeholder {
+    color: rgb(22 24 24 / 0.9);
+  }
+  .site-footer .footer-input:focus {
+    border-color: var(--color-base-950);
+    box-shadow: inset 0 0 0 1px var(--color-base-950);
+  }
+  .site-footer .footer-input[aria-invalid="true"] {
+    border-color: var(--color-danger-500);
+  }
+  .site-footer [data-form-status].text-danger-500 {
+    color: var(--color-danger-500);
+  }
+  .site-footer .footer-focus:focus-visible {
+    outline: 2px solid var(--color-base-950);
+    outline-offset: 2px;
+  }
+  /* pixel icons on the band must never blur */
+  .site-footer svg {
+    shape-rendering: crispEdges;
+  }
+</style>

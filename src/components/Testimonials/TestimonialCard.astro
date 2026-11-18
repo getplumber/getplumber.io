@@ -83,6 +83,8 @@ const { avatar, name, title, testimonial, class: className } = Astro.props;
 </style>
 
 <script>
+  import { isClosing, toggleWithMotion } from "@js/disclosureMotion";
+
   function initTestimonials() {
     document.querySelectorAll<HTMLElement>("[data-testimonial]").forEach((card) => {
       if (card.dataset.ready === "true") return;
@@ -90,8 +92,11 @@ const { avatar, name, title, testimonial, class: className } = Astro.props;
       const button = card.querySelector<HTMLButtonElement>(".testimonial__toggle");
       // the button's own click (keyboard too) bubbles up here, so one handler covers both
       card.addEventListener("click", () => {
-        const open = card.classList.toggle("is-open");
-        button?.setAttribute("aria-expanded", String(open));
+        const isOpen = card.classList.contains("is-open") && !isClosing(card);
+        toggleWithMotion(card, !isOpen, (open) => {
+          card.classList.toggle("is-open", open);
+          button?.setAttribute("aria-expanded", String(open));
+        });
       });
     });
   }

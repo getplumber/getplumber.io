@@ -2,6 +2,7 @@
 import "@/styles/global.css";
 
 import CookieConsent from "@components/CookieConsent/CookieConsent.astro";
+import DisclosureMotion from "@components/DisclosureMotion/DisclosureMotion.astro";
 import Footer from "@components/Footer/Footer.astro";
 import Nav from "@components/Nav/Nav.astro";
 import siteSettings from "@config/siteSettings.json";
@@ -68,6 +69,7 @@ const currLocale = getLocaleFromUrl(Astro.url);
     <script>
       import "@js/forms";
     </script>
+    <DisclosureMotion />
     <!-- Scroll animations -->
     <script>
       import { MOS } from "motion-on-scroll";

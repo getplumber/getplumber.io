@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "id": "GHSA-fc5q-39xc-vjpf",
+    "package": "picomatch",
+    "reason": "No patched release exists: the advisory covers every version up to 4.0.7, the latest picomatch, and the upstream fixes are still open pull requests. The ReDoS needs a glob pattern with repeated extglobs; picomatch only compiles patterns we author (Astro content loaders, asset and cache config, Vite and Vercel build tooling, semantic-release), none of which use extglobs. Kept to one week so the entry is re-checked as soon as a fix ships.",
+    "added": "2026-11-18",
+    "expires": "2026-11-25"
+  }
+]

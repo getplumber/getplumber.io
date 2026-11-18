@@ -84,6 +84,7 @@ export default defineConfig({
         "@/docs/components/mdx-components/Stats.astro",
         "@/docs/components/mdx-components/Card.astro",
         "@/docs/components/mdx-components/CardGrid.astro",
+        "@/docs/components/mdx-components/LinkArrow.astro",
       ],
     }),
     // Expressive Code options live in ec.config.mjs: the <Code> component on the issue
