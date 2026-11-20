@@ -2742,7 +2742,7 @@ jobs:
       goodExampleCaption: "Every `uses:` carries a full SHA; the trailing comment names the release.",
       tips: [
         "A tag backed by an [immutable release](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/immutable-releases) counts as pinned, for steps and reusable workflows. Only the exact released tag qualifies: `docker/build-push-action@v7.4.0` is accepted, the floating `@v7` (no release behind it) is not, and neither is a tag that a same-named branch shadows. Plumber reads the release with `GET /repos/{owner}/{repo}/releases/tags/{tag}`, so this needs a GitHub token. Without one, or when the release cannot be read, the reference is reported. Accepted references are listed in the JSON report under `actionPinningResult.immutableReleaseRefs` with `pinnedVia: immutable_release`.",
-        "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions.",
+        "List `actions` and `github` under `trustedOwners` to skip the rule for first-party GitHub-owned actions. Case does not matter in the owner and repository (`actions` covers `Actions/checkout`); a path below the repository and the ref must match exactly.",
         "Local actions (`uses: ./.github/actions/foo`) are exempt from this rule because the local reference itself lives in the same repo, but a third-party action it pulls in through that local composite is judged like any other nested reference.",
         "This control skips `uses: docker://…` steps and leaves them out of `actionRefsTotal` / `actionRefsUnpinned`. ISSUE-101, ISSUE-102 and ISSUE-103 judge their images.",
         "Pair with ISSUE-702, ISSUE-707 and ISSUE-709 for a complete supply-chain ruleset (archived repos, impostor SHAs, stale pins).",
@@ -3078,7 +3078,7 @@ jobs:
       description:
         "A workflow references a GitHub Action whose source is not authorized. The control checks every step-level `uses: owner/repo@ref` and every job-level reusable-workflow `uses:`, and flags any reference that is not trusted by one of:",
       descriptionPoints: [
-        "a GitHub-official owner (`actions/*`, `github/*`, trusted by default)",
+        "a GitHub-official owner (`actions/*`, `github/*`, in any letter case, trusted by default)",
         "the same org/user as the scanned repository (`trustSameOrgActions`, trusted by default)",
         "the `trustedGithubActions` allowlist (exact `owner/repo` or `owner/*` wildcard)",
         "a `minimumStars` floor (when set, the action's upstream repository has at least that many stars)",
@@ -3113,7 +3113,7 @@ jobs:
       tips: [
         "Trust is satisfied by ANY of: a GitHub-official owner (`actions/*`, `github/*`, on by default), the scanned repo's own org (`trustSameOrgActions`, on by default), a `trustedGithubActions` match, or, when `minimumStars > 0`, enough stars on the action repo.",
         "`trustSameOrgActions` trusts actions whose owner matches the scanned repository's owner (case-insensitive). It abstains when the repo owner is unknown (e.g. no GitHub remote), so it never grants trust on missing data.",
-        "`trustedGithubActions` accepts an exact `owner/repo` (`jdx/mise-action`) or an `owner/*` whole-org wildcard (`mycompany/*`). Bare owners and arbitrary globs are not supported.",
+        "`trustedGithubActions` accepts an exact `owner/repo` (`jdx/mise-action`) or an `owner/*` whole-org wildcard (`mycompany/*`), in any letter case: `mycompany/*` also covers `MyCompany/deploy`. Bare owners and arbitrary globs are not supported.",
         "Job-level reusable-workflow calls (`jobs.<id>.uses`) are checked too, but only against the official-owner and allowlist rules, since they carry no star metadata.",
         "`minimumStars` reads star counts from the GitHub API and needs `gh` / `GH_TOKEN`. Without it, a reference falls back to the allowlist rather than being flagged on missing data.",
         "Local actions (`uses: ./.github/actions/foo`) and `docker://` image steps are always exempt.",
