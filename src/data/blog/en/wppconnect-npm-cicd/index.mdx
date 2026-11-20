@@ -42,8 +42,9 @@ The library had 7,498 npm downloads the week before. No npm token was needed. Un
 **The cleanup**
 
 - November 16, 04:00 UTC: a user reports both versions ([wppconnect #2968](https://github.com/wppconnect-team/wppconnect/issues/2968), [wppconnect-server #2734](https://github.com/wppconnect-team/wppconnect-server/issues/2734)).
-- Both versions are now deprecated on npm. `latest` is back to `2.4.0` and `2.10.81`.
-- At 14:44 UTC a maintainer wrote that containment of the publishing access is not confirmed yet. No new npm version has been published since.
+- Both versions are now deprecated on npm. The deprecation notices say to pin `2.4.0` and `2.10.81` "pending a reviewed release".
+- At 14:44 UTC a maintainer wrote that containment of the publishing access is not confirmed yet. The maintainers have not posted on either issue since.
+- November 18, 13:37 UTC: `@wppconnect-team/wppconnect` `2.4.6` was published from a maintainer account, without build provenance, and is now `latest`. `@wppconnect/server` is still on `2.10.81`.
 - November 17, 06:31 UTC: GitHub published malware advisories for both packages, [GHSA-rj96-rg6c-9hw8](https://github.com/advisories/GHSA-rj96-rg6c-9hw8) (`= 2.4.1`) and [GHSA-96hm-h5v4-92fq](https://github.com/advisories/GHSA-96hm-h5v4-92fq) (`= 2.10.82`), credited to OpenSSF.
 
 ## The Plumber take
@@ -246,7 +247,7 @@ publish:
 - If you run the server, pin the library to `2.4.0` with an `overrides` entry: the server's `^2.3.6` range reaches `2.4.1`.
 - Server images pulled on November 16 on `latest`, `2`, `2.10` or `main` may be the bad build. Compare digests, not tags, and pin by digest.
 - If a bad version loaded, treat every secret the process could read as stolen, and re-pair WhatsApp sessions only after pinning a clean version.
-- Do not trust a new WPPConnect release until the maintainers confirm containment.
+- `2.4.6`, now `latest`, came out before the maintainers confirmed containment, without build provenance. A fresh install on a `^2.4.0` range pulls it. Stay on `2.4.0` until the maintainers confirm containment.
 - Trusted publishing and provenance tell you which pipeline built a release. They do not tell you anyone reviewed it.
 - If you publish packages, put the publish job behind an environment with required reviewers, and never release on every push to `main`.
 
