@@ -428,7 +428,7 @@ export const controlCatalog: Record<
   workflowMustNotInjectUserInputInScripts: {
     github: {
       controlDescription:
-        "Detects attacker-controlled free-text expressions (`github.event.*` titles, bodies, branch names, commit messages, fork metadata, author identity, plus `github.head_ref`) inlined directly into `run:` shell scripts. Numeric, boolean, enum and SHA fields are deliberately not flagged.",
+        "Detects attacker-controlled free-text expressions (`github.event.*` titles, bodies, branch names, commit messages, fork metadata, author identity, plus `github.head_ref`) inlined directly into `run:` shell scripts. Numeric, boolean, enum and SHA fields are deliberately not flagged, and neither is an expression that can only expand to `true` or `false`, such as a comparison or a `contains()` call.",
       controlWhyItMatters:
         "Workflow template-injection is the GitHub Actions equivalent of SQL injection: the PR title or branch name becomes part of the executed shell command.",
     },
@@ -3446,7 +3446,8 @@ jobs:
         run: echo "Welcome $PR_TITLE!"`,
       goodExampleCaption: "The shell sees a single argument; quoting is automatic.",
       tips: [
-        "Flagged subfields (attacker-controlled free text): `*.title`, `*.body`, `head.ref`, `head.label`, `head.repo.default_branch` (and the `workflow_run` `head_repository.default_branch`), `*.message`, `*.description`, `*.homepage`, `author.name`, `author.email`, `committer.name`, `committer.email`, `page_name`, and `github.head_ref`.",
+        "Flagged subfields (attacker-controlled free text): `*.title`, `*.body`, `head.ref`, `head.label`, `head.repo.default_branch` (and the `workflow_run` `head_repository.default_branch`), `*.message`, `*.description`, `*.homepage`, `author.name`, `author.email`, `committer.name`, `committer.email`, `page_name`, and `github.head_ref`. A bracket reference counts as the field it names: `github.event.comment['body']` is `github.event.comment.body`.",
+        "An expression that can only expand to `true` or `false` is not flagged, whatever field it reads: a comparison (`${{ github.event.comment.body == '/approve' }}`), a `!` negation, a `contains()` / `startsWith()` / `endsWith()` call, or an `&&` / `||` combination of only those. `&&` and `||` expand to one of their operands, so `${{ github.event.comment.body == '/approve' || github.event.comment.body }}` is still flagged.",
         "Deliberately not flagged: `github.event.repository.default_branch` (the base repo's default branch is admin metadata, not attacker-controlled; only the fork's `head.repo.default_branch` is), `pull_request.number`, `*.commits`, `head.repo.fork`, `event_name`, `author_association`, `*.sha`, `github.repository`. These are integers, booleans, enums, SHAs or trusted metadata that cannot carry an injection payload.",
         "`github.repository`, `github.sha`, and `github.ref_name` are derived from server-trusted state. They are safer but still worth scoping.",
         "Recognized safe sink: an expression wrapped in `toJSON(...)` AND consumed inside a quoted heredoc (`<<\"EOF\"` / `<<'EOF'`) is not flagged: `toJSON` escapes newlines (no heredoc-delimiter breakout) and the quoted heredoc disables `$()`/backtick expansion. Neither alone is enough: `echo \"${{ toJSON(x) }}\"` still runs `$()` inside the quotes, and a raw expression in a quoted heredoc can break out via a newline. The cleanest fix remains binding through `env:` and dereferencing `\"$VAR\"`.",
@@ -3534,6 +3535,7 @@ jobs:
         "If you only need the value within one step, env: is enough; don't write to $GITHUB_ENV at all.",
         "A fixed heredoc delimiter (`<<EOF`) doesn't help: the body still lands in $GITHUB_ENV verbatim. Randomise the delimiter or base64-encode the value.",
         "base64 must wrap the untrusted value itself; a base64 elsewhere on the line (e.g. `$(date | base64)`) does not neutralise a raw `$VAR`.",
+        "As for ISSUE-207, an expression that can only expand to `true` or `false` (`${{ contains(github.event.comment.body, '/deploy') }}`) is not untrusted content and is not flagged. A free-text field used directly as an `&&` / `||` operand still is.",
       ],
       status: "shipping",
       relatedCodes: ["ISSUE-207", "ISSUE-208"],

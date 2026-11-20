@@ -1124,7 +1124,7 @@ Flags `toJSON(secrets)` and other expressions that expose the whole secrets cont
   <Badge text="On by default" variant="tip" />
 </div>
 
-Flags a `run:` script that inlines a user-controlled expression such as `${{ github.event.pull_request.title }}`, a template injection. Raises [ISSUE-207](/docs/use-plumber/issues/ISSUE-207?p=github) (critical). No field beyond `enabled`.
+Flags a `run:` script that inlines a user-controlled expression such as `${{ github.event.pull_request.title }}`, a template injection. An expression that can only expand to `true` or `false`, such as `${{ github.event.comment.body == '/approve' }}`, is not flagged. Raises [ISSUE-207](/docs/use-plumber/issues/ISSUE-207?p=github) (critical). No field beyond `enabled`.
 
 ### workflowMustNotWriteUntrustedContentToGitHubEnv
 
@@ -1133,7 +1133,7 @@ Flags a `run:` script that inlines a user-controlled expression such as `${{ git
   <Badge text="On by default" variant="tip" />
 </div>
 
-Flags a step that writes user-controlled content to `$GITHUB_ENV` or `$GITHUB_PATH`. Raises [ISSUE-209](/docs/use-plumber/issues/ISSUE-209?p=github) (high). No field beyond `enabled`.
+Flags a step that writes user-controlled content to `$GITHUB_ENV` or `$GITHUB_PATH`. As for ISSUE-207, an expression that can only expand to `true` or `false` is not flagged. Raises [ISSUE-209](/docs/use-plumber/issues/ISSUE-209?p=github) (high). No field beyond `enabled`.
 
 ### workflowMustNotUseDangerousTriggers
 
