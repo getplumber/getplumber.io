@@ -42,7 +42,7 @@ No GitHub Action was compromised and no package was typosquatted. The attacker u
 
 - The change is reverted (`ci: restore`, sometimes `ci: cleanup`), then the workflow run and its logs are deleted ([StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer)).
 - What stays: the commits in git history, and a gap in the workflow's run numbers. StepSecurity and Endor Labs call that gap the most reliable sign the stealer ran.
-- It is not over. On November 12, between 20:07 and 20:16 UTC, at least 11 more public repositories got the campaign's commits (`ci: refresh build cache` or `chore: add ci helper`, then `ci: restore` within minutes), four of them already hit earlier that day (GitHub commit history of each repository). If you checked before, check again, and lock the account before you clean up, or it can be used again.
+- It is not over. On November 12, between 20:07 and 20:16 UTC, at least 11 more public repositories got the campaign's commits (`ci: refresh build cache` or `chore: add ci helper`, then `ci: restore` within minutes), four of them already hit earlier that day (GitHub commit history of each repository). On November 20, between 10:30 and 11:47 UTC, the same commit messages came back in at least three public repositories, owned by two accounts, that had already received the campaign's commits on November 12, this time authored as `GitOps Bot <bot@gitops.local>`. They add a workflow named `CI` (file `stale.yml`) that runs on push, on demand and every Monday, and hands every secret and variable the workflow can read to an outside action, `7bd682b6efea3a2b8fbcc65ee354fadf/action@main` (GitHub commit history and workflow files of each repository). If you checked before, check again, and lock the account before you clean up, or it can be used again.
 
 **What it reached, and what it left**
 
@@ -98,13 +98,13 @@ A clean default branch today proves nothing about the window: the attacker rever
 #### Your files, GitHub or GitLab
 
 ~~~bash
-P='\.ci-[a-z0-9]{6}\.sh|build-audit-[a-z0-9]{6}\.yml|b42d70a7aab9140ca19e8249|15f44heehnax8jdf41yx|194\.150\.166\.244|18\.143\.168\.96|153\.75\.82\.159|45\.61\.182\.54|-1004340163187|Restore cache j632|WFX-BEGIN|wfx-loot-'
+P='\.ci-[a-z0-9]{6}\.sh|build-audit-[a-z0-9]{6}\.yml|b42d70a7aab9140ca19e8249|15f44heehnax8jdf41yx|194\.150\.166\.244|18\.143\.168\.96|153\.75\.82\.159|45\.61\.182\.54|-1004340163187|Restore cache j632|WFX-BEGIN|wfx-loot-|7bd682b6efea3a2b8fbcc65ee354fadf'
 grep -rnE "$P" --exclude-dir=.git --exclude-dir=node_modules .
 git ls-remote origin 'refs/heads/wfx-docs' 'refs/heads/chore/*' 'refs/heads/ci-check-*'
 git ls-remote origin 'refs/heads/ci-*' | grep -E 'refs/heads/ci-[0-9]+-[0-9]+-[0-9]+$'
 ~~~
 
-- The first command finds the hook script, the throwaway workflow, the collection addresses (including the one used in October), and the Telegram group used since November 12 in package files and workflows. A name like `.ci-config.sh` also matches: open it before you conclude.
+- The first command finds the hook script, the throwaway workflow, the collection addresses (including the one used in October), the Telegram group used since November 12, and the outside action used since November 20, in package files and workflows. A name like `.ci-config.sh` also matches: open it before you conclude.
 - If you recovered a suspicious script, compare `sha256sum <file>` with the payload hash OX Security published: `89695abb392d5cfd4972672961e644bb46baa98aa1ed7173c2a2816c762735cf`. A match confirms it; no match proves nothing, since the payload comes in several variants.
 - The second lists the attacker's branch names. `chore/*` is a common name: check the author of each. The third finds branches named `ci-<run>-<job>-<pid>` (three numbers), which [GitGuardian](https://blog.gitguardian.com/wfx-loot-a-ci-secret-stealer-pushed-with-stolen-github-credentials/) lists as left by the payload.
 - Search your default-branch history too, since the payload was reverted: `git log -p --since=2026-10-24 -- .github/workflows package.json '*.sh' | grep -nE "$P"`.
