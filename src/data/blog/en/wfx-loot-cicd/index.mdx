@@ -42,7 +42,7 @@ No GitHub Action was compromised and no package was typosquatted. The attacker u
 
 - The change is reverted (`ci: restore`, sometimes `ci: cleanup`), then the workflow run and its logs are deleted ([StepSecurity](https://www.stepsecurity.io/blog/wfx-phantom-the-github-actions-secret-stealer)).
 - What stays: the commits in git history, and a gap in the workflow's run numbers. StepSecurity and Endor Labs call that gap the most reliable sign the stealer ran.
-- It is not over. On November 12, between 20:07 and 20:16 UTC, at least 11 more public repositories got the campaign's commits (`ci: refresh build cache` or `chore: add ci helper`, then `ci: restore` within minutes), four of them already hit earlier that day (GitHub commit history of each repository). On November 20, between 10:30 and 11:52 UTC, the same commit messages came back in at least six public repositories, owned by two accounts, that had already received the campaign's commits on November 12, this time authored as `GitOps Bot <bot@gitops.local>`. They add a workflow named `CI` (file `stale.yml`) that runs on push, on demand and every Monday, and hands every secret and variable the workflow can read to an outside action, `7bd682b6efea3a2b8fbcc65ee354fadf/action@main` (GitHub commit history and workflow files of each repository). If you checked before, check again, and lock the account before you clean up, or it can be used again.
+- It is not over. On November 12, between 20:07 and 20:16 UTC, at least 11 more public repositories got the campaign's commits (`ci: refresh build cache` or `chore: add ci helper`, then `ci: restore` within minutes), four of them already hit earlier that day (GitHub commit history of each repository). On November 20, between 10:05 and 11:52 UTC, commits authored as `GitOps Bot <bot@gitops.local>` reached at least nine public repositories owned by five accounts, most of them already hit on November 12. Some reuse the campaign's messages, others copy the repository's own earlier commit message (`Upload`, `Update Modelpembelian.php`). They add a workflow named `CI` (file `stale.yml`) that runs on push, on demand and every Monday, and hands every secret and variable the workflow can read to an outside action, `7bd682b6efea3a2b8fbcc65ee354fadf/action@main` (GitHub commit history and workflow files of each repository). If you checked before, check again, and lock the account before you clean up, or it can be used again.
 
 **What it reached, and what it left**
 
@@ -76,9 +76,10 @@ If your team cannot say which commits ran in CI since October 24, and with which
 git fetch --all --quiet
 git log --all --since=2026-10-24 --format='%h %an %ad %s' -E \
   --grep='^(ci: refresh build cache|chore: add ci helper|chore: add dependency audit workflow|ci: restore|ci: cleanup|ci: cache|docs: dependency audit notes)$'
+git log --all --since=2026-11-19 --format='%h %an <%ae> %ad %s' --author='bot@gitops\.local'
 ~~~
 
-A hit is a lead: open the commit and check its author. A revert does not remove it from history.
+A hit is a lead: open the commit and check its author. A revert does not remove it from history. Run the second line too: since November 20, some of the attacker's commits reuse the repository's own earlier commit message, so only the author gives them away.
 
 **2. The run that ran it** (GitHub): in the Actions tab, look for a missing run number right after a suspicious commit. A deleted run leaves a gap. Commands below.
 
