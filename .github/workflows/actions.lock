@@ -8,7 +8,7 @@ workflows:
         - 'actions/setup-node@v7.1.0'
     '.github/workflows/codeql.yml':
         - 'actions/checkout@v7.0.1'
-        - 'github/codeql-action@v4.39.1'
+        - 'github/codeql-action@v4.39.4'
     '.github/workflows/dependency-review.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/dependency-review-action@v5.0.0'
@@ -29,7 +29,7 @@ workflows:
         - 'actions/setup-node@v7.1.0'
     '.github/workflows/scorecard.yml':
         - 'actions/checkout@v7.0.1'
-        - 'github/codeql-action@v4.39.1'
+        - 'github/codeql-action@v4.39.4'
         - 'ossf/scorecard-action@v2.5.0'
     '.github/workflows/security.yml':
         - 'actions/checkout@v7.0.1'
@@ -85,9 +85,9 @@ dependencies:
         commit: 'sha1-6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee'
         owner_id: 9919
         repo_id: 259445878
-    'github/codeql-action@v4.39.1':
-        ref: 'v4.39.1'
-        commit: 'sha1-9b3254085494b55a0f7c4c2b3d2d52cc712ce370'
+    'github/codeql-action@v4.39.4':
+        ref: 'v4.39.4'
+        commit: 'sha1-1bd86f2fdb4b86187fa4059f16f31a3202acc9ea'
         owner_id: 9919
         repo_id: 259445878
     'ossf/scorecard-action@v2.5.0':
