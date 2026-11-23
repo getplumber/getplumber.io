@@ -7,7 +7,8 @@
  * in as they scroll into view like on the home page (RevealOnScroll); card rows (numbers,
  * story columns, rules, closing cards) fade in one after the other, left to right.
  */
-import AboutBackedBy from "@components/About/AboutBackedBy.astro";
+// Temporarily hidden, will come back: "Backed by." section.
+// import AboutBackedBy from "@components/About/AboutBackedBy.astro";
 import AboutBeliefs from "@components/About/AboutBeliefs.astro";
 import AboutCta from "@components/About/AboutCta.astro";
 import AboutHero from "@components/About/AboutHero.astro";
@@ -25,7 +26,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
   <AboutStory />
   <AboutBeliefs />
   <AboutTeam />
-  <AboutBackedBy />
+  {/* Temporarily hidden, will come back: <AboutBackedBy /> */}
   <AboutCta />
   <RevealOnScroll />
 </BaseLayout>
