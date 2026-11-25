@@ -14,7 +14,7 @@ categories:
   - "GitHub Actions"
 ---
 
-On October 19, 2026, a GitHub account called `Eternity0207` force-pushed a loader into its own open pull requests on `asyncapi/generator`, `CircuitVerse/cv-frontend-vue` and `openfoodfacts-explorer`, then force-pushed it away 30 to 40 minutes later. Nobody noticed until an AsyncAPI maintainer traced it on November 24. GitHub suspended the account on November 25.
+On October 19, 2026, a GitHub account called `Eternity0207` force-pushed a loader into its own open pull requests on `asyncapi/generator`, `CircuitVerse/cv-frontend-vue` and `openfoodfacts-explorer`, then force-pushed it away 30 to 40 minutes later. An AsyncAPI maintainer traced it and published the details on November 24. GitHub suspended the account on November 25.
 
 AsyncAPI's CI never ran the code. CircuitVerse's did, and its desktop release workflow built installers from it: per StepSecurity, the maintainers say the fork pull requests could "publish 40 infected installers through our CI". The pipeline was the door, and for once it opened outward.
 
