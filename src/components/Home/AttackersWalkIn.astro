@@ -5,7 +5,9 @@
  * to right) and the status banner; then, as a section of its own 88px under the banner,
  * the annotated workflow file with three numbered callouts. The first finding is active at
  * rest; a click on a callout or its line (or Enter on a focused callout, the callouts are
- * tabs) makes that finding active, and hovering either half shows it meanwhile. The badge sits on the first line of the title (21px line box).
+ * tabs) makes that finding active, and hovering either half shows it meanwhile. The square
+ * badge sits on the first line of the title (21px line box). Stats and callouts sit on the
+ * 4 x 4 dashed stroke (review of 2026-11-25).
  * The code block is plain HTML so it stays selectable.
  */
 import { attackers } from "@config/en/homeData.json";
@@ -17,7 +19,7 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
 ---
 
 <section id="attackers" class="bg-background">
-  <div class="home-container flex flex-col gap-16 pt-20 pb-16 lg:gap-[88px] lg:pt-[104px] lg:pb-[88px]">
+  <div class="home-container flex flex-col gap-16 pt-20 pb-16 lg:gap-[88px] lg:pt-[140px] lg:pb-[88px]">
     <div data-reveal>
       <SectionHeading
         eyebrow={attackers.eyebrow}
@@ -32,7 +34,7 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
     <div class="flex flex-col gap-16 lg:gap-[88px]">
       <ul class="grid gap-8 md:grid-cols-2" data-reveal-stagger style="--reveal-step: 350ms;">
         {attackers.stats.map((stat) => (
-          <li class="stat flex flex-wrap items-start gap-6 py-6 pl-6">
+          <li class="stat dash-l dash-accent flex flex-wrap items-start gap-6 py-6 pl-6">
             <span class="stat__value h2 text-foreground">{stat.value}</span>
             <span class="stat__text flex flex-col gap-2">
               <span class="body text-foreground">{stat.label}</span>
@@ -50,7 +52,7 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
 </section>
 
 <section id="workflow" class="bg-background" aria-label="Annotated workflow file">
-  <div class="home-container pb-20 lg:pb-[104px]" data-reveal>
+  <div class="home-container pb-20 lg:pb-[140px]" data-reveal>
     <div class="grid gap-8 lg:grid-cols-[minmax(0,919fr)_371fr]" data-workflow>
       <figure class="card-tint rounded-r8 overflow-hidden">
         <figcaption class="stroke-tint flex flex-wrap items-center justify-between gap-3 border-b px-6 py-4">
@@ -95,7 +97,7 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
       >
         {attackers.callouts.map((callout, i) => (
           <li
-            class="callout primary-focus flex cursor-pointer flex-col gap-4 pt-4 pb-8 pl-4"
+            class="callout dash-l primary-focus flex cursor-pointer flex-col gap-4 pt-4 pb-8 pl-4"
             data-flag={flaggedLines[i]?.flag ?? i + 1}
             role="tab"
             tabindex="0"
@@ -118,9 +120,6 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
 </section>
 
 <style>
-  .stat {
-    border-left: 2px dashed var(--color-dash);
-  }
   /* phones (Figma 360): text 22px past the stroke, 32px figure, 15px label, 19px pixel
      source, 8px then 12px apart */
   @media (max-width: 767px) {
@@ -160,7 +159,6 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
     justify-content: center;
     width: 21px;
     height: 21px;
-    border-radius: 11px;
     border: 1px solid var(--color-danger-25);
     background-color: var(--color-danger-25);
     color: var(--color-danger-500);
@@ -174,17 +172,16 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
   /* callouts rest muted; the active finding (first at rest, hovered or clicked) takes the
      red tint */
   .callout {
-    border-left: 2px dashed var(--color-tint-25);
     transition:
       background-color 250ms ease,
-      border-color 250ms ease;
+      --dash-color 250ms ease;
   }
   .callout.is-active {
     background-color: var(--color-danger-5);
-    border-color: var(--color-danger-500);
+    --dash-color: var(--color-danger-500);
   }
   /* phones (Figma 360): the cards touch so one stroke runs through them, 20px above and
-     below, text 22px past the stroke, 12px between rows, square badges */
+     below, text 22px past the stroke, 12px between rows */
   @media (max-width: 767px) {
     .callouts {
       gap: 0;
@@ -192,9 +189,6 @@ const flaggedLines = attackers.yaml.filter((line) => line.flag);
     .callout {
       padding: 20px 0 20px 22px;
       gap: 12px;
-    }
-    .issue-badge {
-      border-radius: 0;
     }
   }
 </style>

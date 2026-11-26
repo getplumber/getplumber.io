@@ -1,11 +1,11 @@
 ---
 /**
  * Closing calls to action (Figma About us, "Cards" at y5960, 280px under "Backed by"): two
- * 649px columns 21px apart, each behind a 4px dashed rule on its left with 40px of padding:
+ * 649px columns 21px apart, each behind a 4 x 4 dashed stroke on its left with 40px of padding:
  * the 26px pixel number, 64px, the 38/110 title, 16px, the 16/140 text and the button at the
  * bottom (215px for text plus button). Both cards rest in the grey state of the second Figma
  * card (#5C6262 25% rule, grey number, title and text, stroke button). The state Figma draws
- * on the first card (accent rule and number, white title, accent button) is the active one:
+ * on the first card (accent stroke at 25%, accent number, white title, accent button) is the active one:
  * a card takes it while hovered or focused, and on tablets and phones while it is in view
  * (data-hover-reveal, like the home "One product" columns). The second card keeps the fixed
  * 365px of the file; 269px separate the cards from the footer band. The cards fade in left
@@ -25,7 +25,7 @@ import { aboutCta as data } from "@config/en/aboutData.json";
       <div>
         <div
           class:list={[
-            "about-cta flex flex-col gap-10 pl-6 lg:gap-16 lg:pl-10",
+            "about-cta dash-l flex flex-col gap-10 pl-6 lg:gap-16 lg:pl-10",
             !card.accent && "lg:min-h-[365px]",
           ]}
           data-hover-reveal
@@ -53,9 +53,10 @@ import { aboutCta as data } from "@config/en/aboutData.json";
 </section>
 
 <style>
+  /* the 4 x 4 dashed stroke (dash-l): grey at rest, the accent at 25 percent when active
+     (review of 2026-11-25, same as the home "One product" columns) */
   .about-cta {
-    border-left: 4px dashed rgb(92 98 98 / 0.25);
-    transition: border-color 400ms ease;
+    transition: --dash-color 400ms ease;
   }
   .about-cta__number {
     font-family: var(--font-pixel);
@@ -84,7 +85,7 @@ import { aboutCta as data } from "@config/en/aboutData.json";
   /* active: the accent card of the Figma file */
   .about-cta:hover,
   .about-cta:focus-within {
-    border-left-color: var(--color-primary-500);
+    --dash-color: var(--color-accent-25);
   }
   .about-cta:hover .about-cta__number,
   .about-cta:focus-within .about-cta__number {
@@ -114,7 +115,7 @@ import { aboutCta as data } from "@config/en/aboutData.json";
   /* tablets and phones: the card takes its active state while it is in view */
   @media (hover: none), (max-width: 1023px) {
     .about-cta.is-in-view {
-      border-left-color: var(--color-primary-500);
+      --dash-color: var(--color-accent-25);
     }
     .about-cta.is-in-view .about-cta__number {
       color: var(--color-primary-500);

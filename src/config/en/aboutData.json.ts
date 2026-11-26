@@ -126,7 +126,7 @@ export const aboutTeam = {
 };
 
 export const aboutBackedBy = {
-  title: "Backed by.",
+  title: "Backed by",
   /** the paragraph, split into grey and white runs in the Figma order */
   runs: [
     { text: "Plumber was bootstrapped until September 2026, when " },

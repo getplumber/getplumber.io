@@ -1,7 +1,7 @@
 ---
 /**
  * "One product. Two ways to use it." (Figma HOME_Last, node 2513:1766, 1440 x 677).
- * Centred heading and two columns on dashed strokes that fade out at both ends.
+ * Centred heading and two columns on 4 x 4 dashed strokes.
  * The developer column CTAs are muted in the design; the organisation column has the
  * primary CTA. Numbers are the 22px pixel eyebrow and the CTAs sit 64px under the copy.
  * On tablets and phones a column shows its hover state while it is in view; the CTAs are
@@ -14,7 +14,7 @@ import SectionHeading from "./SectionHeading.astro";
 ---
 
 <section id="product" class="bg-background scroll-mt-[78px]">
-  <div class="home-container flex flex-col gap-16 py-20 lg:gap-[88px] lg:py-[104px]" data-reveal>
+  <div class="home-container section-y flex flex-col gap-16 lg:gap-[88px]" data-reveal>
     <SectionHeading
       eyebrow={oneProduct.eyebrow}
       headline={oneProduct.headline}
@@ -26,7 +26,7 @@ import SectionHeading from "./SectionHeading.astro";
 
     <div class="grid gap-16 lg:grid-cols-2 lg:gap-8">
       {oneProduct.columns.map((column, i) => (
-        <div class="path group flex flex-col gap-16 pl-6 lg:pl-10" data-hover-reveal>
+        <div class="path dash-l group flex flex-col gap-16 pl-6 lg:pl-10" data-hover-reveal>
           <span class="path__number eyebrow text-base-600 group-hover:text-foreground normal-case transition-colors duration-400">
             {column.number}
           </span>
@@ -73,19 +73,13 @@ import SectionHeading from "./SectionHeading.astro";
 </section>
 
 <style>
-  /* dashed stroke that fades out over the first and last 100px, like the Figma pix-anim strips */
-  @property --path-dash {
-    syntax: "<color>";
-    inherits: true;
-    initial-value: transparent;
-  }
+  /* the 4 x 4 dashed stroke (dash-l), grey at rest and accent at 25 percent while the
+     column is hovered (review of 2026-11-25, same as the About cards) */
   .path {
-    position: relative;
-    --path-dash: var(--color-tint-25);
-    transition: --path-dash 400ms ease;
+    transition: --dash-color 400ms ease;
   }
   .path:hover {
-    --path-dash: var(--color-accent-20);
+    --dash-color: var(--color-accent-25);
   }
   /* developer CTAs rest muted, take the foreground with the column, and keep the black
      label on the accent fill while hovered themselves */
@@ -101,7 +95,7 @@ import SectionHeading from "./SectionHeading.astro";
   /* tablets and phones: the column takes its hover state while it is in view */
   @media (hover: none), (max-width: 1023px) {
     .path.is-in-view {
-      --path-dash: var(--color-accent-20);
+      --dash-color: var(--color-accent-25);
     }
     .path.is-in-view .path__number,
     .path.is-in-view .path__title,
@@ -115,32 +109,5 @@ import SectionHeading from "./SectionHeading.astro";
     .path.is-in-view .path__quote {
       border-color: var(--color-primary-500);
     }
-  }
-  .path::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 2px;
-    background-image: repeating-linear-gradient(
-      to bottom,
-      var(--path-dash) 0 6px,
-      transparent 6px 12px
-    );
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      transparent,
-      #000 100px,
-      #000 calc(100% - 100px),
-      transparent
-    );
-    mask-image: linear-gradient(
-      to bottom,
-      transparent,
-      #000 100px,
-      #000 calc(100% - 100px),
-      transparent
-    );
   }
 </style>

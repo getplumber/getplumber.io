@@ -13,7 +13,7 @@ const { fields } = bookDemo;
 
 <section id="book-a-demo" class="bg-background scroll-mt-[78px]">
   <div
-    class="home-container grid gap-16 py-20 lg:grid-cols-[minmax(0,534fr)_minmax(0,138fr)_minmax(0,648fr)] lg:py-[104px]"
+    class="home-container section-y grid gap-16 lg:grid-cols-[minmax(0,534fr)_minmax(0,138fr)_minmax(0,648fr)]"
     data-reveal
   >
     <SectionHeading
@@ -28,7 +28,7 @@ const { fields } = bookDemo;
       data-form="demo"
       action="/api/demo"
       method="post"
-      class="flex flex-col gap-12 lg:col-start-3"
+      class="flex flex-col gap-16 lg:col-start-3"
       novalidate
     >
       <div class="flex flex-col">
@@ -105,15 +105,17 @@ const { fields } = bookDemo;
 </section>
 
 <style>
-  /* Figma field rows: 14px medium label text, 32px vertical padding, 25 percent stroke */
+  /* Figma field rows (review of 2026-11-25): 16/150 Regular text in #8D9596, 32px vertical
+     padding, 25 percent stroke; 64px down to the button */
   .form__input--row {
-    padding-block: 28px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    padding-block: 32px;
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 400;
   }
   .form__input--row::placeholder {
-    color: var(--color-base-600);
-    font-weight: 500;
+    color: var(--muted-foreground);
+    font-weight: 400;
   }
   .form__input--row[aria-invalid="true"] {
     border-color: var(--color-danger-500);

@@ -1,0 +1,88 @@
+---
+/**
+ * Client logos (Figma NEW-HOME, frame 1000001797, added in the review of 2026-11-25): a full
+ * width strip, 114px tall between two 1px rules, the logos 24px tall and 80px apart, running
+ * as an endless marquee (the Figma strip repeats them and bleeds off both edges). Each half
+ * of the track holds the logos twice (wider than a 1920 screen) and the track runs the two
+ * halves for a seamless loop; screen readers get the plain list of names instead. Users who ask
+ * for reduced motion get the strip at rest. The logos are the designer's rasters from the
+ * Figma file, stored at three times their display size.
+ */
+import bunkerweb from "@assets/images/clients/bunkerweb.png";
+import dassault from "@assets/images/clients/dassault-systemes.png";
+import lightpanda from "@assets/images/clients/lightpanda.svg";
+import telstra from "@assets/images/clients/telstra.png";
+import toptal from "@assets/images/clients/toptal.png";
+import { Image } from "astro:assets";
+
+/** width at the 24px display height, as placed in Figma */
+const logos = [
+  { name: "Dassault Systèmes", src: dassault, width: 86 },
+  { name: "Telstra", src: telstra, width: 86 },
+  { name: "Toptal", src: toptal, width: 80 },
+  { name: "Lightpanda", src: lightpanda, width: 94 },
+  { name: "BunkerWeb", src: bunkerweb, width: 86 },
+];
+---
+
+<section class="section-y overflow-hidden" aria-label="Teams using Plumber">
+  <ul class="sr-only">
+    {logos.map((logo) => (
+      <li>{logo.name}</li>
+    ))}
+  </ul>
+  <div class="client-logos stroke-tint border-y" aria-hidden="true">
+    <div class="client-logos__track">
+      {[0, 1].map(() => (
+        <ul class="client-logos__list">
+          {[...logos, ...logos].map((logo) => (
+            <li>
+              <Image
+                src={logo.src}
+                alt=""
+                width={logo.width}
+                height={24}
+                densities={[1, 2, 3]}
+                class="h-6 w-auto"
+              />
+            </li>
+          ))}
+        </ul>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .client-logos {
+    display: flex;
+    align-items: center;
+    height: 114px;
+  }
+  .client-logos__track {
+    flex: none;
+    display: flex;
+    width: max-content;
+    animation: client-logos-scroll 40s linear infinite;
+  }
+  .client-logos__list {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 80px;
+    padding-right: 80px;
+  }
+  .client-logos__list > li {
+    flex: none;
+  }
+  @keyframes client-logos-scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .client-logos__track {
+      animation: none;
+    }
+  }
+</style>

@@ -46,8 +46,6 @@
   --color-danger-5: rgba(251, 48, 51, 0.05);
   --color-danger-10: rgba(251, 48, 51, 0.1);
   --color-danger-25: rgba(251, 48, 51, 0.25);
-  /* dashed separators between stats (Figma blue_stroke) */
-  --color-dash: #385153;
 
   /* Breakpoints */
   --breakpoint-xs: 400px;

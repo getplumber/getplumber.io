@@ -1,9 +1,11 @@
 ---
 /**
  * "Questions" (Figma HOME_Last, node 2513:1845, 1440 x 898).
- * Accordion on the Starwind primitive: items separated by tint strokes, the open item
- * gets a "-" glyph, closed items a "+". Every item starts closed. Below lg the rows have no
- * side padding, like the coverage overview row.
+ * Accordion on the Starwind primitive: items separated by tint strokes. New design of
+ * 2026-11-25: 20/150 grey questions with the large accent pixel chevron (down); a hovered
+ * item, its open answer included, turns accent blue with near-black text and chevron; the
+ * open question and its chevron (up) are white over the #C6C6C6 answer. Every item starts
+ * closed. Below lg the rows have no side padding, like the coverage overview row.
  * Also emits the FAQPage JSON-LD for search engines.
  */
 import Accordion from "@components/starwind/accordion/Accordion.astro";
@@ -12,6 +14,7 @@ import AccordionItem from "@components/starwind/accordion/AccordionItem.astro";
 import AccordionTrigger from "@components/starwind/accordion/AccordionTrigger.astro";
 import { faqData } from "@config/en/faqData.json";
 import { faqSection } from "@config/en/homeData.json";
+import { Icon } from "astro-icon/components";
 
 import SectionHeading from "./SectionHeading.astro";
 
@@ -33,7 +36,7 @@ const faqJsonLd = JSON.stringify({
 ---
 
 <section id="faq" class="bg-background">
-  <div class="home-container flex flex-col gap-16 py-20 lg:py-[104px]" data-reveal>
+  <div class="home-container section-y flex flex-col gap-16" data-reveal>
     <SectionHeading eyebrow={faqSection.eyebrow} headline={faqSection.headline} class="gap-5" />
 
     <Accordion type="single" class="faq stroke-tint border-b">
@@ -42,9 +45,9 @@ const faqJsonLd = JSON.stringify({
           value={`faq-${i}`}
           class="faq__item stroke-tint rounded-none border-0 border-t"
         >
-          <AccordionTrigger class="faq__trigger body-lg rounded-none px-0 py-8 font-normal lg:px-8 [&>svg]:hidden">
+          <AccordionTrigger class="faq__trigger rounded-none px-0 py-8 text-xl leading-[1.5] font-normal lg:px-8 [&>svg:last-child]:hidden">
             <span class="faq__question">{item.question}</span>
-            <span class="faq__glyph text-[28px] leading-none font-light" aria-hidden="true" />
+            <Icon name="pixel/chevron-lg" class="faq__chevron chevron-lg" aria-hidden="true" />
           </AccordionTrigger>
           <AccordionContent details={item.answer} class="faq__content" />
         </AccordionItem>
@@ -57,19 +60,51 @@ const faqJsonLd = JSON.stringify({
 <style>
   :global(.faq__trigger) {
     color: var(--muted-foreground);
+    transition:
+      background-color 250ms ease,
+      color 250ms ease;
   }
-  :global(.faq__trigger:hover),
+  :global(.faq__chevron) {
+    color: var(--accent-text);
+    rotate: 90deg;
+    transition:
+      color 250ms ease,
+      rotate 250ms ease;
+  }
   :global(.faq__trigger[data-state="open"]) {
     color: var(--foreground);
   }
-  :global(.faq__trigger[data-state="open"] .faq__question) {
-    font-weight: 500;
+  :global(.faq__trigger[data-state="open"] .faq__chevron) {
+    color: var(--foreground);
+    rotate: -90deg;
   }
-  :global(.faq__glyph::before) {
-    content: "+";
+  /* the hover tint covers the whole item, the open answer included, with near-black text */
+  :global(.faq__item),
+  :global(.faq__content > div),
+  :global(.faq__content a) {
+    transition:
+      background-color 250ms ease,
+      color 250ms ease;
   }
-  :global(.faq__trigger[data-state="open"] .faq__glyph::before) {
-    content: "\2212";
+  @media (hover: hover) {
+    :global(.faq__item:hover) {
+      background-color: var(--color-primary-500);
+    }
+    :global(.faq__item:hover .faq__trigger),
+    :global(.faq__item:hover .faq__chevron),
+    :global(.faq__item:hover .faq__content > div),
+    :global(.faq__item:hover .faq__content a) {
+      color: var(--color-base-950);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.faq__item),
+    :global(.faq__trigger),
+    :global(.faq__chevron),
+    :global(.faq__content > div),
+    :global(.faq__content a) {
+      transition: none;
+    }
   }
   :global(.faq__content > div) {
     padding: 0 32px 32px;

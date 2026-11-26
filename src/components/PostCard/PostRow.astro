@@ -7,7 +7,9 @@
  * text box is trimmed to cap height and baseline like the Figma text (text-box); 24px to its
  * right the 202px category column, and the 113px date column right-aligned at the end. The
  * whole row turns accent blue on hover with near-black text, eased like the home incident
- * rows (250ms). Below md the labels move under the text.
+ * rows (250ms). Rows are folded to their title on desktop and unfold their description on
+ * hover or keyboard focus, a little slower than the colour (450ms, review of 2026-11-27); touch screens and narrow windows, which have
+ * no hover, keep it open. Below md the labels move under the text.
  */
 import { getLocaleFromUrl } from "@js/localeUtils";
 import { formatDate } from "@js/textUtils";
@@ -33,12 +35,18 @@ const currLocale = getLocaleFromUrl(Astro.url);
   ]}
   data-pagefind-ignore
 >
-  <span class="flex min-w-0 flex-col gap-3 md:gap-4">
+  <span class="flex min-w-0 flex-col">
     <span class="post-row__title text-muted-foreground text-xl leading-[1.5] font-normal">
       {title}
     </span>
-    <span class="post-row__text body-sm text-muted-foreground line-clamp-2 max-w-[736px]">
-      {description}
+    <span class="post-row__fold">
+      <span class="post-row__fold-inner">
+        <span class="block pt-3 pb-[5px] md:pt-4">
+          <span class="post-row__text body-sm text-muted-foreground line-clamp-2 max-w-[736px]">
+            {description}
+          </span>
+        </span>
+      </span>
     </span>
   </span>
   <span class="post-row__meta pixel-label text-muted-foreground flex flex-wrap gap-x-6 gap-y-2 md:contents">
@@ -62,6 +70,32 @@ const currLocale = getLocaleFromUrl(Astro.url);
      in Chrome). */
   .post-row__text {
     margin-block: -5px;
+  }
+  /* the description sits 12px (16px from md) under the title; on desktop it folds away
+     (0fr row) and unfolds on hover or focus, eased in and out over 450ms */
+  .post-row__fold {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition:
+      grid-template-rows 450ms cubic-bezier(0.65, 0, 0.35, 1),
+      opacity 450ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  /* no padding here, so the folded row closes to 0 (the 5px under the text keep its
+     descenders inside the clip) */
+  .post-row__fold-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+  @media (hover: hover) and (min-width: 1024px) {
+    .post-row:not(:hover, :focus-visible) .post-row__fold {
+      grid-template-rows: 0fr;
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .post-row__fold {
+      transition: none;
+    }
   }
   .post-row,
   .post-row__title,

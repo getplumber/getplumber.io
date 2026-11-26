@@ -1,13 +1,14 @@
 ---
 /**
  * Featured post at the top of the blog list (Figma Blog-Black, frame 1000001573, 1320 x 494,
- * re-measured for the review of 2026-11-18): the hero image on the left (872 x 494), a 424px
- * text column on the right 24px further, laid out top to bottom with 24px gaps:
- * - the tag row: category tag (20px pixel label at 60% line height, 8px padding, #5C6262
- *   stroke at 50% over a 5% fill, 6px marker) and the pixel month/year in the foreground
- *   white, closed by a #8D9596 25% rule 24px under them;
+ * re-measured for the review of 2026-11-25): the hero image on the left (872 x 494) and a
+ * 448px text column on the right with 32px of padding on every side (384px of text), laid
+ * out top to bottom with 24px gaps:
+ * - the tag row: category (20px pixel label at 60% line height after a 6px marker, no box
+ *   around it since the review of 2026-11-27, like the other eyebrows) and the pixel
+ *   month/year in the foreground white, closed by a #8D9596 25% rule 24px under them;
  * - the title (Inter Regular 32/110) and the lead (16/150, six lines at most) 32px apart;
- * - the "Learn more" link pinned to the bottom (14px, accent, pixel chevron, underline 10px
+ * - the "Learn more" link 32px under the lead (14px, accent, pixel chevron, underline 10px
  *   under text + chevron on hover, see .link-arrow in global.css).
  * Below lg the text column sits under the image.
  */
@@ -35,7 +36,7 @@ const monthYear = new Date(pubDate).toLocaleDateString(currLocale === "en" ? "en
 
 <article
   class:list={[
-    "post-featured group grid gap-6 lg:grid-cols-[minmax(0,872fr)_minmax(0,424fr)]",
+    "post-featured group grid gap-6 lg:grid-cols-[minmax(0,872fr)_minmax(0,448fr)] lg:gap-0",
     className,
   ]}
   data-pagefind-ignore
@@ -52,10 +53,10 @@ const monthYear = new Date(pubDate).toLocaleDateString(currLocale === "en" ? "en
       loading="eager"
     />
   </a>
-  <div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-6 lg:p-8">
     <div class="stroke-muted flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b pb-6">
       {category && (
-        <span class="post-featured__tag pixel-label-sm text-muted-foreground inline-flex items-center gap-2.5 p-2">
+        <span class="pixel-label-sm text-muted-foreground inline-flex items-center gap-2.5">
           <span class="post-featured__marker" aria-hidden="true"></span>
           {category}
         </span>
@@ -64,7 +65,7 @@ const monthYear = new Date(pubDate).toLocaleDateString(currLocale === "en" ? "en
         {monthYear}
       </time>
     </div>
-    <div class="flex flex-1 flex-col justify-between gap-6">
+    <div class="flex flex-col gap-8">
       <div class="flex flex-col gap-8">
         <a
           href={`/blog/${post.id}`}
@@ -95,11 +96,6 @@ const monthYear = new Date(pubDate).toLocaleDateString(currLocale === "en" ? "en
     .post-featured__title {
       font-size: 2rem;
     }
-  }
-  /* Figma tag: #5C6262 at 5 percent with a 1px #5C6262 stroke at 50 percent, 8px padding */
-  .post-featured__tag {
-    background-color: var(--color-tint-5);
-    border: 1px solid rgb(92 98 98 / 0.5);
   }
   .post-featured__marker {
     display: inline-block;
