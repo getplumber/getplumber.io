@@ -105,21 +105,29 @@ const categoriesOf = (post: CollectionEntry<"blog">) =>
               </option>
             ))}
           </select>
-          <Icon name="pixel/chevron-down" class="blog-select__icon" aria-hidden="true" />
+          <Icon
+            name="pixel/chevron-down"
+            class="blog-select__icon chevron-down"
+            aria-hidden="true"
+          />
         </span>
         per page
       </label>
       <div class="flex items-center gap-8">
         <p class="text-foreground text-base" data-blog-range aria-live="polite"></p>
         <button type="button" class="blog-page-btn" data-blog-prev aria-label="Previous page">
-          <Icon name="home/pixel-chevron" class="rotate-180" aria-hidden="true" />
+          <Icon name="pixel/chevron" class="rotate-180" aria-hidden="true" />
         </button>
         <span class="blog-select">
           <select data-blog-page aria-label="Page"></select>
-          <Icon name="pixel/chevron-down" class="blog-select__icon" aria-hidden="true" />
+          <Icon
+            name="pixel/chevron-down"
+            class="blog-select__icon chevron-down"
+            aria-hidden="true"
+          />
         </span>
         <button type="button" class="blog-page-btn" data-blog-next aria-label="Next page">
-          <Icon name="home/pixel-chevron" aria-hidden="true" />
+          <Icon name="pixel/chevron" aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -208,8 +216,6 @@ const categoriesOf = (post: CollectionEntry<"blog">) =>
     position: absolute;
     top: 50%;
     right: 16px;
-    width: 14.4px;
-    height: 8px;
     transform: translateY(-50%);
     pointer-events: none;
     color: var(--muted-foreground);

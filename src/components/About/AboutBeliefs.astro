@@ -1,59 +1,57 @@
 ---
 /**
- * "What we believe" (Figma About us, group 38932 at y3063, 280px under the story): a full
- * width #49B4B8 band, 571.48px tall, its content 120px from the top: the pixel eyebrow in
- * #161818 (its capitals level with the title's) and, 40px to its right, the 62/112 Medium title (1028px) and the 18/150 paragraph
- * (812px) 56px apart, all in #161818. 132.52px under the band the four rules: 312px cards
- * 24px apart (0 top, 32px right, 16px bottom padding, a #5C6262 50% rule on their right
- * edge): the 92px pixel number in the accent, 24px, the 18/110 Medium title on a 40px line,
- * 24px, the 16/24 text and 24px of padding under it (346px tall cards), or, for the last
- * card, the "View on GitHub" chevron link pinned to the bottom. Below lg the band stacks and the cards go two then one per row.
+ * "What we believe" (Figma About us, frame 1000001783, new design of 2026-11-25): a full
+ * width accent band (#09C3C3, 140px above and under its content) with, in #0C0C0C, the pixel
+ * eyebrow, 24px, the 62/112 Regular title on the full width, 56px, and the 18/150 paragraph
+ * on 973px pushed 338px to the right. 140px under the band the four rules: 312 x 310 cards
+ * spread over the row (narrower, 24px apart, when the row is short of 1320px), each on the
+ * 4 x 4 accent dashed stroke and 32px from it (the 4px stroke plus 28px of padding): the
+ * 92px pixel number, 24px, the 18/110 Regular title, 24px, the 16/24 text on 280px, or, for
+ * the last card, the "View on GitHub" chevron link under it. Below lg the cards go two then
+ * one per row.
  */
 import { aboutBeliefs as data } from "@config/en/aboutData.json";
 import { Icon } from "astro-icon/components";
 ---
 
 <section class="mt-[120px] lg:mt-[280px]" aria-labelledby="about-beliefs-title">
-  <div class="about-band">
-    <div
-      class="home-container flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10"
-      data-reveal
-    >
-      <p class="eyebrow about-band__eyebrow flex flex-none items-center gap-2">
+  <div class="about-band section-y">
+    <div class="home-container flex flex-col gap-6" data-reveal>
+      <p class="eyebrow about-band__eyebrow flex items-center gap-2 py-1.5">
         <span class="about-band__dot" aria-hidden="true"></span>
         {data.eyebrow}
       </p>
-      <div class="flex max-w-[1028px] flex-col gap-8 lg:gap-14">
+      <div class="flex flex-col gap-8 lg:gap-14">
         <h2 id="about-beliefs-title" class="h1 about-band__title uppercase">
           {data.title}
         </h2>
-        <p class="body-lg about-band__text max-w-[812px]">{data.text}</p>
+        <p class="body-lg about-band__text max-w-[973px] lg:ml-[338px]">{data.text}</p>
       </div>
     </div>
   </div>
 
   <ol
-    class="home-container mt-16 grid gap-10 md:grid-cols-2 lg:mt-[132.52px] lg:grid-cols-4 lg:gap-6"
+    class="home-container mt-20 grid gap-10 md:grid-cols-2 lg:mt-[140px] lg:grid-cols-[repeat(4,minmax(0,312px))] lg:justify-between lg:gap-6"
     data-reveal-stagger
     style="--reveal-step: 700ms; --reveal-duration: 1700ms;"
   >
     {data.rules.map((rule) => (
-      <li class="about-rule flex flex-col gap-6 lg:pr-8 lg:pb-4">
+      <li class="about-rule dash-l dash-accent flex flex-col gap-6 pl-7 lg:min-h-[310px]">
         <span class="about-rule__number text-primary-500">{rule.number}</span>
-        <div class:list={["flex flex-1 flex-col gap-6", !rule.link && "lg:pb-6"]}>
+        <div class="flex max-w-[280px] flex-col gap-6 pb-6">
           <h3 class="about-rule__title text-foreground">{rule.title}</h3>
           <p class="text-muted-foreground text-base leading-6">{rule.text}</p>
           {rule.link && (
             <a
               href={rule.link.href}
-              class="link-arrow mt-auto self-start text-base"
+              class="link-arrow self-start text-base"
               target="_blank"
               rel="noopener noreferrer"
               data-track-event={rule.link.track}
               data-track-placement="about"
             >
               <span>{rule.link.text}</span>
-              <Icon name="home/pixel-chevron" aria-hidden="true" />
+              <Icon name="pixel/chevron" aria-hidden="true" />
             </a>
           )}
         </div>
@@ -64,35 +62,19 @@ import { Icon } from "astro-icon/components";
 
 <style>
   .about-band {
-    background-color: #49b4b8;
-    padding: 64px 0;
-  }
-  @media (min-width: 1024px) {
-    .about-band {
-      padding: 120px 0 107.48px;
-    }
+    background-color: var(--color-primary-500);
   }
   .about-band__eyebrow,
   .about-band__title,
   .about-band__text {
-    color: #161818;
-  }
-  /* side by side, the eyebrow's capitals start on the title's cap line: the h1 (same clamp
-     as .h1, 112% rounded line) has 0.1918em above its capitals, the 24px pixel eyebrow 4px */
-  @media (min-width: 1024px) {
-    .about-band__eyebrow {
-      margin-top: calc(0.1918 * clamp(2.25rem, 1.45rem + 3vw, 3.875rem) - 4px);
-    }
+    color: var(--color-base-950);
   }
   .about-band__dot {
     display: inline-block;
     width: 6px;
     height: 6px;
     flex: none;
-    background-color: #161818;
-  }
-  .about-band__title {
-    font-weight: 500;
+    background-color: var(--color-base-950);
   }
   .about-rule__number {
     font-family: var(--font-pixel);
@@ -102,17 +84,9 @@ import { Icon } from "astro-icon/components";
     letter-spacing: 0.02em;
   }
   .about-rule__title {
-    display: flex;
-    align-items: center;
-    min-height: 40px;
     font-size: 1.125rem;
     line-height: 1.1;
     line-height: round(1.1em, 1px);
-    font-weight: 500;
-  }
-  @media (min-width: 1024px) {
-    .about-rule:not(:last-child) {
-      border-right: 1px solid rgb(92 98 98 / 0.5);
-    }
+    font-weight: 400;
   }
 </style>

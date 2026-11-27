@@ -294,7 +294,7 @@ export const bookDemo = {
     company: "Company",
     pipelines: "Number of pipelines (optional)",
   },
-  submit: "Book a demo",
+  submit: "Press to start",
   fallbackEmail: "hello@getplumber.io",
 };
 

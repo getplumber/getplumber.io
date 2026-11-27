@@ -14,8 +14,59 @@
    * state so nothing stays invisible without JavaScript. Elements with data-hover-reveal
    * carry the is-in-view class while they are in the viewport: on tablets and phones the
    * components play their hover states from it (the attribute value is the threshold).
+   * Numbers marked data-count-up count from 0 to their value (kept in the HTML, with its
+   * thousands separator and suffix, e.g. "120.000+") as their block fades in.
    */
   const observers: IntersectionObserver[] = [];
+  const COUNT_DURATION = 1600;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /** "120.000+" -> prefix "", value 120000, separator ".", suffix "+" */
+  function parseCount(text: string) {
+    const match = text.trim().match(/^(\D*)(\d{1,3}(?:([.,\s])\d{3})*|\d+)(\D*)$/);
+    if (!match) return null;
+    const [, prefix, digits, separator = "", suffix] = match;
+    return { prefix, value: Number(digits.replace(/\D/g, "")), separator, suffix };
+  }
+
+  function formatCount(value: number, separator: string) {
+    const digits = String(value);
+    return separator ? digits.replace(/\B(?=(\d{3})+(?!\d))/g, separator) : digits;
+  }
+
+  /** Set the numbers inside a block to 0 now and count them up once it reveals. */
+  function prepareCounts(block: Element) {
+    if (reducedMotion.matches) return [];
+    return Array.from(block.querySelectorAll<HTMLElement>("[data-count-up]")).flatMap((el) => {
+      const parsed = parseCount(el.textContent ?? "");
+      if (!parsed) return [];
+      const final = el.textContent ?? "";
+      el.textContent = `${parsed.prefix}0${parsed.suffix}`;
+      // the element whose fade the count follows: its staggered child, or the block itself
+      const fading = el.closest("[data-reveal-stagger] > *") ?? block;
+      return [{ el, final, fading, ...parsed }];
+    });
+  }
+
+  /** Count once the block is visible, starting with the fade (its transition-delay). */
+  function runCounts(counts: ReturnType<typeof prepareCounts>) {
+    counts.forEach(({ el, final, fading, prefix, value, separator, suffix }) => {
+      const delay = parseFloat(getComputedStyle(fading).transitionDelay) * 1000 || 0;
+      let start = 0;
+      const frame = (now: number) => {
+        start ||= now;
+        const t = Math.min(1, (now - start) / COUNT_DURATION);
+        if (t >= 1) {
+          el.textContent = final;
+          return;
+        }
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = `${prefix}${formatCount(Math.round(value * eased), separator)}${suffix}`;
+        requestAnimationFrame(frame);
+      };
+      window.setTimeout(() => requestAnimationFrame(frame), delay);
+    });
+  }
 
   function initReveal() {
     // observers of the previous page (view transitions) stop here
@@ -24,12 +75,14 @@
     const hoverTargets = document.querySelectorAll<HTMLElement>("[data-hover-reveal]");
     if (!targets.length && !hoverTargets.length) return;
     document.documentElement.classList.add("reveal-ready");
+    const counts = new Map<Element, ReturnType<typeof prepareCounts>>();
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           entry.target.classList.add("is-visible");
           observer.unobserve(entry.target);
+          runCounts(counts.get(entry.target) ?? []);
         });
       },
       { rootMargin: "0px 0px -12% 0px", threshold: 0.05 },
@@ -41,6 +94,7 @@
           (child as HTMLElement).style.setProperty("--i", String(i));
         });
       }
+      counts.set(target, prepareCounts(target));
       observer.observe(target);
     });
 

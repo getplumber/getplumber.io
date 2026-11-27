@@ -1,6 +1,7 @@
 ---
 /**
- * Full-width note banner from the Figma home page (pixel warning diamond, teal tint, 8px radius).
+ * Full-width note banner from the Figma home page: the pixel shield (the docs message icon,
+ * review of 2026-11-25) 8px before the text, teal tint, 8px radius.
  * "strong" renders in the alert red, as in "Your pipeline is green. It's also leaking.",
  * and moves to a new line as one piece when it does not fit after the text.
  */
@@ -18,11 +19,11 @@ const { text, strong, size = "md", class: className } = Astro.props;
 
 <p
   class:list={[
-    "border-accent-20 bg-primary-500/5 rounded-r8 flex flex-wrap items-center justify-center gap-4 border px-8 py-4 text-center",
+    "border-accent-20 bg-primary-500/5 rounded-r8 flex flex-wrap items-center justify-center gap-2 border px-8 py-4 text-center",
     className,
   ]}
 >
-  <Icon name="home/warning-diamond" class="text-primary-500 size-6 shrink-0" aria-hidden="true" />
+  <Icon name="pixel/shield-warning" class="text-primary-500 size-6 shrink-0" aria-hidden="true" />
   <span class={size === "lg" ? "body-lg" : "body"}>
     <span class="text-foreground">{text}</span>
     {strong && (

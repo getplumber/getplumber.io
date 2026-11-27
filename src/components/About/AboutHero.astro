@@ -8,7 +8,8 @@
  * teal marker 16px before it, 16/150 value, #5C6262 25% rules). 124px lower the numbers
  * strip: three 440px cells (32px side padding, 38/110 number, 24px pixel label 16px under it)
  * with #8D9596 25% dividers between #5C6262 25% rules; Figma centres those strokes on the
- * 157px frame, so the cells keep 39px of vertical padding inside the 1px rules. Below lg the
+ * 157px frame, so the cells keep 39px of vertical padding inside the 1px rules; each number
+ * counts up from 0 as its cell fades in (data-count-up, review of 2026-11-27). Below lg the
  * columns stack and the cells go one per row.
  */
 import { aboutHero as data } from "@config/en/aboutData.json";
@@ -59,7 +60,9 @@ import { aboutHero as data } from "@config/en/aboutData.json";
   >
     {data.numbers.map((item) => (
       <li class="about-numbers__cell stroke-muted flex flex-col gap-4 px-8 py-[39px]">
-        <span class="h2 text-foreground">{item.value}</span>
+        <span class="h2 text-foreground" data-count-up>
+          {item.value}
+        </span>
         <span class="pixel-24 text-muted-foreground">{item.label}</span>
       </li>
     ))}

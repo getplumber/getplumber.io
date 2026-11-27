@@ -1,25 +1,27 @@
 ---
 /**
- * "Backed by." (Figma About us, section "backed by", 280px under the team; Figma draws its
- * title 1px above the frame, hence 279px to the title here): the 62/112 uppercase title in
- * white and, 32px under it, the 38/110 paragraph on 869px in grey with the raise, the fund
- * and the angels in white. Figma draws this block 54px from the left edge; the page keeps
- * the 60px grid of every other section.
+ * "Backed by" (Figma About us, section "backed by", new design of 2026-11-25; the section is
+ * hidden on the page for now): the accent pixel eyebrow in place of the old 62px title and,
+ * 32px under it, the 38/110 paragraph in grey with the raise, the fund and the angels in
+ * white, the block (1003px) centred on the page, its text left-aligned.
  */
 import { aboutBackedBy as data } from "@config/en/aboutData.json";
 ---
 
 <section
-  class="home-container mt-[120px] lg:mt-[279px]"
+  class="home-container mt-[120px] lg:mt-[280px]"
   aria-labelledby="about-backed-title"
   data-reveal
 >
-  <h2 id="about-backed-title" class="h1 text-foreground uppercase">
-    {data.title}
-  </h2>
-  <p class="h2 text-muted-foreground mt-8 max-w-[869px]">
-    {data.runs.map((run) =>
-      run.accent ? <span class="text-foreground">{run.text}</span> : run.text,
-    )}
-  </p>
+  <div class="mx-auto max-w-[1003px]">
+    <h2 id="about-backed-title" class="eyebrow flex items-center gap-2">
+      <span class="eyebrow-dot" aria-hidden="true"></span>
+      {data.title}
+    </h2>
+    <p class="h2 text-muted-foreground mt-8">
+      {data.runs.map((run) =>
+        run.accent ? <span class="text-foreground">{run.text}</span> : run.text,
+      )}
+    </p>
+  </div>
 </section>

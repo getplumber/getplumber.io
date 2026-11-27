@@ -8,8 +8,9 @@
  * down the dashed stroke from the top to its place; the "Plumber Scan" link underlines
  * from the left on hover (its chevron is the Figma pixel icon); the last stat has no closing stroke. The overview row keeps its
  * stroke above the title while open and under it while closed, lights up on hover and
- * dissolves its stats in when opened. Sections sit 208px apart (104px of padding each),
- * 160px on phones. Phones (Figma 360): 140% line height on the statement, 112px to the
+ * dissolves its stats in when opened; its toggle is the large pixel chevron, and the stats
+ * sit on the 4 x 4 accent dashed stroke (review of 2026-11-25). Sections sit 280px apart
+ * (section-y), 160px on phones. Phones (Figma 360): 140% line height on the statement, 112px to the
  * 247px button, the "run it yourself" line as wide as the button, 112px to the overview;
  * below lg the overview row has no side padding.
  */
@@ -19,7 +20,7 @@ import { Icon } from "astro-icon/components";
 ---
 
 <section id="value" class="bg-background">
-  <div class="home-container pt-[112px] pb-20 lg:pt-[160px] lg:pb-[104px]">
+  <div class="home-container section-y">
     <div
       class="flex flex-col gap-[112px] lg:flex-row lg:items-end lg:justify-between lg:gap-10"
       data-reveal
@@ -45,8 +46,8 @@ import { Icon } from "astro-icon/components";
           >
             <span class="scan-link__label">{valueProp.altLink.text}</span>
             <Icon
-              name="home/pixel-chevron"
-              class="scan-link__chevron text-accent-text h-[10.8px] w-[6px]"
+              name="pixel/chevron"
+              class="scan-link__chevron chevron text-accent-text"
               aria-hidden="true"
             />
           </a>
@@ -60,20 +61,20 @@ import { Icon } from "astro-icon/components";
         data-hover-reveal
       >
         <span class="body-lg">{valueProp.overviewTitle}</span>
-        <span class="coverage__toggle text-[28px] leading-none" aria-hidden="true"></span>
+        <Icon name="pixel/chevron-lg" class="coverage__toggle chevron-lg" aria-hidden="true" />
       </summary>
       <ul
-        class="coverage__stats mt-9 grid gap-y-8 md:grid-cols-3 md:gap-y-0"
+        class="coverage__stats dash-accent max-md:dash-l mt-9 grid gap-y-8 md:grid-cols-3 md:gap-y-0"
         data-reveal-stagger
         style="--reveal-step: 1100ms;"
       >
         {valueProp.stats.map((stat, i) => (
           <li
-            class="coverage__stat relative flex flex-col gap-2 py-8 pl-8"
+            class="coverage__stat dash-accent md:dash-l relative flex flex-col gap-2 py-8 pl-8"
             style={`--dot-top-md: ${i * 58}px; --dot-frac: ${i / 2};`}
           >
             <span
-              class="coverage__dot bg-primary-500 absolute -left-[5px] size-2"
+              class="coverage__dot bg-primary-500 absolute -left-[6px] size-2"
               aria-hidden="true"
             />
             <span class="h3 text-foreground">{stat.value}</span>
@@ -106,14 +107,13 @@ import { Icon } from "astro-icon/components";
       opacity: 1;
     }
   }
-  .coverage__toggle::after {
-    content: "+";
+  /* the large pixel chevron: down while closed, up while open */
+  .coverage__toggle {
+    rotate: 90deg;
+    transition: rotate 250ms ease;
   }
-  .coverage[open] .coverage__toggle::after {
-    content: "\2212";
-  }
-  .coverage__stat {
-    border-left: 2px dashed var(--color-dash);
+  .coverage[open] .coverage__toggle {
+    rotate: -90deg;
   }
 
   /* the dot starts at the top of the stroke and slides to its place once the stat is in
@@ -141,11 +141,9 @@ import { Icon } from "astro-icon/components";
      40px above and below its text, 32px between the stats, 26px figure, 19px pixel label, 12px between them, text 22px past the stroke */
   @media (max-width: 767px) {
     .coverage__stats {
-      border-left: 2px dashed var(--color-dash);
       row-gap: 32px;
     }
     .coverage__stat {
-      border-left: 0;
       padding: 40px 0 40px 22px;
       gap: 12px;
     }
@@ -167,6 +165,9 @@ import { Icon } from "astro-icon/components";
     }
     .coverage[open] .coverage__stats {
       animation: none;
+    }
+    .coverage__toggle {
+      transition: none;
     }
   }
 

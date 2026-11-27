@@ -1,12 +1,13 @@
 ---
 /**
  * Docs card (Figma Docs_Getting-Started_OK, re-measured on 2026-11-18): a bordered card with
- * 8px corners, 218px tall when it has no icon (the "Go further" cards), a 71px tinted header
- * (24px padding; a 16/140 Medium title, or a 16px icon and a 14/140 title for the provider
+ * 8px corners and the #5C6262 5% fill over its whole height (review of 2026-11-27), 218px
+ * tall when it has no icon (the "Go further" cards), a 71px header (24px padding; a 16/140 Medium title, or a 16px icon and a 14/140 title for the provider
  * cards; an optional pixel env chip on the right), then a 24px-padded body with the 14/140
- * grey text and, 32px lower, the chevron links (14px, accent, 6 x 10.8 pixel chevron 8px
- * after the label, 24px apart). The "link" variant ("Community & support") is one clickable
- * row: a 24px icon in a 46px column aligned with the title line, 16px, a 20px pixel eyebrow
+ * grey text and, 32px lower, the chevron links (14px, accent, 8 x 14.4 pixel chevron 8px
+ * after the label, 24px apart, underlined 10px under text + chevron on hover like every
+ * .link-arrow). The "link" variant ("Community & support") is one clickable row: a 24px
+ * icon in a 46px column, centred on the eyebrow and title, 16px, a 20px pixel eyebrow
  * and the 16/150 title on two 22px lines, the 14.86 x 26 pixel chevron on the right, 24px
  * padding (stroke inside) and 8px outer corners; on hover the card turns accent blue, text
  * near-black and the title Medium.
@@ -49,8 +50,8 @@ const {
     ]}
   >
     {icon && (
-      <span class="flex w-[46px] shrink-0 self-end" aria-hidden="true">
-        <Icon name={icon} class="docs-card__icon text-primary-500 -mb-px -ml-px size-6" />
+      <span class="flex w-[46px] shrink-0" aria-hidden="true">
+        <Icon name={icon} class="docs-card__icon text-primary-500 -ml-px size-6" />
       </span>
     )}
     <span class="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -66,20 +67,20 @@ const {
       </span>
     </span>
     <Icon
-      name="pixel/chevron-right"
-      class="docs-card__chevron text-primary-500 h-[26px] w-[14.86px] shrink-0"
+      name="pixel/chevron-lg"
+      class="docs-card__chevron chevron-lg text-primary-500"
       aria-hidden="true"
     />
   </a>
 ) : (
   <div
     class:list={[
-      "docs-card not-content stroke-tint flex flex-col overflow-hidden rounded-[8px] border",
+      "docs-card not-content stroke-tint bg-tint-5 flex flex-col overflow-hidden rounded-[8px] border",
       !icon && "md:min-h-[218px]",
       className,
     ]}
   >
-    <div class="stroke-tint bg-tint-5 flex min-h-[71px] items-center justify-between gap-6 border-b p-6">
+    <div class="stroke-tint flex min-h-[71px] items-center justify-between gap-6 border-b p-6">
       <span
         class:list={[
           "text-foreground flex items-center gap-2",
@@ -98,9 +99,9 @@ const {
       {links.length > 0 && (
         <div class="mt-auto flex flex-wrap gap-6">
           {links.map((link) => (
-            <a href={link.href} class="link-arrow link-arrow--plain text-sm hover:underline">
+            <a href={link.href} class="link-arrow text-sm">
               <span>{link.text}</span>
-              <Icon name="home/pixel-chevron" aria-hidden="true" />
+              <Icon name="pixel/chevron" aria-hidden="true" />
             </a>
           ))}
         </div>

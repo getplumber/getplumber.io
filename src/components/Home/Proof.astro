@@ -18,7 +18,7 @@ import SectionHeading from "./SectionHeading.astro";
 ---
 
 <section id="proof" class="bg-background overflow-x-clip">
-  <div class="home-container flex flex-col gap-16 py-20 lg:gap-[88px] lg:py-[104px]" data-reveal>
+  <div class="home-container section-y flex flex-col gap-16 lg:gap-[88px]" data-reveal>
     <div class="flex flex-col gap-16">
       <SectionHeading
         eyebrow={proof.eyebrow}
@@ -81,7 +81,7 @@ import SectionHeading from "./SectionHeading.astro";
           data-carousel-prev
           aria-label="Previous testimonials"
         >
-          <Icon name="home/pixel-chevron" class="h-[18px] w-[10px] rotate-180" aria-hidden="true" />
+          <Icon name="pixel/chevron" class="chevron rotate-180" aria-hidden="true" />
         </button>
         <button
           type="button"
@@ -89,7 +89,7 @@ import SectionHeading from "./SectionHeading.astro";
           data-carousel-next
           aria-label="Next testimonials"
         >
-          <Icon name="home/pixel-chevron" class="h-[18px] w-[10px]" aria-hidden="true" />
+          <Icon name="pixel/chevron" class="chevron" aria-hidden="true" />
         </button>
       </div>
     </div>

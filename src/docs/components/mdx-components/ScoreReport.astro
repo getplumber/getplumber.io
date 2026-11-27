@@ -60,7 +60,7 @@ const failed = status === "failed";
 
 <div
   class:list={[
-    "score-report not-content stroke-tint rounded-r15 my-6 flex flex-col overflow-hidden border",
+    "score-report not-content stroke-tint rounded-r8 my-6 flex flex-col overflow-hidden border",
     className,
   ]}
   style={`--grade: ${gradeVar(grade)}`}
@@ -195,9 +195,11 @@ const failed = status === "failed";
   .score-cell--lit {
     background: var(--cell);
   }
-  /* the pixel glyph fills about half of the ring's inner diameter, like the Figma mark */
+  /* the pixel glyph fills about half of the ring's inner diameter, like the Figma mark. Its
+     line box is already centred on the cap height; each glyph of the pixel font ends on one
+     empty pixel column (1/16 em), so half of it moves the ink to the ring's centre. */
   .score-report__grade {
     font-size: 8rem;
-    transform: translateY(0.04em);
+    translate: 0.03125em 0;
   }
 </style>

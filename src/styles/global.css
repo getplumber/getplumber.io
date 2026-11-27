@@ -265,8 +265,8 @@
 
   /* Text link with a pixel chevron (Figma "Learn more", "View on GitHub", "All install
      methods"): accent colour, Regular weight, the label trimmed to its cap height like the
-     Figma text box (text-box), 8px before the chevron (6 x 10.8 at 14px, 6.51 x 11.73 at
-     16px), 10px of padding then a 1px underline under the whole text + chevron block
+     Figma text box (text-box), 8px before the 8 x 14.4 pixel chevron (see .chevron), 10px
+     of padding then a 1px underline under the whole text + chevron block
      (rule from the review of 2026-11-18), drawn on hover and focus only. Browsers without text-box keep the full line box,
      so the underline sits a few pixels lower there. */
   .link-arrow {
@@ -292,19 +292,33 @@
     text-box: trim-both cap alphabetic;
   }
   .link-arrow > svg {
-    width: 6px;
-    height: 10.8px;
+    width: 8px;
+    height: 14.4px;
     flex: none;
     shape-rendering: crispEdges;
   }
-  .link-arrow.text-base > svg {
-    width: 6.51px;
-    height: 11.73px;
+  /* Pixel chevrons, one size per shape everywhere (review of 2026-11-25: "les chevrons sont
+     plus grands, partout sur le site"). The small one (pixel/chevron, Figma Icon_Flash_down)
+     is 5 x 9 pixels of 1.6px: 8 x 14.4 pointing right, 14.4 x 8 pointing down. The large one
+     (pixel/chevron-lg: FAQ, coverage overview, docs link cards) is 4 x 7 pixels of 3.71px:
+     14.86 x 26 pointing right; rotate it for the other directions. */
+  .chevron {
+    width: 8px;
+    height: 14.4px;
+    flex: none;
+    shape-rendering: crispEdges;
   }
-  /* the same link without underline (Figma docs cards and docs pagination) */
-  .link-arrow--plain {
-    padding-bottom: 0;
-    border-bottom: 0;
+  .chevron-down {
+    width: 14.4px;
+    height: 8px;
+    flex: none;
+    shape-rendering: crispEdges;
+  }
+  .chevron-lg {
+    width: 14.86px;
+    height: 26px;
+    flex: none;
+    shape-rendering: crispEdges;
   }
 
   /* Code line (Figma "Codeligne-13"). */
@@ -351,6 +365,16 @@
     }
   }
 
+  /* Vertical rhythm of the home and About sections: 280px between two blocks from lg (the
+     designer's rule of 2026-11-25), 160px on tablets and phones. */
+  .section-y {
+    padding-block: 80px;
+  }
+  @media (min-width: 1024px) {
+    .section-y {
+      padding-block: 140px;
+    }
+  }
   /* Figma card: darker grey at 5 percent over the page, 25 percent stroke, 10 percent on hover. */
   .card-tint {
     background-color: var(--color-tint-5);
@@ -474,4 +498,37 @@
       transition: none;
     }
   }
+}
+
+/* Figma dashed stroke ("weight 4, dash 4", review of 2026-11-25): 4px squares 4px apart, in
+   #5C6262 at 25 percent, or the accent at 25 percent with dash-accent. A CSS dashed border
+   cannot draw square dashes, so the stroke is a repeating gradient painted as a border image:
+   it keeps the element's background and padding free. The colour is a registered property so
+   hover states can ease it (transition: --dash-color); it does not inherit, so set it on the
+   stroked element itself. Variants work (md:dash-l); one stroked side per element. */
+@property --dash-color {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: rgba(92, 98, 98, 0.25);
+}
+@utility dash-l {
+  border-left: 4px solid transparent;
+  border-image-source: repeating-linear-gradient(
+    to bottom,
+    var(--dash-color) 0 4px,
+    transparent 4px 8px
+  );
+  border-image-slice: 0 0 0 4;
+}
+@utility dash-t {
+  border-top: 4px solid transparent;
+  border-image-source: repeating-linear-gradient(
+    to right,
+    var(--dash-color) 0 4px,
+    transparent 4px 8px
+  );
+  border-image-slice: 4 0 0 0;
+}
+@utility dash-accent {
+  --dash-color: var(--color-accent-25);
 }

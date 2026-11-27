@@ -1,7 +1,8 @@
 ---
 /**
  * "Plumber finds the leak and brings the fix" (Figma HOME_Last, node 2513:1707, 1440 x 659).
- * Four steps on dashed tracks. Review of 2026-10-27: the first step shows with the section,
+ * The title breaks only after "leak" (no max width, review of 2026-11-25). Four steps on 4 x 4 dashed
+ * tracks. Review of 2026-10-27: the first step shows with the section,
  * the next three fade in one after the other from the left, a second apart so each can be
  * read, each dot slides along its track to the step's share of it, and each step takes the first
  * step's colours (accent dot, foreground title) right after its own fade ends: a CSS delay
@@ -20,14 +21,14 @@ const noteDelayMs = STEP_DELAY_MS * (howItWorks.steps.length - 1) + STEP_FADE_MS
 ---
 
 <section id="how-it-works" class="bg-background">
-  <div class="home-container flex flex-col gap-16 py-20 lg:gap-[88px] lg:py-[104px]">
+  <div class="home-container section-y flex flex-col gap-16 lg:gap-[88px]">
     <div data-reveal>
       <SectionHeading
         eyebrow={howItWorks.eyebrow}
         headline={howItWorks.headline}
         headlineStrong={howItWorks.headlineStrong}
         text={howItWorks.text}
-        class="[&>h2]:max-w-[720px] [&>p:last-child]:max-w-none"
+        class="[&>h2]:max-w-none [&>p:last-child]:max-w-none"
       />
     </div>
 
@@ -42,7 +43,7 @@ const noteDelayMs = STEP_DELAY_MS * (howItWorks.steps.length - 1) + STEP_FADE_MS
             class:list={["step flex flex-col gap-4", i === 0 ? "step--active" : "step--muted"]}
             style={`--dot-frac: ${(i + 1) / howItWorks.steps.length};`}
           >
-            <span class="step__track relative block w-full" aria-hidden="true">
+            <span class="step__track dash-t relative block w-full" aria-hidden="true">
               <span class="step__dot" />
             </span>
             <span class="eyebrow step__number">{step.number}</span>
@@ -60,16 +61,15 @@ const noteDelayMs = STEP_DELAY_MS * (howItWorks.steps.length - 1) + STEP_FADE_MS
 </section>
 
 <style>
-  /* the same 2px dashed stroke as the coverage stats */
+  /* the 4 x 4 dashed stroke (dash-t), the 8px dot centred on it */
   .step__track {
     height: 0;
-    border-top: 2px dashed var(--color-dash);
   }
   /* the dot starts at the beginning of the track and slides to the step's share of it
      (25, 50, 75, 100 percent) as the card fades in */
   .step__dot {
     position: absolute;
-    top: -5px;
+    top: -6px;
     left: 0;
     width: 8px;
     height: 8px;

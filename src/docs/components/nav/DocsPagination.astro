@@ -40,8 +40,8 @@ const formatted = lastUpdated
     {prev && (
       <a href={`/${docsRoute}/${prev.slug}`} class="group flex flex-col gap-4">
         <span class="subtitle-pixel text-muted-foreground">previous page</span>
-        <span class="docs-pager__link link-arrow link-arrow--plain body-sm">
-          <Icon name="home/pixel-chevron" class="rotate-180" aria-hidden="true" />
+        <span class="docs-pager__link link-arrow body-sm">
+          <Icon name="pixel/chevron" class="rotate-180" aria-hidden="true" />
           <span>{prev.title}</span>
         </span>
       </a>
@@ -50,23 +50,27 @@ const formatted = lastUpdated
   {next && (
     <a href={`/${docsRoute}/${next.slug}`} class="group ml-auto flex flex-col gap-4">
       <span class="subtitle-pixel text-muted-foreground">next page</span>
-      <span class="docs-pager__link link-arrow link-arrow--plain body-sm">
+      <span class="docs-pager__link link-arrow body-sm">
         <span>{next.title}</span>
-        <Icon name="home/pixel-chevron" aria-hidden="true" />
+        <Icon name="pixel/chevron" aria-hidden="true" />
       </span>
     </a>
   )}
 </nav>
 
 <style>
-  /* Figma page link: 14/140 in #C6C6C6 (accent on hover), the 6 x 10.8 pixel chevron 8px
-     from the label, 16px under the 18px pixel "next page" label */
+  /* Figma page link: 14/140 in #C6C6C6, the 8 x 14.4 pixel chevron 8px from the label, 16px
+     under the 18px pixel "next page" label; the whole block is the link, so hovering it turns
+     the label accent and shows the .link-arrow underline under text + chevron */
   .docs-pager__link {
     color: var(--color-base-200);
-    transition: color 150ms ease;
+    transition:
+      color 150ms ease,
+      border-color 200ms ease;
   }
   .group:hover .docs-pager__link,
   .group:focus-visible .docs-pager__link {
     color: var(--accent-text);
+    border-bottom-color: currentColor;
   }
 </style>

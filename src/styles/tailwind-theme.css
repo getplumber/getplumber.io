@@ -42,11 +42,10 @@
   --color-tint-10: rgba(92, 98, 98, 0.1);
   --color-tint-25: rgba(92, 98, 98, 0.25);
   --color-accent-20: rgba(9, 195, 195, 0.2);
+  --color-accent-25: rgba(9, 195, 195, 0.25);
   --color-danger-5: rgba(251, 48, 51, 0.05);
   --color-danger-10: rgba(251, 48, 51, 0.1);
   --color-danger-25: rgba(251, 48, 51, 0.25);
-  /* dashed separators between stats (Figma blue_stroke) */
-  --color-dash: #385153;
 
   /* Breakpoints */
   --breakpoint-xs: 400px;
@@ -85,7 +84,6 @@
   --radius-r0: 0px;
   --radius-r4: 4px;
   --radius-r8: 8px;
-  --radius-r15: 15px;
 
   /* starwind and site animations */
   --animate-accordion-down: accordion-down 0.25s ease-out;

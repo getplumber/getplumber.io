@@ -1,9 +1,10 @@
 ---
 /**
  * "Attackers moved to the pipeline" (Figma HOME_Last, node 2513:1630, 1440 x 952).
- * Left-aligned heading and an "Incident log" table in a tinted card. A row takes the
- * accent tint while hovered; its source, a link to the article, stays grey and only
- * underlines in the accent colour while hovered itself (review of 2026-10-27). Below the md breakpoint the table stacks into the Figma
+ * Left-aligned heading and an "Incident log" table in a stroked card with no fill, on the
+ * page background (new design of 2026-11-25, fills removed on 2026-11-27): the accent pixel title, 24px pixel column heads and dates, and a row that
+ * turns accent blue with near-black text while hovered, eased like the blog rows (250ms);
+ * its source, a link to the article, underlines while hovered itself. Below the md breakpoint the table stacks into the Figma
  * 360 cards (24px by 32px padding, 20px gaps, 19px pixel date, 32px figure, 15px text and
  * 14px source); on tablets and phones one row at a time is lit, the one nearest the middle
  * of the screen, and the previous one returns to its muted state.
@@ -16,7 +17,7 @@ const { columns } = incidents;
 ---
 
 <section id="incidents" class="bg-background">
-  <div class="home-container flex flex-col gap-16 py-20 lg:gap-[88px] lg:py-[104px]" data-reveal>
+  <div class="home-container section-y flex flex-col gap-16 lg:gap-[88px]" data-reveal>
     <SectionHeading
       eyebrow={incidents.eyebrow}
       headline={incidents.headline}
@@ -26,11 +27,11 @@ const { columns } = incidents;
       class="max-w-[1006px] [&>h2]:max-w-[1006px] [&>p:last-child]:max-w-[991px]"
     />
 
-    <div class="card-tint rounded-r15 overflow-hidden pt-8">
-      <p class="eyebrow text-base-700 dark:text-base-200 px-6 pb-8">{incidents.logTitle}</p>
+    <div class="stroke-tint rounded-r8 overflow-hidden border pt-8">
+      <p class="eyebrow px-6 pb-8">{incidents.logTitle}</p>
       <table class="incident-table w-full border-collapse" data-incident-focus>
         <thead>
-          <tr class="bg-background stroke-tint border-y">
+          <tr class="stroke-tint border-y">
             <th scope="col" class="incident-table__date">
               {columns.date}
             </th>
@@ -52,7 +53,7 @@ const { columns } = incidents;
                 "incident-row stroke-tint text-muted-foreground border-b last:border-b-0",
               ]}
             >
-              <td class="incident-table__date subtitle-pixel" data-label={columns.date}>
+              <td class="incident-table__date" data-label={columns.date}>
                 {row.date}
               </td>
               <td class="incident-table__figure h3" data-label={columns.figure}>
@@ -84,13 +85,17 @@ const { columns } = incidents;
 </section>
 
 <style>
-  .incident-table th {
+  /* column heads and dates: the 24px pixel font at 80 percent */
+  .incident-table th,
+  .incident-table td.incident-table__date {
     font-family: var(--font-pixel);
-    font-size: 1.375rem;
+    font-size: 1.5rem;
     line-height: 0.8;
     letter-spacing: 0.02em;
     text-transform: uppercase;
     font-weight: 400;
+  }
+  .incident-table th {
     text-align: left;
     color: var(--foreground);
     padding: 24px 12px;
@@ -128,19 +133,20 @@ const { columns } = incidents;
       background-color 250ms ease,
       color 250ms ease;
   }
-  .incident-row:hover {
-    background-color: color-mix(in srgb, var(--color-primary-500) 5%, transparent);
-    color: var(--foreground);
+  .incident-table__link {
+    transition: color 250ms ease;
   }
-  .incident-row:hover .incident-table__date {
-    color: var(--color-base-200);
-  }
-  :root:not(.dark) .incident-row:hover .incident-table__date {
-    color: var(--color-base-700);
+  @media (hover: hover) and (min-width: 1024px) {
+    .incident-row:hover {
+      background-color: var(--color-primary-500);
+      color: var(--color-base-950);
+    }
+    .incident-row:hover .incident-table__link {
+      color: var(--color-base-950);
+    }
   }
   .incident-table__link:hover,
   .incident-table__link:focus-visible {
-    color: var(--accent-text);
     text-decoration: underline;
   }
 
@@ -170,7 +176,7 @@ const { columns } = incidents;
     .incident-table td:last-child {
       padding: 0;
     }
-    .incident-table__date {
+    .incident-table td.incident-table__date {
       width: auto;
       font-size: 1.1875rem;
       line-height: 1;

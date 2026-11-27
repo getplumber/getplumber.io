@@ -50,11 +50,12 @@ const {
   .pixel-rain__dots {
     position: absolute;
     inset: 0;
-    background-image: repeating-linear-gradient(
-      to bottom,
-      var(--color-tint-25) 0 5px,
-      transparent 5px 10px
-    );
+    /* one 10px tile (dot then gap) repeated down the column: a pattern drawn over the whole
+       column would end on a partial period (735px is not a multiple of 10) and, while it
+       drifts, show a 10px "double dot" at the top where its end meets its start */
+    background-image: linear-gradient(to bottom, var(--color-tint-25) 0 5px, transparent 5px 10px);
+    background-size: 5px 10px;
+    background-repeat: repeat-y;
     -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 72.6%);
     mask-image: linear-gradient(to bottom, #000 0%, transparent 72.6%);
     animation: pixel-rain-drift var(--rain-duration, 2s) linear infinite;

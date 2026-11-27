@@ -4,7 +4,6 @@ import { getAllPosts } from "@js/blogUtils";
 import { getLocaleFromUrl } from "@js/localeUtils";
 import BaseLayout from "@layouts/BaseLayout.astro";
 import BlogIndexLayout from "@layouts/BlogIndexLayout2.astro";
-import { Icon } from "astro-icon/components";
 
 const currLocale = getLocaleFromUrl(Astro.url);
 const posts = await getAllPosts(currLocale, true); // exclude archived posts (archive/)
@@ -29,11 +28,5 @@ const filterCategories = [
       lead="Learn about CI/CD security, DevOps best practices, and governance guides to secure your pipelines."
     />
     <BlogIndexLayout posts={posts} filterCategories={filterCategories} class="mt-14" />
-    <div class="mt-16 flex">
-      <a href="/blog/archive" class="link-arrow text-base">
-        <span>R2Devops release archive</span>
-        <Icon name="home/pixel-chevron" aria-hidden="true" />
-      </a>
-    </div>
   </div>
 </BaseLayout>

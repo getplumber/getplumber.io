@@ -108,7 +108,7 @@
 
   /* plain code blocks (Expressive Code renders its own frames) */
   .docs-markdown-content pre:not(:where(.not-content, .not-content *, .expressive-code *)) {
-    @apply rounded-r15 my-6 border p-6 font-mono text-sm leading-[2];
+    @apply rounded-r8 my-6 border p-6 font-mono text-sm leading-[2];
     border-color: var(--color-tint-25);
     background-color: var(--color-tint-5) !important;
     color: var(--foreground);
@@ -132,7 +132,7 @@
   /* images, videos, etc */
   .docs-markdown-content
     :is(img, picture, video, canvas, svg, iframe):not(:where(.not-content, .not-content *)) {
-    @apply rounded-r15 my-6 block h-auto w-full;
+    @apply rounded-r8 my-6 block h-auto w-full;
   }
 
   .docs-markdown-content em:not(:where(.not-content, .not-content *)) {
