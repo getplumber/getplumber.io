@@ -35,7 +35,8 @@ On November 23, 2026, between 05:19 and 06:03 UTC, three releases of `codex2api`
 - `v3.1.11` stayed the latest release until at least 06:47 UTC. By about 09:00 UTC it was gone and `v3.1.9` was the latest again (GitHub API, read at both times).
 - At 09:07 UTC the owner wrote that a GitHub token left on a server they had used long ago was the cause, and that this server had been compromised ([comment](https://github.com/james-6-23/codex2api/issues/916)).
 - `v3.2.0` (10:50:36 UTC) is built from `main`. Its notes say the seven commits named in the report are outside its history.
-- As of 11:00 UTC, neither the issue nor the release notes say whether the token was revoked. Watch [issue #916](https://github.com/james-6-23/codex2api/issues/916) before you trust the next release.
+- The owner closed [issue #916](https://github.com/james-6-23/codex2api/issues/916) on November 25. As of November 27, neither the issue nor the release notes say whether the token was revoked, and the repository still lists no rulesets ([GitHub API, rulesets](https://api.github.com/repos/james-6-23/codex2api/rulesets)).
+- `v3.2.1` followed on November 26 at 18:55 UTC, a regular release from `main`. Its notes tell anyone still running `v3.1.10` to `v3.1.12` to follow the handling notes in issue #916 first.
 
 **How it was published**
 
@@ -56,7 +57,7 @@ The release came out of the project's own pipeline, exactly as designed.
 
 **Checksums are not signatures.** A `SHA256SUMS.txt` written by the release job proves the download was not corrupted. It does not prove who built it. An updater that checks a signature made with a key the CI never holds would have refused these builds.
 
-If you self-host `codex2api`, the question today is simple: "which version did our server run this morning?". That answer should take an hour, not a week.
+If you self-host `codex2api`, the question is simple: "which version did our server run on November 23?". That answer should take an hour, not a week.
 
 ## Are you exposed?
 
@@ -86,7 +87,7 @@ Two questions, in this order:
 - **Exposed today**: does a server still run `v3.1.10`, `v3.1.11` or `v3.1.12`, or do your files point at them?
 - **Exposed during the window**: did a server download, update to, or restart on one of them from November 23, 05:19 UTC until the release was gone (between 06:47 and about 09:00 UTC by our reads)?
 
-A server on `v3.2.0` now proves nothing about this morning. Updating does not undo what ran before.
+A server on `v3.2.0` or later now proves nothing about November 23. Updating does not undo what ran before.
 
 #### Your files, GitHub or GitLab
 
@@ -116,7 +117,7 @@ docker image ls --digests | grep codex2api
 If any of these says yes, follow the maintainer's order. It matters:
 
 1. Treat the instance as compromised. Isolate it and keep its logs.
-2. Deploy `v3.2.0` in a new, trusted environment. Do not reuse the old host.
+2. Deploy `v3.2.0` or later (`v3.2.1` is the latest release, November 26) in a new, trusted environment. Do not reuse the old host.
 3. From a trusted device, rotate everything the old instance could read: `ADMIN_SECRET`, the database and Redis passwords, every API key it issued, and the upstream accounts' OAuth tokens, session tokens and API keys.
 4. Check for unusual access and outbound connections from the old host and anything it could reach.
 
@@ -214,7 +215,7 @@ Pair it with a protected `v*` tag and a protected `release` environment that nee
 
 ## Key takeaways
 
-- `codex2api` `v3.1.10`, `v3.1.11` and `v3.1.12` are backdoored, per the maintainer. `v3.2.0` is the release to deploy.
+- `codex2api` `v3.1.10`, `v3.1.11` and `v3.1.12` are backdoored, per the maintainer. Deploy `v3.2.0` or later: `v3.2.1` (November 26) is the latest release.
 - A server that ran one of them should be treated as compromised: isolate it, keep the logs, and redeploy on a new host.
 - Rotate `ADMIN_SECRET`, database and Redis passwords, issued API keys and upstream tokens from a trusted device, after you have moved off the old host.
 - Anything that followed `latest` on November 23 from 05:19 UTC (downloads, the in-app updater, the `latest` or `3.1` image) needs a version or digest check.
@@ -228,4 +229,4 @@ Pair it with a protected `v*` tag and a protected `release` environment that nee
 - Install the Plumber app to analyze and fix your pipelines: [github.com/apps/plumber-agent](https://github.com/apps/plumber-agent)
 - Scan your pipelines with the open source CLI: [/docs/cli/github](/docs/cli/github)
 - Star [getplumber/plumber](https://github.com/getplumber/plumber)
-- Sources: [codex2api issue #916](https://github.com/james-6-23/codex2api/issues/916), [codex2api v3.2.0 release notes](https://github.com/james-6-23/codex2api/releases/tag/v3.2.0), [GitHub API: releases](https://api.github.com/repos/james-6-23/codex2api/releases), [GitHub API: repository events](https://api.github.com/repos/james-6-23/codex2api/events), [GitHub API: rulesets](https://api.github.com/repos/james-6-23/codex2api/rulesets)
+- Sources: [codex2api issue #916](https://github.com/james-6-23/codex2api/issues/916), [codex2api v3.2.0 release notes](https://github.com/james-6-23/codex2api/releases/tag/v3.2.0), [codex2api v3.2.1 release notes](https://github.com/james-6-23/codex2api/releases/tag/v3.2.1), [GitHub API: releases](https://api.github.com/repos/james-6-23/codex2api/releases), [GitHub API: repository events](https://api.github.com/repos/james-6-23/codex2api/events), [GitHub API: rulesets](https://api.github.com/repos/james-6-23/codex2api/rulesets)
