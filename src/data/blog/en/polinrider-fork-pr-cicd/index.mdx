@@ -1,0 +1,217 @@
+---
+title: "A fork pull request built 40 infected installers in CI"
+description: "A contributor account force-pushed a loader into open pull requests of four projects, and CI ran on it in two of them. How to check your repos and runs, and the two settings that stop it."
+draft: false
+authors:
+  - plumber
+pubDate: 2026-11-26
+heroImage: ./heroImage.png
+categories:
+  - "News"
+  - "CI/CD"
+  - "Security"
+  - "Supply Chain"
+  - "GitHub Actions"
+---
+
+On October 19, 2026, a GitHub account called `Eternity0207` force-pushed a loader into its own open pull requests on `asyncapi/generator`, `CircuitVerse/cv-frontend-vue`, `openfoodfacts-explorer` and `jaegertracing/jaeger`, then removed it. On AsyncAPI it stayed 30 to 40 minutes. An AsyncAPI maintainer traced it and published the details on November 24. GitHub suspended the account on November 25. On November 26, Jaeger's maintainers reported the loader on three of the account's pull request branches, one of them carrying it since July.
+
+AsyncAPI's CI never ran the code. CircuitVerse's did, and its desktop release workflow built installers from it: per StepSecurity, the maintainers say the fork pull requests could "publish 40 infected installers through our CI". The pipeline was the door, and for once it opened outward.
+
+## What happened
+
+![The PolinRider fork pull request attack path, step by step: a contributor account force-pushes a loader into open pull requests and then removes it, then the project's own pipeline runs it without approval, builds release installers from it and uploads them](./attack-path.svg)
+
+**The account**
+
+- `Eternity0207` opened 217 pull requests across open source projects, and 145 were merged. Per [StepSecurity](https://www.stepsecurity.io/blog/polinrider-malware-open-source-pull-requests), none of the merged ones contains the loader.
+- StepSecurity identifies the loader as PolinRider, and ties its wallet to a fake recruiter and fake job interview campaign. Of 622 repositories it checked after a GitHub code search for the `package.json` hook, 576 carry the loader, across 311 accounts.
+- AsyncAPI notified six more projects that had merged the account's pull requests: Meshery, Jitsi Meet, Jaeger, stdlib, PipeCD and Floresta ([maintainer index](https://gist.github.com/derberg/0b4b21fb0a33148c3a13ef3211414b33)).
+- Jaeger checked its organization audit log and found the loader on the branches of three pull requests: #8525 from July 12 to October 10 (closed unmerged), #9854 on October 19 from 01:40 to 02:03 UTC, and #9873 from 05:32 to 07:27 UTC. #9873 was merged on November 13 after the loader was gone, and `main` is clean ([Jaeger issue #10279](https://github.com/jaegertracing/jaeger/issues/10279)).
+
+**The pull requests**
+
+- On `asyncapi/generator`, the malicious commit sat on PR #2277 from 01:39 to 02:08 UTC, and on PR #2278 from 05:31 to 06:12 UTC (StepSecurity).
+- The commit added an obfuscated `api.js` and put `node api.js &&` in front of the `package.json` scripts, so any `npm run dev` or `npm run build` started it first.
+- The next force-push replaced it. The diff a reviewer saw afterwards was clean. Only the pull request timeline kept the "force-pushed" events.
+- Jaeger got a second form, "without the `api.js` hook" (StepSecurity). Per Jaeger's maintainers, it was a hidden `.vscode/tasks.json` task set to run when the folder opens, a `.vscode/settings.json` that turns automatic tasks on, a `.gitignore` that stops ignoring `.vscode/`, and a fake font of about 12.8 KB in `public/fonts/`, whose name changed between pushes (`fa-solid-400.woff2`, `fa-solid-700.fml`, `fa-solid.lkf`, `fa-solid.lfk`). The task runs `node` on that "font" when the folder is opened in VS Code with automatic tasks allowed; per Jaeger's maintainers, `git fetch`, `gh pr checkout` and `go build` do not start it.
+
+**The pipelines**
+
+- AsyncAPI: nothing ran. "Fork pull request workflows need a maintainer's approval, and none was given" (StepSecurity).
+- CircuitVerse: 10 pull requests ran Tests, Linting, CodeQL and the "Vue Simulator Desktop Release" workflow without approval. That workflow runs on `pull_request`, builds the desktop app on four runners and uploads the installers as artifacts ([issue #1586](https://github.com/CircuitVerse/cv-frontend-vue/issues/1586)). On November 25 a CircuitVerse maintainer wrote: "We've deleted all 40 artifacts". The fix, [PR #1591](https://github.com/CircuitVerse/cv-frontend-vue/pull/1591), was merged on November 26.
+- Open Food Facts: the CI started on four poisoned commits, in a job whose `pnpm build` would start the loader first. All four runs failed, and the reporter could not see whether the build step was reached. The team rotated "the only secret that could matter (but was normally not read)" ([issue #2267](https://github.com/openfoodfacts/openfoodfacts-explorer/issues/2267)).
+- Jaeger: CI did not run the loader, its maintainers confirmed. Per StepSecurity, they asked reviewers whether they opened any of the three branches in VS Code while the loader was present.
+- No project has reported a stolen secret. Per StepSecurity, a `pull_request` run from a fork gets no repository secrets and a read-only `GITHUB_TOKEN`.
+
+## The Plumber take
+
+**Pipelines are production code.** CircuitVerse's desktop release workflow had two triggers: `release` and `pull_request`. The same job that builds the real installers for a release also built them for any pull request, from anyone, and uploaded them. A release workflow that runs on pull requests puts your project's name on whatever code a stranger sends.
+
+**A review is a snapshot, not a promise.** On AsyncAPI the loader lived in each pull request for 30 to 40 minutes. A maintainer who reviewed before or after saw clean code. On one Jaeger pull request it sat on the branch for three months. CI that did not wait for approval ran on every push in between. If your safety model is "we read the diff before merging", this attack never needed a merge.
+
+**Trust earned by merged PRs is not a control.** GitHub's default only asks for approval on runs from first-time contributors. This account had a long record of merged pull requests, so per StepSecurity that level "would not have stopped this account". AsyncAPI's fork runs waited for a maintainer's approval, and its CI ran nothing.
+
+The good news is the fork model held: no secrets, read-only token, no merge. The bad news is that a CI run does not need secrets to hurt you if it can publish.
+
+`contents: write` on a workflow that runs pull request code is a pattern our [State of CI/CD Security 2026](/blog/state-of-cicd-security-2026) research found in more than half of projects: 54% have over-broad or undeclared workflow permissions.
+
+If you cannot list which fork runs your CI executed on October 19, and what they uploaded, you cannot answer "were we exposed?". That should take an hour, not a week.
+
+## Are you exposed?
+
+### The 60-second check
+
+<Aside variant="caution" title="Three quick checks">
+
+**1. The loader in your repo today** (any clone, GitHub or GitLab):
+
+~~~bash
+grep -rnE --include=package.json --exclude-dir=node_modules 'node +(\./)?api\.js *&&' .
+git ls-files | grep -E '(^|/)(api\.js|branch_structure\.json|temp_auto_push\.bat|fa-solid(-700)?\.(lkf|lfk|orc|llf|fml)|fa-solid-400\.woff2)$'
+grep -rnE --include=tasks.json --exclude-dir=node_modules '"runOn": *"folderOpen"' .
+~~~
+
+The first line finds the hook in your npm scripts. The second lists the file names StepSecurity and Jaeger report. The third finds editor tasks that run when the folder opens, the form Jaeger got. `api.js` is a common name, so confirm any hit with the hash check below; a folder-open task that runs `node` on a file in a fonts folder is a yes.
+
+**2. Ran in your CI** (since October 2026): list the artifacts your repository still serves from runs on fork code, and look at the force-push history of open outside pull requests (commands below).
+
+**3. Your pipeline settings**: no Plumber check flags this pattern today. Check by hand: Settings, Actions, General, the approval setting for fork pull request workflows, and every workflow that runs on `pull_request` and uploads artifacts.
+
+</Aside>
+
+### Detailed check
+
+Two questions, in this order:
+
+- **Exposed today**: does a branch, a clone or an open pull request carry the loader?
+- **Exposed in your CI**: did a workflow run fork code that carried it, and publish what it built? An artifact stays downloadable until it expires or someone deletes it: CircuitVerse's were set to expire in January 2027.
+
+A clean `main` today proves nothing about what your CI ran from a pull request branch.
+
+#### Your files, GitHub or GitLab
+
+~~~bash
+grep -rnE --include=package.json --exclude-dir=node_modules 'node +(\./)?api\.js *&&' .
+git ls-files | grep -E '(^|/)(api\.js|branch_structure\.json|temp_auto_push\.bat|fa-solid(-700)?\.(lkf|lfk|orc|llf|fml)|fa-solid-400\.woff2)$'
+grep -rnE --include=tasks.json --exclude-dir=node_modules '"runOn": *"folderOpen"' .
+grep -rnE --include=settings.json --exclude-dir=node_modules '"task\.allowAutomaticTasks": *("on"|true)' .
+git ls-files | grep -E '(^|/)(api\.js|fa-solid\.(lkf|lfk|orc|llf))$' | xargs -r sha256sum | grep -E '^(b02a81974810532fff8f76903e09b20431857bfaff00f2473421f4a4fb8162b5|41a69ba3946396d2d1c15f2e43be705f0793e8773dee0f3dda89a541d31c00d9|3ae470cabb9412bf5f0e64e1f71b458e14eb10b19070845597d5b8230b27d552) '
+grep -nE '.{1000}' jest.config.js postcss.config.js 2>/dev/null
+~~~
+
+- The second and third cover the Jaeger form. A `tasks.json` hit is a yes if the task runs `node` on a file in a fonts folder. The fourth finds a workspace setting that turns automatic tasks on: on a branch you did not write, read the commit that added it.
+- The fifth prints a file only if its SHA-256 matches one of the three loader files StepSecurity lists. A hit is a yes. No hash is published for the Jaeger fake font. On macOS, replace `sha256sum` with `shasum -a 256`.
+- The sixth lists lines over 1,000 characters in the two config files the loader was also appended to. A hit is worth reading, not proof.
+- Run the same commands on every open pull request branch from an outside contributor: `gh pr checkout <number>` first. Do not run `npm` or open the folder in your editor before the check comes back clean.
+
+#### GitHub Actions
+
+Artifacts built from fork code and still downloadable:
+
+~~~bash
+gh api repos/OWNER/REPO/actions/artifacts --paginate --jq '.artifacts[] | select(.expired == false and .workflow_run.head_repository_id != .workflow_run.repository_id) | [.id, .name, .created_at, .workflow_run.head_branch] | @tsv'
+~~~
+
+- Every line is an artifact a stranger's code produced. If it is an installer or a package, delete it: `gh api -X DELETE repos/OWNER/REPO/actions/artifacts/<id>`.
+- If you downloaded or shared one of them, treat the machine that ran it as compromised.
+
+Force-pushes on an outside pull request:
+
+~~~bash
+gh api repos/OWNER/REPO/issues/<PR_NUMBER>/timeline --paginate --jq '.[] | select(.event == "head_ref_force_pushed") | [.created_at, .actor.login, .commit_id] | @tsv'
+~~~
+
+- A force-push after your review means CI may have run code you have not read. Check the runs that started in that window.
+
+Then the setting that decides all of this: Settings, Actions, General, "Approval for running fork pull request workflows from contributors". Set it to "Require approval for all external contributors".
+
+#### GitLab CI
+
+By default, a merge request pipeline from a fork is created and runs in the fork's project, not yours. Members of your project can choose to run one in your project. Before you do, read the latest commit, not the merge request as you last saw it, and check that no package or release job runs for that pipeline.
+
+#### Machines, runners and images
+
+- Anyone who checked out and built one of these pull requests ran the loader too. Anyone who opened one in VS Code may have, without building: look for a `.vscode/tasks.json` with a hidden `eslint-check` task, which runs when the folder opens if automatic tasks are allowed. Jaeger's maintainers asked their reviewers exactly this question. Keep VS Code Restricted Mode on for code you have not reviewed; it does not run workspace tasks.
+- If a machine that built one of these branches shows the loader files or process, treat it as compromised and rotate its GitHub, npm, SSH and cloud credentials from a clean machine (StepSecurity).
+- Self-hosted runners that ran fork pull requests: rebuild them. GitHub-hosted runners are thrown away after each job.
+
+## The fix that would have stopped it
+
+GitHub Actions, before (CircuitVerse's desktop release workflow, trimmed):
+
+~~~yaml
+on:
+  pull_request:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  build-tauri:
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install
+        working-directory: ./src
+      - run: npx cross-env DESKTOP_MODE=true npm run build
+        working-directory: ./src
+      # ... build the desktop app ...
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+~~~
+
+After (the change merged in PR #1591 on November 26):
+
+~~~yaml
+permissions:
+  contents: read
+
+jobs:
+  build-tauri:
+    steps:
+      # ... same build ...
+      - name: Upload Artifacts
+        # Fork pull requests run untrusted code, so their builds are not published as artifacts.
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/upload-artifact@v4
+~~~
+
+Pair it with the repository setting "Require approval for all external contributors". The YAML stops the publishing; the setting stops the run. If your release job uploads assets to a GitHub release, give it `contents: write` in a job that runs only on `release`.
+
+GitLab CI, same idea: build merge requests, publish only from tags.
+
+~~~yaml
+build:
+  script:
+    - npm ci
+    - npm run build
+
+package-desktop:
+  script:
+    - npm ci
+    - npm run build:desktop
+  artifacts:
+    paths:
+      - dist/
+  rules:
+    - if: $CI_COMMIT_TAG
+~~~
+
+## Key takeaways
+
+- On October 19, 2026, account `Eternity0207` force-pushed a loader into its open pull requests on AsyncAPI, CircuitVerse, Open Food Facts and Jaeger, then removed it. One Jaeger pull request had carried it from July 12 to October 10.
+- Require approval for all external contributors on fork pull request workflows. The first-time contributor default would not have stopped an account with merged pull requests.
+- Never upload artifacts built from fork code. A release workflow that also runs on `pull_request` published 40 infected installers under a real project's name.
+- List the artifacts your repository still serves from fork runs today, and delete any installer or package among them.
+- A clean diff at review time proves nothing about what CI ran. Check the pull request timeline for force-pushes after your review.
+- Fork `pull_request` runs get no repository secrets and a read-only token. That held here: no project reported a stolen secret.
+- Anyone who built one of these pull requests locally, or opened one in VS Code outside Restricted Mode, should check for the loader files and the folder-open task, and rotate credentials from a clean machine if they find them.
+
+## Next steps
+
+- Install the Plumber app to analyze and fix your pipelines: [github.com/apps/plumber-agent](https://github.com/apps/plumber-agent)
+- Scan your pipelines with the open source CLI: [/docs/cli/github](/docs/cli/github)
+- Star [getplumber/plumber](https://github.com/getplumber/plumber)
+- Sources: [StepSecurity](https://www.stepsecurity.io/blog/polinrider-malware-open-source-pull-requests), [AsyncAPI maintainer index](https://gist.github.com/derberg/0b4b21fb0a33148c3a13ef3211414b33), [CircuitVerse issue #1586](https://github.com/CircuitVerse/cv-frontend-vue/issues/1586), [CircuitVerse PR #1591](https://github.com/CircuitVerse/cv-frontend-vue/pull/1591), [Open Food Facts issue #2267](https://github.com/openfoodfacts/openfoodfacts-explorer/issues/2267), [Jaeger issue #10279](https://github.com/jaegertracing/jaeger/issues/10279), [GitHub: Actions settings for a repository](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository), [GitLab: merge request pipelines from forks](https://docs.gitlab.com/ci/pipelines/merge_request_pipelines/)
