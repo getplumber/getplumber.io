@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="t">
+  <title id="t">The codex2api v3.1.10 to v3.1.12 attack path: how the backdoored releases were published, then how they reached a self-hosted server</title>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4E6B6B"/></marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0A0F0C"/><stop offset="100%" stop-color="#070A08"/></linearGradient>
+  </defs>
+  <rect width="1200" height="640" fill="url(#bg)" rx="16"/>
+  <text x="64" y="48" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" letter-spacing="1.8" font-weight="700" fill="#F2B544">UPSTREAM · HOW v3.1.10 TO v3.1.12 WERE PUBLISHED (NOVEMBER 23, UTC)</text>
+  <rect x="64" y="66" width="336" height="150" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="86" cy="90" r="13" fill="#F2B544"/>
+  <text x="86" y="95" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">A</text>
+  <text x="108" y="95" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">A forgotten token</text>
+  <text x="80" y="120" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">Per the maintainer, an old server held</text>
+  <text x="80" y="139" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">the owner's GitHub token, and that</text>
+  <text x="80" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">server was compromised.</text>
+  <line x1="404" y1="141.0" x2="442" y2="141.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="446" y="66" width="336" height="150" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="468" cy="90" r="13" fill="#F2B544"/>
+  <text x="468" y="95" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">B</text>
+  <text x="490" y="95" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">Tags on no branch</text>
+  <text x="462" y="120" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">05:19 to 06:03: unsigned commits by</text>
+  <text x="462" y="139" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">build@codex2api.local</text>
+  <text x="462" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">tagged v3.1.10, v3.1.11, v3.1.12.</text>
+  <text x="462" y="177" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">No tag ruleset, no pull request.</text>
+  <line x1="786" y1="141.0" x2="824" y2="141.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="828" y="66" width="336" height="150" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="850" cy="90" r="13" fill="#F2B544"/>
+  <text x="850" y="95" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">C</text>
+  <text x="872" y="95" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">The project's Release workflow</text>
+  <text x="844" y="120" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">Every v* tag push builds and publishes.</text>
+  <text x="844" y="139" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">06:01: v3.1.11 becomes the latest</text>
+  <text x="844" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">GitHub release, with checksums from</text>
+  <text x="844" y="177" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">the same job. Nothing is signed.</text>
+  <path d="M 996.0 216 L 996.0 246 L 42 246 L 42 410.0 L 59 410.0" fill="none" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="76" y="266" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#93A3A3">"latest" follows the newest tag: downloads, the in-app updater and floating image tags</text>
+  <text x="64" y="304" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" letter-spacing="1.8" font-weight="700" fill="#09C3C3">YOUR DEPLOYMENT · HOW IT REACHED YOUR SERVER</text>
+  <rect x="64" y="322" width="200" height="176" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="86" cy="346" r="13" fill="#09C3C3"/>
+  <text x="86" y="351" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">1</text>
+  <text x="108" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">Entry point</text>
+  <text x="80" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">Download of the latest</text>
+  <text x="80" y="395" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">release, the in-app</text>
+  <text x="80" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">updater, or an image on</text>
+  <text x="80" y="433" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">:latest  :3.1</text>
+  <line x1="267" y1="410.0" x2="285" y2="410.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="288" y="322" width="200" height="176" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="310" cy="346" r="13" fill="#09C3C3"/>
+  <text x="310" y="351" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">2</text>
+  <text x="332" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">Open door</text>
+  <text x="304" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">Per the maintainer, the</text>
+  <text x="304" y="395" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">build lets anyone who</text>
+  <text x="304" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">reaches the server run</text>
+  <text x="304" y="433" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">commands, with no login.</text>
+  <line x1="491" y1="410.0" x2="509" y2="410.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="512" y="322" width="200" height="176" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="534" cy="346" r="13" fill="#09C3C3"/>
+  <text x="534" y="351" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">3</text>
+  <text x="556" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">What was reachable</text>
+  <text x="528" y="376" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">ADMIN_SECRET</text>
+  <text x="528" y="395" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">database, Redis,</text>
+  <text x="528" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">issued API keys,</text>
+  <text x="528" y="433" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">upstream OAuth and</text>
+  <text x="528" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">session tokens.</text>
+  <line x1="715" y1="410.0" x2="733" y2="410.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="736" y="322" width="200" height="176" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="758" cy="346" r="13" fill="#09C3C3"/>
+  <text x="758" y="351" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">4</text>
+  <text x="780" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">What to look for</text>
+  <text x="752" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">Access log requests</text>
+  <text x="752" y="395" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">to paths starting with</text>
+  <text x="752" y="414" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#9CF3F3">/i674</text>
+  <text x="752" y="433" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">and unexpected outbound</text>
+  <text x="752" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">connections.</text>
+  <line x1="939" y1="410.0" x2="957" y2="410.0" stroke="#4E6B6B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="960" y="322" width="200" height="176" rx="12" fill="#0E1411" stroke="#192B2B" stroke-width="1.5"/>
+  <circle cx="982" cy="346" r="13" fill="#09C3C3"/>
+  <text x="982" y="351" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#06110F">5</text>
+  <text x="1004" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#FFFFFF">Cleanup</text>
+  <text x="976" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">Isolate, keep the logs,</text>
+  <text x="976" y="395" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">deploy v3.2.0 on a new</text>
+  <text x="976" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">host, then rotate every</text>
+  <text x="976" y="433" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">secret from a trusted</text>
+  <text x="976" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#C5CFCB">device.</text>
+  <rect x="64" y="526" width="1072" height="78" rx="11" fill="#061A1A" stroke="#2AC7C7" stroke-width="1.5"/>
+  <text x="84" y="549" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" letter-spacing="1.5" font-weight="700" fill="#2AC7C7">WHERE IT BREAKS</text>
+  <text x="84" y="571" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF">Step C never publishes with a tag ruleset, a release job that only ships commits on main after a</text>
+  <text x="84" y="592" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF">reviewer approves, and signed assets the updater checks. On your side: pin a version, not latest.</text>
+</svg>
